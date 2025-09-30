@@ -15,15 +15,17 @@ import CandidateListPage from './pages/Admin/CandidateListPage';
 import CampaignListPage from './pages/Admin/CampaignListPage';
 import RecruiterListPage from './pages/Admin/RecruiterListPage';
 import MainPage from './pages/MainPage';
-import Signin from './pages/Signin';
 import Signup from './pages/Signup';
 import OTP from './pages/OTP';
 import HomePage from './pages/Candidate/HomePage';
 import Settings from './pages/Candidate/Settings';
 import Contact from './pages/Candidate/Contact';
+import Recruiment from './pages/Candidate/Recruiment';
+import Apply from './pages/Candidate/Apply';
 import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
+import CreateCampaign from './pages/Recruiter/CreateCampaign';
 
 function App() {
   return (
@@ -38,7 +40,6 @@ function App() {
             <Footer />
           </>
         } />
-        <Route path="/signin" element={<Signin />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/otp" element={<OTP />} />
         <Route path="/forgot-password" element={<Forget />} />
@@ -56,11 +57,27 @@ function App() {
             <Footer />
           </>
         } />
+        <Route path="/recruitment" element={
+          <>
+            <Navbar />
+            <Recruiment />
+            <Footer />
+          </>
+        } />
+        <Route path="/apply" element={<Apply />} />
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />
             <main className="flex-1 overflow-auto">
               <Campaign />
+            </main>
+          </div>
+        } />
+        <Route path="/recruiter/campaigns/create" element={
+          <div className="flex h-screen bg-gray-50">
+            <SidebarRecruiter />
+            <main className="flex-1 overflow-auto">
+              <CreateCampaign />
             </main>
           </div>
         } />

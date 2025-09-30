@@ -29,7 +29,7 @@ const OTP = () => {
         setTimeout(() => {
             setIsSubmitting(false);
             // Sau khi xác thực OTP thành công chuyển sang đăng nhập
-            navigate('/signin');
+            navigate('/');
         }, 800);
     };
 
@@ -66,7 +66,7 @@ const OTP = () => {
 
                     <button
                         type="button"
-                        onClick={() => navigate('/signin')}
+                        onClick={() => navigate('/')}
                         className="w-full py-2 rounded-lg text-blue-800 font-medium bg-blue-50 hover:bg-blue-100"
                     >
                         {t('otp_skip')}
