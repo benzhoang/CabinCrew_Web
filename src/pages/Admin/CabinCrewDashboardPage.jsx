@@ -30,6 +30,8 @@ const CabinCrewDashboardPage = () => {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.6,
           plugins: { legend: { position: 'bottom' } }
         }
         })
@@ -55,6 +57,8 @@ const CabinCrewDashboardPage = () => {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.6,
           plugins: { legend: { position: 'bottom' } },
           scales: { y: { beginAtZero: true } }
         }

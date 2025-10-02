@@ -47,6 +47,7 @@ const MainPage = () => {
     });
     const [lang, setLangState] = useState(getLang());
     const [showPassword, setShowPassword] = useState(false);
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
 
@@ -147,7 +148,7 @@ const MainPage = () => {
                         navigate('/recruiter/campaigns');
                         break;
                     case 'airline-partner':
-                        navigate('/airline-partner/dashboard');
+                        navigate('/airline-partner/campaigns');
                         break;
                     default:
                         alert('Role không được hỗ trợ');
@@ -359,20 +360,42 @@ const MainPage = () => {
                                     </div>
 
                                     {/* Password */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            {t('password_label')}
-                                        </label>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('password_label')}
+                                    </label>
+                                    <div className="relative">
                                         <input
-                                            type="password"
                                             name="password"
+                                            type={showAdminPassword ? 'text' : 'password'}
+                                            autoComplete="current-password"
                                             value={adminLoginData.password}
                                             onChange={handleAdminInputChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200"
+                                            className="w-full pr-12 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
                                             placeholder={t('password_placeholder')}
-
                                         />
+                                        <button
+                                            type="button"
+                                            aria-label={showAdminPassword ? t('password_hide') : t('password_show')}
+                                            onClick={() => setShowAdminPassword((v) => !v)}
+                                            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                                        >
+                                            {showAdminPassword ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+                                                    <path d="M3 3l18 18" />
+                                                    <path d="M10.584 10.59a2 2 0 102.828 2.83" />
+                                                    <path d="M16.681 16.69A10.941 10.941 0 0112 18c-5 0-9-4.5-10-6 0 0 1.273-1.947 3.5-3.6M14.12 5.11A10.94 10.94 0 0112 6c5 0 9 4.5 10 6 0 0-1.055 1.615-2.94 3.17" />
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            )}
+                                        </button>
                                     </div>
+                                </div>
+
 
                                     {/* Login Button */}
                                     <button

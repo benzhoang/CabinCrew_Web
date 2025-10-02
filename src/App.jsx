@@ -27,6 +27,12 @@ import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
 import CreateCampaign from './pages/Recruiter/CreateCampaign';
 import Screening from './pages/Recruiter/Screening';
+import CampaignPage from "./pages/AirlinePartner/CampaignPage";
+import AirlinePartnerLayout from "./layout/AirlinePartnerLayout";
+import ReportPage from "./pages/AirlinePartner/ReportPage";
+import CampaignDetailPage from './pages/AirlinePartner/CampaignDetailPage';
+import CandidateDetail from './pages/AirlinePartner/CandidateDetail';
+import CreateCampaignInfo from './pages/AirlinePartner/CreateCampaignInfo';
 
 function App() {
   return (
@@ -109,6 +115,15 @@ function App() {
         <Route path="/admin/account/candidates" element={<AdminLayout><CandidateListPage /></AdminLayout>} />
         <Route path="/admin/account/airline-partners" element={<AdminLayout><AirlinePartnerListPage /></AdminLayout>} />
         <Route path="/admin/campaigns" element={<AdminLayout><CampaignListPage /></AdminLayout>} />
+      </Routes>
+
+      {/* Airline Partner Routes */}
+      <Routes>
+        <Route path="/airline-partner/campaigns" element={<AirlinePartnerLayout><CampaignPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/:id" element={<AirlinePartnerLayout><CampaignDetailPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/:id/candidates/:candidateId" element={<AirlinePartnerLayout><CandidateDetail /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfo /></AirlinePartnerLayout>} />
       </Routes>
     </BrowserRouter>
   );
