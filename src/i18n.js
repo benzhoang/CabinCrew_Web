@@ -216,7 +216,7 @@ const dictionaries = {
         candidate_title: 'Ứng viên',
         candidate_desc: 'Tìm kiếm cơ hội nghề nghiệp',
         candidate_desc_detail: 'Đăng nhập để xem các vị trí tuyển dụng',
-        admin_hr_title: 'Admin - HR',
+        admin_hr_title: 'Nhân viên',
         admin_hr_desc: 'Quản lý hệ thống',
         admin_hr_desc_detail: 'Đăng nhập với tài khoản quản trị',
         select_role: 'Chọn vai trò',
@@ -243,6 +243,10 @@ const dictionaries = {
         // Recruiter :: Campaign
         campaign_create_button: 'Tạo Campaign',
         campaign_create_feature: 'Chức năng tạo campaign sẽ được triển khai',
+        // Loading
+        loading_default_message: 'Đang tải...',
+        loading_please_wait: 'Vui lòng chờ trong giây lát...',
+        loading_authenticating: 'Đang xác thực thông tin đăng nhập...',
     },
     en: {
         home: 'Home',
@@ -457,7 +461,7 @@ const dictionaries = {
         candidate_title: 'Candidate',
         candidate_desc: 'Find career opportunities',
         candidate_desc_detail: 'Sign in to view available positions',
-        admin_hr_title: 'Admin - HR',
+        admin_hr_title: 'Employee',
         admin_hr_desc: 'System Management',
         admin_hr_desc_detail: 'Sign in with admin account',
         select_role: 'Select Role',
@@ -484,6 +488,10 @@ const dictionaries = {
         // Recruiter :: Campaign
         campaign_create_button: 'Create Campaign',
         campaign_create_feature: 'Create campaign feature will be implemented',
+        // Loading
+        loading_default_message: 'Loading...',
+        loading_please_wait: 'Please wait a moment...',
+        loading_authenticating: 'Authenticating login information...',
     },
 };
 

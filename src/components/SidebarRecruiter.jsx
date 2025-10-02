@@ -50,7 +50,6 @@ const LogoutIcon = ({ className = '' }) => (
 
 const navItems = [
     { to: '/recruiter/campaigns', key: 'sidebar_campaign', icon: CampaignIcon },
-    { to: '/applications', key: 'sidebar_screening', icon: FolderIcon },
     { to: '/interviews', key: 'sidebar_interviews', icon: MicIcon },
     { to: '/scoring', key: 'sidebar_evaluation', icon: StarIcon },
 ]

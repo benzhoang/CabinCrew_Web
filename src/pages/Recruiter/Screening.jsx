@@ -1,0 +1,590 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { onLangChange } from '../../i18n'
+
+// Mock data giống Campaign.jsx
+const mockCampaigns = [
+    {
+        id: 1,
+        name: 'Tuyển dụng Tiếp viên hàng không 2024',
+        position: 'Flight Attendant',
+        department: 'Cabin Crew',
+        status: 'active',
+        startDate: '2024-01-15',
+        endDate: '2024-03-15',
+        targetHires: 20,
+        currentHires: 8,
+        description: 'Tuyển dụng tiếp viên hàng không cho các chuyến bay nội địa và quốc tế',
+        requirements: 'Tiếng Anh tốt, Chiều cao 1.60m+, Kỹ năng giao tiếp, Sức khỏe tốt'
+    },
+    {
+        id: 2,
+        name: 'Chiến dịch Pilot Training',
+        position: 'Pilot',
+        department: 'Flight Operations',
+        status: 'completed',
+        startDate: '2024-01-01',
+        endDate: '2024-02-28',
+        targetHires: 5,
+        currentHires: 5,
+        description: 'Tuyển dụng và đào tạo phi công cho đội bay mới',
+        requirements: 'Bằng lái máy bay, Kinh nghiệm bay, Tiếng Anh thành thạo'
+    },
+    {
+        id: 3,
+        name: 'Ground Staff Campaign',
+        position: 'Ground Staff',
+        department: 'Ground Operations',
+        status: 'paused',
+        startDate: '2024-02-01',
+        endDate: '2024-04-30',
+        targetHires: 15,
+        currentHires: 6,
+        description: 'Tuyển dụng nhân viên mặt đất cho sân bay',
+        requirements: 'Kỹ năng xử lý hành lý, Giao tiếp tốt, Làm việc ca'
+    },
+    {
+        id: 4,
+        name: 'Customer Service Expansion',
+        position: 'Customer Service Agent',
+        department: 'Customer Service',
+        status: 'active',
+        startDate: '2024-02-15',
+        endDate: '2024-05-15',
+        targetHires: 12,
+        currentHires: 4,
+        description: 'Mở rộng đội ngũ chăm sóc khách hàng',
+        requirements: 'Kỹ năng giao tiếp, Tiếng Anh, Xử lý tình huống'
+    },
+    {
+        id: 5,
+        name: 'Maintenance Team',
+        position: 'Aircraft Mechanic',
+        department: 'Maintenance',
+        status: 'active',
+        startDate: '2024-03-01',
+        endDate: '2024-06-30',
+        targetHires: 8,
+        currentHires: 2,
+        description: 'Tuyển dụng kỹ thuật viên bảo trì máy bay',
+        requirements: 'Bằng kỹ thuật, Kinh nghiệm bảo trì, An toàn lao động'
+    }
+]
+
+// Mock data for applicants
+const mockApplicants = [
+    {
+        id: 1,
+        name: 'Nguyễn Thị Lan',
+        email: 'lan.nguyen@email.com',
+        phone: '0901234567',
+        position: 'Flight Attendant',
+        appliedDate: '2024-10-15',
+        status: 'pending',
+        score: null,
+        experience: '2 năm',
+        education: 'Đại học Ngoại thương',
+        languages: ['Tiếng Việt', 'Tiếng Anh'],
+        batchName: 'Đợt 1',
+        campaignId: 1
+    },
+    {
+        id: 2,
+        name: 'Trần Văn Minh',
+        email: 'minh.tran@email.com',
+        phone: '0912345678',
+        position: 'Flight Attendant',
+        appliedDate: '2024-10-16',
+        status: 'approved',
+        score: 85,
+        experience: '3 năm',
+        education: 'Đại học Bách khoa',
+        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'],
+        batchName: 'Đợt 1',
+        campaignId: 1
+    },
+    {
+        id: 3,
+        name: 'Lê Thị Hương',
+        email: 'huong.le@email.com',
+        phone: '0923456789',
+        position: 'Flight Attendant',
+        appliedDate: '2024-10-17',
+        status: 'rejected',
+        score: 65,
+        experience: '1 năm',
+        education: 'Cao đẳng Du lịch',
+        languages: ['Tiếng Việt', 'Tiếng Anh'],
+        batchName: 'Đợt 1',
+        campaignId: 1
+    },
+    {
+        id: 4,
+        name: 'Phạm Văn Đức',
+        email: 'duc.pham@email.com',
+        phone: '0934567890',
+        position: 'Flight Attendant',
+        appliedDate: '2024-10-18',
+        status: 'pending',
+        score: null,
+        experience: '4 năm',
+        education: 'Đại học Kinh tế',
+        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Hàn'],
+        batchName: 'Đợt 1',
+        campaignId: 1
+    },
+    {
+        id: 5,
+        name: 'Võ Thị Mai',
+        email: 'mai.vo@email.com',
+        phone: '0945678901',
+        position: 'Flight Attendant',
+        appliedDate: '2024-10-19',
+        status: 'interview',
+        score: 78,
+        experience: '2 năm',
+        education: 'Đại học Sư phạm',
+        languages: ['Tiếng Việt', 'Tiếng Anh'],
+        batchName: 'Đợt 1',
+        campaignId: 1
+    }
+]
+
+const Screening = () => {
+    const [campaigns, setCampaigns] = useState(mockCampaigns)
+    const [filteredCampaigns, setFilteredCampaigns] = useState(mockCampaigns)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState('active')
+    const [departmentFilter, setDepartmentFilter] = useState('all')
+    const [, setLangVersion] = useState(0)
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    // Check if we're viewing a specific batch
+    const batchData = location.state
+    const isViewingBatch = batchData && batchData.batchName && batchData.campaignId
+
+    useEffect(() => {
+        const off = onLangChange(() => setLangVersion(v => v + 1))
+        return () => off()
+    }, [])
+
+    useEffect(() => {
+        let filtered = campaigns
+
+        // Mặc định chỉ xem campaign đang hoạt động trên Screening
+        filtered = filtered.filter(c => c.status === 'active')
+
+        if (searchTerm) {
+            filtered = filtered.filter(campaign =>
+                campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                campaign.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                campaign.department.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+        }
+
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter(campaign => campaign.status === statusFilter)
+        }
+
+        if (departmentFilter !== 'all') {
+            filtered = filtered.filter(campaign => campaign.department === departmentFilter)
+        }
+
+        setFilteredCampaigns(filtered)
+    }, [campaigns, searchTerm, statusFilter, departmentFilter])
+
+    const getStatusBadge = (status) => {
+        const statusConfig = {
+            active: { color: 'bg-green-100 text-green-800', text: 'Đang hoạt động' },
+            completed: { color: 'bg-blue-100 text-blue-800', text: 'Hoàn thành' },
+            paused: { color: 'bg-yellow-100 text-yellow-800', text: 'Tạm dừng' }
+        }
+        const config = statusConfig[status] || statusConfig.active
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                {config.text}
+            </span>
+        )
+    }
+
+    const percent = (current, target) => {
+        if (!target || target <= 0) return 0
+        const p = Math.round((Number(current || 0) / Number(target)) * 100)
+        return Math.max(0, Math.min(100, p))
+    }
+
+    const getBatchStatusCfg = (status) => {
+        const map = {
+            ongoing: { text: 'Đang diễn ra', color: 'bg-green-100 text-green-700' },
+            completed: { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-700' },
+            planned: { text: 'Đã lên kế hoạch', color: 'bg-slate-100 text-slate-700' },
+            upcoming: { text: 'Sắp diễn ra', color: 'bg-yellow-100 text-yellow-800' },
+            paused: { text: 'Tạm dừng', color: 'bg-orange-100 text-orange-700' },
+            cancelled: { text: 'Hủy', color: 'bg-red-100 text-red-700' },
+        }
+        return map[status] || map.planned
+    }
+
+    const buildBatches = (campaign) => {
+        // Lấy thông tin giống DetailInfo.jsx khi thiếu dữ liệu
+        if (Array.isArray(campaign?.batches) && campaign.batches.length) return campaign.batches
+        const current = Number(campaign?.currentHires ?? 0)
+        const target = campaign?.targetHires
+        return [
+            { name: 'Đợt 1', time: `${campaign?.startDate || '—'} - ${campaign?.endDate || '—'}`, location: '—', method: 'Trực tiếp', owner: '—', status: 'ongoing', current, target, note: 'Phỏng vấn vòng 1' },
+        ]
+    }
+
+    // Tổng quan để làm header metrics
+    const overview = useMemo(() => {
+        const list = filteredCampaigns
+            .map(c => ({ ...c, batches: buildBatches(c).filter(b => b.status === 'ongoing') }))
+            .filter(c => c.batches.length > 0)
+        const totalCampaigns = list.length
+        const totalBatches = list.reduce((acc, c) => acc + c.batches.length, 0)
+        const totalApplicants = list.reduce((acc, c) => acc + c.batches.reduce((s, b) => s + Number(b.current || 0), 0), 0)
+        return { totalCampaigns, totalBatches, totalApplicants }
+    }, [filteredCampaigns])
+
+    // Filter applicants for specific batch
+    const filteredApplicants = useMemo(() => {
+        if (!isViewingBatch) return []
+        return mockApplicants.filter(applicant =>
+            applicant.campaignId === batchData.campaignId &&
+            applicant.batchName === batchData.batchName
+        )
+    }, [isViewingBatch, batchData])
+
+    const getApplicantStatusBadge = (status) => {
+        const statusConfig = {
+            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
+            approved: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
+            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
+            interview: { color: 'bg-blue-100 text-blue-800', text: 'Phỏng vấn' }
+        }
+        const config = statusConfig[status] || statusConfig.pending
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                {config.text}
+            </span>
+        )
+    }
+
+    const handleStatusChange = (applicantId, newStatus) => {
+        // Handle status change logic here
+        console.log(`Changing status of applicant ${applicantId} to ${newStatus}`)
+    }
+
+    const goBackToCampaigns = () => {
+        navigate('/recruiter/campaigns')
+    }
+
+    if (isViewingBatch) {
+        // Render applicant list view
+        return (
+            <div className="">
+                {/* Page hero */}
+                <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                    <div className="max-w-7xl mx-auto px-6 py-8">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={goBackToCampaigns}
+                                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {batchData.batchName}</h1>
+                                <p className="text-white/90 mt-1 text-sm">Sàng lọc và đánh giá ứng viên cho đợt tuyển dụng</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    {/* Batch Info */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Thông tin đợt tuyển</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <span className="text-sm text-slate-600">Tên đợt:</span>
+                                <p className="font-medium text-slate-800">{batchData.batchName}</p>
+                            </div>
+                            <div>
+                                <span className="text-sm text-slate-600">Thời gian:</span>
+                                <p className="font-medium text-slate-800">{batchData.batch?.time || '—'}</p>
+                            </div>
+                            <div>
+                                <span className="text-sm text-slate-600">Địa điểm:</span>
+                                <p className="font-medium text-slate-800">{batchData.batch?.location || '—'}</p>
+                            </div>
+                            <div>
+                                <span className="text-sm text-slate-600">Chỉ tiêu:</span>
+                                <p className="font-medium text-slate-800">{batchData.batch?.current || 0}/{batchData.batch?.target || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Applicants List */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                        <div className="p-6 border-b border-slate-200">
+                            <h3 className="text-lg font-semibold text-slate-800">Danh sách ứng viên ({filteredApplicants.length})</h3>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-slate-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kinh nghiệm</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ngày ứng tuyển</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-slate-200">
+                                    {filteredApplicants.map((applicant) => (
+                                        <tr key={applicant.id} className="hover:bg-slate-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-slate-900">{applicant.name}</div>
+                                                    <div className="text-sm text-slate-500">{applicant.education}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-slate-900">{applicant.email}</div>
+                                                <div className="text-sm text-slate-500">{applicant.phone}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-slate-900">{applicant.experience}</div>
+                                                <div className="text-sm text-slate-500">{applicant.languages.join(', ')}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                                                {applicant.appliedDate}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {getApplicantStatusBadge(applicant.status)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                                                {applicant.score ? `${applicant.score}/100` : '—'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex gap-2">
+                                                    <button className="text-blue-600 hover:text-blue-900">Xem</button>
+                                                    <button className="text-green-600 hover:text-green-900">Duyệt</button>
+                                                    <button className="text-red-600 hover:text-red-900">Từ chối</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {filteredApplicants.length === 0 && (
+                            <div className="p-12 text-center">
+                                <p className="text-slate-500">Chưa có ứng viên nào cho đợt này</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="">
+            {/* Page hero */}
+            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <h1 className="text-2xl md:text-3xl font-extrabold">Screening</h1>
+                    <p className="text-white/90 mt-1 text-sm">Theo dõi các đợt đang diễn ra và số người đang ứng tuyển</p>
+                </div>
+            </div>
+
+            {/* Overview cards */}
+            <div className="max-w-7xl mx-auto px-6 -mt-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                        <div className="text-xs text-slate-500">Chiến dịch hoạt động</div>
+                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalCampaigns}</div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                        <div className="text-xs text-slate-500">Đợt đang diễn ra</div>
+                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalBatches}</div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                        <div className="text-xs text-slate-500">Người đang ứng tuyển</div>
+                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalApplicants}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 pb-8 space-y-6">
+                {/* Bộ lọc */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên, vị trí, phòng ban..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="all">Tất cả</option>
+                                <option value="active">Đang hoạt động</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="paused">Tạm dừng</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
+                            <select
+                                value={departmentFilter}
+                                onChange={(e) => setDepartmentFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                <option value="all">Tất cả</option>
+                                <option value="Cabin Crew">Cabin Crew</option>
+                                <option value="Flight Operations">Flight Operations</option>
+                                <option value="Ground Operations">Ground Operations</option>
+                                <option value="Customer Service">Customer Service</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Danh sách Campaign */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+                    <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-800">Chiến dịch đang hoạt động ({filteredCampaigns.length})</h3>
+                        <div className="text-xs text-slate-500">Chỉ hiển thị các đợt đang diễn ra</div>
+                    </div>
+
+                    <div className="divide-y divide-slate-200">
+                        {filteredCampaigns.map((campaign) => {
+                            const batches = buildBatches(campaign)
+                            const ongoingBatches = (batches || []).filter(b => b.status === 'ongoing')
+                            if (ongoingBatches.length === 0) return null
+                            return (
+                                <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
+                                    {/* Header campaign */}
+                                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex flex-wrap items-center gap-3 mb-2">
+                                                <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
+                                                {getStatusBadge(campaign.status)}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                                <div>
+                                                    <span className="text-sm text-slate-600">Vị trí:</span>
+                                                    <p className="font-medium text-slate-800">{campaign.position}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-slate-600">Phòng ban:</span>
+                                                    <p className="font-medium text-slate-800">{campaign.department}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm text-slate-600">Thời gian:</span>
+                                                    <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Các đợt đang diễn ra */}
+                                            <div className="mt-4">
+                                                <div className="text-sm text-slate-700 mb-2">Đợt đang diễn ra</div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {ongoingBatches.map((b, i) => {
+                                                        const statusCfg = getBatchStatusCfg(b.status)
+                                                        const p = percent(b.current, b.target)
+                                                        return (
+                                                            <div key={i} className="rounded-lg border border-slate-200 bg-white/90 backdrop-blur-sm shadow-sm overflow-hidden">
+                                                                <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                                                                    <div className="text-sm font-semibold text-slate-800">{b.name}</div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>{statusCfg.text}</span>
+                                                                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{b.current ?? 0} người</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-4 space-y-3">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                                                        <InfoMini label="Thời gian" value={b.time || '—'} />
+                                                                        <InfoMini label="Địa điểm" value={b.location || '—'} />
+                                                                        <InfoMini label="Hình thức" value={b.method || '—'} />
+                                                                        {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
+                                                                        {b.target !== undefined && (
+                                                                            <InfoMini label="Chỉ tiêu" value={`${b.current ?? 0}/${b.target}`} />
+                                                                        )}
+                                                                        {b.note && <InfoMini label="Ghi chú" value={b.note} />}
+                                                                    </div>
+                                                                    {b.target !== undefined && (
+                                                                        <div>
+                                                                            <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+                                                                                <span>Tiến độ</span>
+                                                                                <span>{p}%</span>
+                                                                            </div>
+                                                                            <div className="w-full bg-slate-200 rounded-full h-2">
+                                                                                <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${p}%` }}></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Actions */}
+                                        <div className="shrink-0 flex md:flex-col gap-2">
+                                            <button
+                                                onClick={() => navigate(`/recruiter/campaigns/${campaign.id}`, { state: { campaign } })}
+                                                className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm"
+                                            >
+                                                Xem chi tiết
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {filteredCampaigns.length === 0 && (
+                        <div className="p-12 text-center">
+                            <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const InfoMini = ({ label, value }) => (
+    <div>
+        <div className="text-slate-500">{label}</div>
+        <div className="text-slate-800 font-medium">{value}</div>
+    </div>
+)
+
+export default Screening
+
+

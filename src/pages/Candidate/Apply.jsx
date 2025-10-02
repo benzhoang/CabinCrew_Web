@@ -69,22 +69,94 @@ const Apply = () => {
                                     <div className="text-sm text-slate-600 mb-2">Kế hoạch các đợt tuyển</div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {(Array.isArray(campaign.batches) && campaign.batches.length ? campaign.batches : [
-                                            { name: 'Đợt 1', time: `${campaign.startDate || '—'} - ${campaign.endDate || '—'}`, location: campaign.location || '—', method: 'Trực tiếp', status: 'ongoing' },
-                                            { name: 'Đợt 2', time: '—', location: '—', method: 'Online', status: 'planned' }
+                                            {
+                                                name: 'Đợt 1',
+                                                time: `${campaign.startDate || '2025-10-01'} - ${campaign.endDate || '2025-10-15'}`,
+                                                location: campaign.location || 'Hà Nội',
+                                                method: 'Trực tiếp',
+                                                status: 'completed',
+                                                owner: 'HR Team A',
+                                                description: 'Tuyển dụng trực tiếp tại văn phòng Hà Nội',
+                                                slots: 50,
+                                                applied: 45
+                                            },
+                                            {
+                                                name: 'Đợt 2',
+                                                time: '2025-11-01 - 2025-11-20',
+                                                location: 'TP.HCM',
+                                                method: 'Trực tiếp + Online',
+                                                status: 'ongoing',
+                                                owner: 'HR Team B',
+                                                description: 'Tuyển dụng kết hợp trực tiếp và online tại TP.HCM',
+                                                slots: 80,
+                                                applied: 32
+                                            },
+                                            {
+                                                name: 'Đợt 3',
+                                                time: '2025-12-01 - 2025-12-15',
+                                                location: 'Đà Nẵng',
+                                                method: 'Online',
+                                                status: 'upcoming',
+                                                owner: 'HR Team C',
+                                                description: 'Tuyển dụng online cho khu vực miền Trung',
+                                                slots: 30,
+                                                applied: 0
+                                            }
                                         ]).map((b, i) => (
                                             <div key={i} className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
                                                 <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                                                     <div className="text-sm font-semibold text-slate-800">{b.name}</div>
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${b.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800' : b.status === 'planned' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700'}`}>{b.status === 'upcoming' ? 'Sắp diễn ra' : b.status === 'planned' ? 'Đã lên kế hoạch' : 'Đang diễn ra'}</span>
+                                                    <span className={`text-xs px-2 py-1 rounded-full ${b.status === 'completed' ? 'bg-red-100 text-red-700' :
+                                                        b.status === 'ongoing' ? 'bg-green-100 text-green-700' :
+                                                            'bg-yellow-100 text-yellow-700'
+                                                        }`}>
+                                                        {b.status === 'completed' ? 'Đã hoàn thành' :
+                                                            b.status === 'ongoing' ? 'Đang diễn ra' :
+                                                                'Sắp diễn ra'}
+                                                    </span>
                                                 </div>
-                                                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                                    <InfoMini label="Thời gian" value={b.time || '—'} />
-                                                    <InfoMini label="Địa điểm" value={b.location || '—'} />
-                                                    <InfoMini label="Hình thức" value={b.method || '—'} />
-                                                    {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
+                                                <div className="p-4 space-y-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                                        <InfoMini label="Thời gian" value={b.time || '—'} />
+                                                        <InfoMini label="Địa điểm" value={b.location || '—'} />
+                                                        <InfoMini label="Hình thức" value={b.method || '—'} />
+                                                        {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
+                                                        {b.slots && <InfoMini label="Số lượng tuyển" value={`${b.slots} người`} />}
+                                                        {b.applied !== undefined && <InfoMini label="Đã ứng tuyển" value={`${b.applied} người`} />}
+                                                    </div>
+                                                    {b.description && (
+                                                        <div className="text-xs">
+                                                            <div className="text-slate-500 mb-1">Mô tả</div>
+                                                            <div className="text-slate-700 bg-slate-50 p-2 rounded border">{b.description}</div>
+                                                        </div>
+                                                    )}
+                                                    {b.slots && b.applied !== undefined && (
+                                                        <div className="text-xs">
+                                                            <div className="text-slate-500 mb-1">Tiến độ ứng tuyển</div>
+                                                            <div className="bg-gray-200 rounded-full h-2">
+                                                                <div
+                                                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                                                    style={{ width: `${Math.min((b.applied / b.slots) * 100, 100)}%` }}
+                                                                ></div>
+                                                            </div>
+                                                            <div className="text-slate-600 mt-1">{b.applied}/{b.slots} ({Math.round((b.applied / b.slots) * 100)}%)</div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="px-4 pb-4 pt-0 flex items-center justify-end">
-                                                    <button className="px-5 py-2.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold">Ứng tuyển ngay</button>
+                                                    {b.status === 'completed' ? (
+                                                        <button disabled className="px-5 py-2.5 rounded-md bg-gray-400 text-white text-sm font-semibold cursor-not-allowed">
+                                                            Đã kết thúc
+                                                        </button>
+                                                    ) : b.status === 'ongoing' ? (
+                                                        <button className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold">
+                                                            Ứng tuyển ngay
+                                                        </button>
+                                                    ) : (
+                                                        <button disabled className="px-5 py-2.5 rounded-md bg-yellow-500 text-white text-sm font-semibold cursor-not-allowed">
+                                                            Chưa mở đăng ký
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}

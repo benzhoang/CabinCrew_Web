@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { t, onLangChange } from '../../i18n';
 
 const HomePage = () => {
@@ -44,15 +45,13 @@ const HomePage = () => {
                             </p>
 
                             <div className="mt-8">
-                                <a
-                                    href="https://www.emiratesgroupcareers.com/cabin-crew/?utm_source=google&utm_medium=cpc&utm_campaign=M_Google_EN_P2_APAC-AMER_Generic_Recruitment&utm_adgroup=Generic_Recruitment_EN_E&utm_term=application+for+cabin+crew&gad_source=1&gad_campaignid=21523954705&gclid=CjwKCAjwz5nGBhBBEiwA-W6XRNJQr3Af4PboK70N0dBgMKUBkcu-Li6IiG_gp-2twxto5V7xIAotLBoCoYYQAvD_BwE"
-                                    target="_blank"
-                                    rel="noreferrer"
+                                <Link
+                                    to="/recruitment"
                                     className="inline-flex items-center px-6 py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600"
                                 >
                                     {t('hero_cta')}
                                     <span className="ml-2">→</span>
-                                </a>
+                                </Link>
                             </div>
 
                             <ul className="mt-8 space-y-2 text-sm text-gray-600">
@@ -347,21 +346,19 @@ const HomePage = () => {
                         {t('cta_subtitle')}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a
-                            href="https://www.emiratesgroupcareers.com/cabin-crew/?utm_source=google&utm_medium=cpc&utm_campaign=M_Google_EN_P2_APAC-AMER_Generic_Recruitment&utm_adgroup=Generic_Recruitment_EN_E&utm_term=application+for+cabin+crew&gad_source=1&gad_campaignid=21523954705&gclid=CjwKCAjwz5nGBhBBEiwA-W6XRNJQr3Af4PboK70N0dBgMKUBkcu-Li6IiG_gp-2twxto5V7xIAotLBoCoYYQAvD_BwE"
-                            target="_blank"
-                            rel="noreferrer"
+                        <Link
+                            to="/recruitment"
                             className="inline-flex items-center px-8 py-4 rounded-xl text-blue-600 bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white font-semibold"
                         >
                             {t('cta_primary')}
                             <span className="ml-2">→</span>
-                        </a>
-                        <a
-                            href="#requirements"
+                        </Link>
+                        <Link
+                            to="/contact"
                             className="inline-flex items-center px-8 py-4 rounded-xl text-white border-2 border-white hover:bg-white hover:text-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white font-semibold"
                         >
                             {t('cta_secondary')}
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </section>

@@ -26,6 +26,7 @@ import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
 import CreateCampaign from './pages/Recruiter/CreateCampaign';
+import Screening from './pages/Recruiter/Screening';
 
 function App() {
   return (
@@ -86,6 +87,14 @@ function App() {
             <SidebarRecruiter />
             <main className="flex-1 overflow-auto">
               <CampaignDetail />
+            </main>
+          </div>
+        } />
+        <Route path="/applications" element={
+          <div className="flex h-screen bg-gray-50">
+            <SidebarRecruiter />
+            <main className="flex-1 overflow-auto">
+              <Screening />
             </main>
           </div>
         } />
