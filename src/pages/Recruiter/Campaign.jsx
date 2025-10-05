@@ -9,7 +9,7 @@ const mockCampaigns = [
         name: 'Tuyển dụng Tiếp viên hàng không 2024',
         position: 'Flight Attendant',
         department: 'Cabin Crew',
-        status: 'active',
+        status: 'ongoing',
         startDate: '2024-01-15',
         endDate: '2024-03-15',
         targetHires: 20,
@@ -35,7 +35,7 @@ const mockCampaigns = [
         name: 'Ground Staff Campaign',
         position: 'Ground Staff',
         department: 'Ground Operations',
-        status: 'paused',
+        status: 'pending',
         startDate: '2024-02-01',
         endDate: '2024-04-30',
         targetHires: 15,
@@ -48,7 +48,7 @@ const mockCampaigns = [
         name: 'Customer Service Expansion',
         position: 'Customer Service Agent',
         department: 'Customer Service',
-        status: 'active',
+        status: 'ongoing',
         startDate: '2024-02-15',
         endDate: '2024-05-15',
         targetHires: 12,
@@ -61,7 +61,7 @@ const mockCampaigns = [
         name: 'Maintenance Team',
         position: 'Aircraft Mechanic',
         department: 'Maintenance',
-        status: 'active',
+        status: 'pending',
         startDate: '2024-03-01',
         endDate: '2024-06-30',
         targetHires: 8,
@@ -124,11 +124,11 @@ const Campaign = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            active: { color: 'bg-green-100 text-green-800', text: 'Đang hoạt động' },
-            completed: { color: 'bg-blue-100 text-blue-800', text: 'Hoàn thành' },
-            paused: { color: 'bg-yellow-100 text-yellow-800', text: 'Tạm dừng' }
+            ongoing: { color: 'bg-green-100 text-green-800', text: 'Đang diễn ra' },
+            completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
+            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ duyệt' }
         }
-        const config = statusConfig[status] || statusConfig.active
+        const config = statusConfig[status] || statusConfig.ongoing
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
                 {config.text}
@@ -160,52 +160,58 @@ const Campaign = () => {
                 </div>
             </div>
 
-            {/* Search and Filters */}
+            {/* Search and Filter */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* Search */}
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
-                        <input
-                            type="text"
-                            placeholder="Tìm theo tên, vị trí, phòng ban..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
+                {/* Search Bar */}
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                    <input
+                        type="text"
+                        placeholder="Tìm theo tên, vị trí, phòng ban..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
 
-                    {/* Status Filter */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">Tất cả</option>
-                            <option value="active">Đang hoạt động</option>
-                            <option value="completed">Hoàn thành</option>
-                            <option value="paused">Tạm dừng</option>
-                        </select>
-                    </div>
-
-                    {/* Department Filter */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
-                        <select
-                            value={departmentFilter}
-                            onChange={(e) => setDepartmentFilter(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">Tất cả</option>
-                            <option value="Cabin Crew">Cabin Crew</option>
-                            <option value="Flight Operations">Flight Operations</option>
-                            <option value="Ground Operations">Ground Operations</option>
-                            <option value="Customer Service">Customer Service</option>
-                            <option value="Maintenance">Maintenance</option>
-                        </select>
-                    </div>
+                {/* Filter Buttons */}
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setStatusFilter('ongoing')}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
+                            ? 'bg-green-600 text-white border-green-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
+                            }`}
+                    >
+                        Đang diễn ra
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('pending')}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
+                            ? 'bg-yellow-600 text-white border-yellow-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
+                            }`}
+                    >
+                        Đang chờ duyệt
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('completed')}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
+                            }`}
+                    >
+                        Đã hoàn thành
+                    </button>
+                    <button
+                        onClick={() => setStatusFilter('all')}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
+                            ? 'bg-slate-600 text-white border-slate-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Tất cả
+                    </button>
                 </div>
             </div>
 

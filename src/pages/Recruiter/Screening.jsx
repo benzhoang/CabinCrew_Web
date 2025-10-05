@@ -86,7 +86,8 @@ const mockApplicants = [
         education: 'Đại học Ngoại thương',
         languages: ['Tiếng Việt', 'Tiếng Anh'],
         batchName: 'Đợt 1',
-        campaignId: 1
+        campaignId: 1,
+        photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=200&fit=crop&crop=face'
     },
     {
         id: 2,
@@ -101,7 +102,8 @@ const mockApplicants = [
         education: 'Đại học Bách khoa',
         languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'],
         batchName: 'Đợt 1',
-        campaignId: 1
+        campaignId: 1,
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face'
     },
     {
         id: 3,
@@ -116,7 +118,8 @@ const mockApplicants = [
         education: 'Cao đẳng Du lịch',
         languages: ['Tiếng Việt', 'Tiếng Anh'],
         batchName: 'Đợt 1',
-        campaignId: 1
+        campaignId: 1,
+        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=200&fit=crop&crop=face'
     },
     {
         id: 4,
@@ -338,6 +341,7 @@ const Screening = () => {
                             <table className="w-full">
                                 <thead className="bg-slate-50">
                                     <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kinh nghiệm</th>
@@ -350,6 +354,18 @@ const Screening = () => {
                                 <tbody className="bg-white divide-y divide-slate-200">
                                     {filteredApplicants.map((applicant) => (
                                         <tr key={applicant.id} className="hover:bg-slate-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
+                                                    <img
+                                                        src={applicant.photo || 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'}
+                                                        alt={`Ảnh ${applicant.name}`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div>
                                                     <div className="text-sm font-medium text-slate-900">{applicant.name}</div>
@@ -374,10 +390,32 @@ const Screening = () => {
                                                 {applicant.score ? `${applicant.score}/100` : '—'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex gap-2">
-                                                    <button className="text-blue-600 hover:text-blue-900">Xem</button>
-                                                    <button className="text-green-600 hover:text-green-900">Duyệt</button>
-                                                    <button className="text-red-600 hover:text-red-900">Từ chối</button>
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                                        title="Xem chi tiết"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        className="p-1 text-green-600 hover:text-green-900 hover:bg-green-50 rounded transition-colors"
+                                                        title="Duyệt ứng viên"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
+                                                        title="Từ chối ứng viên"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>

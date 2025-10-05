@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 const CreateCampaign = () => {
     const [formData, setFormData] = useState({
-        position: '',
-        department: '',
-        unit: 'Cabin Crew - Tiếp viên hàng không',
+        title: '',
         quantity: '',
         startDate: '',
         endDate: '',
@@ -28,13 +26,6 @@ const CreateCampaign = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const navigate = useNavigate()
 
-    const departments = [
-        'Cabin Crew',
-        'Flight Operations',
-        'Ground Operations',
-        'Customer Service',
-        'Maintenance'
-    ]
 
     const locations = [
         'Hà Nội',
@@ -101,14 +92,8 @@ const CreateCampaign = () => {
     const validateForm = () => {
         const newErrors = {}
 
-        if (!formData.position.trim()) {
-            newErrors.position = 'Vị trí tuyển là bắt buộc'
-        }
-        if (!formData.department) {
-            newErrors.department = 'Phòng ban là bắt buộc'
-        }
-        if (!formData.unit.trim()) {
-            newErrors.unit = 'Đơn vị là bắt buộc'
+        if (!formData.title.trim()) {
+            newErrors.title = 'Tiêu đề là bắt buộc'
         }
         if (!formData.quantity || parseInt(formData.quantity) <= 0) {
             newErrors.quantity = 'Số lượng tuyển phải lớn hơn 0'
@@ -179,15 +164,28 @@ const CreateCampaign = () => {
     return (
         <div className="p-6">
             <div className="flex items-start justify-between mb-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-red-600 tracking-wide uppercase">
-                        Tạo Yêu cầu tuyển dụng - MRF
-                    </h1>
+                <div className="flex-1 mr-50">
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Tiêu đề *
+                        </label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.title ? 'border-red-300' : 'border-slate-300'}`}
+                            placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
+                        />
+                        {errors.title && (
+                            <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                        )}
+                    </div>
                     <p className="text-slate-600 mt-1 text-sm">Đăng công khai tuyển dụng - Cabin Crew</p>
                 </div>
                 <button
                     onClick={() => navigate('/recruiter/campaigns')}
-                    className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700"
+                    className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 flex-shrink-0"
                 >
                     Quay lại
                 </button>
@@ -211,63 +209,6 @@ const CreateCampaign = () => {
 
                             <div className="p-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Vị trí tuyển *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="position"
-                                            value={formData.position}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.position ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                            placeholder="Nhập vị trí tuyển dụng"
-                                        />
-                                        {errors.position && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.position}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Phòng ban *
-                                        </label>
-                                        <select
-                                            name="department"
-                                            value={formData.department}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.department ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                        >
-                                            <option value="">-- Chọn phòng ban --</option>
-                                            {departments.map(dept => (
-                                                <option key={dept} value={dept}>{dept}</option>
-                                            ))}
-                                        </select>
-                                        {errors.department && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.department}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Đơn vị *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="unit"
-                                            value={formData.unit}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.unit ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                            placeholder="Nhập đơn vị tổ chức"
-                                        />
-                                        {errors.unit && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.unit}</p>
-                                        )}
-                                    </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             Số lượng tuyển *
