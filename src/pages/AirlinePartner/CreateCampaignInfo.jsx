@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom'
 
 const CreateCampaignInfo = () => {
     const [formData, setFormData] = useState({
-        position: '',
-        department: '',
-        unit: 'Cabin Crew - Tiếp viên hàng không',
         quantity: '',
         startDate: '',
         endDate: '',
@@ -18,13 +15,6 @@ const CreateCampaignInfo = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const navigate = useNavigate()
 
-    const departments = [
-        'Cabin Crew',
-        'Flight Operations',
-        'Ground Operations',
-        'Customer Service',
-        'Maintenance'
-    ]
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -44,15 +34,6 @@ const CreateCampaignInfo = () => {
     const validateForm = () => {
         const newErrors = {}
 
-        if (!formData.position.trim()) {
-            newErrors.position = 'Vị trí tuyển là bắt buộc'
-        }
-        if (!formData.department) {
-            newErrors.department = 'Phòng ban là bắt buộc'
-        }
-        if (!formData.unit.trim()) {
-            newErrors.unit = 'Đơn vị là bắt buộc'
-        }
         if (!formData.quantity || parseInt(formData.quantity) <= 0) {
             newErrors.quantity = 'Số lượng tuyển phải lớn hơn 0'
         }
@@ -71,24 +52,6 @@ const CreateCampaignInfo = () => {
         if (!formData.requirements.trim()) {
             newErrors.requirements = 'Yêu cầu là bắt buộc'
         }
-
-        if (formData.batches && formData.batches.length > 0) {
-            formData.batches.forEach((batch, index) => {
-                if (!batch.time.trim()) {
-                    newErrors[`batches.${index}.time`] = 'Thời gian đợt tuyển là bắt buộc'
-                }
-                if (!batch.location.trim()) {
-                    newErrors[`batches.${index}.location`] = 'Địa điểm đợt tuyển là bắt buộc'
-                }
-                if (!batch.owner.trim()) {
-                    newErrors[`batches.${index}.owner`] = 'Người phụ trách là bắt buộc'
-                }
-                if (!batch.target || parseInt(batch.target) <= 0) {
-                    newErrors[`batches.${index}.target`] = 'Chỉ tiêu phải lớn hơn 0'
-                }
-            })
-        }
-
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -117,7 +80,7 @@ const CreateCampaignInfo = () => {
 
     const handleCancel = () => {
         if (window.confirm('Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất.')) {
-            navigate('/recruiter/campaigns')
+            navigate('/airline-partner/campaigns')
         }
     }
 
@@ -148,71 +111,11 @@ const CreateCampaignInfo = () => {
                                     <div className="text-sm text-slate-500">Thông tin đề xuất</div>
                                     <div className="text-slate-800 font-semibold">Đặng Bích Thu Thủy (Crew Welfare Team Leader)</div>
                                 </div>
-                                <div className="text-right text-xs text-slate-500">
-                                    <div>Ngày tạo: {new Date().toLocaleString('vi-VN')}</div>
-                                    <div>Mã số: {Math.floor(Math.random() * 1000000)}</div>
-                                </div>
                             </div>
 
                             <div className="p-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Vị trí tuyển *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="position"
-                                            value={formData.position}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.position ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                            placeholder="Nhập vị trí tuyển dụng"
-                                        />
-                                        {errors.position && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.position}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Phòng ban *
-                                        </label>
-                                        <select
-                                            name="department"
-                                            value={formData.department}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.department ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                        >
-                                            <option value="">-- Chọn phòng ban --</option>
-                                            {departments.map(dept => (
-                                                <option key={dept} value={dept}>{dept}</option>
-                                            ))}
-                                        </select>
-                                        {errors.department && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.department}</p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                                            Đơn vị *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="unit"
-                                            value={formData.unit}
-                                            onChange={handleInputChange}
-                                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.unit ? 'border-red-300' : 'border-slate-300'
-                                                }`}
-                                            placeholder="Nhập đơn vị tổ chức"
-                                        />
-                                        {errors.unit && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.unit}</p>
-                                        )}
-                                    </div>
-
+                                    
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-2">
                                             Số lượng tuyển *

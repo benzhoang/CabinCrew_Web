@@ -20,7 +20,7 @@ const RecruiterListPage = () => {
           <div className="flex items-center justify-between">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-cyan-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               <FaPlus />
               <span>Create new recruiter</span>
@@ -29,7 +29,7 @@ const RecruiterListPage = () => {
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"
+                className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
             </div>

@@ -41,20 +41,20 @@ const SidebarAirlinePartner = () => {
             to="/airline-partner/campaigns"
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               isActive("/airline-partner/campaigns")
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaBullhorn
               className={`mr-3 transition-colors duration-300 text-lg ${
-                isActive("/airline-partner/campaigns") ? "text-cyan-600" : "text-gray-500"
+                isActive("/airline-partner/campaigns") ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
                 isActive("/airline-partner/campaigns")
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Campaigns
@@ -67,20 +67,20 @@ const SidebarAirlinePartner = () => {
             to="/airline-partner/report"
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               isActive("/airline-partner/report")
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaFile
               className={`mr-3 transition-colors duration-300 text-lg ${
-                isActive("/airline-partner/report") ? "text-cyan-600" : "text-gray-500"
+                isActive("/airline-partner/report") ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
                 isActive("/airline-partner/report")
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Report

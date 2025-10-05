@@ -33,6 +33,7 @@ import ReportPage from "./pages/AirlinePartner/ReportPage";
 import CampaignDetailPage from './pages/AirlinePartner/CampaignDetailPage';
 import CandidateDetail from './pages/AirlinePartner/CandidateDetail';
 import CreateCampaignInfo from './pages/AirlinePartner/CreateCampaignInfo';
+import BatchDetail from "./pages/AirlinePartner/BatchDetail";
 
 function App() {
   return (
@@ -121,6 +122,7 @@ function App() {
       <Routes>
         <Route path="/airline-partner/campaigns" element={<AirlinePartnerLayout><CampaignPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id" element={<AirlinePartnerLayout><CampaignDetailPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/:id/candidate" element={<AirlinePartnerLayout><BatchDetail /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id/candidates/:candidateId" element={<AirlinePartnerLayout><CandidateDetail /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfo /></AirlinePartnerLayout>} />

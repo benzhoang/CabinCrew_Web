@@ -40,7 +40,7 @@ const Pagination = ({
             className={`px-3 py-3 text-sm border border-gray-300 rounded transition-colors duration-200 ${
               currentPage === 1 
                 ? 'text-white bg-gray-500 cursor-not-allowed opacity-50' 
-                : 'text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600'
+                : 'text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600'
             }`}
             onClick={() => handlePageChange(1)} 
             disabled={currentPage === 1}
@@ -53,7 +53,7 @@ const Pagination = ({
             className={`px-3 py-3 text-sm border border-gray-300 rounded transition-colors duration-200 ${
               currentPage === 1 
                 ? 'text-white bg-gray-500 cursor-not-allowed opacity-50' 
-                : 'text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600'
+                : 'text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600'
             }`}
             onClick={() => handlePageChange(currentPage - 1)} 
             disabled={currentPage === 1}
@@ -66,7 +66,7 @@ const Pagination = ({
           <>
             <li>
               <button 
-                className="px-3 py-3 text-sm border border-gray-300 rounded text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600 transition-colors duration-200"
+                className="px-3 py-3 text-sm border border-gray-300 rounded text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600 transition-colors duration-200"
                 onClick={() => handlePageChange(1)}
               >
                 1
@@ -83,8 +83,8 @@ const Pagination = ({
             <button
               className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
                 page === currentPage
-                  ? 'bg-cyan-600 text-white border-cyan-600'
-                  : 'text-cyan-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-cyan-600'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600'
               }`}
               onClick={() => handlePageChange(page)}
               disabled={page === currentPage}
@@ -101,7 +101,7 @@ const Pagination = ({
             </li>
             <li>
               <button 
-                className="px-3 py-3 text-sm border border-gray-300 rounded text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600 transition-colors duration-200"
+                className="px-3 py-3 text-sm border border-gray-300 rounded text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600 transition-colors duration-200"
                 onClick={() => handlePageChange(totalPages)}
               >
                 {totalPages}
@@ -115,7 +115,7 @@ const Pagination = ({
             className={`px-3 py-3 text-sm border border-gray-300 rounded transition-colors duration-200 ${
               currentPage === totalPages 
                 ? 'text-white bg-gray-500 cursor-not-allowed opacity-50' 
-                : 'text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600'
+                : 'text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600'
             }`}
             onClick={() => handlePageChange(currentPage + 1)} 
             disabled={currentPage === totalPages}
@@ -128,7 +128,7 @@ const Pagination = ({
             className={`px-3 py-3 text-sm border border-gray-300 rounded transition-colors duration-200 ${
               currentPage === totalPages 
                 ? 'text-white bg-gray-500 cursor-not-allowed opacity-50' 
-                : 'text-cyan-600 bg-transparent hover:bg-gray-100 hover:text-cyan-600'
+                : 'text-blue-600 bg-transparent hover:bg-gray-100 hover:text-blue-600'
             }`}
             onClick={() => handlePageChange(totalPages)} 
             disabled={currentPage === totalPages}

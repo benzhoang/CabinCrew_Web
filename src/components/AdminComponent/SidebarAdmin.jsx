@@ -43,22 +43,22 @@ const SidebarAdmin = ({ isOpen }) => {
             }}
             className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${
                 currentPath.startsWith("/admin/dashboard/")
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaGauge
               className={`mr-3 transition-colors duration-300 text-lg ${
                 currentPath.startsWith("/admin/dashboard/")
-                  ? "text-cyan-600"
+                  ? "text-blue-600"
                   : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath.startsWith("/admin/dashboard/")
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Dashboard
@@ -87,7 +87,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/dashboard/cabin-crews"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/dashboard/cabin-crews"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -99,7 +99,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/dashboard/candidates"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/dashboard/candidates"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -111,7 +111,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/dashboard/airline-partners"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/dashboard/airline-partners"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -129,22 +129,22 @@ const SidebarAdmin = ({ isOpen }) => {
             }}
             className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${
                 currentPath.startsWith("/admin/account/")
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaUser
               className={`mr-3 transition-colors duration-300 text-lg ${
                 currentPath.startsWith("/admin/account/")
-                  ? "text-cyan-600"
+                  ? "text-blue-600"
                   : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath.startsWith("/admin/account/")
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Account Management
@@ -173,7 +173,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/account/cabin-crews"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/cabin-crews"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -185,7 +185,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/account/recruiters"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/recruiters"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -197,7 +197,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/account/candidates"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/candidates"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -209,7 +209,7 @@ const SidebarAdmin = ({ isOpen }) => {
                 to="/admin/account/airline-partners"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/airline-partners"
-                    ? "text-cyan-600 bg-cyan-50"
+                    ? "text-blue-600 bg-cyan-50"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -223,22 +223,22 @@ const SidebarAdmin = ({ isOpen }) => {
             to="/admin/campaigns"
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               currentPath === "/admin/campaigns"
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaBullhorn
               className={`mr-3 transition-colors duration-300 text-lg ${
                 currentPath === "/admin/campaigns"
-                  ? "text-cyan-600"
+                  ? "text-blue-600"
                   : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath === "/admin/campaigns"
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Campaign
@@ -250,20 +250,20 @@ const SidebarAdmin = ({ isOpen }) => {
             to=""
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               currentPath === ""
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaFileAlt
               className={`mr-3 transition-colors duration-300 text-lg ${
-                currentPath === "" ? "text-cyan-600" : "text-gray-500"
+                currentPath === "" ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath === ""
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Test
@@ -275,22 +275,22 @@ const SidebarAdmin = ({ isOpen }) => {
             to=""
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               currentPath === "/assessment-list"
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaCalendar
               className={`mr-3 transition-colors duration-300 text-lg ${
                 currentPath === "/assessment-list"
-                  ? "text-cyan-600"
+                  ? "text-blue-600"
                   : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath === "/assessment-list"
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Interview schedule
@@ -302,20 +302,20 @@ const SidebarAdmin = ({ isOpen }) => {
             to=""
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
               currentPath === ""
-                ? "text-cyan-600 bg-cyan-50"
-                : "text-gray-700 hover:text-cyan-600"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaQuestionCircle
               className={`mr-3 transition-colors duration-300 text-lg ${
-                currentPath === "" ? "text-cyan-600" : "text-gray-500"
+                currentPath === "" ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
                 currentPath === ""
-                  ? "text-cyan-600"
-                  : "text-gray-700 hover:text-cyan-600"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
               }
             >
               Q&A

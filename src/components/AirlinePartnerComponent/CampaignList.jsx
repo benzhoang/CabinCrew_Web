@@ -1,6 +1,16 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+const formatDate = (isoString) => {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  if (Number.isNaN(date.getTime())) return isoString
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 const demoCampaigns = [
   {
     id: 1,
@@ -58,10 +68,10 @@ const CampaignCard = ({ campaign }) => {
               <span className="text-gray-500">Phòng ban:</span> {campaign.department}
             </div>
             <div>
-              <span className="text-gray-500">Thời gian bắt đầu:</span> {campaign.startDate}
+              <span className="text-gray-500">Thời gian bắt đầu:</span> {formatDate(campaign.startDate)}
             </div>
             <div>
-              <span className="text-gray-500">Thời gian kết thúc:</span> {campaign.endDate}
+              <span className="text-gray-500">Thời gian kết thúc:</span> {formatDate(campaign.endDate)}
             </div>
             <div>
               <span className="text-gray-500">Tiến độ:</span> {campaign.progress?.current ?? 0}/{campaign.progress?.total ?? 0} ({percent}%)
@@ -69,7 +79,7 @@ const CampaignCard = ({ campaign }) => {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50" onClick={() => navigate(`/airline-partner/campaigns/${campaign.id}`)}>Xem chi tiết</button>
+          <button className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={() => navigate(`/airline-partner/campaigns/${campaign.id}`)}>Xem chi tiết</button>
           <button className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700">Xóa</button>
         </div>
       </div>

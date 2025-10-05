@@ -1,3 +1,5 @@
+
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Section = ({ title, children }) => (
@@ -15,8 +17,20 @@ const InfoRow = ({ label, value }) => (
 )
 
 const CampaignInfo = ({ campaign }) => {
-  const navigate = useNavigate()
   const data = campaign
+  const navigate = useNavigate()
+  const [expandedStats, setExpandedStats] = useState({})
+  
+  const toggleStats = (roundId) => {
+    setExpandedStats(prev => ({
+      ...prev,
+      [roundId]: !prev[roundId]
+    }))
+  }
+
+  const handleViewCandidates = () => {
+    navigate(`/airline-partner/campaigns/${data.id}/candidate`)
+  }
 
   return (
     <div className="w-full h-full">
@@ -39,61 +53,101 @@ const CampaignInfo = ({ campaign }) => {
           </div>
         </Section>
 
-        <Section title="Kế hoạch các đợt tuyển">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="mb-5">
+            <div className="text-sm font-semibold text-gray-900">Kế hoạch các đợt tuyển</div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {data.rounds.map((r) => (
-              <div key={r.id} className="rounded-xl border border-gray-200">
+            {data.rounds.map((round) => (
+              <div key={round.id} className="rounded-xl border border-gray-200">
                 <div className="px-5 py-3 flex items-center justify-between bg-gray-50 rounded-t-xl">
-                  <div className="font-semibold text-gray-900">{r.name}</div>
-                  <span className={(r.status === 'Sắp diễn ra' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-gray-100 text-gray-700 border-gray-200') + ' text-xs px-2 py-0.5 rounded-full border'}>{r.status}</span>
+                  <div className="font-semibold text-gray-900">{round.name}</div>
+                  <span className={`${
+                    round.status === 'Đang diễn ra' 
+                      ? 'bg-green-100 text-green-700 border-green-200' 
+                      : round.status === 'Sắp diễn ra'
+                      ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                  } text-xs px-2 py-0.5 rounded-full border`}>
+                    {round.status}
+                  </span>
                 </div>
                 <div className="p-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
-                    <div><span className="text-gray-500">Thời gian:</span> {r.time}</div>
-                    <div><span className="text-gray-500">Địa điểm:</span> {r.location}</div>
-                    <div><span className="text-gray-500">Hình thức:</span> {r.method}</div>
-                    <div><span className="text-gray-500">Phụ trách:</span> {r.owner}</div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Thời gian</div>
+                        <div className="text-gray-900 font-medium">{round.time}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Hình thức</div>
+                        <div className="text-gray-900 font-medium">{round.method}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Chỉ tiêu</div>
+                        <div className="text-gray-900 font-medium">{round.target}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Địa điểm</div>
+                        <div className="text-gray-900 font-medium">{round.location}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Phụ trách</div>
+                        <div className="text-gray-900 font-medium">{round.owner}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Ghi chú</div>
+                        <div className="text-gray-900 font-medium">{round.notes}</div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="mt-4">
-                    <div className="text-sm font-medium text-gray-900 mb-2">Ứng viên</div>
-                    <div className="overflow-hidden rounded-lg border border-gray-200">
-                      <table className="min-w-full table-fixed">
-                        <thead className="bg-gray-50 text-gray-600 text-sm">
-                          <tr>
-                            <th className="px-4 py-2 text-left font-semibold w-40">Họ tên</th>
-                            <th className="px-4 py-2 text-left font-semibold w-56">Email</th>
-                            <th className="px-4 py-2 text-left font-semibold w-40">Số điện thoại</th>
-                            <th className="px-4 py-2 text-right font-semibold w-28">Thao tác</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {r.candidates.length === 0 && (
-                            <tr>
-                              <td className="px-4 py-3 text-sm text-gray-500" colSpan={4}>Chưa có ứng viên</td>
-                            </tr>
-                          )}
-                          {r.candidates.map((c, idx) => (
-                            <tr key={c.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              <td className="px-4 py-3 text-sm text-gray-800 truncate">{c.name}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700 truncate">{c.email}</td>
-                              <td className="px-4 py-3 text-sm text-gray-700 truncate">{c.phone}</td>
-                              <td className="px-4 py-2">
-                                <div className="flex items-center justify-end">
-                                  <button className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-50" onClick={() => navigate(`/airline-partner/campaigns/${data.id}/candidates/${c.id}`)}>Xem</button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div 
+                      className="text-sm font-medium text-gray-900 mb-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      onClick={() => toggleStats(round.id)}
+                    >
+                      <span>Thống kê ứng viên</span>
+                      <span className={`text-gray-400 transition-transform ${expandedStats[round.id] ? 'rotate-180' : ''}`}>▼</span>
                     </div>
+                    {expandedStats[round.id] && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <div className="text-xs text-blue-600 font-medium mb-1">Lượt quan tâm</div>
+                          <div className="text-lg font-bold text-blue-700">125</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3">
+                          <div className="text-xs text-green-600 font-medium mb-1">Đã ứng tuyển</div>
+                          <div className="text-lg font-bold text-green-700">89</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="text-sm font-medium text-gray-900 mb-2">Tiến độ tuyển dụng</div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full" style={{width: `${round.progress}%`}}></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{round.progress}%</div>
+                  </div>
+
+                  <div className="mt-4">
+                    <button 
+                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+                      onClick={() => handleViewCandidates(round.id)}
+                    >
+                      Xem danh sách ứng viên
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </Section>
+        </div>
       </div>
     </div>
   )

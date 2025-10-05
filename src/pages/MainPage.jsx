@@ -155,7 +155,7 @@ const MainPage = () => {
                 }
             }, 3000);
         } else {
-            alert('Thông tin đăng nhập không đúng hoặc không phải tài khoản Admin/HR');
+            alert('Thông tin đăng nhập không đúng hoặc không phải tài khoản Employee');
         }
     };
 
