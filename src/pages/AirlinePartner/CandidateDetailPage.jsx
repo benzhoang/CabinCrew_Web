@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 
-const CandidateDetail = () => {
+const CandidateDetailPage = () => {
   const { id, candidateId } = useParams()
   const navigate = useNavigate()
 
@@ -34,4 +34,4 @@ const CandidateDetail = () => {
   )
 }
 
-export default CandidateDetail
+export default CandidateDetailPage

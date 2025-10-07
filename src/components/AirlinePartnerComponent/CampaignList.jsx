@@ -39,7 +39,7 @@ const StatusBadge = ({ status }) => (
     className={
       (status === 'active'
         ? 'bg-green-100 text-green-700 border-green-200'
-        : 'bg-gray-100 text-gray-700 border-gray-200') +
+        : 'bg-red-100 text-red-600 border-red-200') +
       ' inline-block rounded-full border px-2 py-0.5 text-xs font-medium'
     }
   >
@@ -95,20 +95,27 @@ const CampaignCard = ({ campaign }) => {
   )
 }
 
-const CampaignList = ({ search = '', status = 'all', department = 'all', campaigns = demoCampaigns }) => {
+const CampaignList = ({ search = '', campaigns = demoCampaigns }) => {
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase()
     return campaigns.filter((c) => {
       const matchSearch = !s || [c.title, c.role, c.department].some((v) => String(v).toLowerCase().includes(s))
-      const matchStatus = status === 'all' || c.status === status
-      const matchDept = department === 'all' || c.department === department
-      return matchSearch && matchStatus && matchDept
+      return matchSearch 
     })
-  }, [campaigns, search, status, department])
+  }, [campaigns, search])
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="text-gray-900 font-semibold">Danh sách chiến dịch ({filtered.length})</div>
+      <div className="flex items-center gap-3">
+        <div className="inline-flex items-stretch gap-3">
+          <button type="button" className="px-4 py-1.5 text-sm font-medium border-2  rounded-md bg-white text-slate-700 border-slate-300 hover:bg-slate-5">Đang diễn ra</button>
+          <button type="button" className="px-4 py-1.5 text-sm font-medium border-2  rounded-md bg-white text-slate-700 border-slate-300 hover:bg-slate-5">Đang chờ duyệt</button>
+          <button type="button" className="px-4 py-1.5 text-sm font-medium border-2  rounded-md bg-white text-slate-700 border-slate-300 hover:bg-slate-5">Đã hoàn thành</button>
+        </div>
+      </div>
+      <h2 className="text-xl font-bold text-gray-800 mb-6">
+            Danh sách chiến dịch ({campaigns.length})
+          </h2>
       {filtered.map((c) => (
         <CampaignCard key={c.id} campaign={c} />
       ))}

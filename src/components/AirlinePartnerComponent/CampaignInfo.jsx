@@ -2,6 +2,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+
+const formatDate = (isoString) => {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  if (Number.isNaN(date.getTime())) return isoString
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 const Section = ({ title, children }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-5">
     <div className="text-sm font-semibold text-gray-900 mb-3">{title}</div>
@@ -28,8 +39,28 @@ const CampaignInfo = ({ campaign }) => {
     }))
   }
 
-  const handleViewCandidates = () => {
-    navigate(`/airline-partner/campaigns/${data.id}/candidate`)
+  const handleViewCandidates = (round) => {
+    navigate(`/airline-partner/campaigns/${data.id}/candidate`, {
+      state: {
+        campaignId: data.id,
+        roundName: round.name,
+        round: round,
+        campaign: data
+      }
+    })
+  }
+
+  // Function to check if button should be disabled based on round status
+  const isButtonDisabled = (roundStatus) => {
+    return roundStatus === 'Sắp diễn ra' || roundStatus === 'Chưa diễn ra'
+  }
+
+  // Function to get button styling based on status
+  const getButtonStyle = (roundStatus) => {
+    if (isButtonDisabled(roundStatus)) {
+      return "w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed"
+    }
+    return "w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
   }
 
   return (
@@ -42,8 +73,8 @@ const CampaignInfo = ({ campaign }) => {
             <InfoRow label="Phòng ban" value={data.department} />
             <InfoRow label="Đơn vị" value={data.unit} />
             <InfoRow label="Số lượng tuyển" value={data.quantity} />
-            <InfoRow label="Ngày bắt đầu" value={data.startDate} />
-            <InfoRow label="Ngày kết thúc" value={data.endDate} />
+            <InfoRow label="Ngày bắt đầu" value={formatDate(data.startDate)} />
+            <InfoRow label="Ngày kết thúc" value={formatDate(data.endDate)} />
           </div>
           <div className="mt-4">
             <InfoRow label="Mô tả nhu cầu" value={data.description} />
@@ -68,6 +99,8 @@ const CampaignInfo = ({ campaign }) => {
                       ? 'bg-green-100 text-green-700 border-green-200' 
                       : round.status === 'Sắp diễn ra'
                       ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                      : round.status === 'Chưa diễn ra'
+                      ? 'bg-gray-100 text-gray-700 border-gray-200'
                       : 'bg-gray-100 text-gray-700 border-gray-200'
                   } text-xs px-2 py-0.5 rounded-full border`}>
                     {round.status}
@@ -77,8 +110,12 @@ const CampaignInfo = ({ campaign }) => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="space-y-3">
                       <div>
-                        <div className="text-gray-500 text-xs mb-1">Thời gian</div>
-                        <div className="text-gray-900 font-medium">{round.time}</div>
+                        <div className="text-gray-500 text-xs mb-1">Thời gian bắt đầu</div>
+                        <div className="text-gray-900 font-medium">{formatDate(round.startDate)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 text-xs mb-1">Thời gian kết thúc</div>
+                        <div className="text-gray-900 font-medium">{formatDate(round.endDate)}</div>
                       </div>
                       <div>
                         <div className="text-gray-500 text-xs mb-1">Hình thức</div>
@@ -137,10 +174,11 @@ const CampaignInfo = ({ campaign }) => {
 
                   <div className="mt-4">
                     <button 
-                      className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
-                      onClick={() => handleViewCandidates(round.id)}
+                      className={getButtonStyle(round.status)}
+                      onClick={() => !isButtonDisabled(round.status) && handleViewCandidates(round)}
+                      disabled={isButtonDisabled(round.status)}
                     >
-                      Xem danh sách ứng viên
+                      {isButtonDisabled(round.status) ? 'Chưa thể xem danh sách' : 'Xem danh sách ứng viên'}
                     </button>
                   </div>
                 </div>

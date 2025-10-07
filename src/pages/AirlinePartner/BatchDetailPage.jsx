@@ -1,14 +1,26 @@
 import React from 'react';
+import { FaCheck, FaEye, FaTrash } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const BatchDetail = () => {
+const formatDate = (isoString) => {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  if (Number.isNaN(date.getTime())) return isoString
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
+const BatchDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
   // Sample data for batch information
   const batchInfo = {
     name: "Đợt 1",
-    time: "01/10/2024 - 15/10/2024",
+    startDate: "2024-10-01",
+    endDate: "2024-10-15",
     location: "Hà Nội",
     quota: "7/10"
   };
@@ -25,7 +37,8 @@ const BatchDetail = () => {
       languages: "Tiếng Việt, Tiếng Anh",
       applicationDate: "2024-10-15",
       status: "Chờ xử lý",
-      score: "-"
+      score: "-",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
     },
     {
       id: 2,
@@ -37,7 +50,8 @@ const BatchDetail = () => {
       languages: "Tiếng Việt, Tiếng Anh, Tiếng Nhật",
       applicationDate: "2024-10-16",
       status: "Đã duyệt",
-      score: "85/100"
+      score: "-",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
     },
     {
       id: 3,
@@ -49,7 +63,8 @@ const BatchDetail = () => {
       languages: "Tiếng Việt, Tiếng Anh",
       applicationDate: "2024-10-17",
       status: "Từ chối",
-      score: "65/100"
+      score: "-",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
     },
     {
       id: 4,
@@ -61,7 +76,8 @@ const BatchDetail = () => {
       languages: "Tiếng Việt, Tiếng Anh, Tiếng Hàn",
       applicationDate: "2024-10-18",
       status: "Chờ xử lý",
-      score: "-"
+      score: "-",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
     }
   ];
 
@@ -113,8 +129,12 @@ const BatchDetail = () => {
               <p className="font-bold text-gray-900">{batchInfo.name}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm mb-1">Thời gian:</p>
-              <p className="font-bold text-gray-900">{batchInfo.time}</p>
+              <p className="text-gray-600 text-sm mb-1">Thời gian bắt đầu:</p>
+              <p className="font-bold text-gray-900">{formatDate(batchInfo.startDate)}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm mb-1">Thời gian kết thúc:</p>
+              <p className="font-bold text-gray-900">{formatDate(batchInfo.endDate)}</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm mb-1">Địa điểm:</p>
@@ -137,6 +157,7 @@ const BatchDetail = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">HÌNH</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">ỨNG VIÊN</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">LIÊN HỆ</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">KINH NGHIỆM</th>
@@ -149,11 +170,23 @@ const BatchDetail = () => {
               <tbody>
                 {candidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className='py-4 px-4'>
+                    <img 
+                          src={candidate.avatar} 
+                          alt={candidate.name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                          onError={(e) => {
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=random&color=fff&size=48`;
+                          }}
+                        />
+                    </td>
                     <td className="py-4 px-4">
-                      <div>
-                        <p className="font-bold text-gray-900">{candidate.name}</p>
-                        <p className="text-sm text-gray-600">{candidate.university}</p>
-                      </div>
+                        
+                        <div>
+                          <p className="font-bold text-gray-900">{candidate.name}</p>
+                          <p className="text-sm text-gray-600">{candidate.university}</p>
+                        </div>
+                     
                     </td>
                     <td className="py-4 px-4">
                       <div>
@@ -168,7 +201,7 @@ const BatchDetail = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <p className="text-sm text-gray-900">{candidate.applicationDate}</p>
+                      <p className="text-sm text-gray-900">{formatDate(candidate.applicationDate)}</p>
                     </td>
                     <td className="py-4 px-4">
                       <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(candidate.status)}`}>
@@ -181,16 +214,16 @@ const BatchDetail = () => {
                     <td className="py-4 px-4">
                       <div className="flex space-x-3">
                         <button 
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          className="p-2 rounded-md border border-gray-200  hover:bg-gray-100 text-yellow-300 hover:text-yellow-400"
                           onClick={() => navigate(`/airline-partner/campaigns/${id}/candidates/${candidate.id}`)}
                         >
-                          Xem
+                         <FaEye/>
                         </button>
-                        <button className="text-green-600 hover:text-green-800 text-sm font-medium">
-                          Duyệt
+                        <button className="p-2 rounded-md border border-gray-200 hover:bg-gray-100 text-green-500 hover:text-green-600">
+                          <FaCheck/>
                         </button>
-                        <button className="text-red-600 hover:text-red-800 text-sm font-medium">
-                          Từ chối
+                        <button className="p-2 rounded-md border border-gray-200 hover:bg-gray-100 text-red-500 hover:text-red-600">
+                          <FaTrash/>
                         </button>
                       </div>
                     </td>
@@ -205,4 +238,4 @@ const BatchDetail = () => {
   );
 };
 
-export default BatchDetail;
+export default BatchDetailPage;
