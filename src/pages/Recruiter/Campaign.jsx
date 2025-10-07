@@ -77,6 +77,7 @@ const Campaign = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [departmentFilter, setDepartmentFilter] = useState('all')
+    const [sortBy, setSortBy] = useState('name')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
@@ -109,8 +110,29 @@ const Campaign = () => {
             filtered = filtered.filter(campaign => campaign.department === departmentFilter)
         }
 
+        // Sort campaigns
+        filtered.sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return a.name.localeCompare(b.name)
+                case 'startDate':
+                    return new Date(a.startDate) - new Date(b.startDate)
+                case 'endDate':
+                    return new Date(a.endDate) - new Date(b.endDate)
+                case 'progress':
+                    const progressA = (a.currentHires / a.targetHires) * 100
+                    const progressB = (b.currentHires / b.targetHires) * 100
+                    return progressB - progressA
+                case 'status':
+                    const statusOrder = { ongoing: 1, pending: 2, completed: 3 }
+                    return statusOrder[a.status] - statusOrder[b.status]
+                default:
+                    return 0
+            }
+        })
+
         setFilteredCampaigns(filtered)
-    }, [campaigns, searchTerm, statusFilter, departmentFilter])
+    }, [campaigns, searchTerm, statusFilter, departmentFilter, sortBy])
 
     const handleViewDetails = (campaign) => {
         navigate(`/recruiter/campaigns/${campaign.id}`, { state: { campaign } })
@@ -162,63 +184,100 @@ const Campaign = () => {
 
             {/* Search and Filter */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-                {/* Search Bar */}
-                <div className="mb-6">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
-                    <input
-                        type="text"
-                        placeholder="Tìm theo tên, vị trí, phòng ban..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Search Bar */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                        <input
+                            type="text"
+                            placeholder="Tìm theo tên, vị trí, phòng ban..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
 
-                {/* Filter Buttons */}
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setStatusFilter('ongoing')}
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
-                            ? 'bg-green-600 text-white border-green-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
-                            }`}
-                    >
-                        Đang diễn ra
-                    </button>
-                    <button
-                        onClick={() => setStatusFilter('pending')}
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
-                            ? 'bg-yellow-600 text-white border-yellow-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
-                            }`}
-                    >
-                        Đang chờ duyệt
-                    </button>
-                    <button
-                        onClick={() => setStatusFilter('completed')}
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
-                            }`}
-                    >
-                        Đã hoàn thành
-                    </button>
-                    <button
-                        onClick={() => setStatusFilter('all')}
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
-                            ? 'bg-slate-600 text-white border-slate-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Tất cả
-                    </button>
+                    {/* Department Filter */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
+                        <select
+                            value={departmentFilter}
+                            onChange={(e) => setDepartmentFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="all">Tất cả phòng ban</option>
+                            <option value="Cabin Crew">Cabin Crew</option>
+                            <option value="Flight Operations">Flight Operations</option>
+                            <option value="Ground Operations">Ground Operations</option>
+                            <option value="Customer Service">Customer Service</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                    </div>
+
+                    {/* Sort Filter */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sắp xếp theo</label>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="name">Tên chiến dịch</option>
+                            <option value="startDate">Ngày bắt đầu</option>
+                            <option value="endDate">Ngày kết thúc</option>
+                            <option value="progress">Tiến độ</option>
+                            <option value="status">Trạng thái</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             {/* Campaigns List */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
-                    <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
+                    </div>
+
+                    {/* Status Filter Buttons */}
+                    <div className="flex gap-3 flex-wrap">
+                        <button
+                            onClick={() => setStatusFilter('ongoing')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
+                                ? 'bg-green-600 text-white border-green-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
+                                }`}
+                        >
+                            Đang diễn ra
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('pending')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
+                                ? 'bg-yellow-600 text-white border-yellow-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
+                                }`}
+                        >
+                            Đang chờ diễn ra
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('completed')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
+                                }`}
+                        >
+                            Đã hoàn thành
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('all')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
+                                ? 'bg-slate-600 text-white border-slate-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                }`}
+                        >
+                            Tất cả
+                        </button>
+                    </div>
                 </div>
 
                 <div className="divide-y divide-slate-200">

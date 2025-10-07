@@ -212,7 +212,7 @@ const dictionaries = {
         cta_secondary: 'Tìm hiểu thêm',
         // MainPage
         mainpage_title: 'SkyCabin Airlines',
-        mainpage_subtitle: 'Hệ thống tuyển dụng tiếp viên hàng không',
+        mainpage_subtitle: 'Hệ thống tuyển dụng và nâng bậc nhân viên hàng không',
         candidate_title: 'Ứng viên',
         candidate_desc: 'Tìm kiếm cơ hội nghề nghiệp',
         candidate_desc_detail: 'Đăng nhập để xem các vị trí tuyển dụng',
@@ -457,7 +457,7 @@ const dictionaries = {
         cta_secondary: 'Learn more',
         // MainPage
         mainpage_title: 'SkyCabin Airlines',
-        mainpage_subtitle: 'Cabin Crew Recruitment System',
+        mainpage_subtitle: 'Cabin Crew Recruitment and PromotionSystem',
         candidate_title: 'Candidate',
         candidate_desc: 'Find career opportunities',
         candidate_desc_detail: 'Sign in to view available positions',

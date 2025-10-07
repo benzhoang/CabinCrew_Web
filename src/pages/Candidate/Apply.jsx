@@ -144,17 +144,9 @@ const Apply = () => {
                                                     )}
                                                 </div>
                                                 <div className="px-4 pb-4 pt-0 flex items-center justify-end">
-                                                    {b.status === 'completed' ? (
-                                                        <button disabled className="px-5 py-2.5 rounded-md bg-gray-400 text-white text-sm font-semibold cursor-not-allowed">
-                                                            Đã kết thúc
-                                                        </button>
-                                                    ) : b.status === 'ongoing' ? (
+                                                    {b.status === 'ongoing' && (
                                                         <button className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold">
                                                             Ứng tuyển ngay
-                                                        </button>
-                                                    ) : (
-                                                        <button disabled className="px-5 py-2.5 rounded-md bg-yellow-500 text-white text-sm font-semibold cursor-not-allowed">
-                                                            Chưa mở đăng ký
                                                         </button>
                                                     )}
                                                 </div>

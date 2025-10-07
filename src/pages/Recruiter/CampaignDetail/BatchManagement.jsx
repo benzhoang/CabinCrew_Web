@@ -36,10 +36,11 @@ if (typeof document !== 'undefined' && !document.querySelector('#popup-styles'))
     document.head.appendChild(styleSheet)
 }
 
-const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
+const CreateBatchModal = ({ isOpen, onClose, onSubmit, editingBatch = null, batchData = null }) => {
     const [formData, setFormData] = useState({
         name: '',
-        time: '',
+        startDate: '',
+        endDate: '',
         location: '',
         method: 'Trực tiếp',
         owner: '',
@@ -48,6 +49,34 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
     })
     const [errors, setErrors] = useState({})
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Populate form data when editing
+    React.useEffect(() => {
+        if (editingBatch && batchData) {
+            setFormData({
+                name: batchData.name || '',
+                startDate: batchData.startDate || '',
+                endDate: batchData.endDate || '',
+                location: batchData.location || '',
+                method: batchData.method || 'Trực tiếp',
+                owner: batchData.owner || '',
+                target: batchData.target?.toString() || '',
+                note: batchData.note || ''
+            })
+        } else {
+            // Reset form for new batch
+            setFormData({
+                name: '',
+                startDate: '',
+                endDate: '',
+                location: '',
+                method: 'Trực tiếp',
+                owner: '',
+                target: '',
+                note: ''
+            })
+        }
+    }, [editingBatch, batchData])
 
     const locations = [
         'Hà Nội',
@@ -84,8 +113,14 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
         if (!formData.name.trim()) {
             newErrors.name = 'Tên đợt là bắt buộc'
         }
-        if (!formData.time.trim()) {
-            newErrors.time = 'Thời gian đợt tuyển là bắt buộc'
+        if (!formData.startDate.trim()) {
+            newErrors.startDate = 'Thời gian bắt đầu là bắt buộc'
+        }
+        if (!formData.endDate.trim()) {
+            newErrors.endDate = 'Thời gian kết thúc là bắt buộc'
+        }
+        if (formData.startDate && formData.endDate && new Date(formData.startDate) >= new Date(formData.endDate)) {
+            newErrors.endDate = 'Thời gian kết thúc phải sau thời gian bắt đầu'
         }
         if (!formData.location.trim()) {
             newErrors.location = 'Địa điểm đợt tuyển là bắt buộc'
@@ -117,6 +152,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
             // Create new batch object with additional properties
             const newBatch = {
                 ...formData,
+                time: `${formData.startDate} - ${formData.endDate}`, // Keep backward compatibility
                 status: 'planned',
                 current: 0,
                 totalApplicants: 0,
@@ -128,7 +164,8 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
             // Reset form
             setFormData({
                 name: '',
-                time: '',
+                startDate: '',
+                endDate: '',
                 location: '',
                 method: 'Trực tiếp',
                 owner: '',
@@ -148,7 +185,8 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
     const handleClose = () => {
         setFormData({
             name: '',
-            time: '',
+            startDate: '',
+            endDate: '',
             location: '',
             method: 'Trực tiếp',
             owner: '',
@@ -172,8 +210,12 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
             >
                 <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-800">Tạo đợt tuyển mới</h2>
-                        <p className="text-sm text-slate-600 mt-1">Thêm đợt tuyển dụng mới vào campaign</p>
+                        <h2 className="text-lg font-semibold text-slate-800">
+                            {editingBatch ? 'Chỉnh sửa đợt tuyển' : 'Tạo đợt tuyển mới'}
+                        </h2>
+                        <p className="text-sm text-slate-600 mt-1">
+                            {editingBatch ? 'Cập nhật thông tin đợt tuyển' : 'Thêm đợt tuyển dụng mới vào campaign'}
+                        </p>
                     </div>
                     <button
                         onClick={handleClose}
@@ -208,19 +250,35 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Thời gian *
+                                Thời gian bắt đầu *
                             </label>
                             <input
-                                type="text"
-                                name="time"
-                                value={formData.time}
+                                type="date"
+                                name="startDate"
+                                value={formData.startDate}
                                 onChange={handleInputChange}
-                                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.time ? 'border-red-300' : 'border-slate-300'
+                                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.startDate ? 'border-red-300' : 'border-slate-300'
                                     }`}
-                                placeholder="01/10/2024 - 15/10/2024"
                             />
-                            {errors.time && (
-                                <p className="mt-1 text-sm text-red-600">{errors.time}</p>
+                            {errors.startDate && (
+                                <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Thời gian kết thúc *
+                            </label>
+                            <input
+                                type="date"
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={handleInputChange}
+                                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.endDate ? 'border-red-300' : 'border-slate-300'
+                                    }`}
+                            />
+                            {errors.endDate && (
+                                <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
                             )}
                         </div>
 
@@ -335,14 +393,14 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
                             {isSubmitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Đang tạo...
+                                    {editingBatch ? 'Đang cập nhật...' : 'Đang tạo...'}
                                 </>
                             ) : (
                                 <>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                                     </svg>
-                                    Tạo đợt
+                                    {editingBatch ? 'Cập nhật đợt' : 'Tạo đợt'}
                                 </>
                             )}
                         </button>
@@ -353,7 +411,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit }) => {
     )
 }
 
-const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
+const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
     const [openStats, setOpenStats] = useState(false)
     const navigate = useNavigate()
 
@@ -370,12 +428,24 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
     return (
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                <div className="text-sm font-semibold text-slate-800">{batch.name}</div>
+                <div className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                    {batch.name}
+                    <button
+                        onClick={onEdit}
+                        className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
+                        title="Chỉnh sửa đợt tuyển"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>{statusCfg.text}</span>
             </div>
             <div className="p-4 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <InfoMini label="Thời gian" value={batch.time} />
+                    <InfoMini label="Thời gian bắt đầu" value={batch.startDate ? new Date(batch.startDate).toLocaleDateString('vi-VN') : (batch.time ? batch.time.split(' - ')[0] : '—')} />
+                    <InfoMini label="Thời gian kết thúc" value={batch.endDate ? new Date(batch.endDate).toLocaleDateString('vi-VN') : (batch.time ? batch.time.split(' - ')[1] : '—')} />
                     <InfoMini label="Địa điểm" value={batch.location || '—'} />
                     <InfoMini label="Hình thức" value={batch.method || '—'} />
                     <InfoMini label="Phụ trách" value={batch.owner || '—'} />
@@ -450,10 +520,13 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
 
 const BatchManagement = ({ campaign, onCreateBatch }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [editingBatch, setEditingBatch] = useState(null)
     const [currentBatches, setCurrentBatches] = useState(() => {
         return Array.isArray(campaign?.batches) && campaign.batches.length ? campaign.batches : [
             {
                 name: 'Đợt 1',
+                startDate: '2024-10-01',
+                endDate: '2024-10-15',
                 time: '01/10/2024 - 15/10/2024',
                 location: 'Hà Nội',
                 method: 'Trực tiếp',
@@ -467,6 +540,8 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
             },
             {
                 name: 'Đợt 2',
+                startDate: '2024-11-01',
+                endDate: '2024-11-15',
                 time: '01/11/2024 - 15/11/2024',
                 location: 'TP.HCM',
                 method: 'Trực tiếp',
@@ -505,6 +580,7 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
 
     const handleModalClose = () => {
         setIsModalOpen(false)
+        setEditingBatch(null)
     }
 
     const handleBatchSubmit = (newBatch) => {
@@ -524,10 +600,35 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
         console.log('New batch created:', newBatch)
     }
 
+    const handleEditBatch = (batchIndex) => {
+        setEditingBatch(batchIndex)
+        setIsModalOpen(true)
+    }
+
+    const handleUpdateBatch = (updatedBatch) => {
+        setCurrentBatches(prev => prev.map((batch, index) =>
+            index === editingBatch ? { ...batch, ...updatedBatch } : batch
+        ))
+        setEditingBatch(null)
+        setIsModalOpen(false)
+        console.log('Batch updated:', updatedBatch)
+    }
+
     return (
         <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-slate-600">Kế hoạch các đợt tuyển</div>
+                <div className="text-sm text-slate-600 flex items-center gap-2">
+                    Kế hoạch các đợt tuyển
+                    <button
+                        onClick={() => alert('Chức năng chỉnh sửa toàn bộ kế hoạch đang được phát triển')}
+                        className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
+                        title="Chỉnh sửa kế hoạch"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                </div>
                 <button
                     onClick={handleCreateBatch}
                     className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
@@ -549,16 +650,19 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                             statusCfg={statusCfg}
                             percent={progressPercent}
                             campaignId={campaign?.id || 1}
+                            onEdit={() => handleEditBatch(index)}
                         />
                     )
                 })}
             </div>
 
-            {/* Create Batch Modal */}
+            {/* Create/Edit Batch Modal */}
             <CreateBatchModal
                 isOpen={isModalOpen}
                 onClose={handleModalClose}
-                onSubmit={handleBatchSubmit}
+                onSubmit={editingBatch !== null ? handleUpdateBatch : handleBatchSubmit}
+                editingBatch={editingBatch}
+                batchData={editingBatch !== null ? currentBatches[editingBatch] : null}
             />
         </div>
     )
