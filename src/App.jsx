@@ -22,6 +22,7 @@ import Settings from './pages/Candidate/Settings';
 import Contact from './pages/Candidate/Contact';
 import Recruiment from './pages/Candidate/Recruiment';
 import Apply from './pages/Candidate/Apply';
+import ApplicationForm from './pages/Candidate/ApplicationForm';
 import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
@@ -73,6 +74,7 @@ function App() {
           </>
         } />
         <Route path="/apply" element={<Apply />} />
+        <Route path="/application-form" element={<ApplicationForm />} />
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />

@@ -189,9 +189,10 @@ const Settings = () => {
             newErrors.ward = t('required_field');
         }
 
-        if (!formData.role) {
-            newErrors.role = t('required_field');
-        }
+        // Role is not required as it will be updated automatically when candidate applies successfully
+        // if (!formData.role) {
+        //     newErrors.role = t('required_field');
+        // }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -449,23 +450,48 @@ const Settings = () => {
 
                                 <div>
                                     <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                                        {t('role')} <span className="text-red-500">*</span>
+                                        {t('role')}
+                                        {formData.role ? (
+                                            <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                                Đã được cập nhật
+                                            </span>
+                                        ) : (
+                                            <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                                Chưa có vai trò
+                                            </span>
+                                        )}
                                     </label>
-                                    <select
-                                        id="role"
-                                        name="role"
-                                        value={formData.role}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
-                                    >
-                                        <option value="">{t('select_role')}</option>
-                                        {roles.map(role => (
-                                            <option key={role} value={role}>{role}</option>
-                                        ))}
-                                    </select>
-                                    {errors.role && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.role}</p>
-                                    )}
+                                    <div className="relative">
+                                        <select
+                                            id="role"
+                                            name="role"
+                                            value={formData.role}
+                                            disabled={true}
+                                            className="w-full px-4 py-3 border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
+                                        >
+                                            <option value="">{formData.role || 'Vai trò sẽ được cập nhật tự động khi ứng tuyển thành công'}</option>
+                                            {formData.role && (
+                                                <option value={formData.role}>{formData.role}</option>
+                                            )}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-2 flex items-center">
+                                        <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Vai trò sẽ được cập nhật tự động khi bạn ứng tuyển thành công vào một vị trí
+                                    </p>
                                 </div>
                             </div>
                         </div>

@@ -4,6 +4,7 @@ import Approvers from './Approvers'
 import ApprovalLog from './ApprovalLog'
 import DetailInfo from './DetailInfo'
 import Followers from './Followers'
+import PendingCampaignDetail from './PendingCampaignDetail'
 
 const CampaignDetail = () => {
     const { id } = useParams()
@@ -13,6 +14,11 @@ const CampaignDetail = () => {
 
     const [isEditingTitle, setIsEditingTitle] = useState(false)
     const [title, setTitle] = useState('Yêu cầu tuyển dụng - MRF')
+
+    // Kiểm tra nếu campaign đang chờ phê duyệt (pending)
+    if (campaign?.status === 'pending') {
+        return <PendingCampaignDetail campaign={campaign} />
+    }
 
     const timeline = useMemo(() => ([
         { time: '15:24', text: 'Request created', by: 'Đặng Bích Thu Thủy' },

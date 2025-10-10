@@ -415,7 +415,15 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
     const [openStats, setOpenStats] = useState(false)
     const navigate = useNavigate()
 
+    // Kiểm tra xem đợt có đang "sắp diễn ra" không
+    const isUpcoming = batch.status === 'upcoming'
+
     const handleViewApplicants = () => {
+        // Không cho phép xem danh sách ứng viên nếu đợt đang "sắp diễn ra"
+        if (isUpcoming) {
+            return
+        }
+
         navigate('/applications', {
             state: {
                 campaignId,
@@ -505,12 +513,17 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                 <div className="border-t border-slate-100 pt-3">
                     <button
                         onClick={handleViewApplicants}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800 rounded-md transition-colors duration-200 font-medium"
+                        disabled={isUpcoming}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+                            ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-60'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800'
+                            }`}
+                        title={isUpcoming ? 'Chưa thể xem danh sách ứng viên vì đợt chưa bắt đầu' : 'Xem danh sách ứng viên'}
                     >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
-                        Xem danh sách ứng viên
+                        {isUpcoming ? 'Chưa thể xem danh sách' : 'Xem danh sách ứng viên'}
                     </button>
                 </div>
             </div>
@@ -617,17 +630,8 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
     return (
         <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-                <div className="text-sm text-slate-600 flex items-center gap-2">
+                <div className="text-sm text-slate-600">
                     Kế hoạch các đợt tuyển
-                    <button
-                        onClick={() => alert('Chức năng chỉnh sửa toàn bộ kế hoạch đang được phát triển')}
-                        className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
-                        title="Chỉnh sửa kế hoạch"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </button>
                 </div>
                 <button
                     onClick={handleCreateBatch}

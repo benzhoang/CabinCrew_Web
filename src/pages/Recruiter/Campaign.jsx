@@ -148,7 +148,7 @@ const Campaign = () => {
         const statusConfig = {
             ongoing: { color: 'bg-green-100 text-green-800', text: 'Đang diễn ra' },
             completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ duyệt' }
+            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ diễn ra' }
         }
         const config = statusConfig[status] || statusConfig.ongoing
         return (
