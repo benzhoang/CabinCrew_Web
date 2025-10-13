@@ -23,6 +23,8 @@ import Contact from './pages/Candidate/Contact';
 import Recruiment from './pages/Candidate/Recruiment';
 import Apply from './pages/Candidate/Apply';
 import ApplicationForm from './pages/Candidate/ApplicationForm';
+import RecruitmentHistory from './pages/Candidate/RecruitmentHistory';
+import RecruitmentStages from './pages/Candidate/RecruitmentStages';
 import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
@@ -41,7 +43,14 @@ function App() {
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={2000} />
       <Routes>
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={
+          <>
+            <Navbar />
+            <HomePage />
+            <Footer />
+          </>
+        } />
+        <Route path="/login" element={<MainPage />} />
         <Route path="/home" element={
           <>
             <Navbar />
@@ -75,6 +84,20 @@ function App() {
         } />
         <Route path="/apply" element={<Apply />} />
         <Route path="/application-form" element={<ApplicationForm />} />
+        <Route path="/recruitment-history" element={
+          <>
+            <Navbar />
+            <RecruitmentHistory />
+            <Footer />
+          </>
+        } />
+        <Route path="/recruitment-stages" element={
+          <>
+            <Navbar />
+            <RecruitmentStages />
+            <Footer />
+          </>
+        } />
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />

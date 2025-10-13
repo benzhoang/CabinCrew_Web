@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
@@ -33,12 +33,41 @@ const ApplicationForm = () => {
         idCard: null
     })
 
+    // Captcha state
+    const [captchaCode, setCaptchaCode] = useState('')
+    const [captchaInput, setCaptchaInput] = useState('')
+
+    // Generate random captcha code
+    const generateCaptcha = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        let result = ''
+        for (let i = 0; i < 5; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        return result
+    }
+
+    // Initialize captcha on component mount
+    useEffect(() => {
+        setCaptchaCode(generateCaptcha())
+    }, [])
+
+    // Refresh captcha function
+    const refreshCaptcha = () => {
+        setCaptchaCode(generateCaptcha())
+        setCaptchaInput('')
+    }
+
     const handleInputChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+        if (name === 'captcha') {
+            setCaptchaInput(value)
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }))
+        }
     }
 
     const handleFileChange = (e) => {
@@ -51,6 +80,14 @@ const ApplicationForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+
+        // Validate captcha
+        if (captchaInput.toUpperCase() !== captchaCode) {
+            alert('Mã CAPTCHA không đúng. Vui lòng thử lại!')
+            refreshCaptcha()
+            return
+        }
+
         // Xử lý submit form ở đây
         console.log('Form data:', formData)
         console.log('Files:', files)
@@ -559,14 +596,14 @@ const ApplicationForm = () => {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">CAPTCHA:</label>
                                 <div className="flex items-center gap-4">
-                                    <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700">
-                                        RNSDA
+                                    <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
+                                        {captchaCode}
                                     </div>
                                     <div className="flex-1">
                                         <input
                                             type="text"
                                             name="captcha"
-                                            value={formData.captcha}
+                                            value={captchaInput}
                                             onChange={handleInputChange}
                                             placeholder="Enter character you see"
                                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -574,7 +611,13 @@ const ApplicationForm = () => {
                                         />
                                     </div>
                                 </div>
-                                <a href="#" className="text-sm text-blue-600 underline">Try a new code</a>
+                                <button
+                                    type="button"
+                                    onClick={refreshCaptcha}
+                                    className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
+                                >
+                                    Try a new code
+                                </button>
                             </div>
 
                             <button

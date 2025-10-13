@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const CreateCampaign = () => {
+    const todayString = new Date().toISOString().split('T')[0]
     const [formData, setFormData] = useState({
         title: '',
         quantity: '',
@@ -12,7 +13,8 @@ const CreateCampaign = () => {
         batches: [
             {
                 name: 'Đợt 1',
-                time: '',
+                startTime: '',
+                endTime: '',
                 location: '',
                 method: 'Trực tiếp',
                 owner: '',
@@ -70,7 +72,8 @@ const CreateCampaign = () => {
             ...prev,
             batches: [...prev.batches, {
                 name: `Đợt ${prev.batches.length + 1}`,
-                time: '',
+                startTime: '',
+                endTime: '',
                 location: '',
                 method: 'Trực tiếp',
                 owner: '',
@@ -115,8 +118,14 @@ const CreateCampaign = () => {
         }
 
         formData.batches.forEach((batch, index) => {
-            if (!batch.time.trim()) {
-                newErrors[`batches.${index}.time`] = 'Thời gian đợt tuyển là bắt buộc'
+            if (!batch.startTime) {
+                newErrors[`batches.${index}.startTime`] = 'Thời gian bắt đầu là bắt buộc'
+            }
+            if (!batch.endTime) {
+                newErrors[`batches.${index}.endTime`] = 'Thời gian kết thúc là bắt buộc'
+            }
+            if (batch.startTime && batch.endTime && batch.startTime >= batch.endTime) {
+                newErrors[`batches.${index}.endTime`] = 'Thời gian kết thúc phải sau thời gian bắt đầu'
             }
             if (!batch.location.trim()) {
                 newErrors[`batches.${index}.location`] = 'Địa điểm đợt tuyển là bắt buộc'
@@ -239,6 +248,7 @@ const CreateCampaign = () => {
                                             onChange={handleInputChange}
                                             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.startDate ? 'border-red-300' : 'border-slate-300'
                                                 }`}
+                                            max={todayString}
                                         />
                                         {errors.startDate && (
                                             <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
@@ -256,6 +266,7 @@ const CreateCampaign = () => {
                                             onChange={handleInputChange}
                                             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.endDate ? 'border-red-300' : 'border-slate-300'
                                                 }`}
+                                            max={todayString}
                                         />
                                         {errors.endDate && (
                                             <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
@@ -336,17 +347,32 @@ const CreateCampaign = () => {
                                             <div className="p-4">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian *</label>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian bắt đầu *</label>
                                                         <input
-                                                            type="text"
-                                                            value={batch.time}
-                                                            onChange={(e) => handleBatchChange(index, 'time', e.target.value)}
-                                                            className={`w-full px-2 py-1 text-xs border rounded ${errors[`batches.${index}.time`] ? 'border-red-300' : 'border-slate-300'
+                                                            type="date"
+                                                            value={batch.startTime}
+                                                            onChange={(e) => handleBatchChange(index, 'startTime', e.target.value)}
+                                                            className={`w-full px-2 py-1 text-xs border rounded ${errors[`batches.${index}.startTime`] ? 'border-red-300' : 'border-slate-300'
                                                                 }`}
-                                                            placeholder="01/10/2024 - 15/10/2024"
+                                                            max={todayString}
                                                         />
-                                                        {errors[`batches.${index}.time`] && (
-                                                            <p className="text-xs text-red-600 mt-1">{errors[`batches.${index}.time`]}</p>
+                                                        {errors[`batches.${index}.startTime`] && (
+                                                            <p className="text-xs text-red-600 mt-1">{errors[`batches.${index}.startTime`]}</p>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian kết thúc *</label>
+                                                        <input
+                                                            type="date"
+                                                            value={batch.endTime}
+                                                            onChange={(e) => handleBatchChange(index, 'endTime', e.target.value)}
+                                                            className={`w-full px-2 py-1 text-xs border rounded ${errors[`batches.${index}.endTime`] ? 'border-red-300' : 'border-slate-300'
+                                                                }`}
+                                                            min={batch.startTime || undefined}
+                                                            max={todayString}
+                                                        />
+                                                        {errors[`batches.${index}.endTime`] && (
+                                                            <p className="text-xs text-red-600 mt-1">{errors[`batches.${index}.endTime`]}</p>
                                                         )}
                                                     </div>
 

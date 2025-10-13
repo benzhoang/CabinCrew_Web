@@ -4,8 +4,13 @@ import { t, onLangChange } from '../i18n';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
-        username: '',
+        fullName: '',
+        gender: '',
+        dateOfBirth: '',
+        nationality: '',
+        mobileNumber: '',
         email: '',
+        username: '',
         password: '',
         confirmPassword: ''
     });
@@ -79,155 +84,237 @@ const Signup = () => {
                     <div className="absolute top-9 left-20 w-14 h-10 bg-white/35 rounded-full"></div>
                 </div>
             </div>
-            <div className="max-w-md w-full space-y-6 relative z-10">
+            <div className="max-w-4xl w-full relative z-10">
                 {/* Header */}
-                <div className="text-center">
-                    <h2 className="mt-2 text-2xl font-semibold text-white">{t('signup_title')}</h2>
-                    <p className="mt-1 text-sm text-gray-200">{t('signup_subtitle')}</p>
+                <div className="text-center mb-8">
+                    <h2 className="text-4xl font-bold text-white mb-2">{t('signup_title').toUpperCase()}</h2>
                 </div>
 
                 {/* Form */}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="bg-white/95 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-gray-200">
-                        <div className="space-y-4">
-                            {/* Username */}
-                            <div>
-                                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">{t('username_label')}</label>
-                                <input
-                                    id="username"
-                                    name="username"
-                                    type="text"
-                                    autoComplete="username"
-                                    required
-                                    value={formData.username}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
-                                    placeholder={t('username_placeholder')}
-                                />
-                            </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="bg-white p-8 rounded-lg shadow-lg">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* PERSONAL INFORMATION Section */}
+                            <div className="space-y-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-6">{t('personal_information_title')}</h3>
 
-                            {/* Email */}
-                            <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">{t('email_label')}</label>
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
-                                    placeholder={t('email_placeholder')}
-                                />
-                            </div>
-
-                            {/* Password */}
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">{t('password_label')}</label>
-                                <div className="relative">
+                                {/* Fullname - single field */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('fullname_label')} <span className="text-red-500">*</span>
+                                    </label>
                                     <input
-                                        id="password"
-                                        name="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        autoComplete="new-password"
+                                        name="fullName"
+                                        type="text"
                                         required
-                                        value={formData.password}
+                                        value={formData.fullName}
                                         onChange={handleChange}
-                                        className="w-full pr-10 px-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
-                                        placeholder={t('password_placeholder')}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder={t('fullname_label')}
                                     />
-                                    <button
-                                        type="button"
-                                        aria-label={showPassword ? t('password_hide') : t('password_show')}
-                                        onClick={() => setShowPassword((v) => !v)}
-                                        className="absolute inset-y-0 right-0 px-2.5 flex items-center text-gray-500 hover:text-gray-700"
+                                </div>
+
+                                {/* Gender */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('gender_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        name="gender"
+                                        required
+                                        value={formData.gender}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        {showPassword ? (
-                                            // Eye-off icon
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                                <path d="M3 3l18 18" />
-                                                <path d="M10.584 10.59a2 2 0 102.828 2.83" />
-                                                <path d="M16.681 16.69A10.941 10.941 0 0112 18c-5 0-9-4.5-10-6 0 0 1.273-1.947 3.5-3.6M14.12 5.11A10.94 10.94 0 0112 6c5 0 9 4.5 10 6 0 0-1.055 1.615-2.94 3.17" />
-                                            </svg>
-                                        ) : (
-                                            // Eye icon
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                                                <circle cx="12" cy="12" r="3" />
-                                            </svg>
-                                        )}
-                                    </button>
+                                        <option value="">{t('gender_placeholder')}</option>
+                                        <option value="male">{t('male')}</option>
+                                        <option value="female">{t('female')}</option>
+                                        <option value="other">{t('other')}</option>
+                                    </select>
+                                </div>
+
+                                {/* Date of Birth */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('date_of_birth_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        name="dateOfBirth"
+                                        type="date"
+                                        required
+                                        value={formData.dateOfBirth}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        max="2003-12-31"
+                                    />
+                                </div>
+
+                                {/* Nationality */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('nationality_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        name="nationality"
+                                        type="text"
+                                        required
+                                        value={formData.nationality}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder={t('nationality_placeholder')}
+                                    />
+                                </div>
+
+                                {/* Mobile Number */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('mobile_number_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        name="mobileNumber"
+                                        type="tel"
+                                        required
+                                        value={formData.mobileNumber}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder={t('mobile_number_placeholder')}
+                                    />
+                                </div>
+
+                                {/* Email */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('email_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        required
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder={t('email_placeholder')}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Confirm Password */}
-                            <div>
-                                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">{t('password_confirm_label')}</label>
-                                <div className="relative">
-                                    <input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        autoComplete="new-password"
-                                        required
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        className="w-full pr-10 px-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
-                                        placeholder={t('password_confirm_placeholder')}
-                                    />
-                                    <button
-                                        type="button"
-                                        aria-label={showConfirmPassword ? t('password_hide') : t('password_show')}
-                                        onClick={() => setShowConfirmPassword((v) => !v)}
-                                        className="absolute inset-y-0 right-0 px-2.5 flex items-center text-gray-500 hover:text-gray-700"
-                                    >
-                                        {showConfirmPassword ? (
-                                            // Eye-off icon
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                                <path d="M3 3l18 18" />
-                                                <path d="M10.584 10.59a2 2 0 102.828 2.83" />
-                                                <path d="M16.681 16.69A10.941 10.941 0 0112 18c-5 0-9-4.5-10-6 0 0 1.273-1.947 3.5-3.6M14.12 5.11A10.94 10.94 0 0112 6c5 0 9 4.5 10 6 0 0-1.055 1.615-2.94 3.17" />
-                                            </svg>
-                                        ) : (
-                                            // Eye icon
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                                                <circle cx="12" cy="12" r="3" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
+                            {/* LOGIN INFORMATION Section */}
+                            <div className="space-y-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-6">{t('login_information_title')}</h3>
 
-                            {/* Submit */}
-                            <div>
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full flex justify-center py-2.5 px-4 rounded-md shadow text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                                >
-                                    {isLoading ? (
-                                        <div className="flex items-center">{t('creating_account')}</div>
-                                    ) : (
-                                        t('create_account')
-                                    )}
-                                </button>
+                                {/* Account (UserName) */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('account_username_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        name="username"
+                                        type="text"
+                                        required
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder={t('username_placeholder')}
+                                    />
+                                </div>
+
+                                {/* Password */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('password_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            name="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder={t('password_placeholder')}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                                        >
+                                            {showPassword ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                                    <path d="M3 3l18 18" />
+                                                    <path d="M10.584 10.59a2 2 0 102.828 2.83" />
+                                                    <path d="M16.681 16.69A10.941 10.941 0 0112 18c-5 0-9-4.5-10-6 0 0 1.273-1.947 3.5-3.6M14.12 5.11A10.94 10.94 0 0112 6c5 0 9 4.5 10 6 0 0-1.055 1.615-2.94 3.17" />
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Confirm Password */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {t('password_confirm_label')} <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            name="confirmPassword"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            required
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder={t('password_confirm_placeholder')}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword((v) => !v)}
+                                            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                                    <path d="M3 3l18 18" />
+                                                    <path d="M10.584 10.59a2 2 0 102.828 2.83" />
+                                                    <path d="M16.681 16.69A10.941 10.941 0 0112 18c-5 0-9-4.5-10-6 0 0 1.273-1.947 3.5-3.6M14.12 5.11A10.94 10.94 0 0112 6c5 0 9 4.5 10 6 0 0-1.055 1.615-2.94 3.17" />
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Link to Signin */}
-                    <div className="text-center">
-                        <p className="text-sm text-white/95">
-                            {t('have_account')}{' '}
-                            <Link
-                                to="/"
-                                className="text-yellow-300 hover:text-yellow-200 font-medium transition-colors duration-200"
+                        {/* Submit Button */}
+                        <div className="flex justify-end mt-8">
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="px-8 py-3 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {t('signin')}
-                            </Link>
-                        </p>
+                                {isLoading ? t('creating_account') : t('submit_button')}
+                            </button>
+                        </div>
+
+                        {/* Link to Signin */}
+                        <div className="text-center mt-6">
+                            <p className="text-sm text-gray-600">
+                                {t('have_account')}{' '}
+                                <Link
+                                    to="/login"
+                                    className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                                >
+                                    {t('sign_in_link')}
+                                </Link>
+                            </p>
+                        </div>
                     </div>
                 </form>
             </div>
