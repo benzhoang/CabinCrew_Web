@@ -394,6 +394,12 @@ const Screening = () => {
                                                     <button
                                                         className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
                                                         title="Xem chi tiết"
+                                                        onClick={() => navigate(`/candidate/${applicant.id}`, {
+                                                            state: {
+                                                                candidate: applicant,
+                                                                batchData: batchData
+                                                            }
+                                                        })}
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -434,186 +440,6 @@ const Screening = () => {
             </div>
         )
     }
-
-    return (
-        <div className="">
-            {/* Page hero */}
-            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                <div className="max-w-7xl mx-auto px-6 py-8">
-                    <h1 className="text-2xl md:text-3xl font-extrabold">Screening</h1>
-                    <p className="text-white/90 mt-1 text-sm">Theo dõi các đợt đang diễn ra và số người đang ứng tuyển</p>
-                </div>
-            </div>
-
-            {/* Overview cards */}
-            <div className="max-w-7xl mx-auto px-6 -mt-6 mb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                        <div className="text-xs text-slate-500">Chiến dịch hoạt động</div>
-                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalCampaigns}</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                        <div className="text-xs text-slate-500">Đợt đang diễn ra</div>
-                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalBatches}</div>
-                    </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-                        <div className="text-xs text-slate-500">Người đang ứng tuyển</div>
-                        <div className="text-2xl font-extrabold text-slate-900">{overview.totalApplicants}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-6 pb-8 space-y-6">
-                {/* Bộ lọc */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
-                            <input
-                                type="text"
-                                placeholder="Tìm theo tên, vị trí, phòng ban..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="all">Tất cả</option>
-                                <option value="active">Đang hoạt động</option>
-                                <option value="completed">Hoàn thành</option>
-                                <option value="paused">Tạm dừng</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
-                            <select
-                                value={departmentFilter}
-                                onChange={(e) => setDepartmentFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="all">Tất cả</option>
-                                <option value="Cabin Crew">Cabin Crew</option>
-                                <option value="Flight Operations">Flight Operations</option>
-                                <option value="Ground Operations">Ground Operations</option>
-                                <option value="Customer Service">Customer Service</option>
-                                <option value="Maintenance">Maintenance</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Danh sách Campaign */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-                    <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-800">Chiến dịch đang hoạt động ({filteredCampaigns.length})</h3>
-                        <div className="text-xs text-slate-500">Chỉ hiển thị các đợt đang diễn ra</div>
-                    </div>
-
-                    <div className="divide-y divide-slate-200">
-                        {filteredCampaigns.map((campaign) => {
-                            const batches = buildBatches(campaign)
-                            const ongoingBatches = (batches || []).filter(b => b.status === 'ongoing')
-                            if (ongoingBatches.length === 0) return null
-                            return (
-                                <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
-                                    {/* Header campaign */}
-                                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                                        <div className="flex-1">
-                                            <div className="flex flex-wrap items-center gap-3 mb-2">
-                                                <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
-                                                {getStatusBadge(campaign.status)}
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                                                <div>
-                                                    <span className="text-sm text-slate-600">Vị trí:</span>
-                                                    <p className="font-medium text-slate-800">{campaign.position}</p>
-                                                </div>
-                                                <div>
-                                                    <span className="text-sm text-slate-600">Phòng ban:</span>
-                                                    <p className="font-medium text-slate-800">{campaign.department}</p>
-                                                </div>
-                                                <div>
-                                                    <span className="text-sm text-slate-600">Thời gian:</span>
-                                                    <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Các đợt đang diễn ra */}
-                                            <div className="mt-4">
-                                                <div className="text-sm text-slate-700 mb-2">Đợt đang diễn ra</div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {ongoingBatches.map((b, i) => {
-                                                        const statusCfg = getBatchStatusCfg(b.status)
-                                                        const p = percent(b.current, b.target)
-                                                        return (
-                                                            <div key={i} className="rounded-lg border border-slate-200 bg-white/90 backdrop-blur-sm shadow-sm overflow-hidden">
-                                                                <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                                                                    <div className="text-sm font-semibold text-slate-800">{b.name}</div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>{statusCfg.text}</span>
-                                                                        <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{b.current ?? 0} người</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="p-4 space-y-3">
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                                                        <InfoMini label="Thời gian" value={b.time || '—'} />
-                                                                        <InfoMini label="Địa điểm" value={b.location || '—'} />
-                                                                        <InfoMini label="Hình thức" value={b.method || '—'} />
-                                                                        {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
-                                                                        {b.target !== undefined && (
-                                                                            <InfoMini label="Chỉ tiêu" value={`${b.current ?? 0}/${b.target}`} />
-                                                                        )}
-                                                                        {b.note && <InfoMini label="Ghi chú" value={b.note} />}
-                                                                    </div>
-                                                                    {b.target !== undefined && (
-                                                                        <div>
-                                                                            <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
-                                                                                <span>Tiến độ</span>
-                                                                                <span>{p}%</span>
-                                                                            </div>
-                                                                            <div className="w-full bg-slate-200 rounded-full h-2">
-                                                                                <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${p}%` }}></div>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {/* Actions */}
-                                        <div className="shrink-0 flex md:flex-col gap-2">
-                                            <button
-                                                onClick={() => navigate(`/recruiter/campaigns/${campaign.id}`, { state: { campaign } })}
-                                                className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium shadow-sm"
-                                            >
-                                                Xem chi tiết
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    {filteredCampaigns.length === 0 && (
-                        <div className="p-12 text-center">
-                            <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    )
 }
 
 const InfoMini = ({ label, value }) => (

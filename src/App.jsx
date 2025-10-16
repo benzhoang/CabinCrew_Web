@@ -30,6 +30,7 @@ import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
 import CreateCampaign from './pages/Recruiter/CreateCampaign';
 import Screening from './pages/Recruiter/Screening';
+import CandidateApplyDetail from './pages/Recruiter/CandidateApplyDetail';
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
 import AirlinePartnerLayout from "./layout/AirlinePartnerLayout";
 import ReportPage from "./pages/AirlinePartner/ReportPage";
@@ -122,11 +123,19 @@ function App() {
             </main>
           </div>
         } />
-        <Route path="/applications" element={
+        <Route path="/recruiter/applications" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />
             <main className="flex-1 overflow-auto">
               <Screening />
+            </main>
+          </div>
+        } />
+        <Route path="/candidate/:id" element={
+          <div className="flex h-screen bg-gray-50">
+            <SidebarRecruiter />
+            <main className="flex-1 overflow-auto">
+              <CandidateApplyDetail />
             </main>
           </div>
         } />

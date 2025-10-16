@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
+import { t, onLangChange } from '../../i18n'
 
 const ApplicationForm = () => {
     const navigate = useNavigate()
@@ -37,6 +38,9 @@ const ApplicationForm = () => {
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
 
+    // Force re-render when language changes
+    const [, forceUpdate] = useState({})
+
     // Generate random captcha code
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -50,6 +54,14 @@ const ApplicationForm = () => {
     // Initialize captcha on component mount
     useEffect(() => {
         setCaptchaCode(generateCaptcha())
+    }, [])
+
+    // Listen for language changes and force re-render
+    useEffect(() => {
+        const unsubscribe = onLangChange(() => {
+            forceUpdate({})
+        })
+        return unsubscribe
     }, [])
 
     // Refresh captcha function
@@ -83,7 +95,7 @@ const ApplicationForm = () => {
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert('Mã CAPTCHA không đúng. Vui lòng thử lại!')
+            alert(t('application_form_captcha_incorrect'))
             refreshCaptcha()
             return
         }
@@ -91,7 +103,7 @@ const ApplicationForm = () => {
         // Xử lý submit form ở đây
         console.log('Form data:', formData)
         console.log('Files:', files)
-        alert('Đơn ứng tuyển đã được gửi thành công!')
+        alert(t('application_form_submitted_successfully'))
         navigate('/recruitment')
     }
 
@@ -101,8 +113,8 @@ const ApplicationForm = () => {
                 <Navbar />
                 <div className="max-w-5xl mx-auto px-4 py-8">
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                        <p className="text-gray-600 mb-4">Không tìm thấy thông tin chiến dịch.</p>
-                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Quay lại</button>
+                        <p className="text-gray-600 mb-4">{t('application_form_campaign_not_found')}</p>
+                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">{t('application_form_go_back')}</button>
                     </div>
                 </div>
                 <Footer />
@@ -115,7 +127,7 @@ const ApplicationForm = () => {
             <Navbar />
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
-                    <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">Quay lại</button>
+                    <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">{t('application_form_go_back')}</button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -125,27 +137,27 @@ const ApplicationForm = () => {
                             <h1 className="text-2xl font-bold text-slate-800 mb-4">{campaign.name}</h1>
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-slate-600">Department:</span>
+                                    <span className="text-slate-600">{t('application_form_department')}:</span>
                                     <span className="font-medium">Cabin Crew</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-600">Application Period:</span>
+                                    <span className="text-slate-600">{t('application_form_application_period')}:</span>
                                     <span className="font-medium">Open: 01 Oct 2025, Close: 01 Nov 2025</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-slate-600">Required Document:</span>
+                                    <span className="text-slate-600">{t('application_form_required_document')}:</span>
                                     <span className="font-medium">VJC-PD-FRM-12 Form Job Application</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-slate-800 mb-4">REMEMBER TO UPLOAD THESE DOCUMENT BEFORE YOU APPLY</h3>
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
 
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        VJC-PD-FRM-12 Form Job Application (file đính kèm/attached file) *
+                                        {t('application_form_application_form_file')} *
                                     </label>
                                     <div className="relative">
                                         <input
@@ -164,7 +176,7 @@ const ApplicationForm = () => {
                                                     {files.applicationForm ? (
                                                         <span className="text-green-600 font-medium">✓ {files.applicationForm.name}</span>
                                                     ) : (
-                                                        <span>Nhấn để chọn file hoặc kéo thả vào đây</span>
+                                                        <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -174,7 +186,7 @@ const ApplicationForm = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Ảnh chân dung 4x6 / Profile photo 4x6cm *
+                                        {t('application_form_profile_photo')} *
                                     </label>
                                     <div className="relative">
                                         <input
@@ -194,7 +206,7 @@ const ApplicationForm = () => {
                                                     {files.profilePhoto ? (
                                                         <span className="text-green-600 font-medium">✓ {files.profilePhoto.name}</span>
                                                     ) : (
-                                                        <span>Nhấn để chọn ảnh hoặc kéo thả vào đây</span>
+                                                        <span>{t('application_form_click_to_select_image')}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -204,7 +216,7 @@ const ApplicationForm = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Bằng tốt nghiệp (THPT trở lên)/Education degree (high school diploma or higher) *
+                                        {t('application_form_education_degree')} *
                                     </label>
                                     <div className="relative">
                                         <input
@@ -224,7 +236,7 @@ const ApplicationForm = () => {
                                                     {files.educationDegree ? (
                                                         <span className="text-green-600 font-medium">✓ {files.educationDegree.name}</span>
                                                     ) : (
-                                                        <span>Nhấn để chọn file hoặc kéo thả vào đây</span>
+                                                        <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -234,7 +246,7 @@ const ApplicationForm = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Chứng chỉ tiếng Anh (bắt buộc)/English certificate (must have) *
+                                        {t('application_form_english_certificate')} *
                                     </label>
                                     <div className="relative">
                                         <input
@@ -254,7 +266,7 @@ const ApplicationForm = () => {
                                                     {files.englishCertificate ? (
                                                         <span className="text-green-600 font-medium">✓ {files.englishCertificate.name}</span>
                                                     ) : (
-                                                        <span>Nhấn để chọn file hoặc kéo thả vào đây</span>
+                                                        <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -264,7 +276,7 @@ const ApplicationForm = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        CCCD (2 mặt)/Valid Passport (For Expats) *
+                                        {t('application_form_id_card')} *
                                     </label>
                                     <div className="relative">
                                         <input
@@ -284,7 +296,7 @@ const ApplicationForm = () => {
                                                     {files.idCard ? (
                                                         <span className="text-green-600 font-medium">✓ {files.idCard.name}</span>
                                                     ) : (
-                                                        <span>Nhấn để chọn file hoặc kéo thả vào đây</span>
+                                                        <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -301,7 +313,7 @@ const ApplicationForm = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">1. Your email address:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">1. {t('application_form_your_email')}</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -313,7 +325,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">2. Your full name:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">2. {t('application_form_your_fullname')}</label>
                                 <input
                                     type="text"
                                     name="fullName"
@@ -325,7 +337,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">3. Your nationality:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">3. {t('application_form_your_nationality')}</label>
                                 <select
                                     name="nationality"
                                     value={formData.nationality}
@@ -333,23 +345,23 @@ const ApplicationForm = () => {
                                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     required
                                 >
-                                    <option value="">--Select your nationality--</option>
-                                    <option value="vietnamese">Vietnamese</option>
-                                    <option value="american">American</option>
-                                    <option value="british">British</option>
-                                    <option value="french">French</option>
-                                    <option value="german">German</option>
-                                    <option value="japanese">Japanese</option>
-                                    <option value="korean">Korean</option>
-                                    <option value="chinese">Chinese</option>
-                                    <option value="thai">Thai</option>
-                                    <option value="singaporean">Singaporean</option>
-                                    <option value="other">Other</option>
+                                    <option value="">{t('application_form_select_nationality')}</option>
+                                    <option value="vietnamese">{t('application_form_vietnamese')}</option>
+                                    <option value="american">{t('application_form_american')}</option>
+                                    <option value="british">{t('application_form_british')}</option>
+                                    <option value="french">{t('application_form_french')}</option>
+                                    <option value="german">{t('application_form_german')}</option>
+                                    <option value="japanese">{t('application_form_japanese')}</option>
+                                    <option value="korean">{t('application_form_korean')}</option>
+                                    <option value="chinese">{t('application_form_chinese')}</option>
+                                    <option value="thai">{t('application_form_thai')}</option>
+                                    <option value="singaporean">{t('application_form_singaporean')}</option>
+                                    <option value="other">{t('application_form_other')}</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">4. Date of Birth:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">4. {t('application_form_date_of_birth')}</label>
                                 <input
                                     type="date"
                                     name="dateOfBirth"
@@ -361,7 +373,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">5. Gender:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">5. {t('application_form_gender')}</label>
                                 <div className="flex gap-4">
                                     <label className="flex items-center">
                                         <input
@@ -373,7 +385,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Male
+                                        {t('application_form_male')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -385,13 +397,13 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Female
+                                        {t('application_form_female')}
                                     </label>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">6. Mobile number (Expats: WhatsApp number):</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_mobile_number')}</label>
                                 <input
                                     type="tel"
                                     name="mobileNumber"
@@ -403,7 +415,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">7. Working experience:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_working_experience')}</label>
                                 <div className="space-y-2">
                                     <label className="flex items-center">
                                         <input
@@ -415,7 +427,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        No experience
+                                        {t('application_form_no_experience')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -427,7 +439,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Less than 1 year
+                                        {t('application_form_less_than_1_year')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -439,7 +451,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        1-2 years
+                                        {t('application_form_1_2_years')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -451,16 +463,16 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        3-5 years
+                                        {t('application_form_3_5_years')}
                                     </label>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">8. Your height (in cm) & weight (in kg):</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_height_weight')}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
+                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_height')}</label>
                                         <input
                                             type="number"
                                             name="height"
@@ -472,7 +484,7 @@ const ApplicationForm = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">Weight (kg)</label>
+                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_weight')}</label>
                                         <input
                                             type="number"
                                             name="weight"
@@ -484,14 +496,14 @@ const ApplicationForm = () => {
                                         />
                                     </div>
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1">Example: 165 cm - 53kg</p>
+                                <p className="text-xs text-slate-500 mt-1">{t('application_form_height_example')}</p>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">9. English Certificate (TOEIC/IELTS/TOEFL) & Expire Date:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_english_certificate_info')}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">Number</label>
+                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_certificate_number')}</label>
                                         <input
                                             type="text"
                                             name="englishCertificate"
@@ -503,7 +515,7 @@ const ApplicationForm = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">Expire Date</label>
+                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_expire_date')}</label>
                                         <input
                                             type="date"
                                             name="certificateExpireDate"
@@ -517,7 +529,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">10. If selected, I hereby commit to accepting this as my permanent base (Cabin Crew only):</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">10. {t('application_form_base_preference')}</label>
                                 <div className="space-y-2">
                                     <label className="flex items-center">
                                         <input
@@ -529,7 +541,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Flexible base
+                                        {t('application_form_flexible_base')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -541,7 +553,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Cam Ranh City (CXR)
+                                        {t('application_form_cam_ranh')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -553,17 +565,16 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Da Nang City (DAD)
+                                        {t('application_form_da_nang')}
                                     </label>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">11. Acknowledgement of Terms and Conditions:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">11. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
-                                    I acknowledge that my personal data will be processed by Vietjet Aviation Joint Stock Company
-                                    in accordance with the <a href="#" className="text-blue-600 underline">Privacy Policy</a>
-                                    for recruitment purposes.
+                                    {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
+                                    {t('application_form_for_recruitment')}
                                 </p>
                                 <div className="space-y-2">
                                     <label className="flex items-center">
@@ -576,7 +587,7 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        Yes
+                                        {t('application_form_yes')}
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -588,13 +599,13 @@ const ApplicationForm = () => {
                                             className="mr-2"
                                             required
                                         />
-                                        No
+                                        {t('application_form_no')}
                                     </label>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">CAPTCHA:</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">{t('application_form_captcha')}</label>
                                 <div className="flex items-center gap-4">
                                     <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
                                         {captchaCode}
@@ -605,7 +616,7 @@ const ApplicationForm = () => {
                                             name="captcha"
                                             value={captchaInput}
                                             onChange={handleInputChange}
-                                            placeholder="Enter character you see"
+                                            placeholder={t('application_form_enter_captcha')}
                                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             required
                                         />
@@ -616,7 +627,7 @@ const ApplicationForm = () => {
                                     onClick={refreshCaptcha}
                                     className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
                                 >
-                                    Try a new code
+                                    {t('application_form_try_new_code')}
                                 </button>
                             </div>
 
@@ -624,7 +635,7 @@ const ApplicationForm = () => {
                                 type="submit"
                                 className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md text-lg"
                             >
-                                FINISH
+                                {t('application_form_finish')}
                             </button>
                         </form>
                     </div>

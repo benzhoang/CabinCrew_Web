@@ -85,6 +85,19 @@ const Signup = () => {
                 </div>
             </div>
             <div className="max-w-4xl w-full relative z-10">
+                {/* Back to Home Button */}
+                <div className="mb-6">
+                    <Link
+                        to="/home"
+                        className="inline-flex items-center text-white hover:text-blue-200 transition-colors duration-200 font-medium"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 mr-2">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Quay trở lại trang chủ
+                    </Link>
+                </div>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h2 className="text-4xl font-bold text-white mb-2">{t('signup_title').toUpperCase()}</h2>

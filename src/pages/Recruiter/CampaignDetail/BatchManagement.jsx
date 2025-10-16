@@ -428,7 +428,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
             return
         }
 
-        navigate('/applications', {
+        navigate('/recruiter/applications', {
             state: {
                 campaignId,
                 batchName: batch.name,

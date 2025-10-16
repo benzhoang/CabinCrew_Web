@@ -10,7 +10,7 @@ const HomePage = () => {
         return () => off();
     }, []);
     return (
-        <main className="bg-gray-50">
+        <main className="bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 min-h-screen">
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
@@ -66,7 +66,7 @@ const HomePage = () => {
             </section>
 
             {/* Features Section */}
-            <section className="bg-white py-16 lg:py-24">
+            <section className="bg-white/70 backdrop-blur-sm py-16 lg:py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('features_title')}</h2>
@@ -74,7 +74,7 @@ const HomePage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">🌍</span>
                             </div>
@@ -82,7 +82,7 @@ const HomePage = () => {
                             <p className="text-gray-600">{t('f1_desc')}</p>
                         </div>
 
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">💼</span>
                             </div>
@@ -90,7 +90,7 @@ const HomePage = () => {
                             <p className="text-gray-600">{t('f2_desc')}</p>
                         </div>
 
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">💰</span>
                             </div>
@@ -98,7 +98,7 @@ const HomePage = () => {
                             <p className="text-gray-600">{t('f3_desc')}</p>
                         </div>
 
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">👥</span>
                             </div>
@@ -106,7 +106,7 @@ const HomePage = () => {
                             <p className="text-gray-600">{t('f4_desc')}</p>
                         </div>
 
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">🏆</span>
                             </div>
@@ -114,7 +114,7 @@ const HomePage = () => {
                             <p className="text-gray-600">{t('f5_desc')}</p>
                         </div>
 
-                        <div className="text-center p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div className="text-center p-6 rounded-xl bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 shadow-sm hover:shadow-md">
                             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-2xl">🎯</span>
                             </div>
@@ -126,7 +126,7 @@ const HomePage = () => {
             </section>
 
             {/* Requirements Section */}
-            <section className="bg-gray-50 py-16 lg:py-24">
+            <section className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 py-16 lg:py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div>
@@ -179,38 +179,38 @@ const HomePage = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-8 shadow-xl">
+                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
                             <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('process_title')}</h3>
                             <div className="space-y-4">
-                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
                                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">1</div>
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{t('process_1_h')}</h4>
                                         <p className="text-sm text-gray-600">{t('process_1_p')}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
                                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">2</div>
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{t('process_2_h')}</h4>
                                         <p className="text-sm text-gray-600">{t('process_2_p')}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
                                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">3</div>
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{t('process_3_h')}</h4>
                                         <p className="text-sm text-gray-600">{t('process_3_p')}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
                                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">4</div>
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{t('process_4_h')}</h4>
                                         <p className="text-sm text-gray-600">{t('process_4_p')}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
                                     <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">5</div>
                                     <div>
                                         <h4 className="font-semibold text-gray-900">{t('process_5_h')}</h4>
@@ -224,7 +224,7 @@ const HomePage = () => {
             </section>
 
             {/* Benefits Section */}
-            <section className="bg-white py-16 lg:py-24">
+            <section className="bg-white/80 backdrop-blur-sm py-16 lg:py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('benefits_title')}</h2>
@@ -288,7 +288,7 @@ const HomePage = () => {
             </section>
 
             {/* Testimonials Section */}
-            <section className="bg-gray-50 py-16 lg:py-24">
+            <section className="bg-gradient-to-r from-sky-50/60 to-blue-50/60 py-16 lg:py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{t('testi_title')}</h2>

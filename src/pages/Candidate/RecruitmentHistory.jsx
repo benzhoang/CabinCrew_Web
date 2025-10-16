@@ -12,7 +12,7 @@ const RecruitmentHistory = () => {
         return () => off();
     }, []);
 
-    // Mock data cho lịch sử tuyển dụng
+    // Mock data cho lịch sử tuyển dụng - bao gồm cả giai đoạn đã chấp thuận và không đạt yêu cầu
     const recruitmentHistory = [
         {
             id: 1,
@@ -36,7 +36,15 @@ const RecruitmentHistory = () => {
             statusTextEn: 'Not Qualified',
             location: 'Đà Nẵng',
             salary: '$2,200 - $3,200/month',
-            description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.'
+            description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
+            currentStage: 1, // Bị loại ở giai đoạn "Kiểm tra hồ sơ"
+            stages: [
+                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-12-21' },
+                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: false, date: null },
+                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
+                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
+                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
+            ]
         },
         {
             id: 3,
@@ -48,7 +56,15 @@ const RecruitmentHistory = () => {
             statusTextEn: 'Accepted',
             location: 'TP.HCM',
             salary: '$2,800 - $3,800/month',
-            description: 'Chương trình học viên phi công đã kết thúc.'
+            description: 'Chương trình học viên phi công đã kết thúc.',
+            currentStage: 5, // Hoàn thành tất cả giai đoạn
+            stages: [
+                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-11-12' },
+                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-11-15' },
+                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-11-18' },
+                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: true, date: '2023-11-22' },
+                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: true, date: '2023-11-25' }
+            ]
         },
         {
             id: 4,
@@ -60,7 +76,15 @@ const RecruitmentHistory = () => {
             statusTextEn: 'Not Qualified',
             location: 'Hà Nội',
             salary: '$800 - $1,200/month',
-            description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.'
+            description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
+            currentStage: 3, // Bị loại ở giai đoạn "Kiểm tra tiếng Anh"
+            stages: [
+                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-10-07' },
+                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-10-10' },
+                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-10-15' },
+                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
+                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
+            ]
         }
     ];
 
@@ -80,6 +104,46 @@ const RecruitmentHistory = () => {
     const getStatusText = (item) => {
         const lang = localStorage.getItem('lang') || 'vi';
         return lang === 'vi' ? item.statusText : item.statusTextEn;
+    };
+
+    // Hàm lấy tên giai đoạn theo ngôn ngữ
+    const getStageName = (stage) => {
+        const lang = localStorage.getItem('lang') || 'vi';
+        return lang === 'vi' ? stage.name : stage.nameEn;
+    };
+
+    // Hàm lấy màu sắc cho giai đoạn
+    const getStageColor = (stage, currentStage) => {
+        if (stage.completed) {
+            return 'bg-green-500 text-white';
+        } else if (stage.id === currentStage) {
+            return 'bg-blue-500 text-white';
+        } else {
+            return 'bg-gray-300 text-gray-600';
+        }
+    };
+
+    // Hàm lấy icon cho giai đoạn
+    const getStageIcon = (stage, currentStage) => {
+        if (stage.completed) {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+            );
+        } else if (stage.id === currentStage) {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+            );
+        } else {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+            );
+        }
     };
 
     // Hàm xử lý khi nhấn nút "Xem chi tiết"
@@ -240,6 +304,61 @@ const RecruitmentHistory = () => {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Hiển thị timeline cho các giai đoạn đã chấp thuận và không đạt yêu cầu */}
+                                {(application.status === 'accepted' || application.status === 'rejected') && application.stages && (
+                                    <div className="mt-6 pt-6 border-t border-gray-200">
+                                        <h4 className="text-sm font-medium text-gray-900 mb-4">Tiến trình ứng tuyển</h4>
+
+                                        {/* Progress Timeline */}
+                                        <div className="relative">
+                                            {/* Progress Line */}
+                                            <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
+                                                <div
+                                                    className="h-full bg-blue-500 transition-all duration-500"
+                                                    style={{
+                                                        width: `${(application.currentStage / application.stages.length) * 100}%`
+                                                    }}
+                                                ></div>
+                                            </div>
+
+                                            {/* Stages */}
+                                            <div className="relative flex justify-between">
+                                                {application.stages.map((stage, index) => (
+                                                    <div key={stage.id} className="flex flex-col items-center">
+                                                        {/* Stage Circle */}
+                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage)}`}>
+                                                            {getStageIcon(stage, application.currentStage)}
+                                                        </div>
+
+                                                        {/* Stage Info */}
+                                                        <div className="mt-3 text-center max-w-24">
+                                                            <p className="text-xs font-medium text-gray-900">
+                                                                {getStageName(stage)}
+                                                            </p>
+                                                            {stage.date && (
+                                                                <p className="text-xs text-gray-500 mt-1">
+                                                                    {new Date(stage.date).toLocaleDateString()}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Current Status */}
+                                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Trạng thái hiện tại:</strong> {
+                                                    application.stages.find(stage => stage.id === application.currentStage)?.completed
+                                                        ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                        : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

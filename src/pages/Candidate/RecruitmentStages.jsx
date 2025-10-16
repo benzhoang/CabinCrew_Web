@@ -9,7 +9,7 @@ const RecruitmentStages = () => {
         return () => off();
     }, []);
 
-    // Mock data cho các giai đoạn tuyển dụng
+    // Mock data cho các giai đoạn tuyển dụng - chỉ hiển thị "Đang xem xét"
     const recruitmentStages = [
         {
             id: 1,
@@ -27,66 +27,6 @@ const RecruitmentStages = () => {
                 { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2024-01-16' },
                 { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2024-01-20' },
                 { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-            ]
-        },
-        {
-            id: 2,
-            position: 'Ground Staff Intake',
-            company: 'Bamboo Airways',
-            appliedDate: '2023-12-20',
-            status: 'rejected',
-            statusText: 'Không đạt yêu cầu',
-            statusTextEn: 'Not Qualified',
-            location: 'Đà Nẵng',
-            salary: '$2,200 - $3,200/month',
-            description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
-            currentStage: 1, // Bị loại ở giai đoạn "Kiểm tra hồ sơ"
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-12-21' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: false, date: null },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-            ]
-        },
-        {
-            id: 3,
-            position: 'Pilot Cadet Program',
-            company: 'VietJet Air',
-            appliedDate: '2023-11-10',
-            status: 'accepted',
-            statusText: 'Đã được chấp nhận',
-            statusTextEn: 'Accepted',
-            location: 'TP.HCM',
-            salary: '$2,800 - $3,800/month',
-            description: 'Chương trình học viên phi công đã kết thúc.',
-            currentStage: 5, // Hoàn thành tất cả giai đoạn
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-11-12' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-11-15' },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-11-18' },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: true, date: '2023-11-22' },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: true, date: '2023-11-25' }
-            ]
-        },
-        {
-            id: 4,
-            position: 'Customer Service Expansion',
-            company: 'Pacific Airlines',
-            appliedDate: '2023-10-05',
-            status: 'rejected',
-            statusText: 'Không đạt yêu cầu',
-            statusTextEn: 'Not Qualified',
-            location: 'Hà Nội',
-            salary: '$800 - $1,200/month',
-            description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
-            currentStage: 3, // Bị loại ở giai đoạn "Kiểm tra tiếng Anh"
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-10-07' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-10-10' },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-10-15' },
                 { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
                 { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
             ]
