@@ -1,56 +1,8 @@
-import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import BatchInfo from "../../components/AirlinePartnerComponent/BatchInfo";
 import CampaignInfo from "../../components/AirlinePartnerComponent/CampaignInfo";
 
-const mockCampaign = {
-  id: 1,
-  code: "CCD1 MRF",
-  title: "Yêu cầu tuyển dụng - MRF",
-  subtitle: "Cabin Crew (Thay thế do nghỉ việc/Thai sản)",
-  proposer: "Đặng Bích Thu Thùy (Crew Welfare Team Leader)",
-  role: "Tiếp viên hàng không",
-  department: "Cabin Crew",
-  unit: "Cabin Crew - Tiếp viên hàng không",
-  quantity: 20,
-  startDate: "2024-01-15",
-  endDate: "2024-03-15",
-  description:
-    "Tuyển dụng tiếp viên hàng không cho các chuyến bay nội địa và quốc tế",
-  requirements:
-    "Tiếng Anh tốt, Chiều cao 1.60m+, Kỹ năng giao tiếp, Sức khỏe tốt",
-  rounds: [
-    {
-      id: "r1",
-      name: "Đợt 1",
-      status: "Đang diễn ra",
-      startDate: "2024-10-01", 
-      endDate: "2024-10-15",
-      location: "Hà Nội",
-      method: "Trực tiếp",
-      owner: "Nguyễn Thanh Tùng",
-      target: "7/10",
-      notes: "Phỏng vấn vòng 1",
-      progress: 70,
-    },
-    {
-      id: "r2",
-      name: "Đợt 2",
-      status: "Sắp diễn ra",
-      startDate: "2024-11-01", 
-      endDate: "2024-11-15",
-      location: "TP.HCM",
-      method: "Trực tiếp",
-      owner: "Trần Bảo Vy",
-      target: "0/10",
-      notes: "Phỏng vấn vòng 2",
-      progress: 0,
-    },
-  ],
-};
-
 const CampaignDetail = () => {
-  const { id } = useParams();
-  const data = useMemo(() => ({ ...mockCampaign, id }), [id]);
   const navigate = useNavigate();
 
   return (
@@ -74,7 +26,10 @@ const CampaignDetail = () => {
         </button>
       </div>
 
-      <CampaignInfo campaign={data} />
+      <div className="space-y-5">
+        <CampaignInfo />
+        <BatchInfo />
+      </div>
     </div>
   );
 };

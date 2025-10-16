@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 const CreateCampaignInfo = () => {
     const [formData, setFormData] = useState({
+        title: '',
         quantity: '',
         startDate: '',
         endDate: '',
@@ -34,6 +35,9 @@ const CreateCampaignInfo = () => {
     const validateForm = () => {
         const newErrors = {}
 
+        if (!formData.title.trim()) {
+            newErrors.title = 'Tiêu đề là bắt buộc'
+        }
         if (!formData.quantity || parseInt(formData.quantity) <= 0) {
             newErrors.quantity = 'Số lượng tuyển phải lớn hơn 0'
         }
@@ -87,10 +91,23 @@ const CreateCampaignInfo = () => {
     return (
         <div className="p-6">
             <div className="flex items-start justify-between mb-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-red-600 tracking-wide uppercase">
-                        Tạo Yêu cầu tuyển dụng - MRF
-                    </h1>
+            <div className="flex-1 mr-50">
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Tiêu đề *
+                        </label>
+                        <input
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.title ? 'border-red-300' : 'border-slate-300'}`}
+                            placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
+                        />
+                        {errors.title && (
+                            <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                        )}
+                    </div>
                     <p className="text-slate-600 mt-1 text-sm">Đăng công khai tuyển dụng - Cabin Crew</p>
                 </div>
                 <button

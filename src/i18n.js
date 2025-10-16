@@ -49,6 +49,10 @@ const dictionaries = {
         no_applications: 'Chưa có đơn ứng tuyển nào',
         no_applications_desc: 'Bạn chưa nộp đơn ứng tuyển nào. Hãy bắt đầu tìm kiếm cơ hội việc làm phù hợp.',
         browse_jobs: 'Duyệt việc làm',
+        promotion: 'Thăng bậc',
+        //Navbar cabin crew
+         promotion_history: 'Lịch sử thăng bậc',
+         promotion_stages: 'Tiến trình thăng bậc',
         // User Profile
         user_profile: 'Thông tin cá nhân',
         avatar: 'Ảnh đại diện',
@@ -388,6 +392,11 @@ const dictionaries = {
         no_applications: 'No applications yet',
         no_applications_desc: 'You haven\'t applied to any jobs yet. Start browsing for suitable opportunities.',
         browse_jobs: 'Browse Jobs',
+        promotion: 'Promotion',
+        //Navbar cabin crew
+        promotion_history: 'Promotion History',
+        promotion_stages: 'Promotion Stages',
+
         // User Profile
         user_profile: 'User Profile',
         avatar: 'Avatar',

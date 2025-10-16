@@ -65,7 +65,7 @@ const Sidebar = ({ username = 'Nguyễn Văn A' }) => {
     }, [])
 
     const handleLogout = () => {
-        localStorage.removeItem('user')
+        localStorage.removeItem('employee');
         window.dispatchEvent(new Event('auth-changed'))
         navigate('/')
     }

@@ -137,33 +137,68 @@ const Navbar = () => {
                                             </svg>
                                             {t('settings')}
                                         </Link>
-                                        <Link
-                                            to="/recruitment-history"
-                                            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setIsUserMenuOpen(false)}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                                <polyline points="14,2 14,8 20,8" />
-                                                <line x1="16" y1="13" x2="8" y2="13" />
-                                                <line x1="16" y1="17" x2="8" y2="17" />
-                                                <polyline points="10,9 9,9 8,9" />
-                                            </svg>
-                                            {t('recruitment_history')}
-                                        </Link>
-                                        <Link
-                                            to="/recruitment-stages"
-                                            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setIsUserMenuOpen(false)}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                                <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
-                                                <path d="M9 11V9a3 3 0 0 1 6 0v2" />
-                                                <path d="M12 15v2" />
-                                                <path d="M12 19h.01" />
-                                            </svg>
-                                            {t('recruitment_stages')}
-                                        </Link>
+                                        {user?.role === 'candidate' && (
+                                            <>
+                                                <Link
+                                                    to="/recruitment-history"
+                                                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                        <polyline points="14,2 14,8 20,8" />
+                                                        <line x1="16" y1="13" x2="8" y2="13" />
+                                                        <line x1="16" y1="17" x2="8" y2="17" />
+                                                        <polyline points="10,9 9,9 8,9" />
+                                                    </svg>
+                                                    {t('recruitment_history')}
+                                                </Link>
+                                                <Link
+                                                    to="/recruitment-stages"
+                                                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
+                                                        <path d="M9 11V9a3 3 0 0 1 6 0v2" />
+                                                        <path d="M12 15v2" />
+                                                        <path d="M12 19h.01" />
+                                                    </svg>
+                                                    {t('recruitment_stages')}
+                                                </Link>
+                                            </>
+                                        )}
+                                        {user?.role === 'cabin-crew' && (
+                                            <>
+                                                <Link
+                                                    to="/cabin-crew/promotion-history"
+                                                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                        <polyline points="14,2 14,8 20,8" />
+                                                        <line x1="16" y1="13" x2="8" y2="13" />
+                                                        <line x1="16" y1="17" x2="8" y2="17" />
+                                                        <polyline points="10,9 9,9 8,9" />
+                                                    </svg>
+                                                    {t('promotion_history')}
+                                                </Link>
+                                                <Link
+                                                    to="/cabin-crew/promotion-stages"
+                                                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                                                    onClick={() => setIsUserMenuOpen(false)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                        <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
+                                                        <path d="M9 11V9a3 3 0 0 1 6 0v2" />
+                                                        <path d="M12 15v2" />
+                                                        <path d="M12 19h.01" />
+                                                    </svg>
+                                                    {t('promotion_stages')}
+                                                </Link>
+                                            </>
+                                        )}
                                         <button
                                             onClick={handleLogout}
                                             className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -283,33 +318,68 @@ const Navbar = () => {
                                                 </svg>
                                                 {t('settings')}
                                             </Link>
-                                            <Link
-                                                to="/recruitment-history"
-                                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                                    <polyline points="14,2 14,8 20,8" />
-                                                    <line x1="16" y1="13" x2="8" y2="13" />
-                                                    <line x1="16" y1="17" x2="8" y2="17" />
-                                                    <polyline points="10,9 9,9 8,9" />
-                                                </svg>
-                                                {t('recruitment_history')}
-                                            </Link>
-                                            <Link
-                                                to="/recruitment-stages"
-                                                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                                    <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
-                                                    <path d="M9 11V9a3 3 0 0 1 6 0v2" />
-                                                    <path d="M12 15v2" />
-                                                    <path d="M12 19h.01" />
-                                                </svg>
-                                                {t('recruitment_stages')}
-                                            </Link>
+                                            {user?.role === 'candidate' && (
+                                                <>
+                                                    <Link
+                                                        to="/recruitment-history"
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                            <polyline points="14,2 14,8 20,8" />
+                                                            <line x1="16" y1="13" x2="8" y2="13" />
+                                                            <line x1="16" y1="17" x2="8" y2="17" />
+                                                            <polyline points="10,9 9,9 8,9" />
+                                                        </svg>
+                                                        {t('recruitment_history')}
+                                                    </Link>
+                                                    <Link
+                                                        to="/recruitment-stages"
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                            <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
+                                                            <path d="M9 11V9a3 3 0 0 1 6 0v2" />
+                                                            <path d="M12 15v2" />
+                                                            <path d="M12 19h.01" />
+                                                        </svg>
+                                                        {t('recruitment_stages')}
+                                                    </Link>
+                                                </>
+                                            )}
+                                            {user?.role === 'cabin-crew' && (
+                                                <>
+                                                    <Link
+                                                        to="/promotion-history"
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                            <polyline points="14,2 14,8 20,8" />
+                                                            <line x1="16" y1="13" x2="8" y2="13" />
+                                                            <line x1="16" y1="17" x2="8" y2="17" />
+                                                            <polyline points="10,9 9,9 8,9" />
+                                                        </svg>
+                                                        {t('promotion_history')}
+                                                    </Link>
+                                                    <Link
+                                                        to="/promotion-stages"
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                                            <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4" />
+                                                            <path d="M9 11V9a3 3 0 0 1 6 0v2" />
+                                                            <path d="M12 15v2" />
+                                                            <path d="M12 19h.01" />
+                                                        </svg>
+                                                        {t('promotion_stages')}
+                                                    </Link>
+                                                </>
+                                            )}
                                             <button
                                                 onClick={handleLogout}
                                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"

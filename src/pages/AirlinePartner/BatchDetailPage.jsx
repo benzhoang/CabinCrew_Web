@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaCheck, FaEye, FaTrash } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const formatDate = (isoString) => {
   if (!isoString) return ''
@@ -12,23 +12,41 @@ const formatDate = (isoString) => {
   return `${day}/${month}/${year}`
 }
 
-const BatchDetailPage = () => {
+const RoundDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { state } = useLocation();
+  const [selectedRound, setSelectedRound] = useState(1);
 
-  // Sample data for batch information
-  const batchInfo = {
-    name: "Đợt 1",
-    startDate: "2024-10-01",
-    endDate: "2024-10-15",
-    location: "Hà Nội",
-    quota: "7/10"
-  };
+  // Sample data for available rounds
+  const availableRounds = [
+    { id: 1, name: "Vòng 1", startDate: "2024-10-01", endDate: "2024-10-15", location: "Hà Nội", quota: "7/10" },
+    { id: 2, name: "Vòng 2", startDate: "2024-10-16", endDate: "2024-10-30", location: "TP.HCM", quota: "5/8" },
+    { id: 3, name: "Vòng 3", startDate: "2024-11-01", endDate: "2024-11-15", location: "Đà Nẵng", quota: "3/6" }
+  ];
 
-  // Sample data for candidates
-  const candidates = [
+  // Prefer round info passed via navigation state; fallback to local sample
+  const stateRoundInfo = React.useMemo(() => {
+    if (!state) return null;
+    const passedRound = state.round || {};
+    const passedCampaign = state.campaign || {};
+    return {
+      name: state.roundName || passedRound.name || passedCampaign.roundName,
+      startDate: passedRound.startDate || passedCampaign.startDate,
+      endDate: passedRound.endDate || passedCampaign.endDate,
+      location: passedRound.location || passedCampaign.location,
+      quota: passedRound.target || passedCampaign.target || passedCampaign.quota || passedCampaign.quantity,
+    };
+  }, [state]);
+
+  // Round details used in the UI
+  const roundInfo = stateRoundInfo || (availableRounds.find(round => round.id === selectedRound) || availableRounds[0]);
+
+  // Sample data for candidates (memoized to avoid re-creation each render)
+  const candidates = React.useMemo(() => [
     {
       id: 1,
+      roundId: 1,
       name: "Nguyễn Thị Lan",
       university: "Đại học Ngoại thương",
       email: "lan.nguyen@email.com",
@@ -42,6 +60,7 @@ const BatchDetailPage = () => {
     },
     {
       id: 2,
+      roundId: 1,
       name: "Trần Văn Minh",
       university: "Đại học Bách khoa",
       email: "minh.tran@email.com",
@@ -55,6 +74,7 @@ const BatchDetailPage = () => {
     },
     {
       id: 3,
+      roundId: 1,
       name: "Lê Thị Hương",
       university: "Cao đẳng Du lịch",
       email: "huong.le@email.com",
@@ -68,6 +88,7 @@ const BatchDetailPage = () => {
     },
     {
       id: 4,
+      roundId: 1,
       name: "Phạm Văn Đức",
       university: "Đại học Kinh tế",
       email: "duc.pham@email.com",
@@ -79,7 +100,11 @@ const BatchDetailPage = () => {
       score: "-",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
     }
-  ];
+  ], []);
+
+  const filteredCandidates = React.useMemo(() => {
+    return candidates.filter((c) => c.roundId === selectedRound)
+  }, [candidates, selectedRound])
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -97,61 +122,79 @@ const BatchDetailPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-                    <div className="max-w-7xl mx-auto px-6 py-8">
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => navigate(-1)}
-                                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div>
-                                <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {batchInfo.name}</h1>
-                                <p className="text-white/90 mt-1 text-sm">Sàng lọc và đánh giá ứng viên cho đợt tuyển dụng</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+       <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+            <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {roundInfo.name}</h1>
+            <p className="text-white/90 mt-1 text-sm">Sàng lọc và đánh giá ứng viên cho vòng tuyển dụng</p>
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+            >
+              Quay lại
+            </button>
+          </div>
+        </div>
+      </div>
 
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Recruitment Batch Information Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
-            Thông tin đợt tuyển
+            Thông tin vòng tuyển
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Tên đợt:</p>
-              <p className="font-bold text-gray-900">{batchInfo.name}</p>
+              <p className="text-gray-600 text-sm mb-1">Tên vòng:</p>
+              <p className="font-bold text-gray-900">{roundInfo.name}</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm mb-1">Thời gian bắt đầu:</p>
-              <p className="font-bold text-gray-900">{formatDate(batchInfo.startDate)}</p>
+              <p className="font-bold text-gray-900">{formatDate(roundInfo.startDate)}</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm mb-1">Thời gian kết thúc:</p>
-              <p className="font-bold text-gray-900">{formatDate(batchInfo.endDate)}</p>
+              <p className="font-bold text-gray-900">{formatDate(roundInfo.endDate)}</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm mb-1">Địa điểm:</p>
-              <p className="font-bold text-gray-900">{batchInfo.location}</p>
+              <p className="font-bold text-gray-900">{roundInfo.location}</p>
             </div>
             <div>
               <p className="text-gray-600 text-sm mb-1">Chỉ tiêu:</p>
-              <p className="font-bold text-gray-900">{batchInfo.quota}</p>
+              <p className="font-bold text-gray-900">{roundInfo.quota}</p>
             </div>
           </div>
         </div>
 
+  
+
         {/* Candidate List Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
-            Danh sách ứng viên ({candidates.length})
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800">
+              Danh sách ứng viên ({filteredCandidates.length})
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 mr-2">Chọn vòng:</span>
+              {availableRounds.map((round) => (
+                <button
+                  key={round.id}
+                  onClick={() => setSelectedRound(round.id)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
+                    selectedRound === round.id
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {round.name}
+                </button>
+              ))}
+            </div>
+          </div>
           
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -168,13 +211,18 @@ const BatchDetailPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate) => (
+                {filteredCandidates.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="py-6 text-center text-gray-500">Chưa có ứng viên cho vòng này</td>
+                  </tr>
+                ) : (
+                  filteredCandidates.map((candidate) => (
                   <tr key={candidate.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className='py-4 px-4'>
                     <img 
                           src={candidate.avatar} 
                           alt={candidate.name}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                          className="w-16 h-20 rounded-md object-cover border-2 border-gray-200"
                           onError={(e) => {
                             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=random&color=fff&size=48`;
                           }}
@@ -228,7 +276,8 @@ const BatchDetailPage = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
@@ -238,4 +287,4 @@ const BatchDetailPage = () => {
   );
 };
 
-export default BatchDetailPage;
+export default RoundDetailPage;

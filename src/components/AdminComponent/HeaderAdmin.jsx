@@ -10,7 +10,7 @@ const HeaderAdmin = ({ toggleSidebar }) => {
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem('user');
+    localStorage.removeItem('employee');
     navigate("/");
   };
 

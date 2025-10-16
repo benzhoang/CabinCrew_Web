@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar';
 import SidebarRecruiter from './components/SidebarRecruiter';
 import Footer from './pages/Candidate/Footer';
-import AdminLayout from './layout/AdminLayout';
+import AdminLayout from './layouts/AdminLayout';
 import AirlinePartnerDashboardPage from './pages/Admin/AirlinePartnerDashboardPage';
 import AirlinePartnerListPage from './pages/Admin/AirlinePartnerListPage';
 import CabinCrewDashboardPage from './pages/Admin/CabinCrewDashboardPage';
@@ -32,12 +32,17 @@ import CreateCampaign from './pages/Recruiter/CreateCampaign';
 import Screening from './pages/Recruiter/Screening';
 import CandidateApplyDetail from './pages/Recruiter/CandidateApplyDetail';
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
-import AirlinePartnerLayout from "./layout/AirlinePartnerLayout";
+import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
 import ReportPage from "./pages/AirlinePartner/ReportPage";
 import CampaignDetailPage from './pages/AirlinePartner/CampaignDetailPage';
 import CandidateDetailPage from './pages/AirlinePartner/CandidateDetailPage';
 import CreateCampaignInfo from './pages/AirlinePartner/CreateCampaignInfo';
 import BatchDetailPage from "./pages/AirlinePartner/BatchDetailPage";
+import CabinCrewHomePage from './pages/CabinCrew/CabinCrewHomePage';
+import PromotionHistoryPage from "./pages/CabinCrew/PromotionHistoryPage";
+import PromotionStagesPage from "./pages/CabinCrew/PromotionStagesPage";
+
+
 
 function App() {
   return (
@@ -161,6 +166,32 @@ function App() {
         <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfo /></AirlinePartnerLayout>} />
       </Routes>
+
+      {/* Cabin Crew Routes */}
+      <Routes>
+        <Route path="/cabin-crew/home" element={
+            <>
+              <Navbar />
+              <CabinCrewHomePage />
+              <Footer />
+            </>
+          } />
+          <Route path="/cabin-crew/promotion-history" element={
+            <>
+              <Navbar />
+              <PromotionHistoryPage />
+              <Footer />
+            </>
+          } />
+          <Route path="/cabin-crew/promotion-stages" element={
+            <>
+              <Navbar />
+              <PromotionStagesPage />
+              <Footer />
+            </>
+          } />
+      </Routes>
+
     </BrowserRouter>
   );
 }

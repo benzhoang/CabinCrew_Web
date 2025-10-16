@@ -31,6 +31,12 @@ const MainPage = () => {
             password: 'airline123',
             displayName: 'Airline Partner',
             role: 'airline-partner'
+        },
+        'cabin-crew': {
+            username: 'cabincrew',
+            password: 'cabincrew123',
+            displayName: 'Cabin Crew',
+            role: 'cabin-crew'
         }
     };
 
@@ -72,8 +78,14 @@ const MainPage = () => {
         const userData = checkLogin(loginData.username, loginData.password);
 
         if (userData) {
-            // Lưu thông tin user vào localStorage
-            localStorage.setItem('user', JSON.stringify(userData));
+            // Lưu thông tin vào localStorage theo role
+            if (userData.role === 'candidate' || userData.role === 'cabin-crew') {
+                localStorage.setItem('user', JSON.stringify(userData));
+                localStorage.removeItem('employee');
+            } else if (userData.role === 'admin' || userData.role === 'recruiter' || userData.role === 'airline-partner') {
+                localStorage.setItem('employee', JSON.stringify(userData));
+                localStorage.removeItem('user');
+            }
             window.dispatchEvent(new Event('auth-changed'));
 
             // Hiển thị loading
@@ -96,6 +108,9 @@ const MainPage = () => {
                         break;
                     case 'airline-partner':
                         navigate('/airline-partner/campaigns');
+                        break;
+                    case 'cabin-crew':
+                        navigate('/cabin-crew/home');
                         break;
                     default:
                         alert('Role không được hỗ trợ');
