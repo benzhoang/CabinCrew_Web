@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { onLangChange } from '../../i18n';
+import { t, onLangChange } from '../../i18n';
+import { FaCheck, FaClock, FaEllipsisH } from 'react-icons/fa';
 
 const PromotionStagesPage = () => {
   // Tự động re-render khi đổi ngôn ngữ
@@ -10,88 +11,31 @@ const PromotionStagesPage = () => {
   }, []);
 
   // Mock data cho các giai đoạn tuyển dụng
-  const recruitmentStages = [
+  const allRecruitmentStages = [
       {
           id: 1,
-          position: 'Tuyển dụng Tiếp viên Hàng không 2025',
-          company: 'Vietnam Airlines',
-          appliedDate: '2024-01-15',
+          position: 'Flight Operations Specialist',
+          company: 'Bamboo Airways',
+          appliedDate: '2024-01-28',
           status: 'pending',
           statusText: 'Đang xem xét',
           statusTextEn: 'Under Review',
-          location: 'Hà Nội, TP.HCM',
-          salary: '$2,500 - $3,500/month',
-          description: 'Cơ hội trở thành tiếp viên hàng không chuyên nghiệp.',
-          currentStage: 2, // Đang ở giai đoạn "Kiểm tra ngoại hình"
+          location: 'Đà Nẵng, Nha Trang',
+          salary: '$2,400 - $3,400/month',
+          description: 'Chuyên viên điều hành bay phụ trách lập kế hoạch và giám sát chuyến bay.',
+          currentStage: 3, // Đang ở giai đoạn "Kiểm tra tiếng Anh"
           stages: [
-              { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2024-01-16' },
-              { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2024-01-20' },
+              { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2024-01-30' },
+              { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2024-02-02' },
               { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
-              { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-              { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-          ]
-      },
-      {
-          id: 2,
-          position: 'Ground Staff Intake',
-          company: 'Bamboo Airways',
-          appliedDate: '2023-12-20',
-          status: 'rejected',
-          statusText: 'Không đạt yêu cầu',
-          statusTextEn: 'Not Qualified',
-          location: 'Đà Nẵng',
-          salary: '$2,200 - $3,200/month',
-          description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
-          currentStage: 1, // Bị loại ở giai đoạn "Kiểm tra hồ sơ"
-          stages: [
-              { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-12-21' },
-              { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: false, date: null },
-              { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
-              { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-              { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-          ]
-      },
-      {
-          id: 3,
-          position: 'Pilot Cadet Program',
-          company: 'VietJet Air',
-          appliedDate: '2023-11-10',
-          status: 'accepted',
-          statusText: 'Đã được chấp nhận',
-          statusTextEn: 'Accepted',
-          location: 'TP.HCM',
-          salary: '$2,800 - $3,800/month',
-          description: 'Chương trình học viên phi công đã kết thúc.',
-          currentStage: 5, // Hoàn thành tất cả giai đoạn
-          stages: [
-              { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-11-12' },
-              { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-11-15' },
-              { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-11-18' },
-              { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: true, date: '2023-11-22' },
-              { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: true, date: '2023-11-25' }
-          ]
-      },
-      {
-          id: 4,
-          position: 'Customer Service Expansion',
-          company: 'Pacific Airlines',
-          appliedDate: '2023-10-05',
-          status: 'rejected',
-          statusText: 'Không đạt yêu cầu',
-          statusTextEn: 'Not Qualified',
-          location: 'Hà Nội',
-          salary: '$800 - $1,200/month',
-          description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
-          currentStage: 3, // Bị loại ở giai đoạn "Kiểm tra tiếng Anh"
-          stages: [
-              { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-10-07' },
-              { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-10-10' },
-              { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-10-15' },
               { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
               { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
           ]
       }
   ];
+
+  // Lọc chỉ hiển thị các đơn ứng tuyển có status là 'pending'
+  const recruitmentStages = allRecruitmentStages.filter(stage => stage.status === 'pending');
 
   const getStatusColor = (status) => {
       switch (status) {
@@ -122,7 +66,7 @@ const PromotionStagesPage = () => {
       if (stage.completed) {
           return 'bg-green-500 text-white';
       } else if (stage.id === currentStage) {
-          return 'bg-blue-500 text-white';
+          return 'bg-yellow-500 text-white';
       } else {
           return 'bg-gray-300 text-gray-600';
       }
@@ -132,21 +76,15 @@ const PromotionStagesPage = () => {
   const getStageIcon = (stage, currentStage) => {
       if (stage.completed) {
           return (
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
+             <FaCheck/>
           );
       } else if (stage.id === currentStage) {
           return (
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+              <FaEllipsisH/>
           );
       } else {
           return (
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
+             <FaClock/>
           );
       }
   };
@@ -163,6 +101,72 @@ const PromotionStagesPage = () => {
                       Theo dõi tiến trình ứng tuyển của bạn qua các giai đoạn
                   </p>
               </div>
+
+              {/* Statistics Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600">{t('total_applications')}</p>
+                                <p className="text-2xl font-semibold text-gray-900">{allRecruitmentStages.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-2 bg-green-100 rounded-lg">
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600">{t('accepted')}</p>
+                                <p className="text-2xl font-semibold text-gray-900">
+                                    {allRecruitmentStages.filter(item => item.status === 'accepted').length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-2 bg-yellow-100 rounded-lg">
+                                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600">{t('pending')}</p>
+                                <p className="text-2xl font-semibold text-gray-900">
+                                    {allRecruitmentStages.filter(item => item.status === 'pending').length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                            <div className="p-2 bg-red-100 rounded-lg">
+                                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-600">Không đạt yêu cầu</p>
+                                <p className="text-2xl font-semibold text-gray-900">
+                                    {allRecruitmentStages.filter(item => item.status === 'rejected').length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
 
               {/* Recruitment Stages Section */}
               <div className="bg-white rounded-lg shadow">

@@ -41,6 +41,7 @@ import BatchDetailPage from "./pages/AirlinePartner/BatchDetailPage";
 import CabinCrewHomePage from './pages/CabinCrew/CabinCrewHomePage';
 import PromotionHistoryPage from "./pages/CabinCrew/PromotionHistoryPage";
 import PromotionStagesPage from "./pages/CabinCrew/PromotionStagesPage";
+import ApplicationDetailPage from "./pages/CabinCrew/ApplicationDetailPage";
 
 
 
@@ -187,6 +188,13 @@ function App() {
             <>
               <Navbar />
               <PromotionStagesPage />
+              <Footer />
+            </>
+          } />
+          <Route path="/cabin-crew/application/detail" element={
+            <>
+              <Navbar />
+              <ApplicationDetailPage/>
               <Footer />
             </>
           } />
