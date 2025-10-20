@@ -87,7 +87,8 @@ const mockApplicants = [
         languages: ['Tiếng Việt', 'Tiếng Anh'],
         batchName: 'Đợt 1',
         campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=200&fit=crop&crop=face'
+        photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=200&fit=crop&crop=face',
+        round: 'screening'
     },
     {
         id: 2,
@@ -103,7 +104,8 @@ const mockApplicants = [
         languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'],
         batchName: 'Đợt 1',
         campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face'
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face',
+        round: 'interview'
     },
     {
         id: 3,
@@ -119,7 +121,8 @@ const mockApplicants = [
         languages: ['Tiếng Việt', 'Tiếng Anh'],
         batchName: 'Đợt 1',
         campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=200&fit=crop&crop=face'
+        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=200&fit=crop&crop=face',
+        round: 'test'
     },
     {
         id: 4,
@@ -134,7 +137,8 @@ const mockApplicants = [
         education: 'Đại học Kinh tế',
         languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Hàn'],
         batchName: 'Đợt 1',
-        campaignId: 1
+        campaignId: 1,
+        round: 'grooming'
     },
     {
         id: 5,
@@ -143,13 +147,14 @@ const mockApplicants = [
         phone: '0945678901',
         position: 'Flight Attendant',
         appliedDate: '2024-10-19',
-        status: 'interview',
+        status: 'pending',
         score: 78,
         experience: '2 năm',
         education: 'Đại học Sư phạm',
         languages: ['Tiếng Việt', 'Tiếng Anh'],
         batchName: 'Đợt 1',
-        campaignId: 1
+        campaignId: 1,
+        round: 'screening'
     }
 ]
 
@@ -159,6 +164,7 @@ const Screening = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('active')
     const [departmentFilter, setDepartmentFilter] = useState('all')
+    const [roundFilter, setRoundFilter] = useState('all')
     const [, setLangVersion] = useState(0)
     const navigate = useNavigate()
     const location = useLocation()
@@ -253,11 +259,25 @@ const Screening = () => {
     // Filter applicants for specific batch
     const filteredApplicants = useMemo(() => {
         if (!isViewingBatch) return []
-        return mockApplicants.filter(applicant =>
+        let list = mockApplicants.filter(applicant =>
             applicant.campaignId === batchData.campaignId &&
             applicant.batchName === batchData.batchName
         )
-    }, [isViewingBatch, batchData])
+        if (roundFilter !== 'all') {
+            list = list.filter(a => (a.round || 'screening') === roundFilter)
+        }
+        return list
+    }, [isViewingBatch, batchData, roundFilter])
+
+    const getRoundText = (round) => {
+        const map = {
+            screening: 'Vòng sàng lọc',
+            grooming: 'Vòng grooming',
+            test: 'Vòng kiểm tra',
+            interview: 'Vòng phỏng vấn'
+        }
+        return map[round] || 'Vòng sàng lọc'
+    }
 
     const getApplicantStatusBadge = (status) => {
         const statusConfig = {
@@ -334,7 +354,23 @@ const Screening = () => {
                     {/* Applicants List */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200">
                         <div className="p-6 border-b border-slate-200">
-                            <h3 className="text-lg font-semibold text-slate-800">Danh sách ứng viên ({filteredApplicants.length})</h3>
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <h3 className="text-lg font-semibold text-slate-800">Danh sách ứng viên ({filteredApplicants.length})</h3>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm text-slate-600">Vòng:</label>
+                                    <select
+                                        className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={roundFilter}
+                                        onChange={(e) => setRoundFilter(e.target.value)}
+                                    >
+                                        <option value="all">Tất cả</option>
+                                        <option value="screening">Vòng sàng lọc</option>
+                                        <option value="grooming">Vòng grooming</option>
+                                        <option value="test">Vòng kiểm tra</option>
+                                        <option value="interview">Vòng phỏng vấn</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -344,10 +380,9 @@ const Screening = () => {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kinh nghiệm</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ngày ứng tuyển</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vòng</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
                                     </tr>
                                 </thead>
@@ -376,10 +411,6 @@ const Screening = () => {
                                                 <div className="text-sm text-slate-900">{applicant.email}</div>
                                                 <div className="text-sm text-slate-500">{applicant.phone}</div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-slate-900">{applicant.experience}</div>
-                                                <div className="text-sm text-slate-500">{applicant.languages.join(', ')}</div>
-                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                                                 {applicant.appliedDate}
                                             </td>
@@ -387,7 +418,7 @@ const Screening = () => {
                                                 {getApplicantStatusBadge(applicant.status)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                                {applicant.score ? `${applicant.score}/100` : '—'}
+                                                {getRoundText(applicant.round)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex gap-1">

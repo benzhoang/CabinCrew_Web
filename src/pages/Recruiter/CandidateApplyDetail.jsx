@@ -15,35 +15,70 @@ const CandidateApplyDetail = () => {
     }, [])
 
     useEffect(() => {
-        // Mock data cho demo - luôn hiển thị dữ liệu giả
-        const mockCandidate = {
-            id: 'CAND001',
-            email: 'lan.nguyen@email.com',
-            fullName: 'Nguyễn Thị Lan',
-            nationality: 'vietnamese',
-            dateOfBirth: '1995-03-15',
-            gender: 'female',
-            mobileNumber: '+84 912 345 678',
-            workingExperience: '1-2-years',
-            height: '165',
-            weight: '53',
-            englishCertificate: 'TOEIC 650',
-            certificateExpireDate: '2025-12-31',
-            basePreference: 'flexible',
-            termsAccepted: 'yes',
-            status: 'pending',
-            appliedDate: '2024-10-15',
-            documents: {
-                applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
-                profilePhoto: 'Profile_Photo_4x6.jpg',
-                educationDegree: 'Bachelor_Degree_Certificate.pdf',
-                englishCertificate: 'TOEIC_Certificate_650.pdf',
-                idCard: 'ID_Card_Front_Back.pdf'
+        // Lấy dữ liệu từ location.state (được truyền từ Screening.jsx)
+        const candidateData = location.state?.candidate
+
+        if (candidateData) {
+            // Sử dụng dữ liệu từ Screening.jsx
+            const candidateFromScreening = {
+                id: candidateData.id,
+                email: candidateData.email,
+                fullName: candidateData.name,
+                nationality: 'vietnamese',
+                dateOfBirth: '1995-03-15',
+                gender: 'female',
+                mobileNumber: candidateData.phone,
+                workingExperience: candidateData.experience || '1-2-years',
+                height: '165',
+                weight: '53',
+                englishCertificate: 'TOEIC 650',
+                certificateExpireDate: '2025-12-31',
+                basePreference: 'flexible',
+                termsAccepted: 'yes',
+                status: candidateData.status,
+                appliedDate: candidateData.appliedDate,
+                currentRound: candidateData.round || 'screening',
+                documents: {
+                    applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
+                    profilePhoto: 'Profile_Photo_4x6.jpg',
+                    educationDegree: 'Bachelor_Degree_Certificate.pdf',
+                    englishCertificate: 'TOEIC_Certificate_650.pdf',
+                    idCard: 'ID_Card_Front_Back.pdf'
+                }
             }
+            setCandidate(candidateFromScreening)
+        } else {
+            // Fallback mock data nếu không có dữ liệu từ Screening
+            const mockCandidate = {
+                id: 'CAND001',
+                email: 'lan.nguyen@email.com',
+                fullName: 'Nguyễn Thị Lan',
+                nationality: 'vietnamese',
+                dateOfBirth: '1995-03-15',
+                gender: 'female',
+                mobileNumber: '+84 912 345 678',
+                workingExperience: '1-2-years',
+                height: '165',
+                weight: '53',
+                englishCertificate: 'TOEIC 650',
+                certificateExpireDate: '2025-12-31',
+                basePreference: 'flexible',
+                termsAccepted: 'yes',
+                status: 'pending',
+                appliedDate: '2024-10-15',
+                currentRound: 'screening',
+                documents: {
+                    applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
+                    profilePhoto: 'Profile_Photo_4x6.jpg',
+                    educationDegree: 'Bachelor_Degree_Certificate.pdf',
+                    englishCertificate: 'TOEIC_Certificate_650.pdf',
+                    idCard: 'ID_Card_Front_Back.pdf'
+                }
+            }
+            setCandidate(mockCandidate)
         }
-        setCandidate(mockCandidate)
         setLoading(false)
-    }, [])
+    }, [location.state])
 
     const goBack = () => {
         // Quay về danh sách ứng viên với thông tin batch
@@ -111,6 +146,26 @@ const CandidateApplyDetail = () => {
         return preferenceMap[preference] || preference
     }
 
+    const getRoundText = (round) => {
+        const roundMap = {
+            'screening': 'Vòng sàng lọc',
+            'grooming': 'Vòng grooming',
+            'test': 'Vòng kiểm tra',
+            'interview': 'Vòng phỏng vấn'
+        }
+        return roundMap[round] || 'Vòng sàng lọc'
+    }
+
+    const handleViewDocument = (documentName) => {
+        if (!documentName) return
+
+        // Tạo URL cho file PDF (giả sử file được lưu trong thư mục public/documents)
+        const pdfUrl = `/documents/${documentName}`
+
+        // Mở file PDF trong tab mới
+        window.open(pdfUrl, '_blank')
+    }
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -150,7 +205,9 @@ const CandidateApplyDetail = () => {
                             </svg>
                         </button>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-800">Hồ sơ ứng viên</h1>
+                            <h1 className="text-2xl font-bold text-slate-800">
+                                Hồ sơ ứng viên - {candidate ? getRoundText(candidate.currentRound) : 'Vòng sàng lọc'}
+                            </h1>
                             <p className="text-slate-600">Thông tin chi tiết về ứng viên</p>
                         </div>
                     </div>
@@ -158,6 +215,75 @@ const CandidateApplyDetail = () => {
             </div>
 
             <div className="max-w-6xl mx-auto px-4 py-8">
+                {/* Progress Bar */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-6">Tiến trình ứng tuyển</h3>
+                    <div className="relative">
+                        {/* Progress Line */}
+                        <div className="absolute top-6 left-0 right-0 h-0.5 bg-slate-200">
+                            <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
+                        </div>
+
+                        {/* Progress Steps */}
+                        <div className="relative flex justify-between">
+                            {/* Step 1 - Completed */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-medium text-slate-800">Kiểm tra hồ sơ</span>
+                                <span className="text-xs text-slate-500 mt-1">7/10/2022</span>
+                            </div>
+
+                            {/* Step 2 - Completed */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-medium text-slate-800">Kiểm tra ngoại hình</span>
+                                <span className="text-xs text-slate-500 mt-1">10/10/2022</span>
+                            </div>
+
+                            {/* Step 3 - Completed */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-medium text-slate-800">Kiểm tra tiếng Anh</span>
+                                <span className="text-xs text-slate-500 mt-1">15/10/2022</span>
+                            </div>
+
+                            {/* Step 4 - Pending */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center mb-2 relative z-10">
+                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">Phỏng vấn</span>
+                                <span className="text-xs text-slate-400 mt-1">Chưa lên lịch</span>
+                            </div>
+
+                            {/* Step 5 - Pending */}
+                            <div className="flex flex-col items-center">
+                                <div className="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center mb-2 relative z-10">
+                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">Kết quả cuối cùng</span>
+                                <span className="text-xs text-slate-400 mt-1">Chưa có</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column - CV and Documents */}
                     <div className="space-y-6">
@@ -229,7 +355,16 @@ const CandidateApplyDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <span className="text-green-600 font-medium">{candidate.documents.applicationForm}</span>
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm underline">View</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(candidate.documents.applicationForm)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
                                             </div>
                                         ) : (
                                             <span className="text-slate-500">No file uploaded</span>
@@ -248,7 +383,16 @@ const CandidateApplyDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <span className="text-green-600 font-medium">{candidate.documents.profilePhoto}</span>
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm underline">View</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(candidate.documents.profilePhoto)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
                                             </div>
                                         ) : (
                                             <span className="text-slate-500">No file uploaded</span>
@@ -267,7 +411,16 @@ const CandidateApplyDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <span className="text-green-600 font-medium">{candidate.documents.educationDegree}</span>
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm underline">View</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(candidate.documents.educationDegree)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
                                             </div>
                                         ) : (
                                             <span className="text-slate-500">No file uploaded</span>
@@ -286,7 +439,16 @@ const CandidateApplyDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <span className="text-green-600 font-medium">{candidate.documents.englishCertificate}</span>
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm underline">View</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(candidate.documents.englishCertificate)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
                                             </div>
                                         ) : (
                                             <span className="text-slate-500">No file uploaded</span>
@@ -305,7 +467,16 @@ const CandidateApplyDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <span className="text-green-600 font-medium">{candidate.documents.idCard}</span>
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm underline">View</button>
+                                                <button
+                                                    onClick={() => handleViewDocument(candidate.documents.idCard)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View
+                                                </button>
                                             </div>
                                         ) : (
                                             <span className="text-slate-500">No file uploaded</span>
