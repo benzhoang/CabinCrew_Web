@@ -151,10 +151,21 @@ const CandidateApplyDetail = () => {
             'screening': 'Vòng sàng lọc',
             'grooming': 'Vòng grooming',
             'test': 'Vòng kiểm tra',
-            'interview': 'Vòng phỏng vấn'
+            'interview': 'Vòng phỏng vấn',
+            'final': 'Kết quả cuối cùng'
         }
         return roundMap[round] || 'Vòng sàng lọc'
     }
+
+    const rounds = [
+        { key: 'screening', label: 'Kiểm tra hồ sơ' },
+        { key: 'grooming', label: 'Kiểm tra ngoại hình' },
+        { key: 'test', label: 'Kiểm tra tiếng Anh' },
+        { key: 'interview', label: 'Phỏng vấn' },
+        { key: 'final', label: 'Kết quả cuối cùng' }
+    ]
+
+    const getRoundIndex = (roundKey) => rounds.findIndex(r => r.key === roundKey)
 
     const handleViewDocument = (documentName) => {
         if (!documentName) return
@@ -215,73 +226,59 @@ const CandidateApplyDetail = () => {
             </div>
 
             <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Progress Bar */}
+                {/* Progress Bar (dynamic) */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
                     <h3 className="text-lg font-semibold text-slate-800 mb-6">Tiến trình ứng tuyển</h3>
-                    <div className="relative">
-                        {/* Progress Line */}
-                        <div className="absolute top-6 left-0 right-0 h-0.5 bg-slate-200">
-                            <div className="h-full bg-blue-500" style={{ width: '60%' }}></div>
-                        </div>
-
-                        {/* Progress Steps */}
-                        <div className="relative flex justify-between">
-                            {/* Step 1 - Completed */}
-                            <div className="flex flex-col items-center">
-                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                    {(() => {
+                        const current = candidate?.currentRound || 'screening'
+                        const currentIdx = Math.max(0, getRoundIndex(current))
+                        const percent = (currentIdx / (rounds.length - 1)) * 100
+                        return (
+                            <div className="relative">
+                                {/* Progress Line */}
+                                <div className="absolute top-6 left-0 right-0 h-0.5 bg-slate-200">
+                                    <div className="h-full bg-blue-500" style={{ width: `${percent}%` }}></div>
                                 </div>
-                                <span className="text-sm font-medium text-slate-800">Kiểm tra hồ sơ</span>
-                                <span className="text-xs text-slate-500 mt-1">7/10/2022</span>
-                            </div>
-
-                            {/* Step 2 - Completed */}
-                            <div className="flex flex-col items-center">
-                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
+                                {/* Steps */}
+                                <div className="relative flex justify-between">
+                                    {rounds.map((r, idx) => {
+                                        const isDone = idx < currentIdx
+                                        const isCurrent = idx === currentIdx
+                                        const circleClass = isDone
+                                            ? 'bg-green-500'
+                                            : isCurrent
+                                                ? 'bg-amber-500'
+                                                : 'bg-slate-300'
+                                        const icon = isDone
+                                            ? (
+                                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )
+                                            : isCurrent
+                                                ? (
+                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12h.01M19 12h.01M5 12h.01" />
+                                                    </svg>
+                                                )
+                                                : (
+                                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                )
+                                        return (
+                                            <div key={r.key} className="flex flex-col items-center">
+                                                <div className={`w-12 h-12 ${circleClass} rounded-full flex items-center justify-center mb-2 relative z-10`}>
+                                                    {icon}
+                                                </div>
+                                                <span className={`text-sm font-medium ${isDone || isCurrent ? 'text-slate-800' : 'text-slate-600'}`}>{r.label}</span>
+                                            </div>
+                                        )
+                                    })}
                                 </div>
-                                <span className="text-sm font-medium text-slate-800">Kiểm tra ngoại hình</span>
-                                <span className="text-xs text-slate-500 mt-1">10/10/2022</span>
                             </div>
-
-                            {/* Step 3 - Completed */}
-                            <div className="flex flex-col items-center">
-                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2 relative z-10">
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <span className="text-sm font-medium text-slate-800">Kiểm tra tiếng Anh</span>
-                                <span className="text-xs text-slate-500 mt-1">15/10/2022</span>
-                            </div>
-
-                            {/* Step 4 - Pending */}
-                            <div className="flex flex-col items-center">
-                                <div className="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center mb-2 relative z-10">
-                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <span className="text-sm font-medium text-slate-600">Phỏng vấn</span>
-                                <span className="text-xs text-slate-400 mt-1">Chưa lên lịch</span>
-                            </div>
-
-                            {/* Step 5 - Pending */}
-                            <div className="flex flex-col items-center">
-                                <div className="w-12 h-12 bg-slate-300 rounded-full flex items-center justify-center mb-2 relative z-10">
-                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <span className="text-sm font-medium text-slate-600">Kết quả cuối cùng</span>
-                                <span className="text-xs text-slate-400 mt-1">Chưa có</span>
-                            </div>
-                        </div>
-                    </div>
+                        )
+                    })()}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -573,40 +570,26 @@ const CandidateApplyDetail = () => {
                             {/* Recruiter Actions */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Recruiter Actions</h3>
-                                <div className="flex flex-wrap gap-3">
-                                    <button
-                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                        onClick={() => {
-                                            console.log('Approve candidate:', candidate.id)
-                                        }}
-                                    >
-                                        Approve Application
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                                        onClick={() => {
-                                            console.log('Reject candidate:', candidate.id)
-                                        }}
-                                    >
-                                        Reject Application
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                        onClick={() => {
-                                            console.log('Schedule interview:', candidate.id)
-                                        }}
-                                    >
-                                        Schedule Interview
-                                    </button>
-                                    <button
-                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                                        onClick={() => {
-                                            console.log('Send email:', candidate.id)
-                                        }}
-                                    >
-                                        Send Email
-                                    </button>
-                                </div>
+                                {candidate?.currentRound === 'screening' && (
+                                    <div className="flex flex-wrap gap-3">
+                                        <button
+                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                                            onClick={() => {
+                                                console.log('Approve candidate:', candidate.id)
+                                            }}
+                                        >
+                                            Approve Application
+                                        </button>
+                                        <button
+                                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                            onClick={() => {
+                                                console.log('Reject candidate:', candidate.id)
+                                            }}
+                                        >
+                                            Reject Application
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

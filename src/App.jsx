@@ -25,6 +25,7 @@ import Apply from './pages/Candidate/Apply';
 import ApplicationForm from './pages/Candidate/ApplicationForm';
 import RecruitmentHistory from './pages/Candidate/RecruitmentHistory';
 import RecruitmentStages from './pages/Candidate/RecruitmentStages';
+import ProfilePage from './pages/Candidate/ProfilePage';
 import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
@@ -72,6 +73,13 @@ function App() {
           <>
             <Navbar />
             <Settings />
+            <Footer />
+          </>
+        } />
+        <Route path="/profile" element={
+          <>
+            <Navbar />
+            <ProfilePage />
             <Footer />
           </>
         } />
@@ -171,33 +179,33 @@ function App() {
       {/* Cabin Crew Routes */}
       <Routes>
         <Route path="/cabin-crew/home" element={
-            <>
-              <Navbar />
-              <CabinCrewHomePage />
-              <Footer />
-            </>
-          } />
-          <Route path="/cabin-crew/promotion-history" element={
-            <>
-              <Navbar />
-              <PromotionHistoryPage />
-              <Footer />
-            </>
-          } />
-          <Route path="/cabin-crew/promotion-stages" element={
-            <>
-              <Navbar />
-              <PromotionStagesPage />
-              <Footer />
-            </>
-          } />
-          <Route path="/cabin-crew/application/detail" element={
-            <>
-              <Navbar />
-              <ApplicationDetailPage/>
-              <Footer />
-            </>
-          } />
+          <>
+            <Navbar />
+            <CabinCrewHomePage />
+            <Footer />
+          </>
+        } />
+        <Route path="/cabin-crew/promotion-history" element={
+          <>
+            <Navbar />
+            <PromotionHistoryPage />
+            <Footer />
+          </>
+        } />
+        <Route path="/cabin-crew/promotion-stages" element={
+          <>
+            <Navbar />
+            <PromotionStagesPage />
+            <Footer />
+          </>
+        } />
+        <Route path="/cabin-crew/application/detail" element={
+          <>
+            <Navbar />
+            <ApplicationDetailPage />
+            <Footer />
+          </>
+        } />
       </Routes>
 
     </BrowserRouter>

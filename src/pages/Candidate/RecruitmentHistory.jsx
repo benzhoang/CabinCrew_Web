@@ -113,10 +113,13 @@ const RecruitmentHistory = () => {
     };
 
     // Hàm lấy màu sắc cho giai đoạn
-    const getStageColor = (stage, currentStage) => {
-        if (stage.completed) {
+    const getStageColor = (stage, currentStage, status) => {
+        if (status === 'rejected' && stage.completed && stage.id === currentStage) {
+            // Giai đoạn bị loại - màu đỏ với icon X
+            return 'bg-red-500 text-white';
+        } else if (stage.completed) {
             return 'bg-green-500 text-white';
-        } else if (stage.id === currentStage) {
+        } else if (stage.id === currentStage && status !== 'rejected') {
             return 'bg-blue-500 text-white';
         } else {
             return 'bg-gray-300 text-gray-600';
@@ -124,14 +127,21 @@ const RecruitmentHistory = () => {
     };
 
     // Hàm lấy icon cho giai đoạn
-    const getStageIcon = (stage, currentStage) => {
-        if (stage.completed) {
+    const getStageIcon = (stage, currentStage, status) => {
+        if (status === 'rejected' && stage.completed && stage.id === currentStage) {
+            // Icon X cho giai đoạn bị loại
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+            );
+        } else if (stage.completed && status !== 'rejected') {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
             );
-        } else if (stage.id === currentStage) {
+        } else if (stage.id === currentStage && status !== 'rejected') {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -327,8 +337,8 @@ const RecruitmentHistory = () => {
                                                 {application.stages.map((stage, index) => (
                                                     <div key={stage.id} className="flex flex-col items-center">
                                                         {/* Stage Circle */}
-                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage)}`}>
-                                                            {getStageIcon(stage, application.currentStage)}
+                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage, application.status)}`}>
+                                                            {getStageIcon(stage, application.currentStage, application.status)}
                                                         </div>
 
                                                         {/* Stage Info */}
@@ -348,12 +358,14 @@ const RecruitmentHistory = () => {
                                         </div>
 
                                         {/* Current Status */}
-                                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                            <p className="text-sm text-blue-800">
+                                        <div className={`mt-4 p-3 rounded-lg ${application.status === 'rejected' ? 'bg-red-50' : 'bg-blue-50'}`}>
+                                            <p className={`text-sm ${application.status === 'rejected' ? 'text-red-800' : 'text-blue-800'}`}>
                                                 <strong>Trạng thái hiện tại:</strong> {
-                                                    application.stages.find(stage => stage.id === application.currentStage)?.completed
-                                                        ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                                        : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                    application.status === 'rejected'
+                                                        ? `Không đạt ở ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                        : application.stages.find(stage => stage.id === application.currentStage)?.completed
+                                                            ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                            : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
                                                 }
                                             </p>
                                         </div>

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import Navbar from '../../components/Navbar'
-import Footer from '../Candidate/Footer'
+import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 
-const ApplicationForm = () => {
+const ProfilePage = () => {
     const navigate = useNavigate()
-    const { state } = useLocation()
-    const campaign = state?.campaign
+
+    // Force re-render when language changes
+    const [, forceUpdate] = useState({})
 
     const [formData, setFormData] = useState({
         email: '',
@@ -38,9 +37,6 @@ const ApplicationForm = () => {
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
 
-    // Force re-render when language changes
-    const [, forceUpdate] = useState({})
-
     // Generate random captcha code
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -59,24 +55,15 @@ const ApplicationForm = () => {
     // Load draft data on component mount
     useEffect(() => {
         const savedDraft = localStorage.getItem('applicationFormDraft')
-        const locationState = state?.hasDraft && state?.draftData
-
-        if (locationState) {
-            // Load từ state khi navigate từ ProfilePage
-            setFormData(state.draftData.formData)
-        } else if (savedDraft) {
+        if (savedDraft) {
             try {
                 const draftData = JSON.parse(savedDraft)
-                // Chỉ load nếu cùng campaign
-                if (draftData.campaignId === campaign?.id) {
-                    setFormData(draftData.formData)
-                    // Không hiển thị thông báo xác nhận, chỉ load dữ liệu
-                }
+                setFormData(draftData.formData)
             } catch (error) {
                 console.error('Error loading draft:', error)
             }
         }
-    }, [campaign?.id, state])
+    }, [])
 
     // Listen for language changes and force re-render
     useEffect(() => {
@@ -112,7 +99,7 @@ const ApplicationForm = () => {
         }))
     }
 
-    const handleSubmit = (e) => {
+    const handleUpdate = (e) => {
         e.preventDefault()
 
         // Validate captcha
@@ -122,11 +109,10 @@ const ApplicationForm = () => {
             return
         }
 
-        // Xử lý submit form ở đây
-        console.log('Form data:', formData)
-        console.log('Files:', files)
-        alert(t('application_form_submitted_successfully'))
-        navigate('/recruitment')
+        // Xử lý cập nhật form ở đây
+        console.log('Updated form data:', formData)
+        console.log('Updated files:', files)
+        alert('Đã cập nhật thông tin thành công!')
     }
 
     const handleSaveDraft = () => {
@@ -134,57 +120,29 @@ const ApplicationForm = () => {
         const draftData = {
             formData,
             timestamp: new Date().toISOString(),
-            campaignId: campaign?.id
+            campaignId: null
         }
 
         localStorage.setItem('applicationFormDraft', JSON.stringify(draftData))
         alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
     }
 
-    if (!campaign) {
-        return (
-            <div className="min-h-screen bg-gray-50">
-                <Navbar />
-                <div className="max-w-5xl mx-auto px-4 py-8">
-                    <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                        <p className="text-gray-600 mb-4">{t('application_form_campaign_not_found')}</p>
-                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">{t('application_form_go_back')}</button>
-                    </div>
-                </div>
-                <Footer />
-            </div>
-        )
-    }
-
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
-                    <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">{t('application_form_go_back')}</button>
+                    <h1 className="text-3xl font-bold text-slate-800">{t('profile') || 'Hồ sơ'}</h1>
+                    <button
+                        onClick={() => navigate('/recruitment')}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                    >
+                        {t('application_form_new_application') || 'Đơn ứng tuyển mới'}
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Job Details and Document Uploads */}
+                    {/* Left Column - Document Uploads */}
                     <div className="space-y-6">
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h1 className="text-2xl font-bold text-slate-800 mb-4">{campaign.name}</h1>
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_department')}:</span>
-                                    <span className="font-medium">Cabin Crew</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_application_period')}:</span>
-                                    <span className="font-medium">Open: 01 Oct 2025, Close: 01 Nov 2025</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_required_document')}:</span>
-                                    <span className="font-medium">VJC-PD-FRM-12 Form Job Application</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
 
@@ -343,9 +301,9 @@ const ApplicationForm = () => {
 
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">CẬP NHẬT THÔNG TIN</h2>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleUpdate} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-2">1. {t('application_form_your_email')}</label>
                                 <input
@@ -675,18 +633,17 @@ const ApplicationForm = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
                                 >
-                                    {t('application_form_finish')}
+                                    Cập nhật thông tin
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <Footer />
         </div>
     )
 }
 
-export default ApplicationForm
+export default ProfilePage

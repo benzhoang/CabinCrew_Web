@@ -9,7 +9,7 @@ const RecruitmentStages = () => {
         return () => off();
     }, []);
 
-    // Mock data cho các giai đoạn tuyển dụng - chỉ hiển thị "Đang xem xét"
+    // Mock data cho các giai đoạn tuyển dụng - theo ảnh
     const recruitmentStages = [
         {
             id: 1,
@@ -22,7 +22,7 @@ const RecruitmentStages = () => {
             location: 'Hà Nội, TP.HCM',
             salary: '$2,500 - $3,500/month',
             description: 'Cơ hội trở thành tiếp viên hàng không chuyên nghiệp.',
-            currentStage: 2, // Đang ở giai đoạn "Kiểm tra ngoại hình"
+            currentStage: 3, // Đang ở giai đoạn "Kiểm tra tiếng Anh"
             stages: [
                 { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2024-01-16' },
                 { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2024-01-20' },
@@ -62,7 +62,7 @@ const RecruitmentStages = () => {
         if (stage.completed) {
             return 'bg-green-500 text-white';
         } else if (stage.id === currentStage) {
-            return 'bg-blue-500 text-white';
+            return 'bg-yellow-500 text-white';
         } else {
             return 'bg-gray-300 text-gray-600';
         }
@@ -79,7 +79,7 @@ const RecruitmentStages = () => {
         } else if (stage.id === currentStage) {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                 </svg>
             );
         } else {
@@ -185,8 +185,8 @@ const RecruitmentStages = () => {
                                 </div>
 
                                 {/* Current Status */}
-                                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                    <p className="text-sm text-blue-800">
+                                <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                                    <p className="text-sm text-yellow-800">
                                         <strong>Trạng thái hiện tại:</strong> {
                                             application.stages.find(stage => stage.id === application.currentStage)?.completed
                                                 ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
