@@ -23,7 +23,6 @@ const RecruitmentHistory = () => {
             statusText: 'Đang xem xét',
             statusTextEn: 'Under Review',
             location: 'Hà Nội, TP.HCM',
-            salary: '$2,500 - $3,500/month',
             description: 'Cơ hội trở thành tiếp viên hàng không chuyên nghiệp.'
         },
         {
@@ -35,7 +34,6 @@ const RecruitmentHistory = () => {
             statusText: 'Không đạt yêu cầu',
             statusTextEn: 'Not Qualified',
             location: 'Đà Nẵng',
-            salary: '$2,200 - $3,200/month',
             description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
             currentStage: 1, // Bị loại ở giai đoạn "Kiểm tra hồ sơ"
             stages: [
@@ -55,7 +53,6 @@ const RecruitmentHistory = () => {
             statusText: 'Đã được chấp nhận',
             statusTextEn: 'Accepted',
             location: 'TP.HCM',
-            salary: '$2,800 - $3,800/month',
             description: 'Chương trình học viên phi công đã kết thúc.',
             currentStage: 5, // Hoàn thành tất cả giai đoạn
             stages: [
@@ -75,7 +72,6 @@ const RecruitmentHistory = () => {
             statusText: 'Không đạt yêu cầu',
             statusTextEn: 'Not Qualified',
             location: 'Hà Nội',
-            salary: '$800 - $1,200/month',
             description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
             currentStage: 3, // Bị loại ở giai đoạn "Kiểm tra tiếng Anh"
             stages: [
@@ -285,12 +281,6 @@ const RecruitmentHistory = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
                                                 {application.location}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                                </svg>
-                                                {application.salary}
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

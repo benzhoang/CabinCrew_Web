@@ -9,33 +9,37 @@ const ProfilePage = () => {
     const [, forceUpdate] = useState({})
 
     const [formData, setFormData] = useState({
-        email: '',
-        fullName: '',
-        nationality: '',
-        dateOfBirth: '',
-        gender: '',
-        mobileNumber: '',
-        workingExperience: '',
-        height: '',
-        weight: '',
-        englishCertificate: '',
-        certificateExpireDate: '',
-        basePreference: '',
-        termsAccepted: '',
+        email: 'lan.nguyen@email.com',
+        fullName: 'Nguyễn Thị Lan',
+        nationality: 'vietnamese',
+        dateOfBirth: '1995-03-15',
+        gender: 'female',
+        mobileNumber: '+84 912 345 678',
+        workingExperience: '1-2-years',
+        height: '165',
+        weight: '53',
+        englishCertificate: 'TOEIC 650',
+        certificateExpireDate: '2025-12-31',
+        basePreference: 'flexible',
+        termsAccepted: 'yes',
         captcha: ''
     })
 
     const [files, setFiles] = useState({
-        applicationForm: null,
-        profilePhoto: null,
-        educationDegree: null,
-        englishCertificate: null,
-        idCard: null
+        applicationForm: { name: 'VJC-PD-FRM-12_Application_Form.pdf' },
+        profilePhoto: { name: 'Profile_Photo_4x6.jpg' },
+        educationDegree: { name: 'Bachelor_Degree_Certificate.pdf' },
+        englishCertificate: { name: 'TOEIC_Certificate_650.pdf' },
+        idCard: { name: 'ID_Card_Front_Back.pdf' }
     })
 
     // Captcha state
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
+
+    // Edit mode state
+    const [isEditing, setIsEditing] = useState(false)
+    const [originalFormData, setOriginalFormData] = useState(null)
 
     // Generate random captcha code
     const generateCaptcha = () => {
@@ -115,6 +119,53 @@ const ProfilePage = () => {
         alert('Đã cập nhật thông tin thành công!')
     }
 
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+        // Validate captcha
+        if (captchaInput.toUpperCase() !== captchaCode) {
+            alert(t('application_form_captcha_incorrect'))
+            refreshCaptcha()
+            return
+        }
+
+        // Xử lý nộp đơn ở đây
+        console.log('Submitted form data:', formData)
+        console.log('Submitted files:', files)
+        alert('Đã nộp đơn ứng tuyển thành công!')
+    }
+
+    const handleEditClick = () => {
+        setOriginalFormData({ ...formData })
+        setIsEditing(true)
+    }
+
+    const handleSaveClick = (e) => {
+        e.preventDefault()
+
+        // Validate captcha
+        if (captchaInput.toUpperCase() !== captchaCode) {
+            alert(t('application_form_captcha_incorrect'))
+            refreshCaptcha()
+            return
+        }
+
+        // Xử lý lưu thông tin
+        console.log('Updated form data:', formData)
+        console.log('Updated files:', files)
+        alert('Đã cập nhật thông tin thành công!')
+        setIsEditing(false)
+        setOriginalFormData(null)
+    }
+
+    const handleCancelClick = () => {
+        if (originalFormData) {
+            setFormData(originalFormData)
+        }
+        setIsEditing(false)
+        setOriginalFormData(null)
+    }
+
     const handleSaveDraft = () => {
         // Lưu form data vào localStorage (không lưu files)
         const draftData = {
@@ -131,7 +182,7 @@ const ProfilePage = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-slate-800">{t('profile') || 'Hồ sơ'}</h1>
+                    <h1 className="text-3xl font-bold text-slate-800">{t('profile') || 'Hồ sơ - Bản nháp'}</h1>
                     <button
                         onClick={() => navigate('/recruitment')}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
@@ -156,7 +207,8 @@ const ProfilePage = () => {
                                             type="file"
                                             name="applicationForm"
                                             onChange={handleFileChange}
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={!isEditing}
+                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -186,7 +238,8 @@ const ProfilePage = () => {
                                             name="profilePhoto"
                                             onChange={handleFileChange}
                                             accept="image/*"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={!isEditing}
+                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -216,7 +269,8 @@ const ProfilePage = () => {
                                             name="educationDegree"
                                             onChange={handleFileChange}
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={!isEditing}
+                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -246,7 +300,8 @@ const ProfilePage = () => {
                                             name="englishCertificate"
                                             onChange={handleFileChange}
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={!isEditing}
+                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -276,7 +331,8 @@ const ProfilePage = () => {
                                             name="idCard"
                                             onChange={handleFileChange}
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            disabled={!isEditing}
+                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -301,303 +357,337 @@ const ProfilePage = () => {
 
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">CẬP NHẬT THÔNG TIN</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM DETAILS</h2>
 
-                        <form onSubmit={handleUpdate} className="space-y-4">
+                        <form onSubmit={handleUpdate} className="space-y-6">
+                            {/* Personal Information */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">1. {t('application_form_your_email')}</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">2. {t('application_form_your_fullname')}</label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">3. {t('application_form_your_nationality')}</label>
-                                <select
-                                    name="nationality"
-                                    value={formData.nationality}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                >
-                                    <option value="">{t('application_form_select_nationality')}</option>
-                                    <option value="vietnamese">{t('application_form_vietnamese')}</option>
-                                    <option value="american">{t('application_form_american')}</option>
-                                    <option value="british">{t('application_form_british')}</option>
-                                    <option value="french">{t('application_form_french')}</option>
-                                    <option value="german">{t('application_form_german')}</option>
-                                    <option value="japanese">{t('application_form_japanese')}</option>
-                                    <option value="korean">{t('application_form_korean')}</option>
-                                    <option value="chinese">{t('application_form_chinese')}</option>
-                                    <option value="thai">{t('application_form_thai')}</option>
-                                    <option value="singaporean">{t('application_form_singaporean')}</option>
-                                    <option value="other">{t('application_form_other')}</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">4. {t('application_form_date_of_birth')}</label>
-                                <input
-                                    type="date"
-                                    name="dateOfBirth"
-                                    value={formData.dateOfBirth}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">5. {t('application_form_gender')}</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="gender"
-                                            value="male"
-                                            checked={formData.gender === 'male'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_male')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="gender"
-                                            value="female"
-                                            checked={formData.gender === 'female'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_female')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_mobile_number')}</label>
-                                <input
-                                    type="tel"
-                                    name="mobileNumber"
-                                    value={formData.mobileNumber}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_working_experience')}</label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="no-experience"
-                                            checked={formData.workingExperience === 'no-experience'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_no_experience')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="less-than-1-year"
-                                            checked={formData.workingExperience === 'less-than-1-year'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_less_than_1_year')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="1-2-years"
-                                            checked={formData.workingExperience === '1-2-years'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_1_2_years')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="3-5-years"
-                                            checked={formData.workingExperience === '3-5-years'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_3_5_years')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_height_weight')}</label>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Personal Information</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_height')}</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">1. Email address:</label>
                                         <input
-                                            type="number"
-                                            name="height"
-                                            value={formData.height}
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
                                             onChange={handleInputChange}
-                                            placeholder="165"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                                             required
                                         />
                                     </div>
+
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_weight')}</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
                                         <input
-                                            type="number"
-                                            name="weight"
-                                            value={formData.weight}
+                                            type="text"
+                                            name="fullName"
+                                            value={formData.fullName}
                                             onChange={handleInputChange}
-                                            placeholder="53"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                                             required
                                         />
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Nationality:</label>
+                                        <select
+                                            name="nationality"
+                                            value={formData.nationality}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            required
+                                        >
+                                            <option value="">Select Nationality</option>
+                                            <option value="vietnamese">Vietnamese</option>
+                                            <option value="american">American</option>
+                                            <option value="british">British</option>
+                                            <option value="french">French</option>
+                                            <option value="german">German</option>
+                                            <option value="japanese">Japanese</option>
+                                            <option value="korean">Korean</option>
+                                            <option value="chinese">Chinese</option>
+                                            <option value="thai">Thai</option>
+                                            <option value="singaporean">Singaporean</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Date of Birth:</label>
+                                        <input
+                                            type="date"
+                                            name="dateOfBirth"
+                                            value={formData.dateOfBirth}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Gender:</label>
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="gender"
+                                                    value="male"
+                                                    checked={formData.gender === 'male'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                Male
+                                            </label>
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="gender"
+                                                    value="female"
+                                                    checked={formData.gender === 'female'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                Female
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Mobile number:</label>
+                                        <input
+                                            type="tel"
+                                            name="mobileNumber"
+                                            value={formData.mobileNumber}
+                                            onChange={handleInputChange}
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="workingExperience"
+                                                    value="no-experience"
+                                                    checked={formData.workingExperience === 'no-experience'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                No experience
+                                            </label>
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="workingExperience"
+                                                    value="less-than-1-year"
+                                                    checked={formData.workingExperience === 'less-than-1-year'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                Less than 1 year
+                                            </label>
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="workingExperience"
+                                                    value="1-2-years"
+                                                    checked={formData.workingExperience === '1-2-years'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                1-2 years
+                                            </label>
+                                            <label className="flex items-center">
+                                                <input
+                                                    type="radio"
+                                                    name="workingExperience"
+                                                    value="3-5-years"
+                                                    checked={formData.workingExperience === '3-5-years'}
+                                                    onChange={handleInputChange}
+                                                    disabled={!isEditing}
+                                                    className="mr-2"
+                                                    required
+                                                />
+                                                3-5 years
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
+                                                <input
+                                                    type="number"
+                                                    name="height"
+                                                    value={formData.height}
+                                                    onChange={handleInputChange}
+                                                    placeholder="165"
+                                                    disabled={!isEditing}
+                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-600 mb-1">Weight (kg)</label>
+                                                <input
+                                                    type="number"
+                                                    name="weight"
+                                                    value={formData.weight}
+                                                    onChange={handleInputChange}
+                                                    placeholder="53"
+                                                    disabled={!isEditing}
+                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1">{t('application_form_height_example')}</p>
                             </div>
 
+                            {/* English Certificate */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_english_certificate_info')}</label>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English Certificate</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_certificate_number')}</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Certificate Number:</label>
                                         <input
                                             type="text"
                                             name="englishCertificate"
                                             value={formData.englishCertificate}
                                             onChange={handleInputChange}
                                             placeholder="TOEIC 500"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_expire_date')}</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Expire Date:</label>
                                         <input
                                             type="date"
                                             name="certificateExpireDate"
                                             value={formData.certificateExpireDate}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Base Preference */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">10. {t('application_form_base_preference')}</label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="flexible"
-                                            checked={formData.basePreference === 'flexible'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_flexible_base')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="cam-ranh"
-                                            checked={formData.basePreference === 'cam-ranh'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_cam_ranh')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="da-nang"
-                                            checked={formData.basePreference === 'da-nang'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_da_nang')}
-                                    </label>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Base Preference</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Base Preference:</label>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="basePreference"
+                                                value="flexible"
+                                                checked={formData.basePreference === 'flexible'}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className="mr-2"
+                                                required
+                                            />
+                                            Flexible base
+                                        </label>
+                                        <label className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="basePreference"
+                                                value="cam-ranh"
+                                                checked={formData.basePreference === 'cam-ranh'}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className="mr-2"
+                                                required
+                                            />
+                                            Cam Ranh City (CXR)
+                                        </label>
+                                        <label className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="basePreference"
+                                                value="da-nang"
+                                                checked={formData.basePreference === 'da-nang'}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className="mr-2"
+                                                required
+                                            />
+                                            Da Nang City (DAD)
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
+                            {/* Terms and Conditions */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">11. {t('application_form_terms_conditions')}</label>
-                                <p className="text-sm text-slate-600 mb-3">
-                                    {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
-                                    {t('application_form_for_recruitment')}
-                                </p>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="termsAccepted"
-                                            value="yes"
-                                            checked={formData.termsAccepted === 'yes'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_yes')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="termsAccepted"
-                                            value="no"
-                                            checked={formData.termsAccepted === 'no'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_no')}
-                                    </label>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Terms and Conditions</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Terms and Conditions:</label>
+                                    <p className="text-sm text-slate-600 mb-3">
+                                        I acknowledge that my data will be processed in accordance with the <a href="#" className="text-blue-600 underline">Privacy Policy</a> for recruitment purposes.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="termsAccepted"
+                                                value="yes"
+                                                checked={formData.termsAccepted === 'yes'}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className="mr-2"
+                                                required
+                                            />
+                                            Yes
+                                        </label>
+                                        <label className="flex items-center">
+                                            <input
+                                                type="radio"
+                                                name="termsAccepted"
+                                                value="no"
+                                                checked={formData.termsAccepted === 'no'}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className="mr-2"
+                                                required
+                                            />
+                                            No
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
+                            {/* Captcha */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">{t('application_form_captcha')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Captcha Verification</label>
                                 <div className="flex items-center gap-4">
                                     <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
                                         {captchaCode}
@@ -608,7 +698,7 @@ const ProfilePage = () => {
                                             name="captcha"
                                             value={captchaInput}
                                             onChange={handleInputChange}
-                                            placeholder={t('application_form_enter_captcha')}
+                                            placeholder="Enter captcha code"
                                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             required
                                         />
@@ -619,24 +709,47 @@ const ProfilePage = () => {
                                     onClick={refreshCaptcha}
                                     className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
                                 >
-                                    {t('application_form_try_new_code')}
+                                    Try new code
                                 </button>
                             </div>
 
+                            {/* Action Buttons */}
                             <div className="flex gap-4">
-                                <button
-                                    type="button"
-                                    onClick={handleSaveDraft}
-                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                >
-                                    {t('application_form_save_draft') || 'Lưu bản nháp'}
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                >
-                                    Cập nhật thông tin
-                                </button>
+                                {!isEditing ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleEditClick}
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                        >
+                                            Cập nhật thông tin
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                        >
+                                            Nộp đơn
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelClick}
+                                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                        >
+                                            Hủy
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveClick}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                        >
+                                            Lưu
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </form>
                     </div>
