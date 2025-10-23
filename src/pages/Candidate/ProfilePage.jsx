@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
+import PostVerificationModal from '../../components/PostVerificationModal'
 
 const ProfilePage = () => {
     const navigate = useNavigate()
@@ -40,6 +41,12 @@ const ProfilePage = () => {
     // Edit mode state
     const [isEditing, setIsEditing] = useState(false)
     const [originalFormData, setOriginalFormData] = useState(null)
+
+    // Post verification modal state
+    const [showPostVerificationModal, setShowPostVerificationModal] = useState(false)
+
+    // Application status - giả lập trạng thái đơn ứng tuyển
+    const [applicationStatus, setApplicationStatus] = useState('final') // 'pending', 'accepted', 'rejected', 'final'
 
     // Generate random captcha code
     const generateCaptcha = () => {
@@ -178,17 +185,36 @@ const ProfilePage = () => {
         alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
     }
 
+    const handlePostVerificationSubmit = (verificationData) => {
+        // Xử lý nộp hậu kiểm
+        console.log('Post verification data:', verificationData)
+        alert('Đã nộp hậu kiểm thành công! Chúng tôi sẽ xem xét và phản hồi trong thời gian sớm nhất.')
+    }
+
+    // Kiểm tra xem có hiển thị nút "Nộp hậu kiểm" không
+    const shouldShowPostVerificationButton = applicationStatus === 'final'
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-bold text-slate-800">{t('profile') || 'Hồ sơ - Bản nháp'}</h1>
-                    <button
-                        onClick={() => navigate('/recruitment')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
-                    >
-                        {t('application_form_new_application') || 'Đơn ứng tuyển mới'}
-                    </button>
+                    <div className="flex gap-3">
+                        {shouldShowPostVerificationButton && (
+                            <button
+                                onClick={() => setShowPostVerificationModal(true)}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                            >
+                                Nộp hậu kiểm
+                            </button>
+                        )}
+                        <button
+                            onClick={() => navigate('/recruitment')}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+                        >
+                            {t('application_form_new_application') || 'Đơn ứng tuyển mới'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -755,6 +781,13 @@ const ProfilePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Post Verification Modal */}
+            <PostVerificationModal
+                isOpen={showPostVerificationModal}
+                onClose={() => setShowPostVerificationModal(false)}
+                onSubmit={handlePostVerificationSubmit}
+            />
         </div>
     )
 }
