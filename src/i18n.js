@@ -6,6 +6,7 @@ const dictionaries = {
     vi: {
         home: 'Trang chủ',
         recruitment: 'Tuyển dụng',
+        promotion: 'Nâng bậc',
         appointment: 'Lịch hẹn',
         score_report: 'Báo cáo điểm',
         test: 'Test',
@@ -50,10 +51,9 @@ const dictionaries = {
         no_applications: 'Chưa có đơn ứng tuyển nào',
         no_applications_desc: 'Bạn chưa nộp đơn ứng tuyển nào. Hãy bắt đầu tìm kiếm cơ hội việc làm phù hợp.',
         browse_jobs: 'Duyệt việc làm',
-        promotion: 'Thăng bậc',
         //Navbar cabin crew
-        promotion_history: 'Lịch sử thăng bậc',
-        promotion_stages: 'Tiến trình thăng bậc',
+        promotion_history: 'Lịch sử nâng bậc',
+        promotion_stages: 'Tiến trình nâng bậc',
         // User Profile
         user_profile: 'Thông tin cá nhân',
         avatar: 'Ảnh đại diện',
@@ -364,6 +364,7 @@ const dictionaries = {
     en: {
         home: 'Home',
         recruitment: 'Recruitment',
+        promotion: 'Promotion',
         appointment: 'Appointment',
         score_report: 'Score Report',
         test: 'Test',
@@ -408,10 +409,9 @@ const dictionaries = {
         no_applications: 'No applications yet',
         no_applications_desc: 'You haven\'t applied to any jobs yet. Start browsing for suitable opportunities.',
         browse_jobs: 'Browse Jobs',
-        promotion: 'Promotion',
         //Navbar cabin crew
         promotion_history: 'Promotion History',
-        promotion_stages: 'Promotion Stages',
+        promotion_stages: 'Promotion Process',
 
         // User Profile
         user_profile: 'User Profile',

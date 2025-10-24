@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { onLangChange } from '../../i18n'
+import { FaCheck, FaClock, FaEllipsisH } from 'react-icons/fa'
 
 const CandidateDetailPage = () => {
   const [candidate, setCandidate] = useState(null)
@@ -33,6 +34,7 @@ const CandidateDetailPage = () => {
           termsAccepted: 'yes',
           status: 'pending',
           appliedDate: '2024-10-15',
+          currentRound: 'screening', // Thêm thuộc tính currentRound
           documents: {
               applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
               profilePhoto: 'Profile_Photo_4x6.jpg',
@@ -111,6 +113,19 @@ const CandidateDetailPage = () => {
       return preferenceMap[preference] || preference
   }
 
+  // Progress bar data
+  const rounds = [
+      { key: 'screening', label: 'Sàng lọc' },
+      { key: 'interview', label: 'Phỏng vấn' },
+      { key: 'medical', label: 'Khám sức khỏe' },
+      { key: 'training', label: 'Đào tạo' },
+      { key: 'final', label: 'Hoàn thành' }
+  ]
+
+  const getRoundIndex = (roundKey) => {
+      return rounds.findIndex(round => round.key === roundKey)
+  }
+
   if (loading) {
       return (
           <div className="flex items-center justify-center min-h-screen">
@@ -142,7 +157,7 @@ const CandidateDetailPage = () => {
             <div className="max-w-7xl mx-auto px-6 py-8">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-white">Hồ sơ ứng viên</h1>
+                        <h1 className="text-3xl font-extrabold text-white">Hồ sơ ứng viên - Vòng sàng lọc</h1>
                         <p className="text-indigo-100 mt-1">Thông tin chi tiết về ứng viên</p>
                     </div>
                     <button
@@ -156,6 +171,54 @@ const CandidateDetailPage = () => {
         </div>
 
           <div className="max-w-6xl mx-auto px-4 py-8">
+            {/* Progress Bar (dynamic) */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-6">Tiến trình ứng tuyển</h3>
+                    {(() => {
+                        const current = candidate?.currentRound || 'screening'
+                        const currentIdx = Math.max(0, getRoundIndex(current))
+                        const percent = (currentIdx / (rounds.length - 1)) * 100
+                        return (
+                            <div className="relative">
+                                {/* Progress Line */}
+                                <div className="absolute top-6 left-0 right-0 h-0.5 bg-slate-200">
+                                    <div className="h-full bg-blue-500" style={{ width: `${percent}%` }}></div>
+                                </div>
+                                {/* Steps */}
+                                <div className="relative flex justify-between">
+                                    {rounds.map((r, idx) => {
+                                        const isDone = idx < currentIdx
+                                        const isCurrent = idx === currentIdx
+                                        const circleClass = isDone
+                                            ? 'bg-green-500 text-white'
+                                            : isCurrent
+                                                ? 'bg-yellow-500 text-white'
+                                                : 'bg-gray-300 text-gray-600'
+                                        const icon = isDone
+                                            ? (
+                                                <FaCheck/>
+                                            )
+                                            : isCurrent
+                                                ? (
+                                                    <FaEllipsisH/>
+                                                )
+                                                : (
+                                                    <FaClock/>
+                                                )
+                                        return (
+                                            <div key={r.key} className="flex flex-col items-center">
+                                                <div className={`w-12 h-12 ${circleClass} rounded-full flex items-center justify-center mb-2 relative z-10`}>
+                                                    {icon}
+                                                </div>
+                                                <span className={`text-sm font-medium ${isDone || isCurrent ? 'text-slate-800' : 'text-slate-600'}`}>{r.label}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )
+                    })()}
+                </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left Column - CV and Documents */}
                   <div className="space-y-6">
@@ -395,44 +458,6 @@ const CandidateDetailPage = () => {
                               <div>
                                   <label className="block text-sm font-medium text-slate-700 mb-1">Base Preference:</label>
                                   <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getBasePreferenceText(candidate.basePreference) || 'N/A'}</p>
-                              </div>
-                          </div>
-                          {/* Recruiter Actions */}
-                          <div>
-                              <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Recruiter Actions</h3>
-                              <div className="flex flex-wrap gap-3">
-                                  <button
-                                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                      onClick={() => {
-                                          console.log('Approve candidate:', candidate.id)
-                                      }}
-                                  >
-                                      Approve Application
-                                  </button>
-                                  <button
-                                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                                      onClick={() => {
-                                          console.log('Reject candidate:', candidate.id)
-                                      }}
-                                  >
-                                      Reject Application
-                                  </button>
-                                  <button
-                                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                      onClick={() => {
-                                          console.log('Schedule interview:', candidate.id)
-                                      }}
-                                  >
-                                      Schedule Interview
-                                  </button>
-                                  <button
-                                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-                                      onClick={() => {
-                                          console.log('Send email:', candidate.id)
-                                      }}
-                                  >
-                                      Send Email
-                                  </button>
                               </div>
                           </div>
                       </div>

@@ -16,11 +16,11 @@ const CampaignPage = () => {
             <div className="flex items-center gap-3">
               <button  onClick={() => navigate('/airline-partner/campaigns/create')} className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 <FaPlus />
-                <span>Tạo chiến dịch</span>
+                <span>Tạo yêu cầu chiến dịch</span>
               </button>
               <button className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                 <FaPlus />
-                <span>Tạo đợt nâng bậc</span>
+                <span>Tạo yêu cầu nâng bậc</span>
               </button>
             </div>
 

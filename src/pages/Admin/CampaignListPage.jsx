@@ -14,7 +14,7 @@ const CampaignListPage = () => {
             <div className="relative w-72">
               <input
                 type="text"
-                placeholder="Tìm kiếm"
+                placeholder="Search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"

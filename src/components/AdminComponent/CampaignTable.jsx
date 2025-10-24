@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
+import { FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
 const defaultCampaigns = [
   {
@@ -147,11 +147,10 @@ const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
               <td className="px-5 py-3">
                 <div className="flex items-center justify-end gap-2">
                   <button
-                    aria-label="Delete campaign"
-                    className="p-2 rounded-md border border-gray-200 hover:bg-gray-50 text-red-600 hover:text-red-700"
-                    onClick={() => onDelete && onDelete(c)}
+                    aria-label="View detail"
+                    className="p-2 rounded-md border border-gray-200 hover:bg-gray-50 text-yellow-300 hover:text-yellow-400"
                   >
-                    <FaTrash />
+                    <FaEye />
                   </button>
                 </div>
               </td>

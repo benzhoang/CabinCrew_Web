@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logoImage from '../images/Logo.png';
-import { t, getLang, setLang, onLangChange } from '../i18n';
-import flagVI from '../assets/flags/vi.svg';
-import flagGB from '../assets/flags/gb.svg';
+import logoImage from '../../images/Logo.png';
+import { t, getLang, setLang, onLangChange } from '../../i18n';
+import flagVI from '../../assets/flags/vi.svg';
+import flagGB from '../../assets/flags/gb.svg';
 
-const Navbar = () => {
+const NavbarCabinCrew = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [lang, setLangState] = useState(getLang());
@@ -51,7 +51,7 @@ const Navbar = () => {
                 <div className="flex items-center h-20">
                     {/* Logo Section */}
                     <div className="flex items-center">
-                        <Link to="/home" className="flex items-center hover:opacity-80 transition-opacity duration-300">
+                        <Link to="/cabin-crew/home" className="flex items-center hover:opacity-80 transition-opacity duration-300">
                             <img
                                 src={logoImage}
                                 alt="SkyCabin Airlines"
@@ -63,37 +63,37 @@ const Navbar = () => {
                     {/* Desktop Navigation - Centered */}
                     <div className="hidden lg:flex items-center justify-center flex-1 space-x-5">
                         <Link
-                            to="/home"
+                            to="/cabin-crew/home"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('home')}
                         </Link>
                         <Link
-                            to="/recruitment"
+                            to="/cabin-crew/promotion"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
-                            {t('recruitment')}
+                            {t('promotion')}
                         </Link>
                         <Link
-                            to="/appointment"
+                            to="/cabin-crew/appointment"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('appointment')}
                         </Link>
                         <Link
-                            to="/score-report"
+                            to="/cabin-crew/score-report"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('score_report')}
                         </Link>
                         <Link
-                            to="/test"
+                            to="/cabin-crew/test"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('test')}
                         </Link>
                         <Link
-                            to="/contact"
+                            to="/cabin-crew/contact"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('contact')}
@@ -138,7 +138,7 @@ const Navbar = () => {
                                             {t('settings')}
                                         </Link>
                                         <Link
-                                            to="/profile"
+                                            to="/cabin-crew/profile"
                                             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                                             onClick={() => setIsUserMenuOpen(false)}
                                         >
@@ -149,7 +149,7 @@ const Navbar = () => {
                                             {t('profile')}
                                         </Link>
                                                 <Link
-                                                    to="/recruitment-history"
+                                                    to="/cabin-crew/promotion-history"
                                                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                                                     onClick={() => setIsUserMenuOpen(false)}
                                                 >
@@ -160,10 +160,10 @@ const Navbar = () => {
                                                         <line x1="16" y1="17" x2="8" y2="17" />
                                                         <polyline points="10,9 9,9 8,9" />
                                                     </svg>
-                                                    {t('recruitment_history')}
+                                                    {t('promotion_history')}
                                                 </Link>
                                                 <Link
-                                                    to="/recruitment-stages"
+                                                    to="/cabin-crew/promotion-stages"
                                                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                                                     onClick={() => setIsUserMenuOpen(false)}
                                                 >
@@ -173,8 +173,8 @@ const Navbar = () => {
                                                         <path d="M12 15v2" />
                                                         <path d="M12 19h.01" />
                                                     </svg>
-                                                    {t('recruitment_stages')}
-                                                </Link>           
+                                                    {t('promotion_stages')}
+                                                </Link>
                                         <button
                                             onClick={handleLogout}
                                             className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -407,4 +407,4 @@ const Navbar = () => {
     );
 };
 
-export default Navbar;
+export default NavbarCabinCrew;

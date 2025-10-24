@@ -80,16 +80,16 @@ const AirlinePartnerTable = ({ airlines = defaultAirlines, onDelete }) => {
         <thead>
           <tr className="bg-gray-50 text-left text-sm text-gray-600">
             <th className="px-5 py-3 font-semibold w-60">
-              <SortButton field="name" label="Tên hãng hàng không" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton field="name" label="Airline name" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
             </th>
             <th className="px-5 py-3 font-semibold w-40">
-              <SortButton field="phone" label="Số điện thoại" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton field="phone" label="Phone number" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
             </th>
             <th className="px-5 py-3 font-semibold w-64">
               <SortButton field="email" label="Email" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
             </th>
             <th className="px-5 py-3 font-semibold">
-              <SortButton field="address" label="Địa chỉ" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton field="address" label="Address" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
             </th>
             <th className="px-5 py-3 w-24 text-right font-semibold">Actions</th>
           </tr>

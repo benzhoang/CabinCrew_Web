@@ -43,6 +43,10 @@ import CabinCrewHomePage from './pages/CabinCrew/CabinCrewHomePage';
 import PromotionHistoryPage from "./pages/CabinCrew/PromotionHistoryPage";
 import PromotionStagesPage from "./pages/CabinCrew/PromotionStagesPage";
 import ApplicationDetailPage from "./pages/CabinCrew/ApplicationDetailPage";
+import CabinCrewLayout from "./layouts/CabinCrewLayout";
+import PromotionPage from "./pages/CabinCrew/PromotionPage";
+import PromotionApplyPage from "./pages/CabinCrew/PromotionApplyPage";
+import ProfileCabinCrewPage from "./pages/CabinCrew/ProfileCabinCrewPage";
 
 
 
@@ -178,34 +182,13 @@ function App() {
 
       {/* Cabin Crew Routes */}
       <Routes>
-        <Route path="/cabin-crew/home" element={
-          <>
-            <Navbar />
-            <CabinCrewHomePage />
-            <Footer />
-          </>
-        } />
-        <Route path="/cabin-crew/promotion-history" element={
-          <>
-            <Navbar />
-            <PromotionHistoryPage />
-            <Footer />
-          </>
-        } />
-        <Route path="/cabin-crew/promotion-stages" element={
-          <>
-            <Navbar />
-            <PromotionStagesPage />
-            <Footer />
-          </>
-        } />
-        <Route path="/cabin-crew/application/detail" element={
-          <>
-            <Navbar />
-            <ApplicationDetailPage />
-            <Footer />
-          </>
-        } />
+        <Route path="/cabin-crew/home" element={<CabinCrewLayout><CabinCrewHomePage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/promotion-history" element={<CabinCrewLayout><PromotionHistoryPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/promotion-stages" element={<CabinCrewLayout><PromotionStagesPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/application/detail" element={<CabinCrewLayout><ApplicationDetailPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/promotion" element={<CabinCrewLayout><PromotionPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/promotion/apply" element={<CabinCrewLayout><PromotionApplyPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/profile" element={<CabinCrewLayout><ProfileCabinCrewPage /></CabinCrewLayout>} />
       </Routes>
 
     </BrowserRouter>
