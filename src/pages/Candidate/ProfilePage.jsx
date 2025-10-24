@@ -198,7 +198,18 @@ const ProfilePage = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-slate-800">{t('profile') || 'Hồ sơ - Bản nháp'}</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-3xl font-bold text-slate-800">Hồ sơ</h1>
+                        {/* Thanh hiển thị kết quả cuối cùng - nhỏ gọn bên cạnh title */}
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg px-3 py-1 text-white">
+                            <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-sm font-medium">Kết quả cuối cùng</span>
+                            </div>
+                        </div>
+                    </div>
                     <div className="flex gap-3">
                         {shouldShowPostVerificationButton && (
                             <button
@@ -208,12 +219,6 @@ const ProfilePage = () => {
                                 Nộp hậu kiểm
                             </button>
                         )}
-                        <button
-                            onClick={() => navigate('/recruitment')}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
-                        >
-                            {t('application_form_new_application') || 'Đơn ứng tuyển mới'}
-                        </button>
                     </div>
                 </div>
 
