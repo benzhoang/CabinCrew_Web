@@ -440,17 +440,8 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
     return (
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                <div className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                <div className="text-sm font-semibold text-slate-800">
                     {batch.name}
-                    <button
-                        onClick={onEdit}
-                        className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded"
-                        title="Chỉnh sửa đợt tuyển"
-                    >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                    </button>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>{statusCfg.text}</span>
             </div>
@@ -463,6 +454,9 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                     <InfoMini label="Phụ trách" value={batch.owner || '—'} />
                     {batch.target !== undefined && (
                         <InfoMini label="Chỉ tiêu" value={`${batch.current ?? 0}/${batch.target}`} />
+                    )}
+                    {(batch.appliedCandidates !== undefined) && (
+                        <InfoMini label="Thực tế" value={batch.appliedCandidates?.toString() || '0'} />
                     )}
                     {batch.note && (
                         <InfoMini label="Ghi chú" value={batch.note} />
@@ -514,7 +508,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                 )}
 
                 {/* View Applicants Button */}
-                <div className="border-t border-slate-100 pt-3">
+                <div className="border-t border-slate-100 pt-3 space-y-2">
                     <button
                         onClick={handleViewApplicants}
                         disabled={isUpcoming}
@@ -529,6 +523,20 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                         </svg>
                         {isUpcoming ? 'Chưa thể xem danh sách' : 'Xem danh sách ứng viên'}
                     </button>
+
+                    {/* Post-Recruitment Review Button */}
+                    {!isUpcoming && batch.appliedCandidates > 0 && (
+                        <button
+                            onClick={() => alert(`Tính năng xét hậu kiểm cho ${batch.name} đang được phát triển`)}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
+                            title="Xét hậu kiểm ứng viên"
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Xét hậu kiểm
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -537,6 +545,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
 
 const BatchManagement = ({ campaign, onCreateBatch }) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isPosting, setIsPosting] = useState(false)
     const [editingBatch, setEditingBatch] = useState(null)
     const [currentBatches, setCurrentBatches] = useState(() => {
         return Array.isArray(campaign?.batches) && campaign.batches.length ? campaign.batches : [
@@ -549,8 +558,8 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                 method: 'Trực tiếp',
                 owner: 'Nguyễn Thanh Tùng',
                 status: 'ongoing',
-                current: 7,
-                target: 10,
+                current: 89,
+                target: 100,
                 totalApplicants: 125,
                 appliedCandidates: 89,
                 note: 'Phỏng vấn vòng 1'
@@ -565,7 +574,7 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                 owner: 'Trần Bảo Vy',
                 status: 'upcoming',
                 current: 0,
-                target: 10,
+                target: 100,
                 totalApplicants: 0,
                 appliedCandidates: 0,
                 note: 'Phỏng vấn vòng 2'
@@ -591,8 +600,34 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
         return Math.max(0, Math.min(100, p))
     }
 
-    const handleCreateBatch = () => {
-        setIsModalOpen(true)
+    const handlePostJob = async () => {
+        if (currentBatches.length === 0) {
+            alert('Chưa có đợt tuyển nào để đăng bài!')
+            return
+        }
+
+        setIsPosting(true)
+
+        try {
+            // Simulate API call to post job
+            await new Promise(resolve => setTimeout(resolve, 1500))
+
+            // Update all batches status to 'ongoing' or 'posted'
+            const updatedBatches = currentBatches.map(batch => ({
+                ...batch,
+                status: batch.status === 'planned' || batch.status === 'upcoming' ? 'ongoing' : batch.status,
+                isPosted: true
+            }))
+
+            setCurrentBatches(updatedBatches)
+
+            alert('Đã đăng bài tuyển dụng thành công!')
+        } catch (error) {
+            console.error('Error posting job:', error)
+            alert('Có lỗi xảy ra khi đăng bài tuyển dụng')
+        } finally {
+            setIsPosting(false)
+        }
     }
 
     const handleModalClose = () => {
@@ -638,13 +673,26 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                     Kế hoạch các đợt tuyển
                 </div>
                 <button
-                    onClick={handleCreateBatch}
-                    className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                    onClick={handlePostJob}
+                    disabled={isPosting}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isPosting
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                        }`}
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Tạo đợt mới
+                    {isPosting ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Đang đăng...
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Đăng bài
+                        </>
+                    )}
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

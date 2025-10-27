@@ -28,10 +28,6 @@ const PostVerificationModal = ({ isOpen, onClose, onSubmit }) => {
     const validateForm = () => {
         const newErrors = {}
 
-        if (!formData.englishCertificate) {
-            newErrors.englishCertificate = 'Vui lòng tải lên chứng chỉ tiếng Anh'
-        }
-
         if (!formData.healthCertificate) {
             newErrors.healthCertificate = 'Vui lòng tải lên giấy khám sức khỏe'
         }
@@ -78,9 +74,6 @@ const PostVerificationModal = ({ isOpen, onClose, onSubmit }) => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* English Certificate Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Chứng chỉ tiếng Anh *
-                        </label>
                         <div className="relative">
                             <input
                                 type="file"
@@ -90,25 +83,6 @@ const PostVerificationModal = ({ isOpen, onClose, onSubmit }) => {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 required
                             />
-                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
-                                <div className="text-center">
-                                    <svg className="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                    </svg>
-                                    <p className="text-sm text-slate-600">
-                                        {formData.englishCertificate ? (
-                                            <span className="text-green-600 font-medium">
-                                                ✓ {formData.englishCertificate.name}
-                                            </span>
-                                        ) : (
-                                            <span>Nhấp để chọn chứng chỉ tiếng Anh</span>
-                                        )}
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-1">
-                                        Hỗ trợ: PDF, DOC, DOCX, JPG, PNG
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                         {errors.englishCertificate && (
                             <p className="text-red-500 text-sm mt-1">{errors.englishCertificate}</p>
@@ -164,7 +138,6 @@ const PostVerificationModal = ({ isOpen, onClose, onSubmit }) => {
                                 <h3 className="text-sm font-medium text-blue-800">Lưu ý quan trọng</h3>
                                 <div className="mt-2 text-sm text-blue-700">
                                     <ul className="list-disc list-inside space-y-1">
-                                        <li>Chứng chỉ tiếng Anh phải còn hiệu lực</li>
                                         <li>Giấy khám sức khỏe phải được cấp trong vòng 6 tháng gần nhất</li>
                                         <li>File tải lên phải rõ nét, đầy đủ thông tin</li>
                                         <li>Kích thước file tối đa: 10MB</li>

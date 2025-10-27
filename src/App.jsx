@@ -29,7 +29,6 @@ import ProfilePage from './pages/Candidate/ProfilePage';
 import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
-import CreateCampaign from './pages/Recruiter/CreateCampaign';
 import Screening from './pages/Recruiter/Screening';
 import CandidateApplyDetail from './pages/Recruiter/CandidateApplyDetail';
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
@@ -47,8 +46,8 @@ import CabinCrewLayout from "./layouts/CabinCrewLayout";
 import PromotionPage from "./pages/CabinCrew/PromotionPage";
 import PromotionApplyPage from "./pages/CabinCrew/PromotionApplyPage";
 import ProfileCabinCrewPage from "./pages/CabinCrew/ProfileCabinCrewPage";
-
-
+import DirectorSidebar from './components/DirectorSidebar';
+import DirectorCampaign from './pages/Director/DirectorCampaign';
 
 function App() {
   return (
@@ -117,6 +116,7 @@ function App() {
             <Footer />
           </>
         } />
+        {/* Recruiter Routes */}
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />
@@ -125,14 +125,7 @@ function App() {
             </main>
           </div>
         } />
-        <Route path="/recruiter/campaigns/create" element={
-          <div className="flex h-screen bg-gray-50">
-            <SidebarRecruiter />
-            <main className="flex-1 overflow-auto">
-              <CreateCampaign />
-            </main>
-          </div>
-        } />
+
         <Route path="/recruiter/campaigns/:id" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />
@@ -189,6 +182,18 @@ function App() {
         <Route path="/cabin-crew/promotion" element={<CabinCrewLayout><PromotionPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/promotion/apply" element={<CabinCrewLayout><PromotionApplyPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/profile" element={<CabinCrewLayout><ProfileCabinCrewPage /></CabinCrewLayout>} />
+      </Routes>
+
+      {/* Director Routes */}
+      <Routes>
+        <Route path="/director/campaigns" element={
+          <div className="flex h-screen bg-gray-50">
+            <DirectorSidebar />
+            <main className="flex-1 overflow-auto">
+              <DirectorCampaign />
+            </main>
+          </div>
+        } />
       </Routes>
 
     </BrowserRouter>
