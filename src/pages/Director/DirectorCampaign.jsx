@@ -6,15 +6,50 @@ const mockCampaigns = [
     {
         id: 1,
         name: 'Chiến dịch Tuyển dụng Hàng không Toàn quốc 2024',
+        code: "CCD1 MRF",
+        title: "Yêu cầu tuyển dụng - MRF",
+        subtitle: "Cabin Crew (Thay thế do nghỉ việc/Thai sản)",
+        proposer: "Đặng Bích Thu Thùy (Crew Welfare Team Leader)",
         position: 'Cabin Crew',
+        role: 'Tiếp viên hàng không',
         department: 'Cabin Crew',
+        unit: 'Cabin Crew - Tiếp viên hàng không',
+        quantity: 20,
         status: 'pending_approval',
-        startDate: '2024-01-10',
-        endDate: '2024-04-10',
+        startDate: '2024-01-15',
+        endDate: '2024-03-15',
         targetHires: 150,
         currentHires: 85,
         description: 'Chiến dịch tuyển dụng tổng thể cho toàn bộ mạng lưới hàng không với mục tiêu 150 nhân viên',
-        requirements: 'Tiếng Anh TOEIC 650+, Cao 1.60m+, Kỹ năng giao tiếp, Tinh thần phục vụ'
+        requirements: 'Tiếng Anh TOEIC 650+, Cao 1.60m+, Kỹ năng giao tiếp, Tinh thần phục vụ',
+        rounds: [
+            {
+                id: "r1",
+                name: "Đợt 1",
+                status: "Đang diễn ra",
+                startDate: "2024-10-01",
+                endDate: "2024-10-15",
+                location: "Hà Nội",
+                method: "Trực tiếp",
+                owner: "Nguyễn Thanh Tùng",
+                target: "7/10",
+                notes: "Phỏng vấn vòng 1",
+                progress: 70,
+            },
+            {
+                id: "r2",
+                name: "Đợt 2",
+                status: "Sắp diễn ra",
+                startDate: "2024-11-01",
+                endDate: "2024-11-15",
+                location: "TP.HCM",
+                method: "Trực tiếp",
+                owner: "Trần Bảo Vy",
+                target: "0/10",
+                notes: "Phỏng vấn vòng 2",
+                progress: 0,
+            },
+        ]
     },
     {
         id: 2,
@@ -75,8 +110,6 @@ const DirectorCampaign = () => {
     const [filteredCampaigns, setFilteredCampaigns] = useState(mockCampaigns)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-    const [selectedCampaign, setSelectedCampaign] = useState(null)
-    const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
     const navigate = useNavigate()
 
@@ -101,8 +134,7 @@ const DirectorCampaign = () => {
     }, [campaigns, searchTerm, statusFilter])
 
     const handleViewDetails = (campaign) => {
-        setSelectedCampaign(campaign)
-        setShowModal(true)
+        navigate(`/director/campaigns/${campaign.id}`, { state: { campaign } })
     }
 
     const handleDelete = (id) => {
@@ -194,9 +226,8 @@ const DirectorCampaign = () => {
                         <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
+                                    <div className="mb-2">
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
-                                        {getStatusBadge(campaign.status)}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
@@ -209,9 +240,13 @@ const DirectorCampaign = () => {
                                             <p className="font-medium text-slate-800">{campaign.department}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Thời gian:</span>
-                                            <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
+                                            <span className="text-sm text-slate-600">Trạng thái:</span>
+                                            <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-sm text-slate-600">Thời gian:</span>
+                                        <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
                                     </div>
 
                                     <p className="text-sm text-slate-600">{campaign.description}</p>
@@ -242,77 +277,6 @@ const DirectorCampaign = () => {
                     </div>
                 )}
             </div>
-
-            {showModal && selectedCampaign && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-                            <h3 className="text-xl font-semibold text-slate-800">Chi tiết Chiến dịch</h3>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="text-slate-400 hover:text-slate-600"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <h4 className="text-lg font-semibold text-slate-800 mb-2">{selectedCampaign.name}</h4>
-                                {getStatusBadge(selectedCampaign.status)}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <span className="text-sm text-slate-600">Vị trí:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.position}</p>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-slate-600">Phòng ban:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.department}</p>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.startDate}</p>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-slate-600">Ngày kết thúc:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.endDate}</p>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-slate-600">Mục tiêu tuyển dụng:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.targetHires} người</p>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-slate-600">Đã tuyển:</span>
-                                    <p className="font-medium text-slate-800">{selectedCampaign.currentHires} người</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <span className="text-sm text-slate-600">Mô tả:</span>
-                                <p className="text-slate-800 mt-1">{selectedCampaign.description}</p>
-                            </div>
-
-                            <div>
-                                <span className="text-sm text-slate-600">Yêu cầu:</span>
-                                <p className="text-slate-800 mt-1">{selectedCampaign.requirements}</p>
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-slate-200 flex justify-end">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
-                            >
-                                Đóng
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

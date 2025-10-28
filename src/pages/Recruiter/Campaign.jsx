@@ -276,9 +276,8 @@ const Campaign = () => {
                         <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
+                                    <div className="mb-2">
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
-                                        {getStatusBadge(campaign.status)}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
@@ -291,9 +290,13 @@ const Campaign = () => {
                                             <p className="font-medium text-slate-800">{campaign.department}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Thời gian:</span>
-                                            <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
+                                            <span className="text-sm text-slate-600">Trạng thái:</span>
+                                            <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
+                                    </div>
+                                    <div className="mb-2">
+                                        <span className="text-sm text-slate-600">Thời gian:</span>
+                                        <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
                                     </div>
 
                                     {/* Progress Bar */}
@@ -361,7 +364,6 @@ const Campaign = () => {
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="text-lg font-semibold text-slate-800 mb-2">{selectedCampaign.name}</h4>
-                                    {getStatusBadge(selectedCampaign.status)}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -372,6 +374,10 @@ const Campaign = () => {
                                     <div>
                                         <span className="text-sm text-slate-600">Phòng ban:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.department}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm text-slate-600">Trạng thái:</span>
+                                        <div className="mt-1">{getStatusBadge(selectedCampaign.status)}</div>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Ngày bắt đầu:</span>

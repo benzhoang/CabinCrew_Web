@@ -30,6 +30,7 @@ import Forget from './pages/Forget';
 import Campaign from './pages/Recruiter/Campaign';
 import CampaignDetail from './pages/Recruiter/CampaignDetail';
 import Screening from './pages/Recruiter/Screening';
+import FinalReview from './pages/Recruiter/FinalReview';
 import CandidateApplyDetail from './pages/Recruiter/CandidateApplyDetail';
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
 import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
@@ -48,6 +49,7 @@ import PromotionApplyPage from "./pages/CabinCrew/PromotionApplyPage";
 import ProfileCabinCrewPage from "./pages/CabinCrew/ProfileCabinCrewPage";
 import DirectorSidebar from './components/DirectorSidebar';
 import DirectorCampaign from './pages/Director/DirectorCampaign';
+import DirectorCampInfo from './pages/Director/DirectorCampDetail/DirectorCampInfo';
 
 function App() {
   return (
@@ -142,6 +144,14 @@ function App() {
             </main>
           </div>
         } />
+        <Route path="/recruiter/final-review" element={
+          <div className="flex h-screen bg-gray-50">
+            <SidebarRecruiter />
+            <main className="flex-1 overflow-auto">
+              <FinalReview />
+            </main>
+          </div>
+        } />
         <Route path="/candidate/:id" element={
           <div className="flex h-screen bg-gray-50">
             <SidebarRecruiter />
@@ -191,6 +201,14 @@ function App() {
             <DirectorSidebar />
             <main className="flex-1 overflow-auto">
               <DirectorCampaign />
+            </main>
+          </div>
+        } />
+        <Route path="/director/campaigns/:id" element={
+          <div className="flex h-screen bg-gray-50">
+            <DirectorSidebar />
+            <main className="flex-1 overflow-auto">
+              <DirectorCampInfo />
             </main>
           </div>
         } />

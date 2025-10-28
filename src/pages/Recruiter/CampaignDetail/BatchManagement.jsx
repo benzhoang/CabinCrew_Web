@@ -155,7 +155,6 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit, editingBatch = null, batc
                 ...formData,
                 time: `${formData.startDate} - ${formData.endDate}`, // Keep backward compatibility
                 status: 'planned',
-                current: 0,
                 totalApplicants: 0,
                 appliedCandidates: 0
             }
@@ -353,7 +352,7 @@ const CreateBatchModal = ({ isOpen, onClose, onSubmit, editingBatch = null, batc
                                 min="1"
                                 className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.target ? 'border-red-300' : 'border-slate-300'
                                     }`}
-                                placeholder="10"
+                                placeholder="100"
                             />
                             {errors.target && (
                                 <p className="mt-1 text-sm text-red-600">{errors.target}</p>
@@ -437,6 +436,15 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
         })
     }
 
+    const handleFinalReview = () => {
+        navigate('/recruiter/final-review', {
+            state: {
+                batch: batch,
+                campaignId: campaignId
+            }
+        })
+    }
+
     return (
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -453,13 +461,13 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                     <InfoMini label="Hình thức" value={batch.method || '—'} />
                     <InfoMini label="Phụ trách" value={batch.owner || '—'} />
                     {batch.target !== undefined && (
-                        <InfoMini label="Chỉ tiêu" value={`${batch.current ?? 0}/${batch.target}`} />
-                    )}
-                    {(batch.appliedCandidates !== undefined) && (
-                        <InfoMini label="Thực tế" value={batch.appliedCandidates?.toString() || '0'} />
+                        <InfoMini label="Chỉ tiêu" value={batch.target.toString()} />
                     )}
                     {batch.note && (
                         <InfoMini label="Ghi chú" value={batch.note} />
+                    )}
+                    {(batch.appliedCandidates !== undefined) && (
+                        <InfoMini label="Thực tế" value={batch.appliedCandidates?.toString() || '0'} />
                     )}
                 </div>
 
@@ -527,7 +535,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, onEdit }) => {
                     {/* Post-Recruitment Review Button */}
                     {!isUpcoming && batch.appliedCandidates > 0 && (
                         <button
-                            onClick={() => alert(`Tính năng xét hậu kiểm cho ${batch.name} đang được phát triển`)}
+                            onClick={handleFinalReview}
                             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
                             title="Xét hậu kiểm ứng viên"
                         >
@@ -558,7 +566,6 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                 method: 'Trực tiếp',
                 owner: 'Nguyễn Thanh Tùng',
                 status: 'ongoing',
-                current: 89,
                 target: 100,
                 totalApplicants: 125,
                 appliedCandidates: 89,
@@ -573,7 +580,6 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                 method: 'Trực tiếp',
                 owner: 'Trần Bảo Vy',
                 status: 'upcoming',
-                current: 0,
                 target: 100,
                 totalApplicants: 0,
                 appliedCandidates: 0,
@@ -698,7 +704,7 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {currentBatches.map((batch, index) => {
                     const statusCfg = getStatus(batch.status)
-                    const progressPercent = percent(batch.current, batch.target)
+                    const progressPercent = percent(batch.appliedCandidates || 0, batch.target)
                     return (
                         <BatchCard
                             key={index}

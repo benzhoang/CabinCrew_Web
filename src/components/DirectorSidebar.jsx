@@ -40,6 +40,12 @@ const CampaignIcon = ({ className = '' }) => (
     </svg>
 )
 
+const RequirementsIcon = ({ className = '' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+)
+
 const LogoutIcon = ({ className = '' }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -50,6 +56,7 @@ const LogoutIcon = ({ className = '' }) => (
 
 const navItems = [
     { to: '/director/campaigns', key: 'sidebar_campaign', icon: CampaignIcon },
+    { to: '/director/requirements', key: 'sidebar_requirements', icon: RequirementsIcon },
     { to: '/interviews', key: 'sidebar_interviews', icon: MicIcon },
     { to: '/scoring', key: 'sidebar_evaluation', icon: StarIcon },
 ]

@@ -277,6 +277,8 @@ const dictionaries = {
         sidebar_evaluation: 'Đánh giá',
         sidebar_logout: 'Đăng xuất',
         sidebar_role: 'Recruiter',
+        // SidebarDirector
+        sidebar_requirements: 'Yêu cầu',
         // Recruiter :: Campaign
         campaign_create_button: 'Tạo Campaign',
         campaign_create_feature: 'Chức năng tạo campaign sẽ được triển khai',
@@ -636,6 +638,8 @@ const dictionaries = {
         sidebar_evaluation: 'Evaluation',
         sidebar_logout: 'Logout',
         sidebar_role: 'Recruiter',
+        // SidebarDirector
+        sidebar_requirements: 'Requirements',
         // Recruiter :: Campaign
         campaign_create_button: 'Create Campaign',
         campaign_create_feature: 'Create campaign feature will be implemented',
