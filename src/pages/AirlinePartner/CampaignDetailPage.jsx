@@ -1,9 +1,17 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import BatchInfo from "../../components/AirlinePartnerComponent/BatchInfo";
 import CampaignInfo from "../../components/AirlinePartnerComponent/CampaignInfo";
+import PendingCampaignDetail from "../../components/AirlinePartnerComponent/PendingCampaignDetail";
 
 const CampaignDetail = () => {
   const navigate = useNavigate();
+  const { state } = useLocation()
+  const campaign = state?.campaign
+
+  // Kiểm tra nếu campaign đang chờ phê duyệt (pending)
+  if (campaign?.status === 'pending') {
+    return <PendingCampaignDetail campaign={campaign} />
+}
 
   return (
     <div className="w-full h-full">

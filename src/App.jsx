@@ -34,10 +34,8 @@ import FinalReview from './pages/Recruiter/FinalReview';
 import CandidateApplyDetail from './pages/Recruiter/CandidateApplyDetail';
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
 import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
-import ReportPage from "./pages/AirlinePartner/ReportPage";
 import CampaignDetailPage from './pages/AirlinePartner/CampaignDetailPage';
 import CandidateDetailPage from './pages/AirlinePartner/CandidateDetailPage';
-import CreateCampaignInfo from './pages/AirlinePartner/CreateCampaignInfo';
 import BatchDetailPage from "./pages/AirlinePartner/BatchDetailPage";
 import CabinCrewHomePage from './pages/CabinCrew/CabinCrewHomePage';
 import PromotionHistoryPage from "./pages/CabinCrew/PromotionHistoryPage";
@@ -50,6 +48,18 @@ import ProfileCabinCrewPage from "./pages/CabinCrew/ProfileCabinCrewPage";
 import DirectorSidebar from './components/DirectorSidebar';
 import DirectorCampaign from './pages/Director/DirectorCampaign';
 import DirectorCampInfo from './pages/Director/DirectorCampDetail/DirectorCampInfo';
+import CreateCampaignInfoPage from "./pages/AirlinePartner/CreateCampaignInfoPage";
+import SettingsPage from "./pages/CabinCrew/SettingsPage";
+import SeniorCampaignPage from "./pages/SeniorRecruiter/SeniorCampaignPage";
+import SeniorRecruiterLayout from "./layouts/SeniorRecruiterLayout";
+import SeniorCampaignDetailPage from "./pages/SeniorRecruiter/SeniorCampaignDetailPage";
+import CreatePromotionInfoPage from "./pages/AirlinePartner/CreatePromotionInfo";
+import SeniorRequestPage from "./pages/SeniorRecruiter/SeniorRequestPage";
+import AirlineRequestPage from "./pages/AirlinePartner/AirlineRequestPage";
+import SeniorCreateCampaignPage from "./pages/SeniorRecruiter/SeniorCreateCampaignPage";
+
+// import ReportPage from "./pages/AirlinePartner/ReportPage";
+
 
 function App() {
   return (
@@ -179,8 +189,11 @@ function App() {
         <Route path="/airline-partner/campaigns/:id" element={<AirlinePartnerLayout><CampaignDetailPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id/candidate" element={<AirlinePartnerLayout><BatchDetailPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id/candidates/:candidateId" element={<AirlinePartnerLayout><CandidateDetailPage /></AirlinePartnerLayout>} />
-        <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} />
-        <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfo /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfoPage/></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/create/promotion" element={<AirlinePartnerLayout><CreatePromotionInfoPage/></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/requests" element={<AirlinePartnerLayout><AirlineRequestPage /></AirlinePartnerLayout>} />
+        
+        {/* <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} /> */}
       </Routes>
 
       {/* Cabin Crew Routes */}
@@ -192,7 +205,17 @@ function App() {
         <Route path="/cabin-crew/promotion" element={<CabinCrewLayout><PromotionPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/promotion/apply" element={<CabinCrewLayout><PromotionApplyPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/profile" element={<CabinCrewLayout><ProfileCabinCrewPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage/></CabinCrewLayout>} />
       </Routes>
+
+      {/* Senior Recruiter Routes */}
+      <Routes>
+      <Route path="/senior-recruiter/campaigns" element={<SeniorRecruiterLayout><SeniorCampaignPage /></SeniorRecruiterLayout>} />
+      <Route path="/senior-recruiter/campaigns/:id" element={<SeniorRecruiterLayout><SeniorCampaignDetailPage /></SeniorRecruiterLayout>} />
+      <Route path="/senior-recruiter/campaigns/create" element={<SeniorRecruiterLayout><SeniorCreateCampaignPage /></SeniorRecruiterLayout>} />
+      <Route path="/senior-recruiter/requests" element={<SeniorRecruiterLayout><SeniorRequestPage /></SeniorRecruiterLayout>} />
+      </Routes>
+
 
       {/* Director Routes */}
       <Routes>

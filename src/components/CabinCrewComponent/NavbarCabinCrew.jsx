@@ -127,7 +127,7 @@ const NavbarCabinCrew = () => {
                                 {isUserMenuOpen && (
                                     <div className="absolute right-0 top-full mt-2 w-48 bg-white text-gray-700 rounded-lg shadow-xl ring-1 ring-black/5 overflow-hidden">
                                         <Link
-                                            to="/settings"
+                                            to="/cabin-crew/settings"
                                             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                                             onClick={() => setIsUserMenuOpen(false)}
                                         >

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import PostVerificationModal from '../../components/PostVerificationModal'
 
 const ProfileCabinCrewPage = () => {
     const navigate = useNavigate()
@@ -41,12 +40,6 @@ const ProfileCabinCrewPage = () => {
     // Edit mode state
     const [isEditing, setIsEditing] = useState(false)
     const [originalFormData, setOriginalFormData] = useState(null)
-
-    // Post verification modal state
-    const [showPostVerificationModal, setShowPostVerificationModal] = useState(false)
-
-    // Application status - giả lập trạng thái đơn ứng tuyển
-    const [applicationStatus, setApplicationStatus] = useState('final') // 'pending', 'accepted', 'rejected', 'final'
 
     // Generate random captcha code
     const generateCaptcha = () => {
@@ -185,15 +178,6 @@ const ProfileCabinCrewPage = () => {
         alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
     }
 
-    const handlePostVerificationSubmit = (verificationData) => {
-        // Xử lý nộp hậu kiểm
-        console.log('Post verification data:', verificationData)
-        alert('Đã nộp hậu kiểm thành công! Chúng tôi sẽ xem xét và phản hồi trong thời gian sớm nhất.')
-    }
-
-    // Kiểm tra xem có hiển thị nút "Nộp hậu kiểm" không
-    const shouldShowPostVerificationButton = applicationStatus === 'final'
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
@@ -209,16 +193,6 @@ const ProfileCabinCrewPage = () => {
                                 <span className="text-sm font-medium">Kết quả cuối cùng</span>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex gap-3">
-                        {shouldShowPostVerificationButton && (
-                            <button
-                                onClick={() => setShowPostVerificationModal(true)}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
-                            >
-                                Nộp hậu kiểm
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -786,13 +760,6 @@ const ProfileCabinCrewPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Post Verification Modal */}
-            <PostVerificationModal
-                isOpen={showPostVerificationModal}
-                onClose={() => setShowPostVerificationModal(false)}
-                onSubmit={handlePostVerificationSubmit}
-            />
         </div>
     )
 }

@@ -1,12 +1,13 @@
-import SidebarAirlinePartner from '../components/AirlinePartnerComponent/SidebarAirlinePartner';
+import SidebarSenior from "../components/SeniorRecruiterComponent/SidebarSenior";
 
-const AirlinePartnerLayout = ({children}) => {
+
+const SeniorRecruiterLayout = ({children}) => {
     return (
         <div className="flex flex-col w-screen h-screen overflow-hidden">
     
           <div className="flex flex-1 overflow-hidden">
             <div className={`w-70  shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
-              <SidebarAirlinePartner />
+              <SidebarSenior/>
             </div>
     
             <div className="flex-1 transition-all duration-300 ease-in-out overflow-y-auto overflow-x-hidden p-5 flex flex-col">
@@ -17,4 +18,4 @@ const AirlinePartnerLayout = ({children}) => {
       );
 }
 
-export default AirlinePartnerLayout
+export default SeniorRecruiterLayout

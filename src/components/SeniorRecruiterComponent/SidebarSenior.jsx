@@ -4,21 +4,21 @@ import {
   FaBullhorn,
 } from "react-icons/fa6";
 import { FaInfoCircle, FaSignOutAlt } from "react-icons/fa";
-import { t, onLangChange } from '../../i18n'
 import { useEffect, useState } from "react";
+import { t, onLangChange } from '../../i18n'
 
-const SidebarAirlinePartner = () => {
+const SidebarSenior = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const [, setLangTick] = useState(0)
+  const [, setLangTick] = useState(0);
 
   const isActive = (path) => currentPath.startsWith(path);
 
-  useEffect(() => {
-    const off = onLangChange(() => setLangTick((v) => v + 1))
-    return () => off()
-}, [])
+    useEffect(() => {
+        const off = onLangChange(() => setLangTick((v) => v + 1))
+        return () => off()
+    }, [])
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -37,8 +37,8 @@ const SidebarAirlinePartner = () => {
       <div className="bg-white rounded-xl p-4 shadow-sm mb-4 flex items-center">
         <div className="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold mr-3">NA</div>
         <div>
-          <div className="text-gray-900 font-semibold">Airline A</div>
-          <div className="text-gray-500 text-sm">Airline Partner</div>
+          <div className="text-gray-900 font-semibold">Nguyễn Văn B</div>
+          <div className="text-gray-500 text-sm">Senior Recruiter</div>
         </div>
       </div>
 
@@ -46,21 +46,21 @@ const SidebarAirlinePartner = () => {
       <ul className="list-none p-0 mt-0 space-y-1">
       <li>
           <Link
-            to="/airline-partner/requests"
+            to="/senior-recruiter/requests"
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
-              isActive("/airline-partner/requests")
+              isActive("/senior-recruiter/requests")
                 ? "text-blue-600 bg-cyan-50"
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaInfoCircle
               className={`mr-3 transition-colors duration-300 text-lg ${
-                isActive("/airline-partner/requests") ? "text-blue-600" : "text-gray-500"
+                isActive("/senior-recruiter/requests") ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
-                isActive("/airline-partner/requests")
+                isActive("/senior-recruiter/requests")
                   ? "text-blue-600"
                   : "text-gray-700 hover:text-blue-600"
               }
@@ -71,21 +71,21 @@ const SidebarAirlinePartner = () => {
         </li>
         <li>
           <Link
-            to="/airline-partner/campaigns"
+            to="/senior-recruiter/campaigns"
             className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
-              isActive("/airline-partner/campaigns")
+              isActive("/senior-recruiter/campaigns")
                 ? "text-blue-600 bg-cyan-50"
                 : "text-gray-700 hover:text-blue-600"
             }`}
           >
             <FaBullhorn
               className={`mr-3 transition-colors duration-300 text-lg ${
-                isActive("/airline-partner/campaigns") ? "text-blue-600" : "text-gray-500"
+                isActive("/senior-recruiter/campaigns") ? "text-blue-600" : "text-gray-500"
               }`}
             />
             <span
               className={
-                isActive("/airline-partner/campaigns")
+                isActive("/senior-recruiter/campaigns")
                   ? "text-blue-600"
                   : "text-gray-700 hover:text-blue-600"
               }
@@ -94,6 +94,7 @@ const SidebarAirlinePartner = () => {
             </span>
           </Link>
         </li>
+
         <li>
         <button
           type="button"
@@ -114,4 +115,4 @@ const SidebarAirlinePartner = () => {
   );
 };
 
-export default SidebarAirlinePartner;
+export default SidebarSenior;

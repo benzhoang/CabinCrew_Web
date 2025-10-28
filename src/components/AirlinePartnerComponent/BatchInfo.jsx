@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { FaClipboardList } from 'react-icons/fa'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 const formatDate = (isoString) => {
@@ -37,7 +38,8 @@ const mockCampaign = {
       location: "Hà Nội",
       method: "Trực tiếp",
       owner: "Nguyễn Thanh Tùng",
-      target: "7/10",
+      target: "10",
+      actualQuantity: "7",
       notes: "Phỏng vấn vòng 1",
       progress: 70,
     },
@@ -50,7 +52,8 @@ const mockCampaign = {
       location: "TP.HCM",
       method: "Trực tiếp",
       owner: "Trần Bảo Vy",
-      target: "0/10",
+      target: "10",
+      actualQuantity: "0",
       notes: "Phỏng vấn vòng 2",
       progress: 0,
     },
@@ -90,9 +93,9 @@ const BatchInfo = () => {
   // Function to get button styling based on status
   const getButtonStyle = (roundStatus) => {
     if (isButtonDisabled(roundStatus)) {
-      return "w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed"
+      return "w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
     }
-    return "w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+    return "w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
   }
 
   return (
@@ -126,6 +129,20 @@ const BatchInfo = () => {
                     <div className="text-gray-900 font-medium">{formatDate(round.startDate)}</div>
                   </div>
                   <div>
+                    <div className="text-gray-500 text-xs mb-1">Địa điểm</div>
+                    <div className="text-gray-900 font-medium">{round.location}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs mb-1">Phụ trách</div>
+                    <div className="text-gray-900 font-medium">{round.owner}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs mb-1">Ghi chú</div>
+                    <div className="text-gray-900 font-medium">{round.notes}</div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                <div>
                     <div className="text-gray-500 text-xs mb-1">Thời gian kết thúc</div>
                     <div className="text-gray-900 font-medium">{formatDate(round.endDate)}</div>
                   </div>
@@ -137,19 +154,9 @@ const BatchInfo = () => {
                     <div className="text-gray-500 text-xs mb-1">Chỉ tiêu</div>
                     <div className="text-gray-900 font-medium">{round.target}</div>
                   </div>
-                </div>
-                <div className="space-y-3">
                   <div>
-                    <div className="text-gray-500 text-xs mb-1">Địa điểm</div>
-                    <div className="text-gray-900 font-medium">{round.location}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500 text-xs mb-1">Phụ trách</div>
-                    <div className="text-gray-900 font-medium">{round.owner}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500 text-xs mb-1">Ghi chú</div>
-                    <div className="text-gray-900 font-medium">{round.notes}</div>
+                    <div className="text-gray-500 text-xs mb-1">Thực tế</div>
+                    <div className="text-gray-900 font-medium">{round.actualQuantity}</div>
                   </div>
                 </div>
               </div>
@@ -190,6 +197,7 @@ const BatchInfo = () => {
                   onClick={() => !isButtonDisabled(round.status) && handleViewCandidates(round)}
                   disabled={isButtonDisabled(round.status)}
                 >
+                  <FaClipboardList/>
                   {isButtonDisabled(round.status) ? 'Chưa thể xem danh sách' : 'Xem danh sách ứng viên'}
                 </button>
               </div>

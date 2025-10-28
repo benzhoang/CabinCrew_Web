@@ -115,12 +115,12 @@ const CandidateDetailPage = () => {
 
   // Progress bar data
   const rounds = [
-      { key: 'screening', label: 'Sàng lọc' },
-      { key: 'interview', label: 'Phỏng vấn' },
-      { key: 'medical', label: 'Khám sức khỏe' },
-      { key: 'training', label: 'Đào tạo' },
-      { key: 'final', label: 'Hoàn thành' }
-  ]
+    { key: 'screening', label: 'Kiểm tra hồ sơ' },
+    { key: 'grooming', label: 'Kiểm tra ngoại hình' },
+    { key: 'test', label: 'Kiểm tra tiếng Anh' },
+    { key: 'interview', label: 'Phỏng vấn' },
+    { key: 'final', label: 'Kết quả cuối cùng' }
+]
 
   const getRoundIndex = (roundKey) => {
       return rounds.findIndex(round => round.key === roundKey)

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const CreateCampaignInfo = () => {
+const CreatePromotionInfoPage = () => {
     const [formData, setFormData] = useState({
         title: '',
         quantity: '',
@@ -285,4 +285,4 @@ const CreateCampaignInfo = () => {
     )
 }
 
-export default CreateCampaignInfo
+export default CreatePromotionInfoPage
