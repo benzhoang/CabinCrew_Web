@@ -1,7 +1,11 @@
+import CampaignList from "../../components/AirlinePartnerComponent/CampaignList";
+
 const AirlineRequestPage = () => {
   return (
-    <div>AirlineRequestPage</div>
-  )
-}
+    <div className="p-6">
+      <CampaignList search="" campaigns={undefined} />
+    </div>
+  );
+};
 
-export default AirlineRequestPage
+export default AirlineRequestPage;

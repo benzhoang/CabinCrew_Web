@@ -125,7 +125,7 @@ const MainPage = () => {
             navigate("/recruiter/campaigns");
             break;
           case "airline-partner":
-            navigate("/airline-partner/campaigns");
+            navigate("/airline-partner/requests");
             break;
           case "cabin-crew":
             navigate("/cabin-crew/home");
@@ -134,7 +134,7 @@ const MainPage = () => {
             navigate("/director/requirements");
             break;
           case "senior-recruiter":
-            navigate("/senior-recruiter/campaigns");
+            navigate("/senior-recruiter/requests");
             break;
           default:
             alert("Role không được hỗ trợ");

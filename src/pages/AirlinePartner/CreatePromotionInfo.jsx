@@ -274,7 +274,7 @@ const CreatePromotionInfoPage = () => {
                                         : 'bg-red-600 hover:bg-red-700 text-white'
                                         }`}
                                 >
-                                    {isSubmitting ? 'Đang tạo...' : 'Tạo Campaign'}
+                                    {isSubmitting ? 'Đang tạo...' : 'Tạo yêu cầu'}
                                 </button>
                             </div>
                         </div>

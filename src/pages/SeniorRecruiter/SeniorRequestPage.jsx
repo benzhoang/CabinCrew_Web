@@ -1,7 +1,11 @@
+import CampaignList from "../../components/SeniorRecruiterComponent/CampaignList";
+
 const SeniorRequestPage = () => {
   return (
-    <div>SeniorRequestPage</div>
-  )
-}
+    <div className="p-6">
+      <CampaignList search="" campaigns={undefined} />
+    </div>
+  );
+};
 
-export default SeniorRequestPage
+export default SeniorRequestPage;

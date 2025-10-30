@@ -1,5 +1,6 @@
 
 import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
 
 
 const formatDate = (isoString) => {
@@ -72,22 +73,153 @@ const InfoRow = ({ label, value }) => (
   </div>
 )
 
+const EditableInfo = ({ label, value, onChange, type = 'text' }) => (
+  <div className="flex items-start gap-3">
+    <div className="w-36 shrink-0 text-gray-500 text-sm">{label}</div>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="text-gray-900 text-sm w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+    />
+  </div>
+)
+
 const CampaignInfo = () => {
   const { state } = useLocation()
   const data = state?.campaign || mockCampaign
+
+
+  const [isEditingInfo, setIsEditingInfo] = useState(false)
+  const [editData, setEditData] = useState({
+      role: data?.role || 'Flight Attendant',
+      department: data?.department || 'Cabin Crew',
+      unit: data?.unit || 'Cabin Crew - Tiếp viên hàng không',
+      quantity: data?.quantity ?? 20,
+      startDate: data?.startDate || '2024-01-15',
+      endDate: data?.endDate || '2024-03-15',
+      description: data?.description || 'Nhu cầu tuyển dụng theo kế hoạch khai thác năm 2024 và bổ sung nhân sự thay thế.',
+      requirements: data?.requirements || 'Tiếng Anh tốt, kỹ năng giao tiếp, sức khỏe tốt.'
+  })
+
+  const handleEditInfo = () => {
+      setIsEditingInfo(true)
+  }
+
+  const handleSaveInfo = () => {
+      // TODO: Implement save logic
+      console.log('Saving campaign info:', editData)
+      setIsEditingInfo(false)
+      alert('Đã cập nhật thông tin campaign!')
+  }
+
+  const handleCancelEdit = () => {
+      setIsEditingInfo(false)
+      // Reset to original data
+      setEditData({
+          role: data?.role || 'Flight Attendant',
+          department: data?.department || 'Cabin Crew',
+          unit: data?.unit || 'Cabin Crew - Tiếp viên hàng không',
+          quantity: data?.quantity ?? 20,
+          startDate: data?.startDate || '2024-01-15',
+          endDate: data?.endDate || '2024-03-15',
+          description: data?.description || 'Nhu cầu tuyển dụng theo kế hoạch khai thác năm 2024 và bổ sung nhân sự thay thế.',
+          requirements: data?.requirements || 'Tiếng Anh tốt, kỹ năng giao tiếp, sức khỏe tốt.'
+      })
+  }
+
+  const handleInputChange = (field, value) => {
+      setEditData(prev => ({
+          ...prev,
+          [field]: value
+      }))
+  }
+
 
   return (
     <div className="w-full h-full">
       <div className="grid grid-cols-1 gap-5">
         <Section title="Thông tin đề xuất">
           <div className="text-gray-900 font-medium">{data.proposer}</div>
+          <div className="flex items-center mt-4">
+            {!isEditingInfo && (
+              <button onClick={handleEditInfo} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">Chỉnh sửa</button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-            <InfoRow label="Vị trí tuyển" value={data.role} />
-            <InfoRow label="Phòng ban" value={data.department} />
-            <InfoRow label="Đơn vị" value={data.unit} />
-            <InfoRow label="Số lượng tuyển" value={data.quantity} />
-            <InfoRow label="Ngày bắt đầu" value={formatDate(data.startDate)} />
-            <InfoRow label="Ngày kết thúc" value={formatDate(data.endDate)} />
+            {isEditingInfo ? (
+              <div className="space-y-6 md:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <EditableInfo 
+                    label="Vị trí tuyển" 
+                    value={editData.role}
+                    onChange={(value) => handleInputChange('role', value)}
+                  />
+                  <EditableInfo 
+                    label="Phòng ban" 
+                    value={editData.department}
+                    onChange={(value) => handleInputChange('department', value)}
+                  />
+                  <EditableInfo 
+                    label="Đơn vị" 
+                    value={editData.unit}
+                    onChange={(value) => handleInputChange('unit', value)}
+                  />
+                  <EditableInfo 
+                    label="Số lượng tuyển" 
+                    value={String(editData.quantity)}
+                    onChange={(value) => handleInputChange('quantity', parseInt(value) || 0)}
+                    type="number"
+                  />
+                  <EditableInfo 
+                    label="Ngày bắt đầu" 
+                    value={editData.startDate}
+                    onChange={(value) => handleInputChange('startDate', value)}
+                    type="date"
+                  />
+                  <EditableInfo 
+                    label="Ngày kết thúc" 
+                    value={editData.endDate}
+                    onChange={(value) => handleInputChange('endDate', value)}
+                    type="date"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm text-slate-600 mb-1">Mô tả nhu cầu</div>
+                  <textarea
+                    value={editData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="3"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm text-slate-600 mb-1">Yêu cầu</div>
+                  <textarea
+                    value={editData.requirements}
+                    onChange={(e) => handleInputChange('requirements', e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="3"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <button onClick={handleSaveInfo} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">Lưu thay đổi</button>
+                  <button onClick={handleCancelEdit} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-sm">Hủy</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <InfoRow label="Vị trí tuyển" value={data.role} />
+                <InfoRow label="Phòng ban" value={data.department} />
+                <InfoRow label="Đơn vị" value={data.unit} />
+                <InfoRow label="Số lượng tuyển" value={data.quantity} />
+                <InfoRow label="Ngày bắt đầu" value={formatDate(data.startDate)} />
+                <InfoRow label="Ngày kết thúc" value={formatDate(data.endDate)} />
+              </>
+            )}
           </div>
 
           {/* Job Description */}
