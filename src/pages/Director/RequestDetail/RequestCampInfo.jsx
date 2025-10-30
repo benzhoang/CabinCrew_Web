@@ -1,4 +1,6 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+
+import { useLocation } from 'react-router-dom'
+
 
 const formatDate = (isoString) => {
     if (!isoString) return ''
@@ -10,52 +12,19 @@ const formatDate = (isoString) => {
     return `${day}/${month}/${year}`
 }
 
-const mockCampaign = {
-    id: 1,
-    name: 'Chiến dịch Tuyển dụng Hàng không Toàn quốc 2024',
-    code: "CCD1 MRF",
-    title: "Yêu cầu tuyển dụng - MRF",
-    subtitle: "Cabin Crew (Thay thế do nghỉ việc/Thai sản)",
-    proposer: "Đặng Bích Thu Thùy (Crew Welfare Team Leader)",
-    role: "Tiếp viên hàng không",
-    department: "Cabin Crew",
-    unit: "Cabin Crew - Tiếp viên hàng không",
-    quantity: 20,
-    startDate: "2024-01-15",
-    endDate: "2024-03-15",
-    description:
-        "Tuyển dụng tiếp viên hàng không cho các chuyến bay nội địa và quốc tế",
-    requirements:
-        "Tiếng Anh tốt, Chiều cao 1.60m+, Kỹ năng giao tiếp, Sức khỏe tốt",
-    rounds: [
-        {
-            id: "r1",
-            name: "Đợt 1",
-            status: "Đang diễn ra",
-            startDate: "2024-10-01",
-            endDate: "2024-10-15",
-            location: "Hà Nội",
-            method: "Trực tiếp",
-            owner: "Nguyễn Thanh Tùng",
-            target: "7/10",
-            notes: "Phỏng vấn vòng 1",
-            progress: 70,
-        },
-        {
-            id: "r2",
-            name: "Đợt 2",
-            status: "Sắp diễn ra",
-            startDate: "2024-11-01",
-            endDate: "2024-11-15",
-            location: "TP.HCM",
-            method: "Trực tiếp",
-            owner: "Trần Bảo Vy",
-            target: "0/10",
-            notes: "Phỏng vấn vòng 2",
-            progress: 0,
-        },
-    ],
-};
+const mockRequest = {
+    id: 0,
+    code: 'REQ-XXXX',
+    title: 'Yêu cầu tuyển dụng',
+    proposer: 'Người đề xuất',
+    position: 'Vị trí',
+    department: 'Phòng ban',
+    unit: 'Đơn vị',
+    quantity: 0,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    description: 'Mô tả yêu cầu tuyển dụng'
+}
 
 const Section = ({ title, children }) => (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -71,48 +40,25 @@ const InfoRow = ({ label, value }) => (
     </div>
 )
 
-const DirectorCampInfo = () => {
+const RequestCampInfo = () => {
     const { state } = useLocation()
-    const data = state?.campaign || mockCampaign
-    const navigate = useNavigate()
-
-    const handleApprove = () => {
-        if (window.confirm('Bạn có chắc chắn muốn duyệt chiến dịch này?')) {
-            console.log('Chiến dịch đã được duyệt:', data.id)
-            // Thực hiện logic duyệt
-            navigate('/director/campaigns')
-        }
-    }
-
-    const handleReject = () => {
-        if (window.confirm('Bạn có chắc chắn muốn từ chối chiến dịch này?')) {
-            console.log('Chiến dịch đã bị từ chối:', data.id)
-            // Thực hiện logic từ chối
-            navigate('/director/campaigns')
-        }
-    }
-
-    const handleAssign = () => {
-        console.log('Giao việc cho chiến dịch:', data.id)
-        // Thực hiện logic giao việc
-    }
+    const data = state?.request || mockRequest
 
     return (
         <div className="p-6">
             <div className="mb-6">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">{data?.name || data?.title || 'Chi tiết Chiến dịch'}</h2>
-                        <p className="text-slate-600">Xem thông tin chi tiết và quản lý chiến dịch tuyển dụng</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-1">{data.title || 'Chi tiết Yêu cầu tuyển dụng'}</h2>
+                        <p className="text-slate-600">Mã yêu cầu: <span className="font-medium">{data.code}</span></p>
                     </div>
                 </div>
             </div>
-
             <div className="grid grid-cols-1 gap-5">
-                <Section title="Thông tin đề xuất">
+                <Section title="Thông tin yêu cầu">
                     <div className="text-gray-900 font-medium">{data.proposer}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-                        <InfoRow label="Vị trí tuyển" value={data.role} />
+                        <InfoRow label="Vị trí tuyển" value={data.position} />
                         <InfoRow label="Phòng ban" value={data.department} />
                         <InfoRow label="Đơn vị" value={data.unit} />
                         <InfoRow label="Số lượng tuyển" value={data.quantity} />
@@ -276,67 +222,12 @@ const DirectorCampInfo = () => {
                         </div>
                     </div>
 
-                    {/* Recruitment Schedule */}
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📅 Lịch tuyển dụng / Recruitment Schedule</h3>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <div className="space-y-3 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl">🤖</span>
-                                    <div>
-                                        <div className="font-medium text-slate-800">CabinCrew áp dụng công nghệ AI</div>
-                                        <div className="text-slate-600">Tăng hiệu quả, cải thiện trải nghiệm ứng viên, số hóa dữ liệu, không giấy tờ và bảo vệ môi trường 🍃</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl">📌</span>
-                                    <div>
-                                        <div className="font-medium text-slate-800">Địa điểm: TP. Hồ Chí Minh</div>
-                                        <div className="text-slate-600">Học viện Hàng không CabinCrew</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl">⏰</span>
-                                    <div>
-                                        <div className="font-medium text-slate-800">Thời gian: 8:00 AM | Thứ Bảy, 01/11/2025</div>
-                                        <div className="text-slate-600">Saturday, November 1, 2025</div>
-                                    </div>
-                                </div>
-                                <div className="bg-blue-100 border border-blue-300 rounded p-3 mt-3">
-                                    <div className="text-xs text-blue-800">
-                                        <strong>Lưu ý:</strong> Lịch tuyển dụng có thể thay đổi trong một số trường hợp cụ thể.
-                                        Ứng viên vui lòng thường xuyên kiểm tra website chính thức CabinCrew Careers để cập nhật thông tin mới nhất.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </Section>
-            </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-                <button
-                    onClick={handleApprove}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
-                >
-                    Duyệt
-                </button>
-                <button
-                    onClick={handleReject}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
-                >
-                    Từ chối
-                </button>
-                <button
-                    onClick={handleAssign}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-                >
-                    Giao việc
-                </button>
+                </Section>
+
             </div>
         </div>
     )
 }
 
-export default DirectorCampInfo
-
+export default RequestCampInfo

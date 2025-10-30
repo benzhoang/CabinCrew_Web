@@ -281,8 +281,8 @@ const dictionaries = {
         sidebar_requirements: 'Yêu cầu',
         // SidebarSenior
         sidebar_request: 'Yêu cầu',
-         // SidebarAdmin
-           
+        // SidebarAdmin
+
         // SidebarAirlinePartner
         // Recruiter :: Campaign
         campaign_create_button: 'Tạo Campaign',
@@ -644,7 +644,7 @@ const dictionaries = {
         sidebar_logout: 'Logout',
         sidebar_role: 'Recruiter',
         // SidebarDirector
-        sidebar_requirements: 'Requirements',
+        sidebar_requirements: 'Requests',
         // SidebarSenior & Airline
         sidebar_request: 'Requests',
         // Recruiter :: Campaign

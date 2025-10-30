@@ -57,6 +57,9 @@ import CreatePromotionInfoPage from "./pages/AirlinePartner/CreatePromotionInfo"
 import SeniorRequestPage from "./pages/SeniorRecruiter/SeniorRequestPage";
 import AirlineRequestPage from "./pages/AirlinePartner/AirlineRequestPage";
 import SeniorCreateCampaignPage from "./pages/SeniorRecruiter/SeniorCreateCampaignPage";
+import DirectorRequestList from './pages/Director/RequestList';
+import RequestBatchInfo from './pages/Director/RequestDetail/RequestBatchInfo';
+import RequestCampInfo from './pages/Director/RequestDetail/RequestCampInfo';
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -189,10 +192,10 @@ function App() {
         <Route path="/airline-partner/campaigns/:id" element={<AirlinePartnerLayout><CampaignDetailPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id/candidate" element={<AirlinePartnerLayout><BatchDetailPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/:id/candidates/:candidateId" element={<AirlinePartnerLayout><CandidateDetailPage /></AirlinePartnerLayout>} />
-        <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfoPage/></AirlinePartnerLayout>} />
-        <Route path="/airline-partner/campaigns/create/promotion" element={<AirlinePartnerLayout><CreatePromotionInfoPage/></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfoPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/campaigns/create/promotion" element={<AirlinePartnerLayout><CreatePromotionInfoPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/requests" element={<AirlinePartnerLayout><AirlineRequestPage /></AirlinePartnerLayout>} />
-        
+
         {/* <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} /> */}
       </Routes>
 
@@ -205,15 +208,15 @@ function App() {
         <Route path="/cabin-crew/promotion" element={<CabinCrewLayout><PromotionPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/promotion/apply" element={<CabinCrewLayout><PromotionApplyPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/profile" element={<CabinCrewLayout><ProfileCabinCrewPage /></CabinCrewLayout>} />
-        <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage/></CabinCrewLayout>} />
+        <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage /></CabinCrewLayout>} />
       </Routes>
 
       {/* Senior Recruiter Routes */}
       <Routes>
-      <Route path="/senior-recruiter/campaigns" element={<SeniorRecruiterLayout><SeniorCampaignPage /></SeniorRecruiterLayout>} />
-      <Route path="/senior-recruiter/campaigns/:id" element={<SeniorRecruiterLayout><SeniorCampaignDetailPage /></SeniorRecruiterLayout>} />
-      <Route path="/senior-recruiter/campaigns/create" element={<SeniorRecruiterLayout><SeniorCreateCampaignPage /></SeniorRecruiterLayout>} />
-      <Route path="/senior-recruiter/requests" element={<SeniorRecruiterLayout><SeniorRequestPage /></SeniorRecruiterLayout>} />
+        <Route path="/senior-recruiter/campaigns" element={<SeniorRecruiterLayout><SeniorCampaignPage /></SeniorRecruiterLayout>} />
+        <Route path="/senior-recruiter/campaigns/:id" element={<SeniorRecruiterLayout><SeniorCampaignDetailPage /></SeniorRecruiterLayout>} />
+        <Route path="/senior-recruiter/campaigns/create" element={<SeniorRecruiterLayout><SeniorCreateCampaignPage /></SeniorRecruiterLayout>} />
+        <Route path="/senior-recruiter/requests" element={<SeniorRecruiterLayout><SeniorRequestPage /></SeniorRecruiterLayout>} />
       </Routes>
 
 
@@ -232,6 +235,25 @@ function App() {
             <DirectorSidebar />
             <main className="flex-1 overflow-auto">
               <DirectorCampInfo />
+            </main>
+          </div>
+        } />
+        <Route path="/director/requirements" element={
+          <div className="flex h-screen bg-gray-50">
+            <DirectorSidebar />
+            <main className="flex-1 overflow-auto">
+              <DirectorRequestList />
+            </main>
+          </div>
+        } />
+        <Route path="/director/requirements/:id" element={
+          <div className="flex h-screen bg-gray-50">
+            <DirectorSidebar />
+            <main className="flex-1 overflow-auto">
+              <div className="space-y-2">
+                <RequestCampInfo />
+                <RequestBatchInfo />
+              </div>
             </main>
           </div>
         } />

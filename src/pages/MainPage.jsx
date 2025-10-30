@@ -98,7 +98,7 @@ const MainPage = () => {
         userData.role === "admin" ||
         userData.role === "recruiter" ||
         userData.role === "airline-partner" ||
-        userData.role === "director"||
+        userData.role === "director" ||
         userData.role === "senior-recruiter"
       ) {
         localStorage.setItem("employee", JSON.stringify(userData));
@@ -131,7 +131,7 @@ const MainPage = () => {
             navigate("/cabin-crew/home");
             break;
           case "director":
-            navigate("/director/campaigns");
+            navigate("/director/requirements");
             break;
           case "senior-recruiter":
             navigate("/senior-recruiter/campaigns");

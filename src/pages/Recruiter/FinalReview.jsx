@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { exportFinalReviewExcel } from './Export & Import/exportFinalReview'
+import ImportHauKiemModal from './Export & Import/ImportHauKiemModal'
 
 // Mock data cho ứng viên đã có kết quả cuối cùng
 const mockFinalCandidates = [
@@ -112,14 +114,14 @@ const FinalReview = () => {
         )
     }
 
+    const [showImport, setShowImport] = useState(false)
+
     const handleExport = () => {
-        // TODO: Implement export functionality
-        alert('Tính năng Export đang được phát triển')
+        exportFinalReviewExcel(filteredCandidates)
     }
 
     const handleImport = () => {
-        // TODO: Implement import functionality
-        alert('Tính năng Import đang được phát triển')
+        setShowImport(true)
     }
 
     const handleBack = () => {
@@ -308,6 +310,15 @@ const FinalReview = () => {
                     )}
                 </div>
             </div>
+
+            <ImportHauKiemModal
+                open={showImport}
+                onClose={() => setShowImport(false)}
+                onSubmit={(files) => {
+                    // TODO: integrate upload API; currently just logs
+                    console.log('Hau kiem files selected:', files)
+                }}
+            />
         </div>
     )
 }
