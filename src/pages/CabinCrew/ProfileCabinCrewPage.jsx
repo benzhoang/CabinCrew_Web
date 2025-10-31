@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 
 const ProfileCabinCrewPage = () => {
-    const navigate = useNavigate()
-
     // Force re-render when language changes
     const [, forceUpdate] = useState({})
 
@@ -16,6 +13,7 @@ const ProfileCabinCrewPage = () => {
         gender: 'female',
         mobileNumber: '+84 912 345 678',
         workingExperience: '1-2-years',
+        flightExperience: '672',
         height: '165',
         weight: '53',
         englishCertificate: 'TOEIC 650',
@@ -166,17 +164,7 @@ const ProfileCabinCrewPage = () => {
         setOriginalFormData(null)
     }
 
-    const handleSaveDraft = () => {
-        // Lưu form data vào localStorage (không lưu files)
-        const draftData = {
-            formData,
-            timestamp: new Date().toISOString(),
-            campaignId: null
-        }
-
-        localStorage.setItem('applicationFormDraft', JSON.stringify(draftData))
-        alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
-    }
+    // Removed unused handleSaveDraft to satisfy linter
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -534,6 +522,19 @@ const ProfileCabinCrewPage = () => {
                                                 3-5 years
                                             </label>
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7a. Flight experience (hours):</label>
+                                        <input
+                                            type="number"
+                                            name="flightExperience"
+                                            value={formData.flightExperience}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g. 500"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                        />
                                     </div>
 
                                     <div>

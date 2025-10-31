@@ -62,6 +62,8 @@ import RequestCampInfo from './pages/Director/RequestDetail/RequestCampInfo';
 import DirectorBatchInfo from './pages/Director/DirectorCampDetail/DirectorBatchInfo';
 import ExaminerSidebar from './components/ExaminerSidebar';
 import ExaminerCampaign from './pages/Examiner/ExaminerCampaign';
+import AirlineRequestDetailPage from "./pages/AirlinePartner/AirlineRequestDetailPage";
+import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetailPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -197,9 +199,11 @@ function App() {
         <Route path="/airline-partner/campaigns/create" element={<AirlinePartnerLayout><CreateCampaignInfoPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/campaigns/create/promotion" element={<AirlinePartnerLayout><CreatePromotionInfoPage /></AirlinePartnerLayout>} />
         <Route path="/airline-partner/requests" element={<AirlinePartnerLayout><AirlineRequestPage /></AirlinePartnerLayout>} />
+        <Route path="/airline-partner/requests/:id" element={<AirlinePartnerLayout><AirlineRequestDetailPage /></AirlinePartnerLayout>} />
 
         {/* <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} /> */}
       </Routes>
+
 
       {/* Cabin Crew Routes */}
       <Routes>
@@ -219,6 +223,7 @@ function App() {
         <Route path="/senior-recruiter/campaigns/:id" element={<SeniorRecruiterLayout><SeniorCampaignDetailPage /></SeniorRecruiterLayout>} />
         <Route path="/senior-recruiter/campaigns/create" element={<SeniorRecruiterLayout><SeniorCreateCampaignPage /></SeniorRecruiterLayout>} />
         <Route path="/senior-recruiter/requests" element={<SeniorRecruiterLayout><SeniorRequestPage /></SeniorRecruiterLayout>} />
+        <Route path="/senior-recruiter/requests/:id" element={<SeniorRecruiterLayout><SeniorRequestDetailPage /></SeniorRecruiterLayout>} />
       </Routes>
 
       {/* Examiner Routes */}

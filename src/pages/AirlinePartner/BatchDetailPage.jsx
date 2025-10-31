@@ -382,7 +382,19 @@ const RoundDetailPage = () => {
                             onClick={() =>
                               navigate(
                                 `/airline-partner/campaigns/${id}/candidates/${candidate.id}`,
-                                { state: { stage: candidate.stage } }
+                                {
+                                  state: {
+                                    candidate: candidate,
+                                    // Pass round info as batchData for back navigation/context
+                                    batchData: {
+                                      roundName: roundInfo?.name,
+                                      startDate: roundInfo?.startDate,
+                                      endDate: roundInfo?.endDate,
+                                      location: roundInfo?.location,
+                                      quota: roundInfo?.quota,
+                                    },
+                                  },
+                                }
                               )
                             }
                           >

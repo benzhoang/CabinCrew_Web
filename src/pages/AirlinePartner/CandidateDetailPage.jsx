@@ -16,7 +16,42 @@ const CandidateDetailPage = () => {
   }, [])
 
   useEffect(() => {
-      // Mock data cho demo - luôn hiển thị dữ liệu giả
+      // Prefer data passed via navigation state; fallback to mock data
+      const stateCandidate = location.state?.candidate
+      if (stateCandidate) {
+          // Normalize incoming candidate fields to expected shape
+          const normalized = {
+              id: stateCandidate.id ?? stateCandidate.candidateId ?? 'N/A',
+              email: stateCandidate.email ?? stateCandidate.contactEmail ?? 'N/A',
+              fullName: stateCandidate.fullName ?? stateCandidate.name ?? 'N/A',
+              nationality: stateCandidate.nationality ?? 'vietnamese',
+              dateOfBirth: stateCandidate.dateOfBirth ?? stateCandidate.dob ?? '',
+              gender: stateCandidate.gender ?? 'other',
+              mobileNumber: stateCandidate.mobileNumber ?? stateCandidate.phone ?? 'N/A',
+              workingExperience: stateCandidate.workingExperience ?? '1-2-years',
+              height: stateCandidate.height ?? 'N/A',
+              weight: stateCandidate.weight ?? 'N/A',
+              englishCertificate: stateCandidate.englishCertificate ?? 'TOEIC 650',
+              certificateExpireDate: stateCandidate.certificateExpireDate ?? '2025-12-31',
+              flightExperience: stateCandidate.flightExperience ?? '500',
+              basePreference: stateCandidate.basePreference ?? 'flexible',
+              termsAccepted: stateCandidate.termsAccepted ?? 'yes',
+              status: stateCandidate.status ?? 'pending',
+              appliedDate: stateCandidate.applicationDate ?? stateCandidate.appliedDate ?? '',
+              currentRound: stateCandidate.stage ?? stateCandidate.currentRound ?? 'screening',
+              documents: stateCandidate.documents ?? {
+                applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
+                profilePhoto: 'Profile_Photo_4x6.jpg',
+                educationDegree: 'Bachelor_Degree_Certificate.pdf',
+                englishCertificate: 'TOEIC_Certificate_650.pdf',
+                idCard: 'ID_Card_Front_Back.pdf'}
+          }
+          setCandidate(normalized)
+          setLoading(false)
+          return
+      }
+
+      // Mock data for demo if nothing passed
       const mockCandidate = {
           id: 'CAND001',
           email: 'lan.nguyen@email.com',
@@ -30,11 +65,12 @@ const CandidateDetailPage = () => {
           weight: '53',
           englishCertificate: 'TOEIC 650',
           certificateExpireDate: '2025-12-31',
+          flightExperience: '0-1 years',
           basePreference: 'flexible',
           termsAccepted: 'yes',
           status: 'pending',
           appliedDate: '2024-10-15',
-          currentRound: 'screening', // Thêm thuộc tính currentRound
+          currentRound: 'screening',
           documents: {
               applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
               profilePhoto: 'Profile_Photo_4x6.jpg',
@@ -45,7 +81,7 @@ const CandidateDetailPage = () => {
       }
       setCandidate(mockCandidate)
       setLoading(false)
-  }, [])
+  }, [location.state])
 
   const goBack = () => {
       // Quay về danh sách ứng viên với thông tin batch
@@ -420,6 +456,11 @@ const CandidateDetailPage = () => {
                                       <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
                                       <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getWorkingExperienceText(candidate.workingExperience) || 'N/A'}</p>
                                   </div>
+                                  
+                                  <div>
+                                  <label className="block text-sm font-medium text-slate-700 mb-1">7a. Flight Experience:</label>
+                                  <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.flightExperience || 'N/A'}</p>
+                              </div>
 
                                   <div>
                                       <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>

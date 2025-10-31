@@ -12,7 +12,7 @@ const CampaignDetail = () => {
     const campaign = state?.campaign
 
     const [isEditingTitle, setIsEditingTitle] = useState(false)
-    const [title, setTitle] = useState('Yêu cầu tuyển dụng - MRF')
+    const [title, setTitle] = useState(campaign?.title)
 
     // Kiểm tra nếu campaign đang chờ phê duyệt (pending)
     if (campaign?.status === 'pending') {
@@ -40,7 +40,7 @@ const CampaignDetail = () => {
     }
 
     const handleCancelEditTitle = () => {
-        setTitle('Yêu cầu tuyển dụng - MRF')
+        setTitle(campaign.title)
         setIsEditingTitle(false)
     }
 
@@ -63,7 +63,7 @@ const CampaignDetail = () => {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 onKeyDown={handleTitleKeyPress}
-                                className="text-2xl md:text-3xl font-extrabold text-red-600 tracking-wide uppercase bg-transparent border-b-2 border-red-600 focus:outline-none focus:border-red-800"
+                                className="text-2xl font-bold text-slate-800 mb-2 bg-transparent border-b-2 border-red-600 focus:outline-none focus:border-red-800"
                                 autoFocus
                             />
                             <div className="flex gap-2">
@@ -88,8 +88,8 @@ const CampaignDetail = () => {
                             </div>
                         </div>
                     ) : (
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-red-600 tracking-wide uppercase flex items-center gap-3">
-                            {title}
+                        <h1 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+                            {campaign.title}
                             <button
                                 onClick={handleEditTitle}
                                 className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
