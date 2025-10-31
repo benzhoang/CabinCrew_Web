@@ -226,6 +226,34 @@ const RequestCampInfo = () => {
                 </Section>
 
             </div>
+            <div className="mt-4 flex justify-end gap-3">
+                <button
+                    onClick={() => {
+                        if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
+                            console.log('Yêu cầu đã được duyệt')
+                        }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
+                >
+                    Duyệt
+                </button>
+                <button
+                    onClick={() => {
+                        if (window.confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?')) {
+                            console.log('Yêu cầu đã bị từ chối')
+                        }
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+                >
+                    Từ chối
+                </button>
+                <button
+                    onClick={() => { console.log('Giao việc cho yêu cầu') }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+                >
+                    Giao việc
+                </button>
+            </div>
         </div>
     )
 }

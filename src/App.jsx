@@ -58,8 +58,10 @@ import SeniorRequestPage from "./pages/SeniorRecruiter/SeniorRequestPage";
 import AirlineRequestPage from "./pages/AirlinePartner/AirlineRequestPage";
 import SeniorCreateCampaignPage from "./pages/SeniorRecruiter/SeniorCreateCampaignPage";
 import DirectorRequestList from './pages/Director/RequestList';
-import RequestBatchInfo from './pages/Director/RequestDetail/RequestBatchInfo';
 import RequestCampInfo from './pages/Director/RequestDetail/RequestCampInfo';
+import DirectorBatchInfo from './pages/Director/DirectorCampDetail/DirectorBatchInfo';
+import ExaminerSidebar from './components/ExaminerSidebar';
+import ExaminerCampaign from './pages/Examiner/ExaminerCampaign';
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -219,6 +221,18 @@ function App() {
         <Route path="/senior-recruiter/requests" element={<SeniorRecruiterLayout><SeniorRequestPage /></SeniorRecruiterLayout>} />
       </Routes>
 
+      {/* Examiner Routes */}
+      <Routes>
+        <Route path="/examiner/campaigns" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ExaminerCampaign />
+            </main>
+          </div>
+        } />
+      </Routes>
+
 
       {/* Director Routes */}
       <Routes>
@@ -234,7 +248,10 @@ function App() {
           <div className="flex h-screen bg-gray-50">
             <DirectorSidebar />
             <main className="flex-1 overflow-auto">
-              <DirectorCampInfo />
+              <div className="space-y-2">
+                <DirectorCampInfo />
+                <DirectorBatchInfo />
+              </div>
             </main>
           </div>
         } />
@@ -252,7 +269,6 @@ function App() {
             <main className="flex-1 overflow-auto">
               <div className="space-y-2">
                 <RequestCampInfo />
-                <RequestBatchInfo />
               </div>
             </main>
           </div>

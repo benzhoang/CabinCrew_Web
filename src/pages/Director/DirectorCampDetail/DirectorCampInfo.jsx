@@ -314,26 +314,7 @@ const DirectorCampInfo = () => {
                 </Section>
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-                <button
-                    onClick={handleApprove}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
-                >
-                    Duyệt
-                </button>
-                <button
-                    onClick={handleReject}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
-                >
-                    Từ chối
-                </button>
-                <button
-                    onClick={handleAssign}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-                >
-                    Giao việc
-                </button>
-            </div>
+
         </div>
     )
 }

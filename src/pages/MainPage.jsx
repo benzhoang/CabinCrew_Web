@@ -44,6 +44,12 @@ const MainPage = () => {
       displayName: "Director",
       role: "director",
     },
+    examiner: {
+      username: "examiner",
+      password: "examiner123",
+      displayName: "Examiner",
+      role: "examiner",
+    },
     "senior-recruiter": {
       username: "senior",
       password: "senior123",
@@ -99,7 +105,8 @@ const MainPage = () => {
         userData.role === "recruiter" ||
         userData.role === "airline-partner" ||
         userData.role === "director" ||
-        userData.role === "senior-recruiter"
+        userData.role === "senior-recruiter" ||
+        userData.role === "examiner"
       ) {
         localStorage.setItem("employee", JSON.stringify(userData));
         localStorage.removeItem("user");
@@ -129,6 +136,9 @@ const MainPage = () => {
             break;
           case "cabin-crew":
             navigate("/cabin-crew/home");
+            break;
+          case "examiner":
+            navigate("/examiner/campaigns");
             break;
           case "director":
             navigate("/director/requirements");

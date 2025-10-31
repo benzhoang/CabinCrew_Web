@@ -66,7 +66,7 @@ const Section = ({ title, children }) => (
     </div>
 )
 
-const RequestBatchInfo = () => {
+const DirectorBatchInfo = () => {
     const { state } = useLocation()
     const data = state?.campaign || mockCampaign
     console.log("Data: ", data)
@@ -89,6 +89,24 @@ const RequestBatchInfo = () => {
                 campaign: data
             }
         })
+    }
+
+    const handleApprove = () => {
+        if (window.confirm('Bạn có chắc chắn muốn duyệt chiến dịch này?')) {
+            console.log('Chiến dịch đã được duyệt:', data.id)
+            navigate('/director/campaigns')
+        }
+    }
+
+    const handleReject = () => {
+        if (window.confirm('Bạn có chắc chắn muốn từ chối chiến dịch này?')) {
+            console.log('Chiến dịch đã bị từ chối:', data.id)
+            navigate('/director/campaigns')
+        }
+    }
+
+    const handleAssign = () => {
+        console.log('Giao việc cho chiến dịch:', data.id)
     }
 
     // Function to check if button should be disabled based on round status
@@ -173,30 +191,21 @@ const RequestBatchInfo = () => {
                     ))}
                 </div>
             </Section>
-
-            <div className="mt-4 flex justify-end gap-3">
+            <div className="mt-6 flex justify-end gap-3">
                 <button
-                    onClick={() => {
-                        if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
-                            console.log('Yêu cầu đã được duyệt')
-                        }
-                    }}
+                    onClick={handleApprove}
                     className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
                 >
                     Duyệt
                 </button>
                 <button
-                    onClick={() => {
-                        if (window.confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?')) {
-                            console.log('Yêu cầu đã bị từ chối')
-                        }
-                    }}
+                    onClick={handleReject}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
                 >
                     Từ chối
                 </button>
                 <button
-                    onClick={() => { console.log('Giao việc cho yêu cầu') }}
+                    onClick={handleAssign}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
                 >
                     Giao việc
@@ -206,5 +215,7 @@ const RequestBatchInfo = () => {
     )
 }
 
-export default RequestBatchInfo
+export default DirectorBatchInfo
+
+
 
