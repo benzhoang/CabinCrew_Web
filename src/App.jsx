@@ -62,8 +62,12 @@ import RequestCampInfo from './pages/Director/RequestDetail/RequestCampInfo';
 import DirectorBatchInfo from './pages/Director/DirectorCampDetail/DirectorBatchInfo';
 import ExaminerSidebar from './components/ExaminerSidebar';
 import ExaminerCampaign from './pages/Examiner/ExaminerCampaign';
+import ExaminerCampDetail from './pages/Examiner/ExaminerDetail/ExaminerCampDetail';
 import AirlineRequestDetailPage from "./pages/AirlinePartner/AirlineRequestDetailPage";
 import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetailPage";
+import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
+import Test from "./pages/Candidate/Test";
+import ExamPage from "./pages/Candidate/ExamPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -133,6 +137,18 @@ function App() {
             <Navbar />
             <RecruitmentStages />
             <Footer />
+          </>
+        } />
+        <Route path="/test" element={
+          <>
+            <Navbar />
+            <Test />
+            <Footer />
+          </>
+        } />
+        <Route path="/exam" element={
+          <>
+            <ExamPage />
           </>
         } />
         {/* Recruiter Routes */}
@@ -233,6 +249,22 @@ function App() {
             <ExaminerSidebar />
             <main className="flex-1 overflow-auto">
               <ExaminerCampaign />
+            </main>
+          </div>
+        } />
+        <Route path="/examiner/campaigns/:id" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ExaminerCampDetail />
+            </main>
+          </div>
+        } />
+        <Route path="/examiner/applications" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ExaminerApplyList />
             </main>
           </div>
         } />
