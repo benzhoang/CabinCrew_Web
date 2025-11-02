@@ -446,7 +446,7 @@ const ExaminerApplyList = () => {
                                                     className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
                                                     title="Xem chi tiết"
                                                     onClick={() =>
-                                                        navigate(`/candidate/${applicant.id}`, {
+                                                        navigate(`/examiner/candidate/${applicant.id}`, {
                                                             state: {
                                                                 candidate: applicant,
                                                                 batchData: batchData

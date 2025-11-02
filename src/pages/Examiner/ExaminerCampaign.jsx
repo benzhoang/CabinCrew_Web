@@ -77,7 +77,7 @@ const ExaminerCampaign = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [departmentFilter, setDepartmentFilter] = useState('all')
-    const [sortBy, setSortBy] = useState('name')
+    const [sortBy, setSortBy] = useState('Tuyển dụng')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
@@ -107,28 +107,32 @@ const ExaminerCampaign = () => {
 
         // Filter by department
         if (departmentFilter !== 'all') {
-            filtered = filtered.filter(campaign => campaign.department === departmentFilter)
+            filtered = filtered.filter(campaign => {
+                if (departmentFilter === 'Tuyển dụng') {
+                    return campaign.name.toLowerCase().includes('tuyển dụng')
+                } else if (departmentFilter === 'Thăng bậc') {
+                    return campaign.name.toLowerCase().includes('thăng bậc')
+                }
+                return true
+            })
         }
 
         // Sort campaigns
         filtered.sort((a, b) => {
-            switch (sortBy) {
-                case 'name':
-                    return a.name.localeCompare(b.name)
-                case 'startDate':
-                    return new Date(a.startDate) - new Date(b.startDate)
-                case 'endDate':
-                    return new Date(a.endDate) - new Date(b.endDate)
-                case 'progress':
-                    const progressA = (a.currentHires / a.targetHires) * 100
-                    const progressB = (b.currentHires / b.targetHires) * 100
-                    return progressB - progressA
-                case 'status':
-                    const statusOrder = { ongoing: 1, pending: 2, completed: 3 }
-                    return statusOrder[a.status] - statusOrder[b.status]
-                default:
-                    return 0
+            if (sortBy === 'Tuyển dụng') {
+                const aIsTuyenDung = a.name.toLowerCase().includes('tuyển dụng')
+                const bIsTuyenDung = b.name.toLowerCase().includes('tuyển dụng')
+                if (aIsTuyenDung && !bIsTuyenDung) return -1
+                if (!aIsTuyenDung && bIsTuyenDung) return 1
+                return 0
+            } else if (sortBy === 'Thăng bậc') {
+                const aIsThangBac = a.name.toLowerCase().includes('thăng bậc')
+                const bIsThangBac = b.name.toLowerCase().includes('thăng bậc')
+                if (aIsThangBac && !bIsThangBac) return -1
+                if (!aIsThangBac && bIsThangBac) return 1
+                return 0
             }
+            return 0
         })
 
         setFilteredCampaigns(filtered)
@@ -197,11 +201,8 @@ const ExaminerCampaign = () => {
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="all">Tất cả phòng ban</option>
-                            <option value="Cabin Crew">Cabin Crew</option>
-                            <option value="Flight Operations">Flight Operations</option>
-                            <option value="Ground Operations">Ground Operations</option>
-                            <option value="Customer Service">Customer Service</option>
-                            <option value="Maintenance">Maintenance</option>
+                            <option value="Tuyển dụng">Tuyển dụng</option>
+                            <option value="Thăng bậc">Thăng bậc</option>
                         </select>
                     </div>
 
@@ -213,11 +214,8 @@ const ExaminerCampaign = () => {
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="name">Tên chiến dịch</option>
-                            <option value="startDate">Ngày bắt đầu</option>
-                            <option value="endDate">Ngày kết thúc</option>
-                            <option value="progress">Tiến độ</option>
-                            <option value="status">Trạng thái</option>
+                            <option value="Tuyển dụng">Tuyển dụng</option>
+                            <option value="Thăng bậc">Thăng bậc</option>
                         </select>
                     </div>
                 </div>

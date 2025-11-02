@@ -66,6 +66,7 @@ import ExaminerCampDetail from './pages/Examiner/ExaminerDetail/ExaminerCampDeta
 import AirlineRequestDetailPage from "./pages/AirlinePartner/AirlineRequestDetailPage";
 import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetailPage";
 import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
+import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
 import ExamPage from "./pages/Candidate/ExamPage";
 
@@ -265,6 +266,14 @@ function App() {
             <ExaminerSidebar />
             <main className="flex-1 overflow-auto">
               <ExaminerApplyList />
+            </main>
+          </div>
+        } />
+        <Route path="/examiner/candidate/:id" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ExaminerCandidateEvaluation />
             </main>
           </div>
         } />

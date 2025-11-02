@@ -1,39 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../../i18n';
 
-// Mock data với 3 câu hỏi trắc nghiệm
+// Mock data - Listening test với câu hỏi tiếng Anh
 const mockQuestions = [
     {
         id: 1,
-        question: 'Trong giao tiếp với hành khách, bạn nên sử dụng ngôn ngữ như thế nào?',
+        question: 'What should you do when a passenger asks for assistance?',
+        audioText: 'What should you do when a passenger asks for assistance?',
         options: [
-            'A. Nói nhanh để tiết kiệm thời gian',
-            'B. Nói rõ ràng, lịch sự và dễ hiểu',
-            'C. Chỉ nói khi được hỏi',
-            'D. Sử dụng thuật ngữ chuyên môn'
+            'A. Ignore the request and continue with your duties',
+            'B. Respond politely and provide the necessary help',
+            'C. Ask another crew member to handle it',
+            'D. Direct them to find the information themselves'
         ],
         correctAnswer: 'B'
     },
     {
         id: 2,
-        question: 'Khi máy bay gặp tình huống khẩn cấp, nhiệm vụ đầu tiên của tiếp viên hàng không là gì?',
+        question: 'How should you address passengers during the flight?',
+        audioText: 'How should you address passengers during the flight?',
         options: [
-            'A. Gọi điện cho gia đình',
-            'B. Giữ bình tĩnh và hướng dẫn hành khách',
-            'C. Tìm chỗ ngồi an toàn nhất cho bản thân',
-            'D. Chờ lệnh từ phi công'
+            'A. Use their first names only',
+            'B. Use formal titles and be respectful',
+            'C. Use casual language to be friendly',
+            'D. Avoid speaking to passengers directly'
         ],
         correctAnswer: 'B'
     },
     {
         id: 3,
-        question: 'Đâu là đặc điểm quan trọng nhất của một tiếp viên hàng không chuyên nghiệp?',
+        question: 'What is the most important quality for a cabin crew member?',
+        audioText: 'What is the most important quality for a cabin crew member?',
         options: [
-            'A. Ngoại hình đẹp',
-            'B. Khả năng giao tiếp và chăm sóc khách hàng tốt',
-            'C. Biết nhiều ngôn ngữ',
-            'D. Kinh nghiệm bay lâu năm'
+            'A. Physical appearance',
+            'B. Excellent communication and customer service skills',
+            'C. Ability to speak multiple languages',
+            'D. Years of flying experience'
         ],
         correctAnswer: 'B'
     }
@@ -45,6 +48,8 @@ const ExamPage = () => {
     const [answers, setAnswers] = useState({});
     const [timeRemaining, setTimeRemaining] = useState(1800); // 30 phút = 1800 giây
     const [langVersion, setLangVersion] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const speechSynthesisRef = useRef(null);
 
     // re-render on language change
     useEffect(() => {
@@ -85,6 +90,51 @@ const ExamPage = () => {
         });
     };
 
+    // Play audio using Web Speech API
+    const playAudio = (text) => {
+        if (speechSynthesisRef.current) {
+            window.speechSynthesis.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => setIsPlaying(true);
+        utterance.onend = () => setIsPlaying(false);
+        utterance.onerror = () => setIsPlaying(false);
+
+        window.speechSynthesis.speak(utterance);
+        speechSynthesisRef.current = utterance;
+    };
+
+    const stopAudio = () => {
+        window.speechSynthesis.cancel();
+        setIsPlaying(false);
+    };
+
+    const handlePlayPause = () => {
+        if (isPlaying) {
+            stopAudio();
+        } else {
+            const currentQuestion = mockQuestions[currentQuestionIndex];
+            playAudio(currentQuestion.audioText || currentQuestion.question);
+        }
+    };
+
+    // Stop audio when component unmounts or question changes
+    useEffect(() => {
+        return () => {
+            stopAudio();
+        };
+    }, []);
+
+    // Stop audio when question changes
+    useEffect(() => {
+        stopAudio();
+    }, [currentQuestionIndex]);
+
     // Handle question navigation
     const handleQuestionClick = (index) => {
         setCurrentQuestionIndex(index);
@@ -113,14 +163,14 @@ const ExamPage = () => {
                     {/* Ô lớn - Hiển thị câu hỏi */}
                     <div className="lg:col-span-3">
                         <div className="bg-white rounded-xl shadow-lg p-8">
-                            {/* Header câu hỏi */}
+                            {/* Header */}
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-gray-800">
-                                        {t('question') || 'Câu hỏi'} {currentQuestionIndex + 1} / {mockQuestions.length}
+                                    <h2 className="text-xl font-bold text-gray-800">
+                                        {t('listening_test') || 'Bài thi nghe'} - {t('question') || 'Câu hỏi'} {currentQuestionIndex + 1} / {mockQuestions.length}
                                     </h2>
                                     <span className="text-sm text-gray-500">
-                                        {currentAnswer ? '(Đã trả lời)' : '(Chưa trả lời)'}
+                                        {currentAnswer ? (t('answered') || 'Đã trả lời') : (t('not_answered') || 'Chưa trả lời')}
                                     </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -131,14 +181,41 @@ const ExamPage = () => {
                                 </div>
                             </div>
 
-                            {/* Nội dung câu hỏi */}
-                            <div className="mb-8">
-                                <p className="text-lg font-semibold text-gray-800 mb-6">
-                                    {currentQuestion.question}
+                            {/* Audio Player */}
+                            <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                                <div className="flex items-center justify-center mb-4">
+                                    <button
+                                        onClick={handlePlayPause}
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+                                    >
+                                        {isPlaying ? (
+                                            <>
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                                {t('pause') || 'Tạm dừng'}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                                </svg>
+                                                {t('play') || 'Phát'}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-600 text-center">
+                                    {t('listening_instruction') || 'Nghe audio và chọn đáp án đúng'}
                                 </p>
+                            </div>
 
-                                {/* Các lựa chọn */}
-                                <div className="space-y-4">
+                            {/* Các lựa chọn */}
+                            <div className="mb-8">
+                                <p className="text-sm font-medium text-gray-700 mb-4">
+                                    {t('select_answer') || 'Chọn đáp án của bạn:'}
+                                </p>
+                                <div className="space-y-3">
                                     {currentQuestion.options.map((option, index) => {
                                         const optionKey = String.fromCharCode(65 + index); // A, B, C, D
                                         const isSelected = currentAnswer === optionKey;
