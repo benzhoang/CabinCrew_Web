@@ -1,28 +1,16 @@
 
 import { useState } from 'react'
-import { FaPlus, FaSearch } from 'react-icons/fa'
+import { FaSearch } from 'react-icons/fa'
 import CampaignList from '../../components/AirlinePartnerComponent/CampaignList'
-import { useNavigate } from 'react-router-dom'
 
 const CampaignPage = () => {
   const [search, setSearch] = useState('')
-  const navigate = useNavigate();
 
   return (
     <div className="w-full h-full">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <button  onClick={() => navigate('/airline-partner/campaigns/create')} className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <FaPlus />
-                <span>Tạo yêu cầu chiến dịch</span>
-              </button>
-              <button onClick={() => navigate('/airline-partner/campaigns/create/promotion')} className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <FaPlus />
-                <span>Tạo yêu cầu nâng bậc</span>
-              </button>
-            </div>
+          <div className="flex items-center mb-5">
 
             <div className="relative">
               <input

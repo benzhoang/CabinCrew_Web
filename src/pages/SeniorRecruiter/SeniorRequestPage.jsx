@@ -10,7 +10,7 @@ const SeniorRequestPage = () => {
     <div className="w-full h-full">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-end mb-5">
+          <div className="flex items-center mb-5">
 
             <div className="relative">
               <input
