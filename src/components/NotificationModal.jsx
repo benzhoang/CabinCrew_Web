@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { FaTimes, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 
 const NotificationModal = ({ isOpen, onClose, onViewDetails }) => {
