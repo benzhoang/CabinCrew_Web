@@ -87,12 +87,6 @@ const Navbar = () => {
                             {t('score_report')}
                         </Link>
                         <Link
-                            to="/test"
-                            className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
-                        >
-                            {t('test')}
-                        </Link>
-                        <Link
                             to="/contact"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
@@ -249,13 +243,6 @@ const Navbar = () => {
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 {t('score_report')}
-                            </Link>
-                            <Link
-                                to="/test"
-                                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {t('test')}
                             </Link>
                             <Link
                                 to="/contact"
