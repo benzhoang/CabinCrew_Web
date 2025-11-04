@@ -410,6 +410,7 @@ const dictionaries = {
         application_form_no_draft_description: 'Bạn chưa có bản nháp đơn ứng tuyển nào. Hãy tạo một đơn ứng tuyển mới!',
         application_form_create_new: 'Tạo đơn ứng tuyển mới',
         application_form_new_application: 'Đơn ứng tuyển mới',
+        take_english_test: 'Kiểm tra tiếng Anh',
     },
     en: {
         home: 'Home',
@@ -816,6 +817,8 @@ const dictionaries = {
         application_form_no_draft_description: 'You don\'t have any application drafts yet. Create a new application!',
         application_form_create_new: 'Create New Application',
         application_form_new_application: 'New Application',
+        take_english_test: 'Take English Test',
+
     },
 };
 

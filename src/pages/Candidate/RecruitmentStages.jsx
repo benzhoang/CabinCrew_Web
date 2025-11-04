@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../../i18n';
 
 const RecruitmentStages = () => {
+    const navigate = useNavigate();
+
     // Tự động re-render khi đổi ngôn ngữ
     const [langTick, setLangTick] = useState(0);
     useEffect(() => {
@@ -179,13 +182,24 @@ const RecruitmentStages = () => {
 
                                 {/* Current Status */}
                                 <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-                                    <p className="text-sm text-yellow-800">
-                                        <strong>Trạng thái hiện tại:</strong> {
-                                            application.stages.find(stage => stage.id === application.currentStage)?.completed
-                                                ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                                : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                        }
-                                    </p>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm text-yellow-800">
+                                            <strong>Trạng thái hiện tại:</strong> {
+                                                application.stages.find(stage => stage.id === application.currentStage)?.completed
+                                                    ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                    : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                            }
+                                        </p>
+                                        {/* Nút Kiểm tra tiếng Anh - chỉ hiển thị khi đang ở giai đoạn này */}
+                                        {application.currentStage === 3 && !application.stages.find(stage => stage.id === 3)?.completed && (
+                                            <button
+                                                onClick={() => navigate('/test')}
+                                                className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
+                                            >
+                                                {t('take_english_test') || 'Kiểm tra tiếng Anh'}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

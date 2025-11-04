@@ -51,6 +51,7 @@ const ExamPage = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playCounts, setPlayCounts] = useState({}); // Đếm số lần phát audio cho mỗi câu hỏi
     const speechSynthesisRef = useRef(null);
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
     // re-render on language change
     useEffect(() => {
@@ -166,6 +167,15 @@ const ExamPage = () => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(currentQuestionIndex - 1);
         }
+    };
+
+    const openSubmitModal = () => setIsSubmitModalOpen(true);
+    const closeSubmitModal = () => setIsSubmitModalOpen(false);
+    const handleConfirmSubmit = () => {
+        // TODO: Handle submit
+        console.log('Answers:', answers);
+        setIsSubmitModalOpen(false);
+        navigate('/test');
     };
 
     const currentQuestion = mockQuestions[currentQuestionIndex];
@@ -356,13 +366,7 @@ const ExamPage = () => {
 
                             {/* Nút nộp bài */}
                             <button
-                                onClick={() => {
-                                    if (window.confirm(t('submit_confirm') || 'Bạn có chắc chắn muốn nộp bài?')) {
-                                        // TODO: Handle submit
-                                        console.log('Answers:', answers);
-                                        navigate('/test');
-                                    }
-                                }}
+                                onClick={openSubmitModal}
                                 className="w-full mt-6 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
                             >
                                 {t('submit_exam') || 'Nộp bài'}
@@ -371,6 +375,43 @@ const ExamPage = () => {
                     </div>
                 </div>
             </div>
+            {/* Modal xác nhận nộp bài */}
+            {isSubmitModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50" onClick={closeSubmitModal}></div>
+                    <div className="relative z-10 w-full max-w-md mx-4 bg-white rounded-xl shadow-2xl p-6">
+                        <div className="flex items-start">
+                            <div className="flex-shrink-0 mr-3">
+                                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                    {t('submit_exam') || 'Nộp bài'}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                    {t('submit_confirm') || 'Bạn có chắc chắn muốn nộp bài?'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                onClick={closeSubmitModal}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            >
+                                {t('Hủy')}
+                            </button>
+                            <button
+                                onClick={handleConfirmSubmit}
+                                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                            >
+                                {t('Nộp bài')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

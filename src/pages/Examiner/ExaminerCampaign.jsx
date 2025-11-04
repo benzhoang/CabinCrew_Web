@@ -9,6 +9,7 @@ const mockCampaigns = [
         name: 'Tuyển dụng Tiếp viên hàng không 2024',
         position: 'Flight Attendant',
         department: 'Cabin Crew',
+        type: 'Tuyển dụng',
         status: 'ongoing',
         startDate: '2024-01-15',
         endDate: '2024-03-15',
@@ -22,6 +23,7 @@ const mockCampaigns = [
         name: 'Chiến dịch Pilot Training',
         position: 'Pilot',
         department: 'Flight Operations',
+        type: 'Tuyển dụng',
         status: 'completed',
         startDate: '2024-01-01',
         endDate: '2024-02-28',
@@ -35,6 +37,7 @@ const mockCampaigns = [
         name: 'Ground Staff Campaign',
         position: 'Ground Staff',
         department: 'Ground Operations',
+        type: 'Thăng bậc',
         status: 'pending',
         startDate: '2024-02-01',
         endDate: '2024-04-30',
@@ -48,6 +51,7 @@ const mockCampaigns = [
         name: 'Customer Service Expansion',
         position: 'Customer Service Agent',
         department: 'Customer Service',
+        type: 'Tuyển dụng',
         status: 'ongoing',
         startDate: '2024-02-15',
         endDate: '2024-05-15',
@@ -61,6 +65,7 @@ const mockCampaigns = [
         name: 'Maintenance Team',
         position: 'Aircraft Mechanic',
         department: 'Maintenance',
+        type: 'Thăng bậc',
         status: 'pending',
         startDate: '2024-03-01',
         endDate: '2024-06-30',
@@ -107,29 +112,18 @@ const ExaminerCampaign = () => {
 
         // Filter by department
         if (departmentFilter !== 'all') {
-            filtered = filtered.filter(campaign => {
-                if (departmentFilter === 'Tuyển dụng') {
-                    return campaign.name.toLowerCase().includes('tuyển dụng')
-                } else if (departmentFilter === 'Thăng bậc') {
-                    return campaign.name.toLowerCase().includes('thăng bậc')
-                }
-                return true
-            })
+            filtered = filtered.filter(campaign => campaign.type === departmentFilter)
         }
 
         // Sort campaigns
         filtered.sort((a, b) => {
             if (sortBy === 'Tuyển dụng') {
-                const aIsTuyenDung = a.name.toLowerCase().includes('tuyển dụng')
-                const bIsTuyenDung = b.name.toLowerCase().includes('tuyển dụng')
-                if (aIsTuyenDung && !bIsTuyenDung) return -1
-                if (!aIsTuyenDung && bIsTuyenDung) return 1
+                if (a.type === 'Tuyển dụng' && b.type !== 'Tuyển dụng') return -1
+                if (a.type !== 'Tuyển dụng' && b.type === 'Tuyển dụng') return 1
                 return 0
             } else if (sortBy === 'Thăng bậc') {
-                const aIsThangBac = a.name.toLowerCase().includes('thăng bậc')
-                const bIsThangBac = b.name.toLowerCase().includes('thăng bậc')
-                if (aIsThangBac && !bIsThangBac) return -1
-                if (!aIsThangBac && bIsThangBac) return 1
+                if (a.type === 'Thăng bậc' && b.type !== 'Thăng bậc') return -1
+                if (a.type !== 'Thăng bậc' && b.type === 'Thăng bậc') return 1
                 return 0
             }
             return 0
@@ -194,13 +188,13 @@ const ExaminerCampaign = () => {
 
                     {/* Department Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Loại</label>
                         <select
                             value={departmentFilter}
                             onChange={(e) => setDepartmentFilter(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="all">Tất cả phòng ban</option>
+                            <option value="all">Tất cả loại</option>
                             <option value="Tuyển dụng">Tuyển dụng</option>
                             <option value="Thăng bậc">Thăng bậc</option>
                         </select>
@@ -278,14 +272,18 @@ const ExaminerCampaign = () => {
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                                        <div>
+                                            <span className="text-sm text-slate-600">Loại:</span>
+                                            <p className="font-medium text-slate-800 mt-1">{campaign.type || 'N/A'}</p>
+                                        </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Vị trí:</span>
-                                            <p className="font-medium text-slate-800">{campaign.position}</p>
+                                            <p className="font-medium text-slate-800 mt-1">{campaign.position}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Phòng ban:</span>
-                                            <p className="font-medium text-slate-800">{campaign.department}</p>
+                                            <p className="font-medium text-slate-800 mt-1">{campaign.department}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Trạng thái:</span>
@@ -365,6 +363,10 @@ const ExaminerCampaign = () => {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <span className="text-sm text-slate-600">Loại:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.type}</p>
+                                    </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Vị trí:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.position}</p>

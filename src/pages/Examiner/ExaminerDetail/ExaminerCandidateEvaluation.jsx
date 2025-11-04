@@ -24,24 +24,24 @@ const ExaminerCandidateEvaluation = () => {
     // Evaluation criteria state - 17 criteria with scores (1-10) and comments
     const [evaluations, setEvaluations] = useState({
         // A. ATTITUDE / CHARACTER (11 criteria)
-        appearance: { score: 0, comment: '' },
-        selfPresentation: { score: 0, comment: '' },
-        knowledgeAboutVietjet: { score: 0, comment: '' },
-        honestPoliteTrustworthy: { score: 0, comment: '' },
-        careerGoalIntention: { score: 0, comment: '' },
-        culturalAdaptation: { score: 0, comment: '' },
-        enthusiasticAttitude: { score: 0, comment: '' },
-        funFriendlyTeamwork: { score: 0, comment: '' },
-        englishProficiency: { score: 0, comment: '' },
-        answering: { score: 0, comment: '' },
-        listening: { score: 0, comment: '' },
+        appearance: { score: 1, comment: '' },
+        selfPresentation: { score: 1, comment: '' },
+        knowledgeAboutVietjet: { score: 1, comment: '' },
+        honestPoliteTrustworthy: { score: 1, comment: '' },
+        careerGoalIntention: { score: 1, comment: '' },
+        culturalAdaptation: { score: 1, comment: '' },
+        enthusiasticAttitude: { score: 1, comment: '' },
+        funFriendlyTeamwork: { score: 1, comment: '' },
+        englishProficiency: { score: 1, comment: '' },
+        answering: { score: 1, comment: '' },
+        listening: { score: 1, comment: '' },
         // B. PROFESSIONAL / TECHNICAL KNOWLEDGE (6 criteria)
-        relevantExperience: { score: 0, comment: '' },
-        decisionMaking: { score: 0, comment: '' },
-        problemSolving: { score: 0, comment: '' },
-        customerServiceOriented: { score: 0, comment: '' },
-        qualifications: { score: 0, comment: '' },
-        technicalKnowledgeSkills: { score: 0, comment: '' }
+        relevantExperience: { score: 1, comment: '' },
+        decisionMaking: { score: 1, comment: '' },
+        problemSolving: { score: 1, comment: '' },
+        customerServiceOriented: { score: 1, comment: '' },
+        qualifications: { score: 1, comment: '' },
+        technicalKnowledgeSkills: { score: 1, comment: '' }
     })
 
     const [result, setResult] = useState('') // PASS, FAIL, or RESERVED
@@ -110,10 +110,6 @@ const ExaminerCandidateEvaluation = () => {
 
     const handleSubmit = () => {
         // Submit evaluation logic here
-        if (!result) {
-            alert('Vui lòng chọn kết quả (PASS/FAIL/RESERVED)')
-            return
-        }
         const evaluationData = {
             headerInfo,
             evaluations,
@@ -225,58 +221,6 @@ const ExaminerCandidateEvaluation = () => {
                 {/* Interview Scorecard Header */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
                     <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">INTERVIEW SCORECARD</h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
-                            <input
-                                type="date"
-                                value={headerInfo.date}
-                                onChange={(e) => handleHeaderInfoChange('date', e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Applicant's Name</label>
-                            <input
-                                type="text"
-                                value={headerInfo.applicantName}
-                                onChange={(e) => handleHeaderInfoChange('applicantName', e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Tên ứng viên"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                            <input
-                                type="text"
-                                value={headerInfo.department}
-                                onChange={(e) => handleHeaderInfoChange('department', e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Phòng ban"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Position</label>
-                            <input
-                                type="text"
-                                value={headerInfo.position}
-                                onChange={(e) => handleHeaderInfoChange('position', e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Vị trí"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Availability Date</label>
-                            <input
-                                type="date"
-                                value={headerInfo.availabilityDate}
-                                onChange={(e) => handleHeaderInfoChange('availabilityDate', e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        </div>
-                    </div>
-
                     {/* Assessment Values Legend */}
                     <div className="bg-slate-50 rounded-lg p-4 mb-6">
                         <h3 className="text-sm font-semibold text-slate-700 mb-2">Assessment Values / Scoring Legend:</h3>
@@ -315,7 +259,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('appearance', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -344,7 +287,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('selfPresentation', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -372,7 +314,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('knowledgeAboutVietjet', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -400,7 +341,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('honestPoliteTrustworthy', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -428,7 +368,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('careerGoalIntention', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -457,7 +396,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('culturalAdaptation', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -485,7 +423,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('enthusiasticAttitude', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -513,7 +450,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('funFriendlyTeamwork', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -541,7 +477,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('englishProficiency', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -570,7 +505,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('answering', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -599,7 +533,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('listening', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -645,7 +578,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('relevantExperience', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -673,7 +605,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('decisionMaking', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -701,7 +632,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('problemSolving', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -729,7 +659,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('customerServiceOriented', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -757,7 +686,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('qualifications', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -785,7 +713,6 @@ const ExaminerCandidateEvaluation = () => {
                                             onChange={(e) => handleScoreChange('technicalKnowledgeSkills', e.target.value)}
                                             className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         >
-                                            <option value="0">--</option>
                                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                                                 <option key={num} value={num}>{num}</option>
                                             ))}
@@ -817,45 +744,6 @@ const ExaminerCandidateEvaluation = () => {
                         </div>
                     </div>
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-slate-700 mb-3">RESULT (Mark a circle in respective result)</label>
-                        <div className="flex gap-6">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="result"
-                                    value="PASS"
-                                    checked={result === 'PASS'}
-                                    onChange={(e) => setResult(e.target.value)}
-                                    className="w-5 h-5 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-slate-700 font-medium">PASS</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="result"
-                                    value="FAIL"
-                                    checked={result === 'FAIL'}
-                                    onChange={(e) => setResult(e.target.value)}
-                                    className="w-5 h-5 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-slate-700 font-medium">FAIL</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="result"
-                                    value="RESERVED"
-                                    checked={result === 'RESERVED'}
-                                    onChange={(e) => setResult(e.target.value)}
-                                    className="w-5 h-5 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="text-slate-700 font-medium">RESERVED</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Comments/Remarks</label>
                         <textarea
@@ -875,12 +763,6 @@ const ExaminerCandidateEvaluation = () => {
                         className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                     >
                         Hủy
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        className="px-6 py-2.5 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium"
-                    >
-                        Lưu nháp
                     </button>
                     <button
                         onClick={handleSubmit}
