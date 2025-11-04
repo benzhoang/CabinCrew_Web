@@ -23,6 +23,7 @@ const demoCampaigns = [
     unit: "Cabin Crew - Tiếp viên hàng không",
     quantity: 20,
     status: 'active',
+    campaignType: 'recruitment',
     startDate: '2024-01-15',
     endDate: '2024-03-15',
     progress: { current: 8, total: 20 },
@@ -68,6 +69,7 @@ const demoCampaigns = [
     unit: "Flight Operations - Phi công",
     quantity: 5,
     status: 'completed',
+    campaignType: 'recruitment',
     startDate: '2024-01-01',
     endDate: '2024-02-28',
     progress: { current: 5, total: 5 },
@@ -100,6 +102,7 @@ const demoCampaigns = [
     unit: "Maintenance - Kỹ thuật viên",
     quantity: 15,
     status: 'pending',
+    campaignType: 'recruitment',
     startDate: '2024-02-01',
     endDate: '2024-04-30',
     progress: { current: 0, total: 15 },
@@ -116,6 +119,85 @@ const demoCampaigns = [
         method: "Trực tiếp",
         owner: "Trần Văn B",
         target: "0/15",
+        notes: "Chờ phê duyệt",
+        progress: 0,
+      }
+    ]
+  },
+  {
+    id: 4,
+    code: "CCD4 PROMO",
+    title: 'Chiến dịch nâng bậc Senior Cabin Crew',
+    subtitle: "Cabin Crew Promotion",
+    proposer: "Lê Thị Hoa (Cabin Crew Manager)",
+    role: "Senior Cabin Crew",
+    department: 'Cabin Crew',
+    unit: "Cabin Crew - Tiếp viên hàng không",
+    quantity: 15,
+    status: 'active',
+    campaignType: 'promotion',
+    startDate: '2024-11-01',
+    endDate: '2025-01-31',
+    progress: { current: 5, total: 15 },
+    description: 'Nâng bậc cho các cabin crew có kinh nghiệm lâu năm và thành tích xuất sắc.',
+    requirements: "Kinh nghiệm 5 năm+, Đánh giá xuất sắc, Hoàn thành khóa đào tạo",
+    rounds: [
+      {
+        id: "r1",
+        name: "Đợt 1",
+        status: "Đang diễn ra",
+        startDate: "2024-11-01", 
+        endDate: "2024-12-15",
+        location: "TP.HCM",
+        method: "Trực tiếp",
+        owner: "Lê Thị Hoa",
+        target: "5/10",
+        notes: "Phỏng vấn và đánh giá năng lực",
+        progress: 50,
+      },
+      {
+        id: "r2",
+        name: "Đợt 2",
+        status: "Sắp diễn ra",
+        startDate: "2025-01-01", 
+        endDate: "2025-01-31",
+        location: "Hà Nội",
+        method: "Trực tiếp",
+        owner: "Lê Thị Hoa",
+        target: "0/5",
+        notes: "Phỏng vấn và đánh giá năng lực",
+        progress: 0,
+      },
+    ]
+  },
+  {
+    id: 5,
+    code: "CCD5 LEAD",
+    title: 'Chiến dịch nâng bậc Lead IT Specialist',
+    subtitle: "IT Department Promotion",
+    proposer: "Phạm Minh Tuấn (IT Manager)",
+    role: "Lead IT Specialist",
+    department: 'Information Technology',
+    unit: "IT Operations",
+    quantity: 3,
+    status: 'pending',
+    campaignType: 'promotion',
+    startDate: '2024-09-01',
+    endDate: '2024-12-31',
+    progress: { current: 0, total: 3 },
+    description: 'Nâng bậc cho các IT Specialist xuất sắc lên vị trí Lead.',
+    requirements: "Kinh nghiệm 3 năm+, Quản lý dự án thành công, Tiếng Anh tốt",
+    rounds: [
+      {
+        id: "r1",
+        name: "Đợt 1",
+        status: "Chưa diễn ra",
+        startDate: "2024-10-01", 
+        endDate: "2024-12-31",
+        location: "TP.HCM",
+        method: "Trực tuyến",
+        owner: "Phạm Minh Tuấn",
+        target: "0/3",
         notes: "Chờ phê duyệt",
         progress: 0,
       }
@@ -160,6 +242,17 @@ const StatusBadge = ({ status }) => {
   )
 }
 
+const getCampaignTypeLabel = (campaignType) => {
+  switch (campaignType) {
+    case "recruitment":
+      return "Tuyển dụng";
+    case "promotion":
+      return "Thăng bậc";
+    default:
+      return "Không xác định";
+  }
+};
+
 const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate()
   const percent = useMemo(() => {
@@ -188,7 +281,10 @@ const CampaignCard = ({ campaign }) => {
             <div>
           <span className="text-gray-500">Trạng thái:</span> <StatusBadge status={campaign.status} />
           </div>
-            
+          <div>
+              <span className="text-gray-500">Loại chiến dịch:</span>{" "}
+              {getCampaignTypeLabel(campaign.campaignType)}
+            </div>
           </div>
         </div>
 
@@ -214,7 +310,7 @@ const CampaignCard = ({ campaign }) => {
   )
 }
 
-const CampaignList = ({ search = '', campaigns = demoCampaigns }) => {
+const CampaignList = ({ search = '', campaignTypeFilter = 'all', campaigns = demoCampaigns }) => {
   const [selectedStatus, setSelectedStatus] = useState('active')
   
   const filtered = useMemo(() => {
@@ -222,9 +318,10 @@ const CampaignList = ({ search = '', campaigns = demoCampaigns }) => {
     return campaigns.filter((c) => {
       const matchSearch = !s || [c.title, c.role, c.department].some((v) => String(v).toLowerCase().includes(s))
       const matchStatus = selectedStatus === 'all' || c.status === selectedStatus
-      return matchSearch && matchStatus
+      const matchCampaignType = campaignTypeFilter === 'all' || c.campaignType === campaignTypeFilter
+      return matchSearch && matchStatus && matchCampaignType
     })
-  }, [campaigns, search, selectedStatus])
+  }, [campaigns, search, selectedStatus, campaignTypeFilter])
 
   return (
     <div className="flex flex-col gap-5">

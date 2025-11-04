@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
+import ModalVerifySubmit from "../../components/CabinCrewComponent/ModalVerifySubmit";
 
 // Mock data - Listening test với câu hỏi tiếng Anh
 const mockQuestions = [
@@ -68,6 +69,7 @@ const TestPage = () => {
   const [answers, setAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 phút = 1800 giây
   const [, setLangVersion] = useState(0);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   // re-render on language change
   useEffect(() => {
@@ -284,15 +286,7 @@ const TestPage = () => {
               {/* Nút nộp bài */}
               <button
                 onClick={() => {
-                  if (
-                    window.confirm(
-                      t("submit_confirm") || "Bạn có chắc chắn muốn nộp bài?"
-                    )
-                  ) {
-                    // TODO: Handle submit
-                    console.log("Answers:", answers);
-                    navigate("/test");
-                  }
+                  setShowSubmitModal(true);
                 }}
                 className="w-full mt-6 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
               >
@@ -302,6 +296,18 @@ const TestPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Submit Confirmation Modal */}
+      <ModalVerifySubmit
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmit={() => {
+          // TODO: Handle submit
+          console.log("Answers:", answers);
+          navigate("/cabin-crew/tests");
+        }}
+        answers={answers}
+      />
     </div>
   );
 };

@@ -22,6 +22,7 @@ const demoRequests = [
         unit: 'Cabin Crew - Tiếp viên hàng không',
         quantity: 20,
         status: 'pending',
+        requestType: 'recruitment',
         startDate: '2024-10-01',
         endDate: '2024-12-31',
         description: 'Bổ sung nhân sự Cabin Crew do biến động nghỉ việc và mở rộng đội bay'
@@ -36,6 +37,7 @@ const demoRequests = [
         unit: 'IT Operations',
         quantity: 5,
         status: 'approved',
+        requestType: 'recruitment',
         startDate: '2024-08-01',
         endDate: '2024-09-30',
         description: 'Tăng cường đội ngũ IT phục vụ triển khai hệ thống mới'
@@ -50,9 +52,40 @@ const demoRequests = [
         unit: 'Base Maintenance',
         quantity: 12,
         status: 'rejected',
+        requestType: 'recruitment',
         startDate: '2024-07-15',
         endDate: '2024-10-15',
         description: 'Bổ sung kỹ thuật viên bảo trì, đợt đề xuất chưa đáp ứng ngân sách'
+    },
+    {
+        id: 104,
+        code: 'REQ-2024-004',
+        title: 'Yêu cầu nâng bậc - Senior Cabin Crew',
+        proposer: 'Lê Thị Hoa',
+        position: 'Senior Cabin Crew',
+        department: 'Cabin Crew',
+        unit: 'Cabin Crew - Tiếp viên hàng không',
+        quantity: 15,
+        status: 'pending',
+        requestType: 'promotion',
+        startDate: '2024-11-01',
+        endDate: '2025-01-31',
+        description: 'Nâng bậc cho các cabin crew có kinh nghiệm lâu năm'
+    },
+    {
+        id: 105,
+        code: 'REQ-2024-005',
+        title: 'Yêu cầu nâng bậc - Lead IT Specialist',
+        proposer: 'Phạm Minh Tuấn',
+        position: 'Lead IT Specialist',
+        department: 'Information Technology',
+        unit: 'IT Operations',
+        quantity: 3,
+        status: 'approved',
+        requestType: 'promotion',
+        startDate: '2024-09-01',
+        endDate: '2024-12-31',
+        description: 'Nâng bậc cho các IT Specialist xuất sắc'
     },
 ];
 
@@ -93,6 +126,17 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const getRequestTypeLabel = (requestType) => {
+  switch (requestType) {
+    case "recruitment":
+      return "Tuyển dụng";
+    case "promotion":
+      return "Thăng bậc";
+    default:
+      return "Không xác định";
+  }
+};
+
 const CampaignCard = ({ request }) => {
   const navigate = useNavigate();
 
@@ -127,6 +171,10 @@ const CampaignCard = ({ request }) => {
               <span className="text-gray-500">Số lượng:</span>{" "}
               {request.quantity}
             </div>
+            <div>
+              <span className="text-gray-500">Loại yêu cầu:</span>{" "}
+              {getRequestTypeLabel(request.requestType)}
+            </div>
           </div>
         </div>
 
@@ -149,7 +197,7 @@ const CampaignCard = ({ request }) => {
   );
 };
 
-const RequestList = ({ search = "", requests = demoRequests }) => {
+const RequestList = ({ search = "", requestTypeFilter = "all", requests = demoRequests }) => {
   const [selectedStatus, setSelectedStatus] = useState("approved");
 
   const filtered = useMemo(() => {
@@ -157,14 +205,16 @@ const RequestList = ({ search = "", requests = demoRequests }) => {
     return requests.filter((c) => {
       const matchSearch =
         !s ||
-        [c.title, c.role, c.department].some((v) =>
+        [c.title, c.position, c.department].some((v) =>
           String(v).toLowerCase().includes(s)
         );
       const matchStatus =
         selectedStatus === "all" || c.status === selectedStatus;
-      return matchSearch && matchStatus;
+      const matchCampaignType =
+        requestTypeFilter === "all" || c.requestType === requestTypeFilter;
+      return matchSearch && matchStatus && matchCampaignType;
     });
-  }, [requests, search, selectedStatus]);
+  }, [requests, search, selectedStatus, requestTypeFilter]);
 
   return (
     <div className="flex flex-col gap-5">

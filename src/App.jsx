@@ -72,6 +72,7 @@ import ExamPage from "./pages/Candidate/ExamPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ScoreListPage";
+import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -288,6 +289,14 @@ function App() {
             <ExaminerSidebar />
             <main className="flex-1 overflow-auto">
               <ScoreListPage />
+            </main>
+          </div>
+        } />
+         <Route path="/examiner/exam-campaigns" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ExamCampaignListPage />
             </main>
           </div>
         } />

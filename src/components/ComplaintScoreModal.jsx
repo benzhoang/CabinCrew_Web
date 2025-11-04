@@ -1,6 +1,6 @@
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaArrowLeft } from 'react-icons/fa';
 
-const ComplaintScoreModal = ({ isOpen, onClose, candidate }) => {
+const ComplaintScoreModal = ({ isOpen, onClose, candidate, onViewDetails, onBack }) => {
   if (!isOpen) return null;
 
   // Sample data - replace with actual data from props
@@ -22,9 +22,21 @@ const ComplaintScoreModal = ({ isOpen, onClose, candidate }) => {
       <div className="bg-white rounded-xl shadow-lg w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Lý do khiếu nại và điểm thi</h2>
-            <p className="text-sm text-gray-500 mt-1">{candidate?.name || 'Nguyễn Thị Lan'}</p>
+          
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Quay lại"
+              >
+                <FaArrowLeft className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Lý do khiếu nại và điểm thi</h2>
+              <p className="text-sm text-gray-500 mt-1">{candidate?.name || 'Nguyễn Thị Lan'}</p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -83,9 +95,15 @@ const ComplaintScoreModal = ({ isOpen, onClose, candidate }) => {
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 flex justify-end">
+        <button
+            onClick={onViewDetails}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium mr-2"
+          >
+            Chi tiết bài thi
+          </button>
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            className="px-6 py-2 text-black rounded-lg hover:bg-gray-100 transition-colors font-medium"
           >
             Đóng
           </button>

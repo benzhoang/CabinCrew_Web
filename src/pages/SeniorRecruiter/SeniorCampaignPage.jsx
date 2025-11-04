@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 
 const SeniorCampaignPage = () => {
   const [search, setSearch] = useState('')
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState('all')
   const navigate = useNavigate();
 
   return (
@@ -20,19 +21,30 @@ const SeniorCampaignPage = () => {
               </button>
             </div>
 
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Tìm theo tên, vị trí, phòng ban..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-100 h-10 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-              />
-              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên, vị trí, phòng ban..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-100 h-10 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                />
+                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              </div>
+              <select
+                value={campaignTypeFilter}
+                onChange={(e) => setCampaignTypeFilter(e.target.value)}
+                className="h-10 pl-3 pr-8 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
+              >
+                <option value="all">Tất cả loại chiến dịch</option>
+                <option value="recruitment">Tuyển dụng</option>
+                <option value="promotion">Nâng bậc</option>
+              </select>
             </div>
           </div>
 
-          <CampaignList search={search} />
+          <CampaignList search={search} campaignTypeFilter={campaignTypeFilter} />
         </div>
       </div>
     </div>
