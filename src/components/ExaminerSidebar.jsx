@@ -61,7 +61,7 @@ const LogoutIcon = ({ className = '' }) => (
 const navItems = [
     { to: '/examiner/campaigns', key: 'sidebar_campaign', icon: CampaignIcon },
     { to: '/examiner/exam-campaigns', key: 'Score', icon: ReportIcon },
-    { to: '/interviews', key: 'sidebar_interviews', icon: MicIcon },
+    { to: '/examiner/interviews', key: 'sidebar_interviews', icon: MicIcon },
     { to: '/scoring', key: 'sidebar_evaluation', icon: StarIcon },
 ]
 

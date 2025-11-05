@@ -69,11 +69,11 @@ import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
 import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
 import ExamPage from "./pages/Candidate/ExamPage";
+import ExamResultPage from "./pages/Candidate/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
-
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
 
@@ -156,6 +156,13 @@ function App() {
             <ExamPage />
           </>
         } />
+        <Route path="/exam-result" element={
+          <>
+            <Navbar />
+            <ExamResultPage />
+            <Footer />
+          </>
+        } />
         {/* Recruiter Routes */}
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
@@ -236,7 +243,7 @@ function App() {
         <Route path="/cabin-crew/promotion/apply" element={<CabinCrewLayout><PromotionApplyPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/profile" element={<CabinCrewLayout><ProfileCabinCrewPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage /></CabinCrewLayout>} />
-        <Route path="/cabin-crew/tests" element={<CabinCrewLayout><TestListPage/></CabinCrewLayout>} />
+        <Route path="/cabin-crew/tests" element={<CabinCrewLayout><TestListPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests/:id" element={<><TestPage /></>} />
       </Routes>
 
@@ -292,7 +299,7 @@ function App() {
             </main>
           </div>
         } />
-         <Route path="/examiner/exam-campaigns" element={
+        <Route path="/examiner/exam-campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <ExaminerSidebar />
             <main className="flex-1 overflow-auto">
