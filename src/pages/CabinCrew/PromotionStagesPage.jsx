@@ -179,32 +179,32 @@ const PromotionStagesPage = () => {
                               </div>
 
                               {/* Current Status */}
-                              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                  <p className="text-sm text-blue-800">
-                                      <strong>Trạng thái hiện tại:</strong> {
-                                          application.stages.find(stage => stage.id === application.currentStage)?.completed
-                                              ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                              : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                      }
-                                  </p>
-                              </div>
+                              <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+                                  <div className='flex items-center justify-between'>
+                                      <p className="text-sm text-yellow-800">
+                                          <strong>Trạng thái hiện tại:</strong> {
+                                              application.stages.find(stage => stage.id === application.currentStage)?.completed
+                                                  ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                                  : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
+                                          }
+                                      </p>
 
-                              {/* Join Test Button - Only show for English Test stage */}
-                              {application.currentStage === 3 && 
-                               !application.stages.find(stage => stage.id === application.currentStage)?.completed &&
-                               application.stages.find(stage => stage.id === 3)?.nameEn === 'English Test' && (
-                                  <div className="mt-4 flex justify-center">
-                                      <button
-                                          onClick={() => navigate('/cabin-crew/tests')}
-                                          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium shadow-md"
-                                      >
-                                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                          </svg>
-                                          Tham gia kiểm tra
-                                      </button>
+                                      {/* Join Test Button - Only show for English Test stage */}
+                                      {application.currentStage === 3 && 
+                                       !application.stages.find(stage => stage.id === application.currentStage)?.completed &&
+                                       application.stages.find(stage => stage.id === 3)?.nameEn === 'English Test' && (
+                                          <button
+                                              onClick={() => navigate('/cabin-crew/tests')}
+                                              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium shadow-md"
+                                          >
+                                              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                              </svg>
+                                              Tham gia kiểm tra
+                                          </button>
+                                      )}
                                   </div>
-                              )}
+                              </div>
                           </div>
                       ))}
                   </div>

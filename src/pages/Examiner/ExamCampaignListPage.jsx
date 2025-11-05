@@ -158,7 +158,7 @@ const ExamCampaignListPage = () => {
                       </div>
                       <button
                         onClick={() =>
-                          navigate('/examiner/scores', {
+                          navigate(`/examiner/exam-campaigns/${expandedId}/scores`, {
                             state: {
                               examInfo: {
                                 campaignId: c.id,

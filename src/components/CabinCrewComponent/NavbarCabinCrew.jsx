@@ -75,7 +75,7 @@ const NavbarCabinCrew = () => {
                             {t('promotion')}
                         </Link>
                         <Link
-                            to="/cabin-crew/appointment"
+                            to="/cabin-crew/interview-appointments"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('appointment')}

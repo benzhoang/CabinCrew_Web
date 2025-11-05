@@ -141,10 +141,10 @@ const ScoreListPage = () => {
   return (
     <div className="w-full h-full p-6">
       <div className="mb-6">
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Danh sách ứng viên{examInfo?.roundName ? ` - ${examInfo.roundName}` : ''}</h1>
-            <p className="opacity-90 mt-1">Sàng lọc và đánh giá ứng viên cho vòng tuyển dụng</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách điểm của ứng viên</h1>
+            <p className="text-white/90 mt-1 text-sm">Xem và phản hồi phúc khảo điểm của ứng viên</p>
           </div>
           <button
             onClick={() => navigate(-1)}
@@ -156,27 +156,23 @@ const ScoreListPage = () => {
           </button>
         </div>
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin vòng tuyển</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 text-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin bài kiểm tra</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+          <div>
+              <p className="text-gray-500">Mã đề:</p>
+              <p className="mt-1 font-semibold text-gray-900">{examInfo?.testCode || '—'}</p>
+            </div>
+          <div>
+              <p className="text-gray-500">Tên bài kiểm tra:</p>
+              <p className="mt-1 font-semibold text-gray-900">{examInfo?.testName || '—'}</p>
+            </div>
             <div>
-              <p className="text-gray-500">Tên vòng:</p>
+              <p className="text-gray-500">Vòng:</p>
               <p className="mt-1 font-semibold text-gray-900">{examInfo?.roundName || '—'}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Thời gian bắt đầu:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.startDate ? formatDate(examInfo.startDate) : '—'}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Thời gian kết thúc:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.endDate ? formatDate(examInfo.endDate) : '—'}</p>
             </div>
             <div>
               <p className="text-gray-500">Địa điểm:</p>
               <p className="mt-1 font-semibold text-gray-900">{examInfo?.location || '—'}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Chỉ tiêu:</p>
-              <p className="mt-1 font-semibold text-gray-900">{typeof examInfo?.target === 'number' ? examInfo.target : '—'}</p>
             </div>
           </div>
         </div>
@@ -185,19 +181,9 @@ const ScoreListPage = () => {
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Quay lại"
-                title="Quay lại"
-              >
-                <FaArrowLeft className="w-5 h-5 text-gray-700" />
-              </button>
               <h1 className="text-2xl font-semibold text-gray-900">
                 Danh sách điểm ({filteredCandidates.length})
               </h1>
-            </div>
             <div className="flex items-center gap-3">
               {/* Notification Icon */}
               <button

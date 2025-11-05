@@ -87,6 +87,32 @@ const PromotionHistoryPage = () => {
         }
     };
 
+    const getStatusBgColor = (status) => {
+        switch (status) {
+            case 'accepted':
+                return 'bg-green-100';
+            case 'pending':
+                return 'bg-yellow-100';
+            case 'rejected':
+                return 'bg-red-100';
+            default:
+                return 'bg-gray-100';
+        }
+    };
+
+    const getStatusTextColor = (status) => {
+        switch (status) {
+            case 'accepted':
+                return 'text-green-800';
+            case 'pending':
+                return 'text-yellow-800';
+            case 'rejected':
+                return 'text-red-800';
+            default:
+                return 'text-gray-800';
+        }
+    };
+
     const getStatusText = (item) => {
         const lang = localStorage.getItem('lang') || 'vi';
         return lang === 'vi' ? item.statusText : item.statusTextEn;
@@ -327,8 +353,8 @@ const PromotionHistoryPage = () => {
                                         </div>
 
                                         {/* Current Status */}
-                                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                            <p className="text-sm text-blue-800">
+                                        <div className={`mt-4 p-3 rounded-lg ${getStatusBgColor(application.status)}`}>
+                                            <p className={`text-sm ${getStatusTextColor(application.status)}`}>
                                                 <strong>Trạng thái hiện tại:</strong> {
                                                     application.status === 'rejected'
                                                         ? `Không đạt ở ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
