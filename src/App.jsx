@@ -74,6 +74,8 @@ import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
+import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
+
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
 
@@ -245,6 +247,7 @@ function App() {
         <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests" element={<CabinCrewLayout><TestListPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests/:id" element={<><TestPage /></>} />
+        <Route path="/cabin-crew/interview-appointments" element={<CabinCrewLayout><PromotionAppointmentInterviewPage/></CabinCrewLayout>} />
       </Routes>
 
 
@@ -291,19 +294,19 @@ function App() {
             </main>
           </div>
         } />
-        <Route path="/examiner/scores" element={
-          <div className="flex h-screen bg-gray-50">
-            <ExaminerSidebar />
-            <main className="flex-1 overflow-auto">
-              <ScoreListPage />
-            </main>
-          </div>
-        } />
         <Route path="/examiner/exam-campaigns" element={
           <div className="flex h-screen bg-gray-50">
             <ExaminerSidebar />
             <main className="flex-1 overflow-auto">
               <ExamCampaignListPage />
+            </main>
+          </div>
+        } />
+        <Route path="/examiner/exam-campaigns/:id/scores" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <ScoreListPage />
             </main>
           </div>
         } />

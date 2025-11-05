@@ -288,7 +288,7 @@ const TestPage = () => {
                 onClick={() => {
                   setShowSubmitModal(true);
                 }}
-                className="w-full mt-6 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                className="w-full mt-6 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
               >
                 {t("submit_exam") || "Nộp bài"}
               </button>

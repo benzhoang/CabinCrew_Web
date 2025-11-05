@@ -321,7 +321,7 @@ const ExaminerApplyList = () => {
     }
 
     const goBackToCampaigns = () => {
-        navigate('/recruiter/campaigns')
+        navigate('/examiner/campaigns')
     }
 
     if (isViewingBatch) {

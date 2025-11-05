@@ -137,6 +137,22 @@ const getRequestTypeLabel = (requestType) => {
   }
 };
 
+const RequestTypeBadge = ({ type }) => {
+  const label = getRequestTypeLabel(type);
+  const className =
+    type === "promotion"
+      ? "bg-purple-100 text-purple-700 border-purple-200"
+      : type === "recruitment"
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
+
+  return (
+    <span className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}>
+      {label}
+    </span>
+  );
+};
+
 const CampaignCard = ({ request }) => {
   const navigate = useNavigate();
 
@@ -173,7 +189,7 @@ const CampaignCard = ({ request }) => {
             </div>
             <div>
               <span className="text-gray-500">Loại yêu cầu:</span>{" "}
-              {getRequestTypeLabel(request.requestType)}
+              <RequestTypeBadge type={request.requestType} />
             </div>
           </div>
         </div>
