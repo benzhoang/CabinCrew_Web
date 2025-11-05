@@ -52,6 +52,7 @@ const ExamPage = () => {
     const [playCounts, setPlayCounts] = useState({}); // Đếm số lần phát audio cho mỗi câu hỏi
     const speechSynthesisRef = useRef(null);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [startTime] = useState(Date.now()); // Lưu thời gian bắt đầu làm bài
 
     // re-render on language change
     useEffect(() => {
@@ -172,10 +173,46 @@ const ExamPage = () => {
     const openSubmitModal = () => setIsSubmitModalOpen(true);
     const closeSubmitModal = () => setIsSubmitModalOpen(false);
     const handleConfirmSubmit = () => {
-        // TODO: Handle submit
-        console.log('Answers:', answers);
+        // Tính điểm
+        let score = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let unansweredQuestions = 0;
+
+        mockQuestions.forEach((question) => {
+            const userAnswer = answers[question.id];
+            if (userAnswer === undefined) {
+                unansweredQuestions++;
+            } else if (userAnswer === question.correctAnswer) {
+                score++;
+                correctAnswers++;
+            } else {
+                wrongAnswers++;
+            }
+        });
+
+        // Tính thời gian làm bài
+        const endTime = Date.now();
+        const timeSpentMs = endTime - startTime;
+        const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
+        const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
+        const timeSpent = `${timeSpentMinutes}:${String(timeSpentSeconds).padStart(2, '0')}`;
+
         setIsSubmitModalOpen(false);
-        navigate('/test');
+
+        // Chuyển đến trang kết quả với dữ liệu
+        navigate('/exam-result', {
+            state: {
+                score,
+                totalQuestions: mockQuestions.length,
+                correctAnswers,
+                wrongAnswers,
+                unansweredQuestions,
+                answers,
+                questions: mockQuestions,
+                timeSpent
+            }
+        });
     };
 
     const currentQuestion = mockQuestions[currentQuestionIndex];
