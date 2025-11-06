@@ -76,6 +76,8 @@ import ScoreListPage from "./pages/Examiner/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
+import TestResultPage from "./pages/CabinCrew/TestResultPage";
+import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -225,6 +227,7 @@ function App() {
         <Route path="/admin/account/recruiters" element={<AdminLayout><RecruiterListPage /></AdminLayout>} />
         <Route path="/admin/account/candidates" element={<AdminLayout><CandidateListPage /></AdminLayout>} />
         <Route path="/admin/account/airline-partners" element={<AdminLayout><AirlinePartnerListPage /></AdminLayout>} />
+        <Route path="/admin/account/examiners" element={<AdminLayout><ExaminerListPage /></AdminLayout>} />
         <Route path="/admin/campaigns" element={<AdminLayout><CampaignListPage /></AdminLayout>} />
       </Routes>
 
@@ -255,7 +258,8 @@ function App() {
         <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests" element={<CabinCrewLayout><TestListPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests/:id" element={<><TestPage /></>} />
-        <Route path="/cabin-crew/interview-appointments" element={<CabinCrewLayout><PromotionAppointmentInterviewPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/test-result" element={<CabinCrewLayout><TestResultPage /></CabinCrewLayout>} />
+        <Route path="/cabin-crew/interview-appointments" element={<CabinCrewLayout><PromotionAppointmentInterviewPage/></CabinCrewLayout>} />
       </Routes>
 
 

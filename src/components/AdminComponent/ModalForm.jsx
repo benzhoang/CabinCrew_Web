@@ -3,7 +3,8 @@ import { FaTimes } from 'react-icons/fa';
 
 const ModalForm = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
+    fullname: '',
     email: '',
     phoneNumber: '',
     dateOfBirth: '',
@@ -91,7 +92,8 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
     onSubmit(formData);
     // Reset form
     setFormData({
-      name: '',
+      username: '',
+      fullname: '',
       email: '',
       phoneNumber: '',
       dateOfBirth: '',
@@ -123,17 +125,37 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="space-y-4">
-              {/* Name */}
+               {/* Username */}
+               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                 Name
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter username"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                    errors.name ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                 
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
+              {/* FullName */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Name
                 </label>
                 <input
                   type="text"
-                  name="name"
+                  name="fullname"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Enter name"
+                  placeholder="Enter full name"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
                     errors.name ? 'border-red-500' : 'border-gray-300'
                   }`}

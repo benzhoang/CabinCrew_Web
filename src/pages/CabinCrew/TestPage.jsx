@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import ModalVerifySubmit from "../../components/CabinCrewComponent/ModalVerifySubmit";
 
@@ -64,12 +63,12 @@ const mockQuestions = [
 ];
 
 const TestPage = () => {
-  const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(1800); // 30 phút = 1800 giây
   const [, setLangVersion] = useState(0);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [startTime] = useState(Date.now()); // Lưu thời gian bắt đầu làm bài
 
   // re-render on language change
   useEffect(() => {
@@ -301,12 +300,10 @@ const TestPage = () => {
       <ModalVerifySubmit
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
-        onSubmit={() => {
-          // TODO: Handle submit
-          console.log("Answers:", answers);
-          navigate("/cabin-crew/tests");
-        }}
         answers={answers}
+        questions={mockQuestions}
+        startTime={startTime}
+        navigateTo="/cabin-crew/test-result"
       />
     </div>
   );
