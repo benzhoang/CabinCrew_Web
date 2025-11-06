@@ -2,61 +2,62 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logoImage from "../images/Logo.png";
 import Loading from "../components/Loading";
+import { login as loginAPI } from "../service/api.js";
 
 const MainPage = () => {
   const navigate = useNavigate();
 
-  // Data giả để test login
-  const testUsers = {
-    candidate: {
-      username: "testuser",
-      password: "123456",
-      displayName: "Test Candidate",
-      role: "candidate",
-    },
-    admin: {
-      username: "admin",
-      password: "admin123",
-      displayName: "System Admin",
-      role: "admin",
-    },
-    recruiter: {
-      username: "recruiter",
-      password: "recruiter123",
-      displayName: "HR Recruiter",
-      role: "recruiter",
-    },
-    "airline-partner": {
-      username: "airline",
-      password: "airline123",
-      displayName: "Airline Partner",
-      role: "airline-partner",
-    },
-    "cabin-crew": {
-      username: "cabincrew",
-      password: "cabincrew123",
-      displayName: "Cabin Crew",
-      role: "cabin-crew",
-    },
-    director: {
-      username: "director",
-      password: "director123",
-      displayName: "Director",
-      role: "director",
-    },
-    examiner: {
-      username: "examiner",
-      password: "examiner123",
-      displayName: "Examiner",
-      role: "examiner",
-    },
-    "senior-recruiter": {
-      username: "senior",
-      password: "senior123",
-      displayName: "Senior Recruiter",
-      role: "senior-recruiter",
-    },
-  };
+  // Data giả để test login - ĐÃ ẨN, sử dụng API thật
+  // const testUsers = {
+  //   candidate: {
+  //     username: "testuser",
+  //     password: "123456",
+  //     displayName: "Test Candidate",
+  //     role: "candidate",
+  //   },
+  //   admin: {
+  //     username: "admin",
+  //     password: "admin123",
+  //     displayName: "System Admin",
+  //     role: "admin",
+  //   },
+  //   recruiter: {
+  //     username: "recruiter",
+  //     password: "recruiter123",
+  //     displayName: "HR Recruiter",
+  //     role: "recruiter",
+  //   },
+  //   "airline-partner": {
+  //     username: "airline",
+  //     password: "airline123",
+  //     displayName: "Airline Partner",
+  //     role: "airline-partner",
+  //   },
+  //   "cabin-crew": {
+  //     username: "cabincrew",
+  //     password: "cabincrew123",
+  //     displayName: "Cabin Crew",
+  //     role: "cabin-crew",
+  //   },
+  //   director: {
+  //     username: "director",
+  //     password: "director123",
+  //     displayName: "Director",
+  //     role: "director",
+  //   },
+  //   examiner: {
+  //     username: "examiner",
+  //     password: "examiner123",
+  //     displayName: "Examiner",
+  //     role: "examiner",
+  //   },
+  //   "senior-recruiter": {
+  //     username: "senior",
+  //     password: "senior123",
+  //     displayName: "Senior Recruiter",
+  //     role: "senior-recruiter",
+  //   },
+  // };
 
   const [loginData, setLoginData] = useState({
     username: "",
@@ -66,14 +67,68 @@ const MainPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
 
-  // Hàm helper để kiểm tra login
-  const checkLogin = (username, password) => {
-    for (const [, userData] of Object.entries(testUsers)) {
-      if (userData.username === username && userData.password === password) {
-        return userData;
-      }
+  // Hàm decode JWT để lấy thông tin từ token
+  const decodeJWT = (token) => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error("Error decoding JWT:", error);
+      return null;
     }
-    return null;
+  };
+
+  // Hàm map role từ API sang format trong app
+  const mapRole = (apiRole) => {
+    if (!apiRole) return null;
+
+    // Chuyển sang lowercase và map các role đặc biệt
+    const roleMap = {
+      candidate: "candidate",
+      admin: "admin",
+      recruiter: "recruiter",
+      airlinepartner: "airline-partner",
+      "airline-partner": "airline-partner",
+      cabincrew: "cabin-crew",
+      "cabin-crew": "cabin-crew",
+      examiner: "examiner",
+      director: "director",
+      seniorrecruiter: "senior-recruiter",
+      "senior-recruiter": "senior-recruiter",
+    };
+
+    const normalizedRole = apiRole.toLowerCase().replace(/\s+/g, "");
+    return roleMap[normalizedRole] || normalizedRole;
+  };
+
+  // Mapping role với route tương ứng
+  const roleRoutes = {
+    candidate: "/home",
+    admin: "/admin/dashboard/cabin-crews",
+    recruiter: "/recruiter/campaigns",
+    "airline-partner": "/airline-partner/requests",
+    "cabin-crew": "/cabin-crew/home",
+    examiner: "/examiner/campaigns",
+    director: "/director/requirements",
+    "senior-recruiter": "/senior-recruiter/requests",
+  };
+
+  // Hàm tự động điều hướng theo role
+  const navigateByRole = (role) => {
+    const route = roleRoutes[role];
+    if (route) {
+      navigate(route);
+    } else {
+      alert(`Role "${role}" không được hỗ trợ. Vui lòng liên hệ quản trị viên.`);
+      console.error("Unsupported role:", role);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -83,7 +138,7 @@ const MainPage = () => {
     });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     // Kiểm tra thông tin đăng nhập cơ bản
@@ -92,66 +147,101 @@ const MainPage = () => {
       return;
     }
 
-    // Kiểm tra với data giả
-    const userData = checkLogin(loginData.username, loginData.password);
+    // Hiển thị loading
+    setIsLoading(true);
+    setLoadingMessage("Đang xác thực thông tin đăng nhập...");
 
-    if (userData) {
-      // Lưu thông tin vào localStorage theo role
-      if (userData.role === "candidate" || userData.role === "cabin-crew") {
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.removeItem("employee");
-      } else if (
-        userData.role === "admin" ||
-        userData.role === "recruiter" ||
-        userData.role === "airline-partner" ||
-        userData.role === "director" ||
-        userData.role === "senior-recruiter" ||
-        userData.role === "examiner"
-      ) {
-        localStorage.setItem("employee", JSON.stringify(userData));
-        localStorage.removeItem("user");
-      }
-      window.dispatchEvent(new Event("auth-changed"));
+    try {
+      // Gọi API đăng nhập
+      const result = await loginAPI(loginData.username, loginData.password);
 
-      // Hiển thị loading
-      setIsLoading(true);
-      setLoadingMessage("Đang xác thực thông tin đăng nhập...");
+      if (result.success && result.data) {
+        const { accessToken, refreshToken } = result.data;
 
-      // Chờ 3 giây trước khi chuyển trang
-      setTimeout(() => {
-        setIsLoading(false);
-        // Chuyển hướng theo role
-        switch (userData.role) {
-          case "candidate":
-            navigate("/home");
-            break;
-          case "admin":
-            navigate("/admin/dashboard/cabin-crews");
-            break;
-          case "recruiter":
-            navigate("/recruiter/campaigns");
-            break;
-          case "airline-partner":
-            navigate("/airline-partner/requests");
-            break;
-          case "cabin-crew":
-            navigate("/cabin-crew/home");
-            break;
-          case "examiner":
-            navigate("/examiner/campaigns");
-            break;
-          case "director":
-            navigate("/director/requirements");
-            break;
-          case "senior-recruiter":
-            navigate("/senior-recruiter/requests");
-            break;
-          default:
-            alert("Role không được hỗ trợ");
+        // Decode JWT để lấy thông tin user
+        const decodedToken = decodeJWT(accessToken);
+
+        if (!decodedToken) {
+          setIsLoading(false);
+          setLoadingMessage("");
+          alert("Không thể xác thực token. Vui lòng thử lại.");
+          return;
         }
-      }, 3000);
-    } else {
-      alert("Thông tin đăng nhập không đúng");
+
+        // Lấy role từ JWT token (có thể nằm ở nhiều vị trí khác nhau)
+        const apiRole =
+          decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+          decodedToken.role ||
+          decodedToken.Role ||
+          decodedToken.roles?.[0];
+
+        // Map role từ API sang format trong app
+        const mappedRole = mapRole(apiRole);
+
+        if (!mappedRole) {
+          setIsLoading(false);
+          setLoadingMessage("");
+          alert("Không thể xác định role của người dùng.");
+          console.error("Decoded token:", decodedToken);
+          return;
+        }
+
+        // Lấy user ID từ token
+        const userId =
+          decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"] ||
+          decodedToken.sub ||
+          decodedToken.userId ||
+          decodedToken.id;
+
+        // Tạo userInfo object
+        const userInfo = {
+          username: loginData.username,
+          displayName: decodedToken.name || decodedToken.unique_name || loginData.username,
+          role: mappedRole,
+          userId: userId,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        };
+
+        // Lưu thông tin vào localStorage theo role
+        if (mappedRole === "candidate" || mappedRole === "cabin-crew") {
+          localStorage.setItem("user", JSON.stringify(userInfo));
+          localStorage.removeItem("employee");
+        } else if (
+          mappedRole === "admin" ||
+          mappedRole === "recruiter" ||
+          mappedRole === "airline-partner" ||
+          mappedRole === "director" ||
+          mappedRole === "senior-recruiter" ||
+          mappedRole === "examiner"
+        ) {
+          localStorage.setItem("employee", JSON.stringify(userInfo));
+          localStorage.removeItem("user");
+        }
+
+        // Lưu tokens
+        localStorage.setItem("token", accessToken);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        }
+
+        window.dispatchEvent(new Event("auth-changed"));
+
+        setIsLoading(false);
+        setLoadingMessage("");
+
+        // Tự động điều hướng theo role
+        navigateByRole(mappedRole);
+      } else {
+        setIsLoading(false);
+        setLoadingMessage("");
+        alert(result.error || "Thông tin đăng nhập không đúng");
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setLoadingMessage("");
+      alert("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");
+      console.error("Login error:", error);
     }
   };
 

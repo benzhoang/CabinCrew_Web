@@ -75,6 +75,7 @@ import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
+import AppointmentPage from "./pages/Candidate/Appointment";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -165,6 +166,13 @@ function App() {
             <Footer />
           </>
         } />
+        <Route path="/appointment" element={
+          <>
+            <Navbar />
+            <AppointmentPage />
+            <Footer />
+          </>
+        } />
         {/* Recruiter Routes */}
         <Route path="/recruiter/campaigns" element={
           <div className="flex h-screen bg-gray-50">
@@ -247,7 +255,7 @@ function App() {
         <Route path="/cabin-crew/settings" element={<CabinCrewLayout><SettingsPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests" element={<CabinCrewLayout><TestListPage /></CabinCrewLayout>} />
         <Route path="/cabin-crew/tests/:id" element={<><TestPage /></>} />
-        <Route path="/cabin-crew/interview-appointments" element={<CabinCrewLayout><PromotionAppointmentInterviewPage/></CabinCrewLayout>} />
+        <Route path="/cabin-crew/interview-appointments" element={<CabinCrewLayout><PromotionAppointmentInterviewPage /></CabinCrewLayout>} />
       </Routes>
 
 

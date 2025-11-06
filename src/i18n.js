@@ -441,6 +441,8 @@ const dictionaries = {
         application_form_create_new: 'Tạo đơn ứng tuyển mới',
         application_form_new_application: 'Đơn ứng tuyển mới',
         take_english_test: 'Kiểm tra tiếng Anh',
+        appeal_title_label: 'Tiêu đề yêu cầu phúc khảo',
+        appeal_title_placeholder: 'Nhập tiêu đề yêu cầu phúc khảo',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -889,17 +891,19 @@ const dictionaries = {
         application_form_create_new: 'Create New Application',
         application_form_new_application: 'New Application',
         take_english_test: 'Take English Test',
+        appeal_title_label: 'Appeal Title',
+        appeal_title_placeholder: 'Enter your appeal title',
 
-         // Cabin Crew - Interview Appointments
-         interview_appointments_title: 'Promotion interview appointments',
-         interview_appointments_subtitle: 'Track, search and view details of your interview schedule',
-         back: 'Back',
-         search_placeholder: 'Search by ID, title, location...',
-         all: 'All',
-         upcoming: 'Upcoming',
-         completed: 'Completed',
-         canceled: 'Canceled',
-         no_interviews_found: 'No matching interviews found',
+        // Cabin Crew - Interview Appointments
+        interview_appointments_title: 'Promotion interview appointments',
+        interview_appointments_subtitle: 'Track, search and view details of your interview schedule',
+        back: 'Back',
+        search_placeholder: 'Search by ID, title, location...',
+        all: 'All',
+        upcoming: 'Upcoming',
+        completed: 'Completed',
+        canceled: 'Canceled',
+        no_interviews_found: 'No matching interviews found',
     },
 };
 

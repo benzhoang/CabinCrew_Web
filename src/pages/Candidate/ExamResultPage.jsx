@@ -105,9 +105,6 @@ const ExamResultPage = () => {
                             <div className={`text-6xl font-bold ${resultStatus.textColor} mb-2`}>
                                 {score}/{totalQuestions}
                             </div>
-                            <div className={`text-2xl font-semibold ${resultStatus.textColorDark}`}>
-                                {percentage}%
-                            </div>
                         </div>
 
                         {/* Trạng thái */}
@@ -177,41 +174,41 @@ const ExamResultPage = () => {
                                                     {question.options.map((option, optIndex) => {
                                                         const optionKey = String.fromCharCode(65 + optIndex);
                                                         const isUserAnswer = userAnswer === optionKey;
-
-                                                        // Chỉ hiển thị đáp án mà người dùng đã chọn
-                                                        if (!isUserAnswer) {
-                                                            return (
-                                                                <div
-                                                                    key={optIndex}
-                                                                    className="flex items-center p-2 rounded bg-gray-50"
-                                                                >
-                                                                    <span className="font-medium mr-2">{optionKey}.</span>
-                                                                    <span className="text-gray-500">{option}</span>
-                                                                </div>
-                                                            );
-                                                        }
+                                                        const isCorrectAnswer = question.correctAnswer === optionKey;
 
                                                         return (
                                                             <div
                                                                 key={optIndex}
-                                                                className={`flex items-center p-2 rounded ${isCorrect
-                                                                    ? 'bg-green-100 border border-green-300'
-                                                                    : 'bg-red-100 border border-red-300'
-                                                                    }`}
+                                                                className={`flex items-center p-2 rounded border-2 ${
+                                                                    isCorrectAnswer && isUserAnswer
+                                                                        ? 'bg-green-100 border-green-400'
+                                                                        : isCorrectAnswer
+                                                                        ? 'bg-blue-100 border-blue-400'
+                                                                        : isUserAnswer
+                                                                        ? 'bg-red-100 border-red-400'
+                                                                        : 'bg-gray-50 border-gray-200'
+                                                                }`}
                                                             >
                                                                 <span className="font-medium mr-2">{optionKey}.</span>
-                                                                <span className="text-gray-700">{option}</span>
-                                                                <span className="ml-auto font-semibold">
-                                                                    {isCorrect ? (
-                                                                        <span className="text-green-600">
-                                                                            ✓ {t('your_answer') || 'Đáp án của bạn'}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="text-red-600">
-                                                                            ✗ {t('your_answer') || 'Đáp án của bạn'}
-                                                                        </span>
-                                                                    )}
+                                                                <span className={`flex-1 ${
+                                                                    isCorrectAnswer || isUserAnswer
+                                                                        ? 'text-gray-800'
+                                                                        : 'text-gray-500'
+                                                                }`}>
+                                                                    {option}
                                                                 </span>
+                                                                <div className="ml-auto flex items-center gap-2">
+                                                                    {isUserAnswer && (
+                                                                        <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <circle cx="10" cy="10" r="6" />
+                                                                        </svg>
+                                                                    )}
+                                                                    {isCorrectAnswer && (
+                                                                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                                        </svg>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}

@@ -2,29 +2,49 @@ import React, { useState } from 'react';
 import { t } from '../i18n';
 
 const AppealModal = ({ isOpen, onClose, onConfirm }) => {
+    const [appealTitle, setAppealTitle] = useState('');
     const [appealReason, setAppealReason] = useState('');
-    const [error, setError] = useState('');
+    const [error, setError] = useState({ title: '', reason: '' });
 
     const handleConfirm = () => {
-        // Validate lý do phúc khảo
+        let hasError = false;
+        const newError = { title: '', reason: '' };
+
+        // Validate tiêu đề
+        if (!appealTitle.trim()) {
+            newError.title = t('appeal_title_required') || 'Vui lòng nhập tiêu đề phúc khảo';
+            hasError = true;
+        }
+
+        // Validate lý do
         if (!appealReason.trim()) {
-            setError(t('appeal_reason_required') || 'Vui lòng nhập lý do yêu cầu phúc khảo');
+            newError.reason = t('appeal_reason_required') || 'Vui lòng nhập lý do yêu cầu phúc khảo';
+            hasError = true;
+        } else if (appealReason.trim().length < 10) {
+            newError.reason = t('appeal_reason_min_length') || 'Lý do phúc khảo phải có ít nhất 10 ký tự';
+            hasError = true;
+        }
+
+        if (hasError) {
+            setError(newError);
             return;
         }
 
-        if (appealReason.trim().length < 10) {
-            setError(t('appeal_reason_min_length') || 'Lý do phúc khảo phải có ít nhất 10 ký tự');
-            return;
-        }
+        setError({ title: '', reason: '' });
+        onConfirm({
+            title: appealTitle.trim(),
+            reason: appealReason.trim(),
+        });
 
-        setError('');
-        onConfirm(appealReason.trim());
-        setAppealReason(''); // Reset sau khi xác nhận
+        // Reset
+        setAppealTitle('');
+        setAppealReason('');
     };
 
     const handleClose = () => {
+        setAppealTitle('');
         setAppealReason('');
-        setError('');
+        setError({ title: '', reason: '' });
         onClose();
     };
 
@@ -45,10 +65,31 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
                             {t('request_appeal') || 'Yêu cầu phúc khảo'}
                         </h3>
                         <p className="text-sm text-gray-600 mb-4">
-                            {t('appeal_confirm_message') || 'Bạn có chắc chắn muốn yêu cầu phúc khảo điểm thi này? Yêu cầu của bạn sẽ được xem xét và phản hồi trong thời gian sớm nhất.'}
+                            {t('appeal_confirm_message') ||
+                                'Bạn có chắc chắn muốn yêu cầu phúc khảo điểm thi này? Yêu cầu của bạn sẽ được xem xét và phản hồi trong thời gian sớm nhất.'}
                         </p>
 
-                        {/* Input lý do phúc khảo */}
+                        {/* Tiêu đề phúc khảo */}
+                        <div className="mb-4">
+                            <label htmlFor="appeal-title" className="block text-sm font-medium text-gray-700 mb-2">
+                                {t('appeal_title_label') || 'Tiêu đề phúc khảo'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="appeal-title"
+                                type="text"
+                                value={appealTitle}
+                                onChange={(e) => {
+                                    setAppealTitle(e.target.value);
+                                    setError((prev) => ({ ...prev, title: '' }));
+                                }}
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${error.title ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
+                                    }`}
+                                placeholder={t('appeal_title_placeholder') || 'Nhập tiêu đề cho yêu cầu phúc khảo (ví dụ: Phúc khảo điểm Listening)'}
+                            />
+                            {error.title && <p className="mt-1 text-sm text-red-600">{error.title}</p>}
+                        </div>
+
+                        {/* Lý do phúc khảo */}
                         <div className="mb-4">
                             <label htmlFor="appeal-reason" className="block text-sm font-medium text-gray-700 mb-2">
                                 {t('appeal_reason_label') || 'Lý do yêu cầu phúc khảo'} <span className="text-red-500">*</span>
@@ -58,30 +99,34 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
                                 value={appealReason}
                                 onChange={(e) => {
                                     setAppealReason(e.target.value);
-                                    setError(''); // Clear error when user types
+                                    setError((prev) => ({ ...prev, reason: '' }));
                                 }}
                                 rows={4}
-                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${
-                                    error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                                }`}
-                                placeholder={t('appeal_reason_placeholder') || 'Vui lòng nhập lý do yêu cầu phúc khảo (tối thiểu 10 ký tự)...'}
+                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${error.reason ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
+                                    }`}
+                                placeholder={
+                                    t('appeal_reason_placeholder') ||
+                                    'Vui lòng nhập lý do yêu cầu phúc khảo (tối thiểu 10 ký tự)...'
+                                }
                             />
-                            {error && (
-                                <p className="mt-1 text-sm text-red-600">{error}</p>
-                            )}
+                            {error.reason && <p className="mt-1 text-sm text-red-600">{error.reason}</p>}
                             <p className="mt-1 text-xs text-gray-500">
-                                {t('appeal_reason_helper') || 'Vui lòng mô tả chi tiết lý do bạn yêu cầu phúc khảo điểm thi này.'}
+                                {t('appeal_reason_helper') ||
+                                    'Vui lòng mô tả chi tiết lý do bạn yêu cầu phúc khảo điểm thi này.'}
                             </p>
                         </div>
 
                         {/* Lưu ý */}
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                             <p className="text-xs text-blue-800">
-                                <strong>{t('appeal_note') || 'Lưu ý:'}</strong> {t('appeal_note_detail') || 'Yêu cầu phúc khảo chỉ được xử lý trong vòng 7 ngày kể từ ngày công bố kết quả. Vui lòng kiểm tra email hoặc thông báo để nhận kết quả phúc khảo.'}
+                                <strong>{t('appeal_note') || 'Lưu ý:'}</strong>{' '}
+                                {t('appeal_note_detail') ||
+                                    'Yêu cầu phúc khảo chỉ được xử lý trong vòng 7 ngày kể từ ngày công bố kết quả. Vui lòng kiểm tra email hoặc thông báo để nhận kết quả phúc khảo.'}
                             </p>
                         </div>
                     </div>
                 </div>
+
                 <div className="mt-6 flex justify-end gap-3">
                     <button
                         onClick={handleClose}
@@ -102,4 +147,3 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
 };
 
 export default AppealModal;
-
