@@ -559,8 +559,8 @@ const Settings = () => {
                                         id="username"
                                         name="username"
                                         value={formData.username}
-                                        onChange={handleChange}
-                                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.username ? 'border-red-500' : 'border-gray-300'}`}
+                                        readOnly
+                                        className={`w-full px-4 py-3 border rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed ${errors.username ? 'border-red-500' : 'border-gray-300'}`}
                                         placeholder={t('username')}
                                     />
                                     {errors.username && (
