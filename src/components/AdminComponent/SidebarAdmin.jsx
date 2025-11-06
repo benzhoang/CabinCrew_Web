@@ -182,18 +182,6 @@ const SidebarAdmin = ({ isOpen }) => {
             </li>
             <li>
               <Link
-                to="/admin/account/recruiters"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
-                  currentPath === "/admin/account/recruiters"
-                    ? "text-blue-600 bg-cyan-50"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <span>Recruiter</span>
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/admin/account/candidates"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/candidates"
@@ -206,6 +194,18 @@ const SidebarAdmin = ({ isOpen }) => {
             </li>
             <li>
               <Link
+                to="/admin/account/recruiters"
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/recruiters"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span>Recruiter</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/admin/account/airline-partners"
                 className={`flex items-center p-2 no-underline rounded-md transition-colors ${
                   currentPath === "/admin/account/airline-partners"
@@ -214,6 +214,18 @@ const SidebarAdmin = ({ isOpen }) => {
                 }`}
               >
                 <span>Airline Partner</span>
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/account/examiners"
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/examiners"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <span>Examiner</span>
               </Link>
             </li>
           </ul>

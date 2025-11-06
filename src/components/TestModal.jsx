@@ -11,24 +11,18 @@ const TestModal = ({ isOpen, onClose, onBack, candidate }) => {
         type: 'reading',
         question: 'Đọc đoạn văn sau và trả lời câu hỏi...',
         answer: 'Đáp án của ứng viên cho câu hỏi 1',
-        score: 8,
-        maxScore: 10
       },
       {
         id: 2,
         type: 'listening',
         question: 'Nghe đoạn hội thoại và chọn đáp án đúng...',
         answer: 'Đáp án của ứng viên cho câu hỏi 2',
-        score: 9,
-        maxScore: 10
       },
       {
         id: 3,
         type: 'speaking',
         question: 'Hãy giới thiệu về bản thân trong vòng 2 phút...',
         answer: 'Tôi tên là...',
-        score: 7,
-        maxScore: 10
       }
     ]
   };
@@ -79,12 +73,6 @@ const TestModal = ({ isOpen, onClose, onBack, candidate }) => {
                     </span>
                   </div>
                   <p className="text-gray-900 font-medium mb-3">{q.question}</p>
-                </div>
-                <div className="ml-4 text-right">
-                  <p className="text-sm text-gray-600">Điểm</p>
-                  <p className="text-lg font-semibold text-indigo-600">
-                    {q.score}/{q.maxScore}
-                  </p>
                 </div>
               </div>
               <div className="bg-white rounded p-3 border border-gray-200">

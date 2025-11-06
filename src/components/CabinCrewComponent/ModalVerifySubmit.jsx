@@ -1,15 +1,63 @@
 import { useNavigate } from 'react-router-dom';
 import { t } from '../../i18n';
 
-const ModalVerifySubmit = ({ isOpen, onClose, onSubmit, answers }) => {
+const ModalVerifySubmit = ({ isOpen, onClose, onSubmit, answers, questions, startTime, navigateTo }) => {
     const navigate = useNavigate();
 
     if (!isOpen) return null;
 
     const handleConfirm = () => {
+        // Tính điểm
+        let score = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let unansweredQuestions = 0;
+
+        questions.forEach((question) => {
+            const userAnswer = answers[question.id];
+            if (userAnswer === undefined) {
+                unansweredQuestions++;
+            } else if (userAnswer === question.correctAnswer) {
+                score++;
+                correctAnswers++;
+            } else {
+                wrongAnswers++;
+            }
+        });
+
+        // Tính thời gian làm bài
+        const endTime = Date.now();
+        const timeSpentMs = endTime - startTime;
+        const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
+        const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
+        const timeSpent = `${timeSpentMinutes}:${String(timeSpentSeconds).padStart(2, '0')}`;
+
         // Handle submit logic
         if (onSubmit) {
-            onSubmit();
+            onSubmit({
+                score,
+                totalQuestions: questions.length,
+                correctAnswers,
+                wrongAnswers,
+                unansweredQuestions,
+                answers,
+                questions,
+                timeSpent
+            });
+        } else if (navigateTo) {
+            // Chuyển đến trang kết quả với dữ liệu
+            navigate(navigateTo, {
+                state: {
+                    score,
+                    totalQuestions: questions.length,
+                    correctAnswers,
+                    wrongAnswers,
+                    unansweredQuestions,
+                    answers,
+                    questions,
+                    timeSpent
+                }
+            });
         } else {
             console.log("Answers:", answers);
             navigate("/cabin-crew/tests");
