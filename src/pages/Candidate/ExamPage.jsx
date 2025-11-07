@@ -53,6 +53,7 @@ const ExamPage = () => {
     const speechSynthesisRef = useRef(null);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [startTime] = useState(Date.now()); // Lưu thời gian bắt đầu làm bài
+    const [markedQuestions, setMarkedQuestions] = useState(new Set()); // Lưu các câu hỏi được đánh dấu
 
     // re-render on language change
     useEffect(() => {
@@ -83,7 +84,21 @@ const ExamPage = () => {
 
     // Calculate progress percentage - chỉ tính các câu đã được trả lời
     const answeredCount = Object.keys(answers).length;
+    const unansweredCount = mockQuestions.length - answeredCount;
     const progress = (answeredCount / mockQuestions.length) * 100;
+
+    // Toggle đánh dấu câu hỏi
+    const toggleMarkQuestion = (questionId) => {
+        setMarkedQuestions(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(questionId)) {
+                newSet.delete(questionId);
+            } else {
+                newSet.add(questionId);
+            }
+            return newSet;
+        });
+    };
 
     // Handle answer selection
     const handleAnswerSelect = (questionId, answer) => {
@@ -233,9 +248,23 @@ const ExamPage = () => {
                                     <h2 className="text-xl font-bold text-gray-800">
                                         {t('listening_test') || 'Bài thi nghe'} - {t('question') || 'Câu hỏi'} {currentQuestionIndex + 1} / {mockQuestions.length}
                                     </h2>
-                                    <span className="text-sm text-gray-500">
-                                        {currentAnswer ? (t('answered') || 'Đã trả lời') : (t('not_answered') || 'Chưa trả lời')}
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => toggleMarkQuestion(currentQuestion.id)}
+                                            className={`p-2 rounded-lg transition-colors ${markedQuestions.has(currentQuestion.id)
+                                                ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                }`}
+                                            title={markedQuestions.has(currentQuestion.id) ? (t('unmark_question') || 'Bỏ đánh dấu') : (t('mark_question') || 'Đánh dấu câu hỏi')}
+                                        >
+                                            <svg className="w-5 h-5" fill={markedQuestions.has(currentQuestion.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                            </svg>
+                                        </button>
+                                        <span className="text-sm text-gray-500">
+                                            {currentAnswer ? (t('answered') || 'Đã trả lời') : (t('not_answered') || 'Chưa trả lời')}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                     <div
@@ -382,12 +411,13 @@ const ExamPage = () => {
                                     {mockQuestions.map((question, index) => {
                                         const isCurrent = index === currentQuestionIndex;
                                         const isAnswered = answers[question.id];
+                                        const isMarked = markedQuestions.has(question.id);
 
                                         return (
                                             <button
                                                 key={question.id}
                                                 onClick={() => handleQuestionClick(index)}
-                                                className={`w-full h-10 rounded-lg font-semibold text-sm transition-all ${isCurrent
+                                                className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${isCurrent
                                                     ? 'bg-blue-600 text-white ring-2 ring-blue-300'
                                                     : isAnswered
                                                         ? 'bg-green-100 text-green-700 hover:bg-green-200'
@@ -395,6 +425,16 @@ const ExamPage = () => {
                                                     }`}
                                             >
                                                 {index + 1}
+                                                {isMarked && (
+                                                    <svg
+                                                        className="absolute top-0 right-0 w-4 h-4 text-yellow-600"
+                                                        fill="currentColor"
+                                                        viewBox="0 0 20 20"
+                                                        style={{ transform: 'translate(25%, -25%)' }}
+                                                    >
+                                                        <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                    </svg>
+                                                )}
                                             </button>
                                         );
                                     })}
@@ -423,13 +463,20 @@ const ExamPage = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
                                     {t('submit_exam') || 'Nộp bài'}
                                 </h3>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-600 mb-2">
                                     {t('submit_confirm') || 'Bạn có chắc chắn muốn nộp bài?'}
                                 </p>
+                                {unansweredCount > 0 && (
+                                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                        <p className="text-sm text-amber-800 font-medium">
+                                            ⚠️ {t('unanswered_questions') || 'Số câu hỏi chưa làm'}: <span className="font-bold text-amber-900">{unansweredCount}</span> {t('questions') || 'câu'}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="mt-6 flex justify-end gap-3">

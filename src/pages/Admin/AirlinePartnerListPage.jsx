@@ -1,19 +1,38 @@
-import { useState } from 'react'
-import AirlinePartnerTable from '../../components/AdminComponent/AirlinePartnerTable'
-import Pagination from '../../components/AdminComponent/Pagination'
-import { FaPlus, FaSearch } from 'react-icons/fa'
+import { useState } from "react";
+import AccountTable from "../../components/AdminComponent/AccountTable";
+import Pagination from "../../components/AdminComponent/Pagination";
+import { FaPlus, FaSearch } from "react-icons/fa";
 
 const AirlinePartnerListPage = () => {
-  const [search, setSearch] = useState('')
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleDataLoad = (pagination) => {
+    if (pagination) {
+      setTotalItems(pagination.totalRecords ?? 0);
+      if (pagination.pageSize && pagination.pageSize !== pageSize) {
+        setPageSize(pagination.pageSize);
+      }
+    }
+  };
 
   return (
     <div className="w-full h-full">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <button
-              className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700">
               <FaPlus />
               <span>Create airline partner</span>
             </button>
@@ -21,23 +40,35 @@ const AirlinePartnerListPage = () => {
               <input
                 type="text"
                 placeholder="Search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-full pl-3 text-sm border border-gray-300 rounded-lg h-9 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               />
-              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <FaSearch className="absolute text-gray-500 -translate-y-1/2 right-3 top-1/2" />
             </div>
           </div>
 
-          <AirlinePartnerTable />
+          <AccountTable
+            searchTerm={searchTerm}
+            roleName="Airline Partner"
+            page={currentPage}
+            pageSize={pageSize}
+            onDataLoad={handleDataLoad}
+          />
 
           <div className="pt-4">
-            <Pagination />
+            <Pagination
+              totalItems={totalItems}
+              itemsPerPage={pageSize || 1}
+              currentPage={currentPage}
+              maxPageNumbersToShow={5}
+              onPageChange={handlePageChange}
+            />
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AirlinePartnerListPage
+export default AirlinePartnerListPage;

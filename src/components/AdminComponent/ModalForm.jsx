@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { useState } from "react";
+import { FaTimes } from "react-icons/fa";
 
 const ModalForm = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    username: '',
-    fullname: '',
-    email: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    status: 'Active',
-    role: 'Recruiter'
+    username: "",
+    fullname: "",
+    email: "",
+    phoneNumber: "",
+    dateOfBirth: "",
+    status: "Active",
+    role: "Recruiter",
   });
 
   const [errors, setErrors] = useState({});
@@ -19,63 +19,67 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   };
 
   const validateField = (name, value) => {
     switch (name) {
-      case 'name':
-        return !value.trim() ? 'Name is required' : '';
-      case 'email': {
-        if (!value.trim()) return 'Email is required';
+      case "name":
+        return !value.trim() ? "Name is required" : "";
+      case "email": {
+        if (!value.trim()) return "Email is required";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return !emailRegex.test(value) ? 'Please enter a valid email' : '';
+        return !emailRegex.test(value) ? "Please enter a valid email" : "";
       }
-      case 'phoneNumber': {
-        if (!value.trim()) return 'Phone number is required';
+      case "phoneNumber": {
+        if (!value.trim()) return "Phone number is required";
         const phoneRegex = /^[0-9+\-\s()]+$/;
-        return !phoneRegex.test(value) ? 'Please enter a valid phone number' : '';
+        return !phoneRegex.test(value)
+          ? "Please enter a valid phone number"
+          : "";
       }
-      case 'dateOfBirth': {
-        if (!value) return 'Date of birth is required';
+      case "dateOfBirth": {
+        if (!value) return "Date of birth is required";
         const age = calculateAge(value);
-        return age < 22 ? 'Age must be 22 or older' : '';
+        return age < 22 ? "Age must be 22 or older" : "";
       }
       default:
-        return '';
+        return "";
     }
   };
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Validate field
     const error = validateField(name, value);
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [name]: error
+      [name]: error,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate all fields before submit
     const newErrors = {};
     let hasErrors = false;
 
-    Object.keys(formData).forEach(key => {
-      if (key !== 'status' && key !== 'role') {
+    Object.keys(formData).forEach((key) => {
+      if (key !== "status" && key !== "role") {
         const error = validateField(key, formData[key]);
         if (error) {
           newErrors[key] = error;
@@ -88,17 +92,17 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
       setErrors(newErrors);
       return;
     }
-    
+
     onSubmit(formData);
     // Reset form
     setFormData({
-      username: '',
-      fullname: '',
-      email: '',
-      phoneNumber: '',
-      dateOfBirth: '',
-      status: 'Active',
-      role: 'Recruiter'
+      username: "",
+      fullname: "",
+      email: "",
+      phoneNumber: "",
+      dateOfBirth: "",
+      status: "Active",
+      role: "Recruiter",
     });
     setErrors({});
     onClose();
@@ -107,14 +111,16 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+      <div className="w-full max-w-2xl mx-4 bg-white shadow-lg rounded-xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create new {formData.role.toLowerCase()}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Create new {formData.role.toLowerCase()}
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 transition-colors rounded-full hover:bg-gray-100"
           >
             <FaTimes className="w-5 h-5 text-gray-500" />
           </button>
@@ -122,13 +128,13 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Left Column */}
             <div className="space-y-4">
-               {/* Username */}
-               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                 Name
+              {/* Username */}
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Username
                 </label>
                 <input
                   type="text"
@@ -137,18 +143,17 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   placeholder="Enter username"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                    errors.name ? "border-red-500" : "border-gray-300"
                   }`}
-                 
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
               {/* FullName */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Name
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Full Name
                 </label>
                 <input
                   type="text"
@@ -157,18 +162,17 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   placeholder="Enter full name"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                    errors.name ? "border-red-500" : "border-gray-300"
                   }`}
-                 
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Email
                 </label>
                 <input
@@ -178,12 +182,11 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   placeholder="Enter email"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                    errors.email ? "border-red-500" : "border-gray-300"
                   }`}
-                 
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
                 )}
               </div>
             </div>
@@ -192,7 +195,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
             <div className="space-y-4">
               {/* Phone Number */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Phone number
                 </label>
                 <input
@@ -202,18 +205,19 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   placeholder="Enter phone number"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                    errors.phoneNumber ? "border-red-500" : "border-gray-300"
                   }`}
-                 
                 />
                 {errors.phoneNumber && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.phoneNumber}
+                  </p>
                 )}
               </div>
 
               {/* Date of Birth */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
                   Date of birth
                 </label>
                 <input
@@ -222,12 +226,13 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+                    errors.dateOfBirth ? "border-red-500" : "border-gray-300"
                   }`}
-                  
                 />
                 {errors.dateOfBirth && (
-                  <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.dateOfBirth}
+                  </p>
                 )}
               </div>
             </div>
@@ -237,7 +242,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
           <div className="flex justify-center mt-8">
             <button
               type="submit"
-              className="bg-cyan-600 text-white px-8 py-2 rounded-lg hover:bg-cyan-700 transition-colors font-medium"
+              className="px-8 py-2 font-medium text-white transition-colors rounded-lg bg-cyan-600 hover:bg-cyan-700"
             >
               Create
             </button>

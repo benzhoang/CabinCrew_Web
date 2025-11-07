@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../i18n';
+import { register } from '../service/api';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
         fullName: '',
-        gender: '',
+        gender: 1,
         dateOfBirth: '',
-        nationality: '',
         mobileNumber: '',
         email: '',
         username: '',
@@ -15,69 +15,90 @@ const Signup = () => {
         confirmPassword: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(''); // State for error messages
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // re-render on language change
+    // Re-render on language change
     useEffect(() => {
         const off = onLangChange(() => setShowConfirmPassword((v) => v));
         return () => off();
     }, []);
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: name === 'gender' ? Number(value) : value
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setError(''); // Clear previous errors
 
-        // Giả lập gọi API
-        setTimeout(() => {
-            console.log('Signup data:', formData);
+        // Validate password and confirmPassword
+        if (formData.password !== formData.confirmPassword) {
+            setError(t('password_mismatch')); // Ensure 'password_mismatch' is defined in i18n
             setIsLoading(false);
-            // Sau khi đăng ký thành công, chuyển đến trang OTP
-            navigate('/otp');
-        }, 1000);
+            return;
+        }
+
+        // Chuẩn hoá payload theo API backend
+        const payload = {
+            username: formData.username,
+            password: formData.password,
+            confirmedPassword: formData.confirmPassword,
+            fullName: formData.fullName,
+            gender: Number(formData.gender),
+            dateOfBirth: formData.dateOfBirth,
+            phoneNumber: formData.mobileNumber,
+            email: formData.email
+        };
+
+        try {
+            const response = await register(payload);
+            if (response.success) {
+                // On successful registration, navigate to OTP page
+                navigate('/otp');
+            } else {
+                // Display API error message
+                setError(response.error || t('registration_failed')); // Ensure 'registration_failed' is in i18n
+            }
+        } catch (err) {
+            // Handle unexpected errors
+            setError(err.message || t('registration_failed'));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-600 via-blue-700 to-indigo-700 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-            {/* Cloud Animation Background (same as Signin) */}
+            {/* Cloud Animation Background (unchanged) */}
             <div className="absolute inset-0 overflow-hidden z-0">
-                {/* Cloud 1 */}
                 <div className="absolute top-20 left-10 w-32 h-16 bg-white/30 rounded-full animate-cloud-float-1">
                     <div className="absolute top-4 left-4 w-8 h-8 bg-white/40 rounded-full"></div>
                     <div className="absolute top-2 left-8 w-12 h-10 bg-white/40 rounded-full"></div>
                     <div className="absolute top-6 left-12 w-10 h-8 bg-white/40 rounded-full"></div>
                 </div>
-
-                {/* Cloud 2 */}
                 <div className="absolute top-40 right-20 w-40 h-20 bg-white/25 rounded-full animate-cloud-float-2">
                     <div className="absolute top-6 left-6 w-10 h-10 bg-white/35 rounded-full"></div>
                     <div className="absolute top-3 left-12 w-16 h-12 bg-white/35 rounded-full"></div>
                     <div className="absolute top-8 left-16 w-12 h-10 bg-white/35 rounded-full"></div>
                 </div>
-
-                {/* Cloud 3 */}
                 <div className="absolute bottom-32 left-1/4 w-36 h-18 bg-white/20 rounded-full animate-cloud-float-3">
                     <div className="absolute top-5 left-5 w-12 h-10 bg-white/30 rounded-full"></div>
                     <div className="absolute top-2 left-10 w-14 h-12 bg-white/30 rounded-full"></div>
                     <div className="absolute top-7 left-14 w-10 h-8 bg-white/30 rounded-full"></div>
                 </div>
-
-                {/* Cloud 4 */}
                 <div className="absolute top-60 right-1/3 w-28 h-14 bg-white/35 rounded-full animate-cloud-float-4">
                     <div className="absolute top-3 left-3 w-8 h-8 bg-white/45 rounded-full"></div>
                     <div className="absolute top-1 left-8 w-10 h-8 bg-white/45 rounded-full"></div>
                     <div className="absolute top-5 left-10 w-8 h-6 bg-white/45 rounded-full"></div>
                 </div>
-
-                {/* Cloud 5 */}
                 <div className="absolute bottom-20 right-10 w-44 h-22 bg-white/25 rounded-full animate-cloud-float-5">
                     <div className="absolute top-6 left-8 w-12 h-10 bg-white/35 rounded-full"></div>
                     <div className="absolute top-3 left-14 w-18 h-14 bg-white/35 rounded-full"></div>
@@ -94,7 +115,7 @@ const Signup = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5 mr-2">
                             <path d="M19 12H5M12 19l-7-7 7-7" />
                         </svg>
-                        Quay trở lại trang chủ
+                        {t('back_to_home')}
                     </Link>
                 </div>
 
@@ -106,12 +127,17 @@ const Signup = () => {
                 {/* Form */}
                 <form onSubmit={handleSubmit}>
                     <div className="bg-white p-8 rounded-lg shadow-lg">
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mb-6 text-red-600 text-sm text-center">
+                                {error}
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* PERSONAL INFORMATION Section */}
                             <div className="space-y-6">
                                 <h3 className="text-xl font-bold text-gray-800 mb-6">{t('personal_information_title')}</h3>
-
-                                {/* Fullname - single field */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('fullname_label')} <span className="text-red-500">*</span>
@@ -126,8 +152,6 @@ const Signup = () => {
                                         placeholder={t('fullname_label')}
                                     />
                                 </div>
-
-                                {/* Gender */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('gender_label')} <span className="text-red-500">*</span>
@@ -139,14 +163,11 @@ const Signup = () => {
                                         onChange={handleChange}
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">{t('gender_placeholder')}</option>
-                                        <option value="male">{t('male')}</option>
-                                        <option value="female">{t('female')}</option>
-                                        <option value="other">{t('other')}</option>
+                                        <option value={1}>{t('male')}</option>
+                                        <option value={2}>{t('female')}</option>
+                                        <option value={3}>{t('other')}</option>
                                     </select>
                                 </div>
-
-                                {/* Date of Birth */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('date_of_birth_label')} <span className="text-red-500">*</span>
@@ -161,24 +182,6 @@ const Signup = () => {
                                         max="2003-12-31"
                                     />
                                 </div>
-
-                                {/* Nationality */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        {t('nationality_label')} <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        name="nationality"
-                                        type="text"
-                                        required
-                                        value={formData.nationality}
-                                        onChange={handleChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder={t('nationality_placeholder')}
-                                    />
-                                </div>
-
-                                {/* Mobile Number */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('mobile_number_label')} <span className="text-red-500">*</span>
@@ -193,8 +196,6 @@ const Signup = () => {
                                         placeholder={t('mobile_number_placeholder')}
                                     />
                                 </div>
-
-                                {/* Email */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('email_label')} <span className="text-red-500">*</span>
@@ -214,8 +215,6 @@ const Signup = () => {
                             {/* LOGIN INFORMATION Section */}
                             <div className="space-y-6">
                                 <h3 className="text-xl font-bold text-gray-800 mb-6">{t('login_information_title')}</h3>
-
-                                {/* Account (UserName) */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('account_username_label')} <span className="text-red-500">*</span>
@@ -230,8 +229,6 @@ const Signup = () => {
                                         placeholder={t('username_placeholder')}
                                     />
                                 </div>
-
-                                {/* Password */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('password_label')} <span className="text-red-500">*</span>
@@ -266,8 +263,6 @@ const Signup = () => {
                                         </button>
                                     </div>
                                 </div>
-
-                                {/* Confirm Password */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         {t('password_confirm_label')} <span className="text-red-500">*</span>
