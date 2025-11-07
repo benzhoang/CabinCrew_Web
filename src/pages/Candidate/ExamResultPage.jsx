@@ -27,6 +27,9 @@ const ExamResultPage = () => {
         }
     }, [navigate, score]);
 
+    // Tính lại wrongAnswers để bao gồm cả câu chưa trả lời (tính là sai)
+    const totalWrongAnswers = (wrongAnswers || 0) + (unansweredQuestions || 0);
+
     // Tính phần trăm
     const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
 
@@ -113,7 +116,7 @@ const ExamResultPage = () => {
                         </div>
 
                         {/* Thống kê */}
-                        <div className="grid grid-cols-3 gap-4 mt-8">
+                        <div className="grid grid-cols-2 gap-4 mt-8">
                             <div className="bg-green-50 rounded-lg p-4">
                                 <div className="text-2xl font-bold text-green-600">{correctAnswers}</div>
                                 <div className="text-sm text-green-700 mt-1">
@@ -121,16 +124,15 @@ const ExamResultPage = () => {
                                 </div>
                             </div>
                             <div className="bg-red-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-red-600">{wrongAnswers}</div>
+                                <div className="text-2xl font-bold text-red-600">{totalWrongAnswers}</div>
                                 <div className="text-sm text-red-700 mt-1">
                                     {t('wrong_answers') || 'Câu sai'}
                                 </div>
-                            </div>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-gray-600">{unansweredQuestions}</div>
-                                <div className="text-sm text-gray-700 mt-1">
-                                    {t('unanswered_questions') || 'Chưa trả lời'}
-                                </div>
+                                {unansweredQuestions > 0 && (
+                                    <div className="text-xs text-red-600 mt-1">
+                                        ({t('including_unanswered') || 'Bao gồm'} {unansweredQuestions} {t('unanswered_questions') || 'câu chưa trả lời'})
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -160,9 +162,7 @@ const ExamResultPage = () => {
                                         key={question.id}
                                         className={`border-2 rounded-lg p-4 ${isCorrect
                                             ? 'border-green-200 bg-green-50'
-                                            : isAnswered
-                                                ? 'border-red-200 bg-red-50'
-                                                : 'border-gray-200 bg-gray-50'
+                                            : 'border-red-200 bg-red-50'
                                             }`}
                                     >
                                         <div className="flex items-start justify-between mb-3">
@@ -179,22 +179,20 @@ const ExamResultPage = () => {
                                                         return (
                                                             <div
                                                                 key={optIndex}
-                                                                className={`flex items-center p-2 rounded border-2 ${
-                                                                    isCorrectAnswer && isUserAnswer
-                                                                        ? 'bg-green-100 border-green-400'
-                                                                        : isCorrectAnswer
+                                                                className={`flex items-center p-2 rounded border-2 ${isCorrectAnswer && isUserAnswer
+                                                                    ? 'bg-green-100 border-green-400'
+                                                                    : isCorrectAnswer
                                                                         ? 'bg-blue-100 border-blue-400'
                                                                         : isUserAnswer
-                                                                        ? 'bg-red-100 border-red-400'
-                                                                        : 'bg-gray-50 border-gray-200'
-                                                                }`}
+                                                                            ? 'bg-red-100 border-red-400'
+                                                                            : 'bg-gray-50 border-gray-200'
+                                                                    }`}
                                                             >
                                                                 <span className="font-medium mr-2">{optionKey}.</span>
-                                                                <span className={`flex-1 ${
-                                                                    isCorrectAnswer || isUserAnswer
-                                                                        ? 'text-gray-800'
-                                                                        : 'text-gray-500'
-                                                                }`}>
+                                                                <span className={`flex-1 ${isCorrectAnswer || isUserAnswer
+                                                                    ? 'text-gray-800'
+                                                                    : 'text-gray-500'
+                                                                    }`}>
                                                                     {option}
                                                                 </span>
                                                                 <div className="ml-auto flex items-center gap-2">
@@ -219,13 +217,12 @@ const ExamResultPage = () => {
                                                     <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
                                                         ✓ {t('correct') || 'Đúng'}
                                                     </span>
-                                                ) : isAnswered ? (
+                                                ) : (
                                                     <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
                                                         ✗ {t('incorrect') || 'Sai'}
-                                                    </span>
-                                                ) : (
-                                                    <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold">
-                                                        {t('not_answered') || 'Chưa trả lời'}
+                                                        {!isAnswered && (
+                                                            <span className="ml-1 text-xs">({t('not_answered') || 'Chưa trả lời'})</span>
+                                                        )}
                                                     </span>
                                                 )}
                                             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logoImage from "../images/Logo.png";
 import Loading from "../components/Loading";
@@ -66,6 +66,16 @@ const MainPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+  const loginTimeoutRef = useRef(null);
+
+  // Cleanup timeout khi component unmount
+  useEffect(() => {
+    return () => {
+      if (loginTimeoutRef.current) {
+        clearTimeout(loginTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Hàm decode JWT để lấy thông tin từ token
   const decodeJWT = (token) => {
@@ -147,13 +157,33 @@ const MainPage = () => {
       return;
     }
 
+    // Clear timeout cũ nếu có
+    if (loginTimeoutRef.current) {
+      clearTimeout(loginTimeoutRef.current);
+    }
+
     // Hiển thị loading
     setIsLoading(true);
     setLoadingMessage("Đang xác thực thông tin đăng nhập...");
 
+    // Tạo timeout 30 giây
+    loginTimeoutRef.current = setTimeout(() => {
+      setIsLoading(false);
+      setLoadingMessage("");
+      navigate("/");
+      alert("Lỗi đăng nhập");
+      loginTimeoutRef.current = null;
+    }, 30000);
+
     try {
       // Gọi API đăng nhập
       const result = await loginAPI(loginData.username, loginData.password);
+
+      // Clear timeout khi có kết quả
+      if (loginTimeoutRef.current) {
+        clearTimeout(loginTimeoutRef.current);
+        loginTimeoutRef.current = null;
+      }
 
       if (result.success && result.data) {
         const { accessToken, refreshToken } = result.data;
@@ -162,6 +192,10 @@ const MainPage = () => {
         const decodedToken = decodeJWT(accessToken);
 
         if (!decodedToken) {
+          if (loginTimeoutRef.current) {
+            clearTimeout(loginTimeoutRef.current);
+            loginTimeoutRef.current = null;
+          }
           setIsLoading(false);
           setLoadingMessage("");
           alert("Không thể xác thực token. Vui lòng thử lại.");
@@ -179,6 +213,10 @@ const MainPage = () => {
         const mappedRole = mapRole(apiRole);
 
         if (!mappedRole) {
+          if (loginTimeoutRef.current) {
+            clearTimeout(loginTimeoutRef.current);
+            loginTimeoutRef.current = null;
+          }
           setIsLoading(false);
           setLoadingMessage("");
           alert("Không thể xác định role của người dùng.");
@@ -233,11 +271,19 @@ const MainPage = () => {
         // Tự động điều hướng theo role
         navigateByRole(mappedRole);
       } else {
+        if (loginTimeoutRef.current) {
+          clearTimeout(loginTimeoutRef.current);
+          loginTimeoutRef.current = null;
+        }
         setIsLoading(false);
         setLoadingMessage("");
         alert(result.error || "Thông tin đăng nhập không đúng");
       }
     } catch (error) {
+      if (loginTimeoutRef.current) {
+        clearTimeout(loginTimeoutRef.current);
+        loginTimeoutRef.current = null;
+      }
       setIsLoading(false);
       setLoadingMessage("");
       alert("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");

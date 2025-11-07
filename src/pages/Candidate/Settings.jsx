@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { t, onLangChange } from '../../i18n';
 import { toast } from 'react-toastify';
+import { getUserProfile } from '../../service/api';
 
 // SearchableDropdown Component
 const SearchableDropdown = ({
@@ -197,26 +198,133 @@ const Settings = () => {
     }, []);
 
     useEffect(() => {
-        // Load user data from localStorage
-        const user = localStorage.getItem('user');
-        if (user) {
-            const userData = JSON.parse(user);
-            setFormData(prev => ({
-                ...prev,
-                avatar: userData.avatar || '',
-                fullname: userData.fullname || '',
-                gender: userData.gender || '',
-                dateOfBirth: userData.dateOfBirth || '',
-                age: userData.age || '',
-                username: userData.username || '',
-                email: userData.email || '',
-                phone: userData.phone || '',
-                address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
-                city: userData.city || '',
-                ward: userData.ward || '',
-                role: userData.role || ''
-            }));
-        }
+        const loadUserProfile = async () => {
+            try {
+                // Lấy userId từ localStorage
+                const user = localStorage.getItem('user');
+                if (!user) {
+                    console.warn('Không tìm thấy thông tin người dùng trong localStorage');
+                    return;
+                }
+
+                const userData = JSON.parse(user);
+                const userId = userData.userId;
+
+                if (!userId) {
+                    console.warn('Không tìm thấy userId trong thông tin người dùng');
+                    // Fallback: load từ localStorage như cũ
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: userData.avatar || '',
+                        fullname: userData.fullname || '',
+                        gender: userData.gender || '',
+                        dateOfBirth: userData.dateOfBirth || '',
+                        age: userData.age || '',
+                        username: userData.username || '',
+                        email: userData.email || '',
+                        phone: userData.phone || '',
+                        address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
+                        city: userData.city || '',
+                        ward: userData.ward || '',
+                        role: userData.role || ''
+                    }));
+                    return;
+                }
+
+                setIsLoading(true);
+
+                // Gọi API để lấy thông tin profile
+                const result = await getUserProfile(userId);
+
+                if (result.success && result.data) {
+                    const profileData = result.data;
+
+                    // Tính toán age nếu có dateOfBirth
+                    let age = '';
+                    if (profileData.dateOfBirth) {
+                        const today = new Date();
+                        const birthDate = new Date(profileData.dateOfBirth);
+                        let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+                        const monthDiff = today.getMonth() - birthDate.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                            calculatedAge--;
+                        }
+                        age = calculatedAge.toString();
+                    }
+
+                    // Map dữ liệu từ API vào formData
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: profileData.avatar || profileData.imageUrl || '',
+                        fullname: profileData.fullname || profileData.fullName || profileData.name || '',
+                        gender: profileData.gender || '',
+                        dateOfBirth: profileData.dateOfBirth || '',
+                        age: age || profileData.age || '',
+                        username: profileData.username || userData.username || '',
+                        email: profileData.email || '',
+                        phone: profileData.phone || profileData.phoneNumber || '',
+                        address: profileData.address || (profileData.houseNumber && profileData.street ? `${profileData.houseNumber} ${profileData.street}` : ''),
+                        city: profileData.city || '',
+                        ward: profileData.ward || profileData.commune || '',
+                        role: profileData.role || userData.role || ''
+                    }));
+
+                    // Cập nhật localStorage với dữ liệu mới từ API
+                    const updatedUser = {
+                        ...userData,
+                        ...profileData,
+                        age: age || profileData.age || ''
+                    };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                } else {
+                    // Nếu API thất bại, fallback về localStorage
+                    console.warn('Không thể lấy thông tin từ API:', result.error);
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: userData.avatar || '',
+                        fullname: userData.fullname || '',
+                        gender: userData.gender || '',
+                        dateOfBirth: userData.dateOfBirth || '',
+                        age: userData.age || '',
+                        username: userData.username || '',
+                        email: userData.email || '',
+                        phone: userData.phone || '',
+                        address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
+                        city: userData.city || '',
+                        ward: userData.ward || '',
+                        role: userData.role || ''
+                    }));
+                }
+            } catch (error) {
+                console.error('Lỗi khi load profile:', error);
+                toast.error('Không thể tải thông tin profile. Vui lòng thử lại.');
+
+                // Fallback: load từ localStorage
+                const user = localStorage.getItem('user');
+                if (user) {
+                    const userData = JSON.parse(user);
+                    setFormData(prev => ({
+                        ...prev,
+                        avatar: userData.avatar || '',
+                        fullname: userData.fullname || '',
+                        gender: userData.gender || '',
+                        dateOfBirth: userData.dateOfBirth || '',
+                        age: userData.age || '',
+                        username: userData.username || '',
+                        email: userData.email || '',
+                        phone: userData.phone || '',
+                        address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
+                        city: userData.city || '',
+                        ward: userData.ward || '',
+                        role: userData.role || ''
+                    }));
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadUserProfile();
     }, []);
 
     const handleChange = (e) => {
