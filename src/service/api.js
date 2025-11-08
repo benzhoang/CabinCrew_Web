@@ -108,5 +108,56 @@ export const getUserProfile = async (userId) => {
     }
 };
 
-export default api;
+// API lấy danh sách thành phố
+export const getCities = async () => {
+    try {
+        const response = await api.get("/cities");
 
+        if (response.data.code === 0 && response.data.data) {
+            return {
+                success: true,
+                data: response.data.data,
+                message: response.data.message,
+            };
+        }
+
+        return {
+            success: false,
+            error: response.data.message || "Không thể lấy danh sách thành phố",
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || "Không thể lấy danh sách thành phố",
+            status: error.response?.status,
+        };
+    }
+};
+
+// API lấy danh sách phường/xã theo cityId
+export const getWardsForCity = async (cityId) => {
+    try {
+        const response = await api.get(`/cities/${cityId}/wards`);
+
+        if (response.data.code === 0 && response.data.data) {
+            return {
+                success: true,
+                data: response.data.data,
+                message: response.data.message,
+            };
+        }
+
+        return {
+            success: false,
+            error: response.data.message || "Không thể lấy danh sách phường/xã",
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || "Không thể lấy danh sách phường/xã",
+            status: error.response?.status,
+        };
+    }
+};
+
+export default api;
