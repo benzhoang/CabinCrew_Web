@@ -51,7 +51,7 @@ const Navbar = () => {
                 <div className="flex items-center h-20">
                     {/* Logo Section */}
                     <div className="flex items-center">
-                        <Link to="/home" className="flex items-center hover:opacity-80 transition-opacity duration-300">
+                        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity duration-300">
                             <img
                                 src={logoImage}
                                 alt="SkyCabin Airlines"
@@ -63,7 +63,7 @@ const Navbar = () => {
                     {/* Desktop Navigation - Centered */}
                     <div className="hidden lg:flex items-center justify-center flex-1 space-x-5">
                         <Link
-                            to="/home"
+                            to="/"
                             className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
                         >
                             {t('home')}
@@ -217,7 +217,7 @@ const Navbar = () => {
                     <div className="lg:hidden animate-slide-down">
                         <div className="px-4 pt-4 pb-6 space-y-2 bg-airline-blue-800/95 backdrop-blur-sm rounded-xl mt-4 shadow-2xl border border-white/10">
                             <Link
-                                to="/home"
+                                to="/"
                                 className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
