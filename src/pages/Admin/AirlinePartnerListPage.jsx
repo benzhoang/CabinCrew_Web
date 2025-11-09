@@ -1,13 +1,22 @@
 import { useState } from "react";
 import AccountTable from "../../components/AdminComponent/AccountTable";
 import Pagination from "../../components/AdminComponent/Pagination";
+import ModalForm from "../../components/AdminComponent/ModalForm";
 import { FaPlus, FaSearch } from "react-icons/fa";
 
 const AirlinePartnerListPage = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleCreateUser = (userData) => {
+    console.log("Creating new user:", userData);
+    // Trigger refresh by incrementing refreshKey
+    setRefreshKey((prev) => prev + 1);
+  };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -32,9 +41,12 @@ const AirlinePartnerListPage = () => {
       <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
               <FaPlus />
-              <span>Create airline partner</span>
+              <span>Create new airline partner</span>
             </button>
             <div className="relative w-72">
               <input
@@ -54,6 +66,7 @@ const AirlinePartnerListPage = () => {
             page={currentPage}
             pageSize={pageSize}
             onDataLoad={handleDataLoad}
+            refreshKey={refreshKey}
           />
 
           <div className="pt-4">
@@ -67,6 +80,14 @@ const AirlinePartnerListPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <ModalForm
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateUser}
+        roleName="Airline Partner"
+      />
     </div>
   );
 };

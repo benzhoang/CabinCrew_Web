@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { getAllUsers } from "../../service/api2";
+import { FaArrowsRotate } from "react-icons/fa6";
+import { toast } from "react-toastify";
+import { getAllUsers, disableAccount } from "../../service/api2";
+import ModalConfirm from "./ModalConfirm";
 
 const StatusBadge = ({ value }) => {
   const isActive =
@@ -21,6 +24,14 @@ const StatusBadge = ({ value }) => {
   );
 };
 
+const PositionBadge = ({ value }) => {
+  return (
+    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 rounded-md bg-blue-50">
+      {value || "N/A"}
+    </span>
+  );
+};
+
 const AccountTable = ({
   searchTerm = "",
   roleId = null,
@@ -31,11 +42,18 @@ const AccountTable = ({
   pageSize = 10,
   onDelete,
   onDataLoad,
+  refreshKey = 0,
 }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEnabling, setIsEnabling] = useState(false);
+  const [actionType, setActionType] = useState("delete"); // "delete" or "enable"
+  const [internalRefreshKey, setInternalRefreshKey] = useState(0);
 
   // Fetch data from API
   useEffect(() => {
@@ -135,6 +153,8 @@ const AccountTable = ({
     pageSize,
     sortField,
     sortDirection,
+    refreshKey,
+    internalRefreshKey,
   ]);
 
   // Sorting function
@@ -168,6 +188,84 @@ const AccountTable = ({
     );
   };
 
+  // Handle delete button click
+  const handleDeleteClick = (user) => {
+    setSelectedUser(user);
+    setActionType("delete");
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle enable button click
+  const handleEnableClick = (user) => {
+    setSelectedUser(user);
+    setActionType("enable");
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle confirm action (delete or enable)
+  const handleConfirmAction = async () => {
+    if (!selectedUser) return;
+
+    if (actionType === "enable") {
+      setIsEnabling(true);
+    } else {
+      setIsDeleting(true);
+    }
+
+    try {
+      const result = await disableAccount(selectedUser.userId);
+
+      if (result.success) {
+        const successMessage =
+          actionType === "enable"
+            ? result.message || "Kích hoạt lại tài khoản thành công"
+            : result.message || "Vô hiệu hóa tài khoản thành công";
+        toast.success(successMessage);
+
+        // Call onDelete callback if provided (for backward compatibility)
+        if (onDelete) {
+          onDelete(selectedUser);
+        }
+
+        // Trigger refresh by incrementing internal refresh key
+        setInternalRefreshKey((prev) => prev + 1);
+
+        // Close modal
+        setIsDeleteModalOpen(false);
+        setSelectedUser(null);
+      } else {
+        const errorMessage =
+          actionType === "enable"
+            ? result.error || "Kích hoạt lại tài khoản thất bại"
+            : result.error || "Vô hiệu hóa tài khoản thất bại";
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage =
+        actionType === "enable"
+          ? error.response?.data?.message ||
+            error.message ||
+            "Đã xảy ra lỗi khi kích hoạt lại tài khoản"
+          : error.response?.data?.message ||
+            error.message ||
+            "Đã xảy ra lỗi khi vô hiệu hóa tài khoản";
+      toast.error(errorMessage);
+    } finally {
+      if (actionType === "enable") {
+        setIsEnabling(false);
+      } else {
+        setIsDeleting(false);
+      }
+    }
+  };
+
+  // Handle cancel action
+  const handleCancelAction = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedUser(null);
+    setActionType("delete");
+  };
+
   if (loading) {
     return (
       <div className="p-8 overflow-hidden text-center bg-white border border-gray-200 rounded-xl">
@@ -194,15 +292,6 @@ const AccountTable = ({
             <th className="px-5 py-3 font-semibold">
               <button
                 type="button"
-                onClick={() => handleSort("position")}
-                className="flex items-center hover:text-gray-900"
-              >
-                Position {getSortIcon("position")}
-              </button>
-            </th>
-            <th className="px-5 py-3 font-semibold">
-              <button
-                type="button"
                 onClick={() => handleSort("email")}
                 className="flex items-center hover:text-gray-900"
               >
@@ -216,6 +305,15 @@ const AccountTable = ({
                 className="flex items-center hover:text-gray-900"
               >
                 Phone Number {getSortIcon("phone")}
+              </button>
+            </th>
+            <th className="px-5 py-3 font-semibold">
+              <button
+                type="button"
+                onClick={() => handleSort("position")}
+                className="flex items-center hover:text-gray-900"
+              >
+                Position {getSortIcon("position")}
               </button>
             </th>
             <th className="px-5 py-3 font-semibold">
@@ -250,24 +348,40 @@ const AccountTable = ({
                   {u.fullName}
                 </td>
                 <td className="px-5 py-4 text-sm text-gray-700 truncate">
-                  {u.position}
-                </td>
-                <td className="px-5 py-4 text-sm text-gray-700 truncate">
                   {u.email}
                 </td>
                 <td className="px-5 py-4 text-sm text-gray-700">{u.phone}</td>
+                <td className="px-5 py-4">
+                  <PositionBadge value={u.position} />
+                </td>
                 <td className="px-5 py-4">
                   <StatusBadge value={u.status} />
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      aria-label="Delete user"
-                      className="p-2 text-red-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-red-700"
-                      onClick={() => onDelete && onDelete(u)}
-                    >
-                      <FaTrash />
-                    </button>
+                    {(() => {
+                      const isActive =
+                        typeof u.status === "boolean"
+                          ? u.status
+                          : u.status?.toLowerCase() === "active";
+                      return isActive ? (
+                        <button
+                          aria-label="Delete user"
+                          className="p-2 text-red-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-red-700"
+                          onClick={() => handleDeleteClick(u)}
+                        >
+                          <FaTrash />
+                        </button>
+                      ) : (
+                        <button
+                          aria-label="Enable user"
+                          className="p-2 text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-700"
+                          onClick={() => handleEnableClick(u)}
+                        >
+                          <FaArrowsRotate />
+                        </button>
+                      );
+                    })()}
                   </div>
                 </td>
               </tr>
@@ -275,6 +389,30 @@ const AccountTable = ({
           )}
         </tbody>
       </table>
+
+      {/* Delete/Enable Confirmation Modal */}
+      <ModalConfirm
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelAction}
+        onConfirm={handleConfirmAction}
+        title={
+          actionType === "enable"
+            ? "Xác nhận kích hoạt lại tài khoản"
+            : "Xác nhận vô hiệu hóa tài khoản"
+        }
+        message={
+          selectedUser
+            ? actionType === "enable"
+              ? `Bạn có muốn kích hoạt lại tài khoản ${selectedUser.email}?`
+              : `Bạn có muốn vô hiệu hóa tài khoản ${selectedUser.email}?`
+            : actionType === "enable"
+            ? "Bạn có muốn kích hoạt lại tài khoản này?"
+            : "Bạn có muốn vô hiệu hóa tài khoản này?"
+        }
+        confirmText={actionType === "enable" ? "Kích hoạt" : "Vô hiệu hóa"}
+        cancelText="Hủy"
+        isLoading={isDeleting || isEnabling}
+      />
     </div>
   );
 };
