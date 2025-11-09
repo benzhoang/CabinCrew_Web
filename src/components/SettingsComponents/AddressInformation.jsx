@@ -11,7 +11,8 @@ const AddressInformation = ({
     setFormData
 }) => {
     const [cities, setCities] = useState([]); // Store cities as [{ id, name }]
-    const [wards, setWards] = useState([]); // Store wards as [name]
+    const [wards, setWards] = useState([]); // Store wards as [{ id, name }] or [name]
+    const [wardsData, setWardsData] = useState([]); // Store full ward objects with id and name
     const [isCitiesLoading, setIsCitiesLoading] = useState(false);
     const [isWardsLoading, setIsWardsLoading] = useState(false);
 
@@ -96,30 +97,44 @@ const AddressInformation = ({
                                 : [];
                     console.log('[AddressInformation] Raw wards data:', rawWards);
 
-                    const normalizeWardName = (ward) => {
+                    const normalizeWard = (ward) => {
                         if (!ward) return null;
+                        
+                        // Nếu ward là string, chỉ có tên
                         if (typeof ward === 'string') {
                             const trimmed = ward.trim();
-                            return trimmed.length ? trimmed : null;
+                            return trimmed.length ? { id: null, name: trimmed } : null;
                         }
-                        const candidate = ward.name ?? ward.wardName ?? ward.title ?? ward.label ?? ward.value;
-                        if (typeof candidate === 'string') {
-                            const trimmed = candidate.trim();
-                            return trimmed.length ? trimmed : null;
+                        
+                        // Nếu ward là object, lấy id và name
+                        const name = ward.name ?? ward.wardName ?? ward.title ?? ward.label ?? ward.value;
+                        const id = ward.id ?? ward.wardId ?? ward.value;
+                        
+                        if (typeof name === 'string') {
+                            const trimmed = name.trim();
+                            if (trimmed.length) {
+                                return { id: id || null, name: trimmed };
+                            }
                         }
                         return null;
                     };
 
                     const normalized = rawWards
-                        .map(normalizeWardName)
-                        .filter((wardName) => wardName && wardName.length > 0);
+                        .map(normalizeWard)
+                        .filter((ward) => ward && ward.name && ward.name.length > 0);
                     console.log('[AddressInformation] Normalized wards:', normalized);
 
                     if (normalized.length) {
-                        const uniqueWards = Array.from(new Set(normalized));
-                        uniqueWards.sort((a, b) => a.localeCompare(b, 'vi', { sensitivity: 'base' }));
-                        setWards(uniqueWards);
-                        console.log('[AddressInformation] Wards set successfully:', uniqueWards);
+                        // Lưu full ward objects với id và name
+                        setWardsData(normalized);
+                        
+                        // Lưu danh sách tên để hiển thị
+                        const wardNames = normalized.map(w => w.name);
+                        const uniqueWardNames = Array.from(new Set(wardNames));
+                        uniqueWardNames.sort((a, b) => a.localeCompare(b, 'vi', { sensitivity: 'base' }));
+                        setWards(uniqueWardNames);
+                        console.log('[AddressInformation] Wards set successfully:', uniqueWardNames);
+                        console.log('[AddressInformation] Wards data with IDs:', normalized);
                     } else {
                         console.warn('[AddressInformation] Danh sách phường/xã từ API rỗng hoặc không hợp lệ.');
                         toast.error('Không thể tải danh sách phường/xã. Vui lòng thử lại sau.');
@@ -151,7 +166,8 @@ const AddressInformation = ({
                 setFormData((prev) => ({
                     ...prev,
                     cityId: selectedCity.id,
-                    ward: '' // Reset ward when city changes
+                    ward: '', // Reset ward when city changes
+                    wardId: '' // Reset wardId when city changes
                 }));
             } else if (!selectedCity && formData.city) {
                 console.log('[AddressInformation] Adding new city to list, cityId:', formData.cityId);
@@ -205,7 +221,8 @@ const AddressInformation = ({
                                     ...prev,
                                     city: e.target.value,
                                     cityId: selectedCity ? selectedCity.id : '',
-                                    ward: '' // Reset ward when city changes
+                                    ward: '', // Reset ward when city changes
+                                    wardId: '' // Reset wardId when city changes
                                 }));
                             }}
                             placeholder={isCitiesLoading ? 'Đang tải...' : t('select_city')}
@@ -227,7 +244,16 @@ const AddressInformation = ({
                             value={formData.ward}
                             onChange={(e) => {
                                 console.log('[AddressInformation] Ward changed to:', e.target.value);
+                                // Tìm ward ID từ tên ward
+                                const selectedWard = wardsData.find(w => w.name === e.target.value);
+                                const wardId = selectedWard?.id || null;
+                                
                                 handleChange({ target: { name: 'ward', value: e.target.value } });
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    ward: e.target.value,
+                                    wardId: wardId
+                                }));
                             }}
                             placeholder={isWardsLoading ? 'Đang tải...' : t('select_ward')}
                             disabled={!formData.cityId || isWardsLoading}
