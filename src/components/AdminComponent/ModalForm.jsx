@@ -1,18 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { createUser } from "../../service/api2";
 
-const ModalForm = ({ isOpen, onClose, onSubmit }) => {
+// Map roleName to roleId
+const getRoleId = (roleName) => {
+  const roleMap = {
+    Recruiter: 4,
+    Examiner: 5,
+    "Airline Partner": 8,
+  };
+  return roleMap[roleName] || 4;
+};
+
+const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
   const [formData, setFormData] = useState({
     username: "",
     fullname: "",
     email: "",
     phoneNumber: "",
     dateOfBirth: "",
-    status: "Active",
-    role: "Recruiter",
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form when modal opens/closes or roleName changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        username: "",
+        fullname: "",
+        email: "",
+        phoneNumber: "",
+        dateOfBirth: "",
+      });
+      setErrors({});
+    }
+  }, [isOpen, roleName]);
 
   const calculateAge = (dateOfBirth) => {
     const today = new Date();
@@ -32,8 +57,11 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
 
   const validateField = (name, value) => {
     switch (name) {
-      case "name":
-        return !value.trim() ? "Name is required" : "";
+      case "username":
+        return !value.trim() ? "Username is required" : "";
+      case "fullname": {
+        return !value.trim() ? "Full name is required" : "";
+      }
       case "email": {
         if (!value.trim()) return "Email is required";
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,7 +99,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate all fields before submit
@@ -79,12 +107,10 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
     let hasErrors = false;
 
     Object.keys(formData).forEach((key) => {
-      if (key !== "status" && key !== "role") {
-        const error = validateField(key, formData[key]);
-        if (error) {
-          newErrors[key] = error;
-          hasErrors = true;
-        }
+      const error = validateField(key, formData[key]);
+      if (error) {
+        newErrors[key] = error;
+        hasErrors = true;
       }
     });
 
@@ -93,19 +119,63 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
       return;
     }
 
-    onSubmit(formData);
-    // Reset form
-    setFormData({
-      username: "",
-      fullname: "",
-      email: "",
-      phoneNumber: "",
-      dateOfBirth: "",
-      status: "Active",
-      role: "Recruiter",
-    });
-    setErrors({});
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      // Convert formData to API format
+      const apiData = {
+        username: formData.username.trim(),
+        fullName: formData.fullname.trim(), // API expects fullName (camelCase)
+        phoneNumber: formData.phoneNumber.trim(),
+        email: formData.email.trim(),
+        dateOfBirth: formData.dateOfBirth,
+        roleId: getRoleId(roleName),
+      };
+
+      console.log("API Data (Formatted):", apiData);
+
+      const result = await createUser(apiData);
+
+      // Log API response để debug
+      console.log("API Response:", result);
+
+      if (result.success) {
+        // Show success toast
+        toast.success(
+          result.message ||
+            `Tạo tài khoản ${roleName.toLowerCase()} thành công!`
+        );
+        // Call the onSubmit callback if provided
+        if (onSubmit) {
+          onSubmit(result.data);
+        }
+        // Reset form
+        setFormData({
+          username: "",
+          fullname: "",
+          email: "",
+          phoneNumber: "",
+          dateOfBirth: "",
+        });
+        setErrors({});
+        // Close modal after a short delay to allow toast to be visible
+        setTimeout(() => {
+          onClose();
+        }, 100);
+      } else {
+        // Show error toast
+        toast.error(result.error || "Tạo tài khoản thất bại");
+      }
+    } catch (error) {
+      // Show error toast
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Đã xảy ra lỗi khi tạo tài khoản"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -116,7 +186,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">
-            Create new {formData.role.toLowerCase()}
+            Create new {roleName.toLowerCase()}
           </h2>
           <button
             onClick={onClose}
@@ -139,15 +209,15 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                 <input
                   type="text"
                   name="username"
-                  value={formData.name}
+                  value={formData.username}
                   onChange={handleInputChange}
                   placeholder="Enter username"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.name ? "border-red-500" : "border-gray-300"
+                    errors.username ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                {errors.username && (
+                  <p className="mt-1 text-sm text-red-500">{errors.username}</p>
                 )}
               </div>
               {/* FullName */}
@@ -158,15 +228,15 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
                 <input
                   type="text"
                   name="fullname"
-                  value={formData.name}
+                  value={formData.fullname}
                   onChange={handleInputChange}
                   placeholder="Enter full name"
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
-                    errors.name ? "border-red-500" : "border-gray-300"
+                    errors.fullname ? "border-red-500" : "border-gray-300"
                   }`}
                 />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                {errors.fullname && (
+                  <p className="mt-1 text-sm text-red-500">{errors.fullname}</p>
                 )}
               </div>
 
@@ -242,9 +312,10 @@ const ModalForm = ({ isOpen, onClose, onSubmit }) => {
           <div className="flex justify-center mt-8">
             <button
               type="submit"
-              className="px-8 py-2 font-medium text-white transition-colors rounded-lg bg-cyan-600 hover:bg-cyan-700"
+              disabled={isSubmitting}
+              className="px-8 py-2 font-medium text-white transition-colors rounded-lg bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create
+              {isSubmitting ? "Creating..." : "Create"}
             </button>
           </div>
         </form>

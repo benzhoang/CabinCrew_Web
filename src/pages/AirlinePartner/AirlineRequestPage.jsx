@@ -4,22 +4,29 @@ import RequestList from "../../components/AirlinePartnerComponent/RequestList";
 import { useNavigate } from "react-router-dom";
 
 const AirlineRequestPage = () => {
-  const [search, setSearch] = useState('')
-  const [campaignTypeFilter, setCampaignTypeFilter] = useState('all')
+  const [search, setSearch] = useState("");
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
   const navigate = useNavigate();
 
   return (
-
     <div className="w-full h-full">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-              <button  onClick={() => navigate('/airline-partner/campaigns/create')} className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/airline-partner/campaigns/create")}
+                className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 <FaPlus />
                 <span>Tạo yêu cầu chiến dịch</span>
               </button>
-              <button onClick={() => navigate('/airline-partner/campaigns/create/promotion')} className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              <button
+                onClick={() =>
+                  navigate("/airline-partner/campaigns/create/promotion")
+                }
+                className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
                 <FaPlus />
                 <span>Tạo yêu cầu nâng bậc</span>
               </button>
@@ -42,13 +49,16 @@ const AirlineRequestPage = () => {
                 className="h-10 pl-3 pr-8 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
               >
                 <option value="all">Tất cả loại yêu cầu</option>
-                <option value="recruitment">Tuyển dụng</option>
-                <option value="promotion">Nâng bậc</option>
+                <option value="Recruitment">Tuyển dụng</option>
+                <option value="Promotion">Nâng bậc</option>
               </select>
             </div>
           </div>
 
-          <RequestList search={search} campaignTypeFilter={campaignTypeFilter} />
+          <RequestList
+            search={search}
+            campaignTypeFilter={campaignTypeFilter}
+          />
         </div>
       </div>
     </div>

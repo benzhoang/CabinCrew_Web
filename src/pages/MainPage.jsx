@@ -7,58 +7,6 @@ import { login as loginAPI } from "../service/api.js";
 const MainPage = () => {
   const navigate = useNavigate();
 
-  // Data giả để test login - ĐÃ ẨN, sử dụng API thật
-  // const testUsers = {
-  //   candidate: {
-  //     username: "testuser",
-  //     password: "123456",
-  //     displayName: "Test Candidate",
-  //     role: "candidate",
-  //   },
-  //   admin: {
-  //     username: "admin",
-  //     password: "admin123",
-  //     displayName: "System Admin",
-  //     role: "admin",
-  //   },
-  //   recruiter: {
-  //     username: "recruiter",
-  //     password: "recruiter123",
-  //     displayName: "HR Recruiter",
-  //     role: "recruiter",
-  //   },
-  //   "airline-partner": {
-  //     username: "airline",
-  //     password: "airline123",
-  //     displayName: "Airline Partner",
-  //     role: "airline-partner",
-  //   },
-  //   "cabin-crew": {
-  //     username: "cabincrew",
-  //     password: "cabincrew123",
-  //     displayName: "Cabin Crew",
-  //     role: "cabin-crew",
-  //   },
-  //   director: {
-  //     username: "director",
-  //     password: "director123",
-  //     displayName: "Director",
-  //     role: "director",
-  //   },
-  //   examiner: {
-  //     username: "examiner",
-  //     password: "examiner123",
-  //     displayName: "Examiner",
-  //     role: "examiner",
-  //   },
-  //   "senior-recruiter": {
-  //     username: "senior",
-  //     password: "senior123",
-  //     displayName: "Senior Recruiter",
-  //     role: "senior-recruiter",
-  //   },
-  // };
-
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
@@ -80,13 +28,13 @@ const MainPage = () => {
   // Hàm decode JWT để lấy thông tin từ token
   const decodeJWT = (token) => {
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
         atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
@@ -136,7 +84,9 @@ const MainPage = () => {
     if (route) {
       navigate(route);
     } else {
-      alert(`Role "${role}" không được hỗ trợ. Vui lòng liên hệ quản trị viên.`);
+      alert(
+        `Role "${role}" không được hỗ trợ. Vui lòng liên hệ quản trị viên.`
+      );
       console.error("Unsupported role:", role);
     }
   };
@@ -204,7 +154,9 @@ const MainPage = () => {
 
         // Lấy role từ JWT token (có thể nằm ở nhiều vị trí khác nhau)
         const apiRole =
-          decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ] ||
           decodedToken.role ||
           decodedToken.Role ||
           decodedToken.roles?.[0];
@@ -226,7 +178,9 @@ const MainPage = () => {
 
         // Lấy user ID từ token
         const userId =
-          decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"] ||
+          decodedToken[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          ] ||
           decodedToken.sub ||
           decodedToken.userId ||
           decodedToken.id;
@@ -234,7 +188,8 @@ const MainPage = () => {
         // Tạo userInfo object
         const userInfo = {
           username: loginData.username,
-          displayName: decodedToken.name || decodedToken.unique_name || loginData.username,
+          displayName:
+            decodedToken.name || decodedToken.unique_name || loginData.username,
           role: mappedRole,
           userId: userId,
           accessToken: accessToken,
