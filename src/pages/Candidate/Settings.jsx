@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { t, onLangChange } from '../../i18n';
 import { toast } from 'react-toastify';
-import { getUserProfile } from '../../service/api';
+import { getUserProfile, getCities, getWardsForCity } from '../../service/api';
 import PersonalInformation from '../../components/SettingsComponents/PersonalInformation';
 import AccountInformation from '../../components/SettingsComponents/AccountInformation';
 import AddressInformation from '../../components/SettingsComponents/AddressInformation';
@@ -11,7 +11,7 @@ const Settings = () => {
     const [tick, setTick] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
-        avatar: '',
+        imgURL: '',
         fullname: '',
         gender: '',
         dateOfBirth: '',
@@ -21,7 +21,9 @@ const Settings = () => {
         phone: '',
         address: '',
         city: '',
+        cityId: '',
         ward: '',
+        wardId: '',
         role: ''
     });
     const [errors, setErrors] = useState({});
@@ -210,7 +212,7 @@ const Settings = () => {
 
                         setFormData(prev => ({
                             ...prev,
-                            avatar: userData.avatar || '',
+                            imgURL: userData.imgURL || userData.avatar || '',
                             fullname: userData.fullname || '',
                             gender: genderValue,
                             dateOfBirth: formattedDateOfBirth || userData.dateOfBirth || '',
@@ -221,6 +223,7 @@ const Settings = () => {
                             address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
                             city: userData.city || '',
                             ward: userData.ward || '',
+                            wardId: userData.wardId || (userData.ward && typeof userData.ward === 'number' ? userData.ward : null) || '',
                             role: userData.role || ''
                         }));
                         return;
@@ -266,10 +269,79 @@ const Settings = () => {
                         genderValue = String(profileData.gender);
                     }
 
+                    // Xử lý imgURL
+                    let imgURL = '';
+                    if (profileData.imgURL) {
+                        imgURL = profileData.imgURL;
+                        // Nếu là relative URL, thêm base URL
+                        if (imgURL && !imgURL.startsWith('http') && !imgURL.startsWith('data:')) {
+                            const API_BASE_URL = 'https://cabincrewcareer.azurewebsites.net';
+                            imgURL = imgURL.startsWith('/')
+                                ? `${API_BASE_URL}${imgURL}`
+                                : `${API_BASE_URL}/${imgURL}`;
+                        }
+                    }
+
+                    // Lấy cityId và wardId từ API
+                    const cityId = profileData.cityId || profileData.cityID || profileData.city?.id || null;
+                    const wardId = profileData.wardId || profileData.wardID || profileData.ward?.id || null;
+
+                    // Fetch city name từ cityId
+                    let cityName = profileData.city || profileData.cityName || '';
+                    if (cityId && !cityName) {
+                        try {
+                            const citiesResult = await getCities();
+                            if (citiesResult.success && citiesResult.data) {
+                                const citiesList = Array.isArray(citiesResult.data)
+                                    ? citiesResult.data
+                                    : Array.isArray(citiesResult.data.items)
+                                        ? citiesResult.data.items
+                                        : Array.isArray(citiesResult.data.results)
+                                            ? citiesResult.data.results
+                                            : [];
+
+                                const foundCity = citiesList.find(c =>
+                                    (c.id || c.cityId || c.provinceId) == cityId
+                                );
+                                if (foundCity) {
+                                    cityName = foundCity.name || foundCity.cityName || foundCity.provinceName || '';
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Settings] Lỗi khi lấy tên thành phố:', error);
+                        }
+                    }
+
+                    // Fetch ward name từ wardId và cityId
+                    let wardName = profileData.ward || profileData.commune || profileData.wardName || '';
+                    if (wardId && cityId && !wardName) {
+                        try {
+                            const wardsResult = await getWardsForCity(cityId);
+                            if (wardsResult.success && wardsResult.data) {
+                                const wardsList = Array.isArray(wardsResult.data)
+                                    ? wardsResult.data
+                                    : Array.isArray(wardsResult.data.items)
+                                        ? wardsResult.data.items
+                                        : Array.isArray(wardsResult.data.results)
+                                            ? wardsResult.data.results
+                                            : [];
+
+                                const foundWard = wardsList.find(w =>
+                                    (w.id || w.wardId) == wardId
+                                );
+                                if (foundWard) {
+                                    wardName = foundWard.name || foundWard.wardName || '';
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Settings] Lỗi khi lấy tên phường/xã:', error);
+                        }
+                    }
+
                     // Map dữ liệu từ API vào formData
                     setFormData(prev => ({
                         ...prev,
-                        avatar: profileData.avatar || profileData.imageUrl || '',
+                        imgURL: imgURL,
                         fullname: profileData.fullname || profileData.fullName || profileData.name || '',
                         gender: genderValue,
                         dateOfBirth: formattedDateOfBirth || profileData.dateOfBirth || '',
@@ -278,8 +350,10 @@ const Settings = () => {
                         email: profileData.email || '',
                         phone: profileData.phone || profileData.phoneNumber || '',
                         address: profileData.address || (profileData.houseNumber && profileData.street ? `${profileData.houseNumber} ${profileData.street}` : ''),
-                        city: profileData.city || '',
-                        ward: profileData.ward || profileData.commune || '',
+                        city: cityName,
+                        cityId: cityId || '',
+                        ward: wardName,
+                        wardId: wardId || '',
                         role: profileData.role || userData.role || ''
                     }));
 
@@ -288,7 +362,12 @@ const Settings = () => {
                         ...userData,
                         ...profileData,
                         userId: profileData.userId ?? userId,
-                        age: age || profileData.age || ''
+                        age: age || profileData.age || '',
+                        imgURL: imgURL,
+                        city: cityName,
+                        cityId: cityId,
+                        ward: wardName,
+                        wardId: wardId
                     };
                     localStorage.setItem('user', JSON.stringify(updatedUser));
                 } else {
@@ -315,7 +394,7 @@ const Settings = () => {
 
                     setFormData(prev => ({
                         ...prev,
-                        avatar: userData.avatar || '',
+                        imgURL: userData.imgURL || userData.avatar || '',
                         fullname: userData.fullname || '',
                         gender: genderValue,
                         dateOfBirth: formattedDateOfBirth || userData.dateOfBirth || '',
@@ -326,6 +405,7 @@ const Settings = () => {
                         address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
                         city: userData.city || '',
                         ward: userData.ward || '',
+                        wardId: userData.wardId || (userData.ward && typeof userData.ward === 'number' ? userData.ward : null) || '',
                         role: userData.role || ''
                     }));
                 }
@@ -356,7 +436,7 @@ const Settings = () => {
 
                     setFormData(prev => ({
                         ...prev,
-                        avatar: userData.avatar || '',
+                        imgURL: userData.imgURL || userData.avatar || '',
                         fullname: userData.fullname || '',
                         gender: genderValue,
                         dateOfBirth: formattedDateOfBirth || userData.dateOfBirth || '',
@@ -367,6 +447,7 @@ const Settings = () => {
                         address: userData.address || (userData.houseNumber && userData.street ? `${userData.houseNumber} ${userData.street}` : ''),
                         city: userData.city || '',
                         ward: userData.ward || '',
+                        wardId: userData.wardId || (userData.ward && typeof userData.ward === 'number' ? userData.ward : null) || '',
                         role: userData.role || ''
                     }));
                 }
@@ -418,7 +499,7 @@ const Settings = () => {
             reader.onload = (e) => {
                 setFormData(prev => ({
                     ...prev,
-                    avatar: e.target.result
+                    imgURL: e.target.result
                 }));
             };
             reader.readAsDataURL(file);
@@ -472,30 +553,11 @@ const Settings = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // handleSubmit đã được xử lý trong UpdateProfileButton
+    // Giữ lại để tương thích với form, nhưng không làm gì
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
-        setIsLoading(true);
-
-        // Simulate API call
-        setTimeout(() => {
-            // Update user data in localStorage
-            const updatedUser = {
-                ...JSON.parse(localStorage.getItem('user') || '{}'),
-                ...formData
-            };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-
-            // Notify other components
-            window.dispatchEvent(new Event('auth-changed'));
-
-            toast.success(t('profile_updated'));
-            setIsLoading(false);
-        }, 1000);
+        // Form submission được xử lý trong UpdateProfileButton
     };
 
     return (
@@ -531,7 +593,10 @@ const Settings = () => {
                             setFormData={setFormData}
                         />
 
-                        <UpdateProfileButton isLoading={isLoading} />
+                        <UpdateProfileButton
+                            formData={formData}
+                            validateForm={validateForm}
+                        />
                     </div>
                 </form>
             </div>

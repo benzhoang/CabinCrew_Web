@@ -9,6 +9,7 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 30000, // 30 giây timeout
 });
 
 // Interceptor để tự động thêm token vào header
@@ -155,6 +156,114 @@ export const getWardsForCity = async (cityId) => {
         return {
             success: false,
             error: error.response?.data?.message || error.message || "Không thể lấy danh sách phường/xã",
+            status: error.response?.status,
+        };
+    }
+};
+
+// API cập nhật thông tin user theo ID
+export const updateUserProfile = async (userId, userData) => {
+    try {
+        const response = await api.put(`/users/${userId}`, userData);
+
+        // Kiểm tra HTTP status code trước (200, 201, 204 đều là thành công)
+        const httpStatus = response.status;
+        const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+        // Nếu HTTP status là thành công
+        if (isHttpSuccess) {
+            const responseData = response.data;
+
+            // Kiểm tra nếu có errorCode trong response (format: {errorCode: 5, errorMessage: "...", errors: [...]})
+            if (responseData && typeof responseData.errorCode !== 'undefined') {
+                // Có errorCode, kiểm tra xem có lỗi không
+                if (responseData.errorCode === 0 || responseData.errorCode === null) {
+                    // Thành công
+                    return {
+                        success: true,
+                        data: responseData.data,
+                        message: responseData.message || responseData.errorMessage || "Cập nhật profile thành công",
+                    };
+                } else {
+                    // Có lỗi - xử lý errors array
+                    let errorMessage = responseData.errorMessage || "Không thể cập nhật thông tin người dùng";
+
+                    // Nếu có errors array, kết hợp các lỗi
+                    if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+                        errorMessage = responseData.errors.join('. ');
+                    }
+
+                    return {
+                        success: false,
+                        error: errorMessage,
+                        errors: responseData.errors || [],
+                        errorCode: responseData.errorCode,
+                    };
+                }
+            }
+
+            // Kiểm tra nếu có field code trong response (format: {code: 4, message: "Updated successfully", data: {...}})
+            if (responseData && typeof responseData.code !== 'undefined') {
+                // Kiểm tra message để xác định thành công (code: 4 với message "Updated successfully" là thành công)
+                const message = responseData.message || '';
+                const isSuccessMessage = message.toLowerCase().includes('success') ||
+                    message.toLowerCase().includes('updated successfully') ||
+                    responseData.code === 0 ||
+                    responseData.code === 4; // code 4 là thành công theo Swagger
+
+                if (isSuccessMessage) {
+                    return {
+                        success: true,
+                        data: responseData.data,
+                        message: responseData.message || "Cập nhật profile thành công",
+                    };
+                } else {
+                    // Code khác và message không phải success, coi như lỗi
+                    return {
+                        success: false,
+                        error: responseData.message || "Không thể cập nhật thông tin người dùng",
+                    };
+                }
+            }
+
+            // Không có field code hoặc errorCode, nhưng HTTP status thành công => coi như thành công
+            return {
+                success: true,
+                data: responseData || responseData?.data,
+                message: responseData?.message || "Cập nhật profile thành công",
+            };
+        } else {
+            // HTTP status không thành công
+            return {
+                success: false,
+                error: response.data?.message || "Không thể cập nhật thông tin người dùng",
+                status: httpStatus,
+            };
+        }
+    } catch (error) {
+        const errorData = error.response?.data;
+
+        // Kiểm tra nếu có errorCode và errors array trong error response
+        if (errorData && typeof errorData.errorCode !== 'undefined') {
+            let errorMessage = errorData.errorMessage || "Không thể cập nhật thông tin người dùng";
+
+            // Nếu có errors array, kết hợp các lỗi
+            if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+                errorMessage = errorData.errors.join('. ');
+            }
+
+            return {
+                success: false,
+                error: errorMessage,
+                errors: errorData.errors || [],
+                errorCode: errorData.errorCode,
+                status: error.response?.status,
+            };
+        }
+
+        return {
+            success: false,
+            error: errorData?.message || errorData?.errorMessage || errorData?.title || error.message || "Không thể cập nhật thông tin người dùng",
             status: error.response?.status,
         };
     }

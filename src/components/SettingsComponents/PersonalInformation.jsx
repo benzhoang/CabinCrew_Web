@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { t } from '../../i18n';
 
 const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChange, genders }) => {
+    const [avatarError, setAvatarError] = useState(false);
+
+    // Reset avatarError khi imgURL thay đổi
+    useEffect(() => {
+        setAvatarError(false);
+    }, [formData.imgURL]);
+
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
             {/* Avatar Section */}
             <div className="text-center mb-8">
                 <div className="relative inline-block">
                     <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg mx-auto">
-                        {formData.avatar ? (
+                        {formData.imgURL && !avatarError ? (
                             <img
-                                src={formData.avatar}
+                                src={formData.imgURL}
                                 alt="Avatar"
                                 className="w-full h-full object-cover"
+                                onError={() => {
+                                    // Nếu ảnh không load được, hiển thị placeholder
+                                    setAvatarError(true);
+                                }}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-300">
@@ -104,6 +115,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                     name="dateOfBirth"
                                     value={formData.dateOfBirth}
                                     onChange={handleChange}
+                                    max="2003-12-31"
                                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'}`}
                                 />
                                 {errors.dateOfBirth && (
