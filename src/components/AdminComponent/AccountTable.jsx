@@ -4,6 +4,7 @@ import { FaArrowsRotate } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { getAllUsers, disableAccount } from "../../service/api2";
 import ModalConfirm from "./ModalConfirm";
+import Loading from "../Loading";
 
 const StatusBadge = ({ value }) => {
   const isActive =
@@ -267,11 +268,7 @@ const AccountTable = ({
   };
 
   if (loading) {
-    return (
-      <div className="p-8 overflow-hidden text-center bg-white border border-gray-200 rounded-xl">
-        <p className="text-gray-500">Đang tải dữ liệu...</p>
-      </div>
-    );
+    return <Loading message="Đang tải dữ liệu..." />;
   }
 
   return (

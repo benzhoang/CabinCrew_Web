@@ -1,10 +1,9 @@
-import { useState, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FaSearch, FaBell, FaFileAlt, FaArrowLeft } from 'react-icons/fa';
-import ComplaintScoreModal from '../../components/ComplaintScoreModal';
-import TestModal from '../../components/TestModal';
-import NotificationModal from '../../components/NotificationModal';
-
+import { useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaSearch, FaBell } from "react-icons/fa";
+import ComplaintScoreModal from "../../components/ExaminerComponent/ComplaintScoreModal";
+import TestModal from "../../components/ExaminerComponent/TestModal";
+import NotificationModal from "../../components/ExaminerComponent/NotificationModal";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -20,70 +19,70 @@ const formatDate = (isoString) => {
 const defaultCandidates = [
   {
     id: 1,
-    name: 'Nguyễn Thị Lan',
-    education: 'Đại học Ngoại thương',
-    email: 'lan.nguyen@email.com',
-    phone: '0901234567',
-    appliedDate: '2025-10-15',
+    name: "Nguyễn Thị Lan",
+    education: "Đại học Ngoại thương",
+    email: "lan.nguyen@email.com",
+    phone: "0901234567",
+    appliedDate: "2025-10-15",
     score: 85,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=3'
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=3",
   },
   {
     id: 2,
-    name: 'Trần Văn Minh',
-    education: 'Đại học Bách khoa',
-    email: 'minh.tran@email.com',
-    phone: '0912345678',
-    appliedDate: '2025-10-16',
+    name: "Trần Văn Minh",
+    education: "Đại học Bách khoa",
+    email: "minh.tran@email.com",
+    phone: "0912345678",
+    appliedDate: "2025-10-16",
     score: 92,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=1'
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=1",
   },
   {
     id: 3,
-    name: 'Lê Thị Hương',
-    education: 'Cao đẳng Du lịch',
-    email: 'huong.le@email.com',
-    phone: '0923456789',
-    appliedDate: '2025-10-17',
+    name: "Lê Thị Hương",
+    education: "Cao đẳng Du lịch",
+    email: "huong.le@email.com",
+    phone: "0923456789",
+    appliedDate: "2025-10-17",
     score: 78,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=2'
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=2",
   },
   {
     id: 4,
-    name: 'Phạm Văn Đức',
-    education: 'Đại học Kinh tế',
-    email: 'duc.pham@email.com',
-    phone: '0934567890',
-    appliedDate: '2025-10-18',
+    name: "Phạm Văn Đức",
+    education: "Đại học Kinh tế",
+    email: "duc.pham@email.com",
+    phone: "0934567890",
+    appliedDate: "2025-10-18",
     score: 88,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=4'
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=4",
   },
   {
     id: 5,
-    name: 'Võ Thị Mai',
-    education: 'Đại học Sư phạm',
-    email: 'mai.vo@email.com',
-    phone: '0945678901',
-    appliedDate: '2025-10-19',
+    name: "Võ Thị Mai",
+    education: "Đại học Sư phạm",
+    email: "mai.vo@email.com",
+    phone: "0945678901",
+    appliedDate: "2025-10-19",
     score: 90,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=5'
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=5",
   },
   {
     id: 6,
-    name: 'Võ Thị Mai',
-    education: 'Đại học Sư phạm',
-    email: 'mai.vo@email.com',
-    phone: '0945678901',
-    appliedDate: '2025-10-19',
+    name: "Võ Thị Mai",
+    education: "Đại học Sư phạm",
+    email: "mai.vo@email.com",
+    phone: "0945678901",
+    appliedDate: "2025-10-19",
     score: 90,
-    round: 'Vòng kiểm tra',
-    photo: 'https://i.pravatar.cc/150?img=6'
-  }
+    round: "Vòng kiểm tra",
+    photo: "https://i.pravatar.cc/150?img=6",
+  },
 ];
 
 const RoundBadge = ({ value }) => {
@@ -95,7 +94,7 @@ const RoundBadge = ({ value }) => {
 };
 
 const ScoreListPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
@@ -107,16 +106,19 @@ const ScoreListPage = () => {
   const filteredCandidates = useMemo(() => {
     if (!searchQuery.trim()) return defaultCandidates;
     const query = searchQuery.toLowerCase();
-    return defaultCandidates.filter(candidate =>
-      candidate.name.toLowerCase().includes(query) ||
-      candidate.email.toLowerCase().includes(query) ||
-      candidate.phone.includes(query)
+    return defaultCandidates.filter(
+      (candidate) =>
+        candidate.name.toLowerCase().includes(query) ||
+        candidate.email.toLowerCase().includes(query) ||
+        candidate.phone.includes(query)
     );
   }, [searchQuery]);
 
   const handleNotificationClick = (notification) => {
     // Find candidate by candidateId and show complaint modal
-    const candidate = defaultCandidates.find(c => c.id === notification.candidateId);
+    const candidate = defaultCandidates.find(
+      (c) => c.id === notification.candidateId
+    );
     if (candidate) {
       setSelectedCandidate(candidate);
       setShowComplaintModal(true);
@@ -143,8 +145,12 @@ const ScoreListPage = () => {
       <div className="mb-6">
         <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách điểm của ứng viên</h1>
-            <p className="text-white/90 mt-1 text-sm">Xem và phản hồi phúc khảo điểm của ứng viên</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold">
+              Danh sách điểm của ứng viên
+            </h1>
+            <p className="text-white/90 mt-1 text-sm">
+              Xem và phản hồi phúc khảo điểm của ứng viên
+            </p>
           </div>
           <button
             onClick={() => navigate(-1)}
@@ -156,23 +162,33 @@ const ScoreListPage = () => {
           </button>
         </div>
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin bài kiểm tra</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Thông tin bài kiểm tra
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
-          <div>
+            <div>
               <p className="text-gray-500">Mã đề:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.testCode || '—'}</p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {examInfo?.testCode || "—"}
+              </p>
             </div>
-          <div>
+            <div>
               <p className="text-gray-500">Tên bài kiểm tra:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.testName || '—'}</p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {examInfo?.testName || "—"}
+              </p>
             </div>
             <div>
               <p className="text-gray-500">Vòng:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.roundName || '—'}</p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {examInfo?.roundName || "—"}
+              </p>
             </div>
             <div>
               <p className="text-gray-500">Địa điểm:</p>
-              <p className="mt-1 font-semibold text-gray-900">{examInfo?.location || '—'}</p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {examInfo?.location || "—"}
+              </p>
             </div>
           </div>
         </div>
@@ -181,9 +197,9 @@ const ScoreListPage = () => {
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Danh sách điểm ({filteredCandidates.length})
-              </h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Danh sách điểm ({filteredCandidates.length})
+            </h1>
             <div className="flex items-center gap-3">
               {/* Notification Icon */}
               <button
@@ -226,7 +242,9 @@ const ScoreListPage = () => {
               {filteredCandidates.map((candidate, idx) => (
                 <tr
                   key={candidate.id}
-                  className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}
+                  className={
+                    idx % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-gray-100"
+                  }
                 >
                   <td className="px-5 py-4">
                     <div className="w-16 h-20 bg-gray-200 rounded overflow-hidden flex items-center justify-center">
@@ -243,23 +261,33 @@ const ScoreListPage = () => {
                   </td>
                   <td className="px-5 py-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{candidate.name}</p>
-                      <p className="text-xs text-gray-600 mt-1">{candidate.education}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {candidate.name}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {candidate.education}
+                      </p>
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     <div>
                       <p className="text-sm text-gray-700">{candidate.email}</p>
-                      <p className="text-xs text-gray-600 mt-1">{candidate.phone}</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {candidate.phone}
+                      </p>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">{formatDate(candidate.appliedDate)}</td>
+                  <td className="px-5 py-4 text-sm text-gray-700">
+                    {formatDate(candidate.appliedDate)}
+                  </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                      candidate.score >= 85 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-red-100 text-red-700'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                        candidate.score >= 85
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {candidate.score}/100
                     </span>
                   </td>
