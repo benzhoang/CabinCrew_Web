@@ -6,10 +6,11 @@ import PersonalInformation from '../../components/SettingsComponents/PersonalInf
 import AccountInformation from '../../components/SettingsComponents/AccountInformation';
 import AddressInformation from '../../components/SettingsComponents/AddressInformation';
 import UpdateProfileButton from '../../components/SettingsComponents/UpdateProfileButton';
+import Loading from '../../components/Loading';
 
 const Settings = () => {
     const [tick, setTick] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [formData, setFormData] = useState({
         imgURL: '',
         fullname: '',
@@ -148,12 +149,14 @@ const Settings = () => {
 
     useEffect(() => {
         const loadUserProfile = async () => {
+            setIsLoading(true);
             try {
                 // Lấy userId từ localStorage
                 const userData = getStoredUser();
 
                 if (!userData) {
                     console.warn('Không tìm thấy thông tin người dùng trong localStorage');
+                    setIsLoading(false);
                     return;
                 }
 
@@ -226,11 +229,10 @@ const Settings = () => {
                             wardId: userData.wardId || (userData.ward && typeof userData.ward === 'number' ? userData.ward : null) || '',
                             role: userData.role || ''
                         }));
+                        setIsLoading(false);
                         return;
                     }
                 }
-
-                setIsLoading(true);
 
                 // Gọi API để lấy thông tin profile
                 const result = await getUserProfile(userId);
@@ -492,7 +494,17 @@ const Settings = () => {
         }
     };
 
-    const handleAvatarChange = (e) => {
+    const handleAvatarChange = (e, imageUrl = null) => {
+        // Nếu có imageUrl từ API (sau khi upload thành công), sử dụng nó
+        if (imageUrl) {
+            setFormData(prev => ({
+                ...prev,
+                imgURL: imageUrl
+            }));
+            return;
+        }
+
+        // Fallback: nếu không có imageUrl, đọc file local (cho preview trước khi upload)
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -561,46 +573,49 @@ const Settings = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">{t('user_profile')}</h1>
-                    <p className="text-gray-600 mt-2">Quản lý thông tin cá nhân của bạn</p>
+        <>
+            {isLoading && <Loading message={t('loading_profile_data')} />}
+            <div className="min-h-screen bg-gray-50 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Header */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-gray-900">{t('user_profile')}</h1>
+                        <p className="text-gray-600 mt-2">Quản lý thông tin cá nhân của bạn</p>
+                    </div>
+
+                    {/* CV Layout - 2 Columns */}
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column - Personal Info & Contact */}
+                        <div className="lg:col-span-1">
+                            <PersonalInformation
+                                formData={formData}
+                                errors={errors}
+                                handleChange={handleChange}
+                                handleAvatarChange={handleAvatarChange}
+                                genders={genders}
+                            />
+                        </div>
+
+                        {/* Right Column - Detailed Information */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <AccountInformation formData={formData} errors={errors} />
+
+                            <AddressInformation
+                                formData={formData}
+                                errors={errors}
+                                handleChange={handleChange}
+                                setFormData={setFormData}
+                            />
+
+                            <UpdateProfileButton
+                                formData={formData}
+                                validateForm={validateForm}
+                            />
+                        </div>
+                    </form>
                 </div>
-
-                {/* CV Layout - 2 Columns */}
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Personal Info & Contact */}
-                    <div className="lg:col-span-1">
-                        <PersonalInformation
-                            formData={formData}
-                            errors={errors}
-                            handleChange={handleChange}
-                            handleAvatarChange={handleAvatarChange}
-                            genders={genders}
-                        />
-                    </div>
-
-                    {/* Right Column - Detailed Information */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <AccountInformation formData={formData} errors={errors} />
-
-                        <AddressInformation
-                            formData={formData}
-                            errors={errors}
-                            handleChange={handleChange}
-                            setFormData={setFormData}
-                        />
-
-                        <UpdateProfileButton
-                            formData={formData}
-                            validateForm={validateForm}
-                        />
-                    </div>
-                </form>
             </div>
-        </div>
+        </>
     );
 };
 

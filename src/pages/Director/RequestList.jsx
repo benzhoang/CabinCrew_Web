@@ -1,58 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
+import { getCampaignRequests } from '../../service/api'
 
-const mockRequests = [
-    {
-        id: 101,
-        code: 'REQ-2024-001',
-        title: 'Yêu cầu tuyển dụng - Cabin Crew (MRF)',
-        proposer: 'Đặng Bích Thu Thùy',
-        position: 'Cabin Crew',
-        department: 'Cabin Crew',
-        unit: 'Cabin Crew - Tiếp viên hàng không',
-        quantity: 20,
-        status: 'pending_approval',
-        startDate: '2024-10-01',
-        endDate: '2024-12-31',
-        description: 'Bổ sung nhân sự Cabin Crew do biến động nghỉ việc và mở rộng đội bay'
-    },
-    {
-        id: 102,
-        code: 'REQ-2024-002',
-        title: 'Yêu cầu tuyển dụng - IT Specialist',
-        proposer: 'Nguyễn Văn Nam',
-        position: 'IT Specialist',
-        department: 'Information Technology',
-        unit: 'IT Operations',
-        quantity: 5,
-        status: 'approved',
-        startDate: '2024-08-01',
-        endDate: '2024-09-30',
-        description: 'Tăng cường đội ngũ IT phục vụ triển khai hệ thống mới'
-    },
-    {
-        id: 103,
-        code: 'REQ-2024-003',
-        title: 'Yêu cầu tuyển dụng - Aircraft Mechanic',
-        proposer: 'Trần Bảo Vy',
-        position: 'Aircraft Mechanic',
-        department: 'Maintenance',
-        unit: 'Base Maintenance',
-        quantity: 12,
-        status: 'rejected',
-        startDate: '2024-07-15',
-        endDate: '2024-10-15',
-        description: 'Bổ sung kỹ thuật viên bảo trì, đợt đề xuất chưa đáp ứng ngân sách'
-    },
-]
-
-const DirectorRequestList = () => {
-    const [requests, setRequests] = useState(mockRequests)
-    const [filteredRequests, setFilteredRequests] = useState(mockRequests)
+const RequestList = () => {
+    const [campaigns, setCampaigns] = useState([])
+    const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [langVersion, setLangVersion] = useState(0)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -61,29 +19,72 @@ const DirectorRequestList = () => {
     }, [])
 
     useEffect(() => {
-        let filtered = requests
+        const fetchCampaigns = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const result = await getCampaignRequests()
+                if (result.success) {
+                    // Map dữ liệu từ API response sang format component đang dùng
+                    const mappedCampaigns = (result.data || []).map(item => ({
+                        id: item.requestId,
+                        name: item.campaignName || 'N/A',
+                        description: item.description || '',
+                        targetQuantity: item.targetQuantity || 0,
+                        requestType: item.requestType || '',
+                        status: item.status || 'pending_approval',
+                        rejectReason: item.rejectReason || '',
+                        approvedAt: item.approvedAt || '',
+                        rejectedAt: item.rejectedAt || '',
+                        partnerName: item.partnerName || '',
+                        directorName: item.directorName || '',
+                        createdAt: item.createdAt || '',
+                        // Map các field cũ để tương thích
+                        position: item.requestType || '',
+                        department: item.partnerName || '',
+                    }))
+                    setCampaigns(mappedCampaigns)
+                } else {
+                    setError(result.error || 'Không thể tải danh sách campaign')
+                    setCampaigns([])
+                }
+            } catch (err) {
+                console.error('Error fetching campaigns:', err)
+                setError('Đã xảy ra lỗi khi tải dữ liệu: ' + (err.message || 'Unknown error'))
+                setCampaigns([])
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchCampaigns()
+    }, [])
+
+    useEffect(() => {
+        let filtered = campaigns
         if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            filtered = filtered.filter((req) =>
-                req.title.toLowerCase().includes(term) ||
-                req.code.toLowerCase().includes(term) ||
-                (req.position || '').toLowerCase().includes(term) ||
-                (req.department || '').toLowerCase().includes(term)
+            filtered = filtered.filter(campaign =>
+                (campaign.name && campaign.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (campaign.requestType && campaign.requestType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (campaign.partnerName && campaign.partnerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (campaign.directorName && campaign.directorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (campaign.description && campaign.description.toLowerCase().includes(searchTerm.toLowerCase()))
             )
         }
         if (statusFilter !== 'all') {
-            filtered = filtered.filter((req) => req.status === statusFilter)
+            filtered = filtered.filter(campaign => campaign.status === statusFilter)
         }
-        setFilteredRequests(filtered)
-    }, [requests, searchTerm, statusFilter])
+        setFilteredCampaigns(filtered)
+    }, [campaigns, searchTerm, statusFilter])
 
-    const handleViewDetails = (request) => {
-        navigate(`/director/requirements/${request.id}`, { state: { request } })
+    const handleViewDetails = (campaign) => {
+        navigate(`/director/campaigns/${campaign.id}`, { state: { campaign } })
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa yêu cầu này?')) {
-            setRequests(requests.filter((req) => req.id !== id))
+        if (window.confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) {
+            // TODO: Implement delete API call when available
+            setCampaigns(campaigns.filter(campaign => campaign.id !== id))
         }
     }
 
@@ -91,7 +92,7 @@ const DirectorRequestList = () => {
         const statusConfig = {
             pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ duyệt' },
             rejected: { color: 'bg-red-100 text-red-800', text: 'Bị từ chối' },
-            approved: { color: 'bg-green-100 text-green-800', text: 'Đã được duyệt' },
+            approved: { color: 'bg-green-100 text-green-800', text: 'Đã được duyệt' }
         }
         const config = statusConfig[status] || statusConfig.pending_approval
         return (
@@ -101,13 +102,33 @@ const DirectorRequestList = () => {
         )
     }
 
+    if (loading) {
+        return (
+            <div className="p-6">
+                <div className="flex justify-center items-center h-64">
+                    <p className="text-slate-600">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800">Lỗi: {error}</p>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="p-6">
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Yêu cầu Tuyển dụng</h2>
-                        <p className="text-slate-600">Theo dõi và phê duyệt các yêu cầu tuyển dụng (MRF)</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Chiến dịch Tổng thể</h2>
+                        <p className="text-slate-600">Quản lý và giám sát các chiến dịch tuyển dụng toàn hệ thống</p>
                     </div>
                 </div>
             </div>
@@ -115,13 +136,13 @@ const DirectorRequestList = () => {
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Yêu cầu ({filteredRequests.length})</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
                         <input
                             type="text"
-                            placeholder="Tìm kiếm theo tiêu đề, mã, vị trí..."
+                            placeholder="Tìm kiếm..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-72 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-64 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
 
@@ -166,57 +187,65 @@ const DirectorRequestList = () => {
                 </div>
 
                 <div className="divide-y divide-slate-200">
-                    {filteredRequests.map((req) => (
-                        <div key={req.id} className="p-6 hover:bg-slate-50 transition-colors">
+                    {filteredCampaigns.map((campaign) => (
+                        <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <div className="mb-2">
-                                        <h4 className="text-lg font-semibold text-slate-800">{req.title}</h4>
-                                        <div className="text-xs text-slate-500">Mã yêu cầu: <span className="font-medium">{req.code}</span></div>
+                                        <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
-                                            <span className="text-sm text-slate-600">Vị trí:</span>
-                                            <p className="font-medium text-slate-800">{req.position}</p>
+                                            <span className="text-sm text-slate-600">Loại yêu cầu:</span>
+                                            <p className="font-medium text-slate-800">{campaign.requestType || 'N/A'}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Phòng ban:</span>
-                                            <p className="font-medium text-slate-800">{req.department}</p>
+                                            <span className="text-sm text-slate-600">Số lượng mục tiêu:</span>
+                                            <p className="font-medium text-slate-800">{campaign.targetQuantity || 0}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Trạng thái:</span>
-                                            <div className="mt-1">{getStatusBadge(req.status)}</div>
+                                            <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
                                     </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
-                                        <div>
-                                            <span className="text-sm text-slate-600">Đơn vị:</span>
-                                            <p className="font-medium text-slate-800">{req.unit}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Số lượng:</span>
-                                            <p className="font-medium text-slate-800">{req.quantity}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Thời gian:</span>
-                                            <p className="font-medium text-slate-800">{req.startDate} - {req.endDate}</p>
-                                        </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                        {campaign.partnerName && (
+                                            <div>
+                                                <span className="text-sm text-slate-600">Đối tác:</span>
+                                                <p className="font-medium text-slate-800">{campaign.partnerName}</p>
+                                            </div>
+                                        )}
+                                        {campaign.directorName && (
+                                            <div>
+                                                <span className="text-sm text-slate-600">Giám đốc:</span>
+                                                <p className="font-medium text-slate-800">{campaign.directorName}</p>
+                                            </div>
+                                        )}
                                     </div>
+                                    {campaign.createdAt && (
+                                        <div className="mb-2">
+                                            <span className="text-sm text-slate-600">Ngày tạo:</span>
+                                            <p className="font-medium text-slate-800">
+                                                {new Date(campaign.createdAt).toLocaleDateString('vi-VN')}
+                                            </p>
+                                        </div>
+                                    )}
 
-                                    <p className="text-sm text-slate-600">{req.description}</p>
+                                    {campaign.description && (
+                                        <p className="text-sm text-slate-600">{campaign.description}</p>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-2 ml-4">
                                     <button
-                                        onClick={() => handleViewDetails(req)}
+                                        onClick={() => handleViewDetails(campaign)}
                                         className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                                     >
                                         Xem chi tiết
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(req.id)}
+                                        onClick={() => handleDelete(campaign.id)}
                                         className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
                                     >
                                         Xóa
@@ -227,9 +256,9 @@ const DirectorRequestList = () => {
                     ))}
                 </div>
 
-                {filteredRequests.length === 0 && (
+                {filteredCampaigns.length === 0 && (
                     <div className="p-12 text-center">
-                        <p className="text-slate-500">Không tìm thấy yêu cầu nào</p>
+                        <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
                     </div>
                 )}
             </div>
@@ -237,6 +266,4 @@ const DirectorRequestList = () => {
     )
 }
 
-export default DirectorRequestList
-
-
+export default RequestList

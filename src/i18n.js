@@ -364,6 +364,7 @@ const dictionaries = {
         loading_default_message: 'Đang tải...',
         loading_please_wait: 'Vui lòng chờ trong giây lát...',
         loading_authenticating: 'Đang xác thực thông tin đăng nhập...',
+        loading_profile_data: 'Đang tải thông tin cá nhân...',
         // Application Form
         application_form_department: 'Phòng ban',
         application_form_application_period: 'Thời gian ứng tuyển',
@@ -443,6 +444,10 @@ const dictionaries = {
         take_english_test: 'Kiểm tra tiếng Anh',
         appeal_title_label: 'Tiêu đề yêu cầu phúc khảo',
         appeal_title_placeholder: 'Nhập tiêu đề yêu cầu phúc khảo',
+        choose_image: 'Chọn ảnh',
+        image_format_hint: 'Hình ảnh phải có định dạng PNG, JPG, JPEG, GIF, SVG',
+        save: 'Lưu',
+        cancel: 'Hủy',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -814,6 +819,7 @@ const dictionaries = {
         loading_default_message: 'Loading...',
         loading_please_wait: 'Please wait a moment...',
         loading_authenticating: 'Authenticating login information...',
+        loading_profile_data: 'Loading profile data...',
         // Application Form
         application_form_department: 'Department',
         application_form_application_period: 'Application Period',
@@ -893,6 +899,10 @@ const dictionaries = {
         take_english_test: 'Take English Test',
         appeal_title_label: 'Appeal Title',
         appeal_title_placeholder: 'Enter your appeal title',
+        choose_image: 'Choose Image',
+        image_format_hint: 'Image must be in PNG, JPG, JPEG, GIF, SVG format',
+        save: 'Save',
+        cancel: 'Cancel',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',
