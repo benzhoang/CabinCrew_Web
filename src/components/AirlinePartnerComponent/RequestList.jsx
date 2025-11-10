@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
+import Loading from "../Loading.jsx";
 
 // Comment data giả
 // const demoRequests = [
@@ -213,7 +214,7 @@ const CampaignCard = ({ request }) => {
 const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch data from API
@@ -296,11 +297,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   }, [requests, search, selectedStatus, campaignTypeFilter]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <div className="text-gray-600">Đang tải...</div>
-      </div>
-    );
+    return <Loading message="Đang tải dữ liệu..." />;
   }
 
   if (error) {
