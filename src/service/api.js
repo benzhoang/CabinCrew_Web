@@ -269,4 +269,89 @@ export const updateUserProfile = async (userId, userData) => {
     }
 };
 
+// API upload ảnh đại diện
+export const uploadProfileImage = async (file) => {
+    try {
+        // Tạo FormData để gửi file
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Tạo axios instance riêng cho upload file (cần Content-Type: multipart/form-data)
+        const token = localStorage.getItem("token");
+        const response = await axios.put(
+            `${API_BASE_URL}/users/profile-img`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: token ? `Bearer ${token}` : "",
+                },
+                timeout: 60000, // 60 giây timeout cho upload file
+            }
+        );
+
+        // Kiểm tra code === 0 (success) theo format API
+        // API có thể trả về data trực tiếp hoặc trong response.data.data
+        const responseData = response.data;
+        const isSuccess = responseData.code === 0 || response.status >= 200 && response.status < 300;
+
+        if (isSuccess) {
+            // Lấy data từ response (có thể là responseData.data hoặc responseData)
+            const data = responseData.data || responseData;
+            return {
+                success: true,
+                data: data,
+                message: responseData.message || "Tải ảnh đại diện thành công",
+            };
+        } else {
+            return {
+                success: false,
+                error: responseData.message || "Tải ảnh đại diện thất bại",
+            };
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || "Tải ảnh đại diện thất bại",
+            status: error.response?.status,
+        };
+    }
+};
+
+// API lấy danh sách campaign requests
+export const getCampaignRequests = async () => {
+    try {
+        const response = await api.get("/campaign-requests");
+
+        if (response.data.code === 0 && response.data.data) {
+            // API trả về data.items là array các campaign requests
+            const items = response.data.data.items || [];
+            return {
+                success: true,
+                data: items,
+                pagination: {
+                    currentPage: response.data.data.currentPage,
+                    pageSize: response.data.data.pageSize,
+                    totalRecords: response.data.data.totalRecords,
+                    totalPages: response.data.data.totalPages,
+                    hasNextPage: response.data.data.hasNextPage,
+                    hasPreviousPage: response.data.data.hasPreviousPage,
+                },
+                message: response.data.message,
+            };
+        } else {
+            return {
+                success: false,
+                error: response.data.message || "Không thể lấy danh sách campaign",
+            };
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || "Không thể lấy danh sách campaign",
+            status: error.response?.status,
+        };
+    }
+};
+
 export default api;
