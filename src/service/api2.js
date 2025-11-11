@@ -277,4 +277,274 @@ export const getCampaignRequestDetail = async (requestId) => {
   }
 };
 
+// API tạo campaign request mới - POST /api/v1/campaign-requests
+export const createCampaignRequest = async (campaignRequestData) => {
+  try {
+    const response = await api2.post("/campaign-requests", campaignRequestData);
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message: response.data.message || "Tạo campaign request thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Tạo campaign request thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Tạo campaign request thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API update campaign request to resubmit - PUT /api/v1/campaign-requests/{id}/resubmit
+export const updateCampaignRequest = async (requestId, campaignRequestData) => {
+  try {
+    const response = await api2.put(
+      `/campaign-requests/${requestId}/resubmit`,
+      campaignRequestData
+    );
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message:
+          response.data.message || "Resubmit campaign request thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Resubmit campaign request thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Resubmit campaign request thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách campaigns - GET /api/v1/campaigns
+export const getCampaignList = async (params = {}) => {
+  try {
+    const allowedParams = {
+      searchTerm: params.searchTerm,
+      sortColumn: params.sortColumn,
+      sortOrder: params.sortOrder,
+      status: params.status,
+      partnerId: params.partnerId,
+      page: params.page,
+      pageSize: params.pageSize,
+    };
+
+    const sanitizedParams = Object.fromEntries(
+      Object.entries(allowedParams).filter(
+        ([, value]) => value !== undefined && value !== null && value !== ""
+      )
+    );
+
+    const response = await api2.get("/campaigns", {
+      params: sanitizedParams,
+    });
+
+    // Log response để debug
+    console.log("Campaign List API Response:", response.data);
+
+    // Kiểm tra nhiều trường hợp response structure
+    const responseData = response.data;
+
+    // Trường hợp 1: response.data.code === 0 và có response.data.data
+    if (responseData.code === 0 && responseData.data) {
+      const data = responseData.data;
+      // Nếu data là array trực tiếp
+      if (Array.isArray(data)) {
+        return {
+          success: true,
+          data: {
+            items: data,
+            pagination: undefined,
+          },
+          message: responseData.message,
+        };
+      }
+      // Nếu data có items hoặc là object với các trường pagination
+      if (data.items || (data && typeof data === "object")) {
+        return {
+          success: true,
+          data: {
+            items: data.items || (Array.isArray(data) ? data : []),
+            pagination: data.pagination
+              ? {
+                  currentPage: data.pagination.currentPage || 1,
+                  pageSize: data.pagination.pageSize || 0,
+                  totalRecords: data.pagination.totalRecords || 0,
+                  totalPages: data.pagination.totalPages || 0,
+                  hasNextPage: data.pagination.hasNextPage || false,
+                  hasPreviousPage: data.pagination.hasPreviousPage || false,
+                }
+              : data.currentPage
+              ? {
+                  currentPage: data.currentPage || 1,
+                  pageSize: data.pageSize || 0,
+                  totalRecords: data.totalRecords || 0,
+                  totalPages: data.totalPages || 0,
+                  hasNextPage: data.hasNextPage || false,
+                  hasPreviousPage: data.hasPreviousPage || false,
+                }
+              : undefined,
+          },
+          message: responseData.message,
+        };
+      }
+    }
+
+    // Trường hợp 2: response.data là array trực tiếp (không có code và data wrapper)
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: {
+          items: responseData,
+          pagination: undefined,
+        },
+        message: "Success",
+      };
+    }
+
+    // Trường hợp 3: response.data có items trực tiếp
+    if (responseData.items && Array.isArray(responseData.items)) {
+      return {
+        success: true,
+        data: {
+          items: responseData.items,
+          pagination: responseData.pagination || undefined,
+        },
+        message: responseData.message || "Success",
+      };
+    }
+
+    // Nếu không match bất kỳ trường hợp nào
+    return {
+      success: false,
+      error: responseData.message || "Lấy danh sách campaigns thất bại",
+      rawResponse: responseData,
+    };
+  } catch (error) {
+    console.error("Campaign List API Error:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy danh sách campaigns thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy chi tiết campaign theo ID - GET /api/v1/campaigns/{id}
+export const getCampaignDetail = async (campaignId) => {
+  try {
+    const response = await api2.get(`/campaigns/${campaignId}`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Lấy chi tiết campaign thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy chi tiết campaign thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật campaign và tạo rounds - PUT /api/v1/campaigns/{id}/campaign-rounds
+export const updateCampaignAndCreateRounds = async (
+  campaignId,
+  campaignData
+) => {
+  try {
+    const response = await api2.put(
+      `/campaigns/${campaignId}/campaign-rounds`,
+      campaignData
+    );
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message:
+          response.data.message || "Cập nhật campaign và tạo rounds thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data.message || "Cập nhật campaign và tạo rounds thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cập nhật campaign và tạo rounds thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;

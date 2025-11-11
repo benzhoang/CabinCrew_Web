@@ -3,87 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 import Loading from "../Loading.jsx";
 
-// Comment data giả
-// const demoRequests = [
-//   {
-//     id: 101,
-//     code: "REQ-2024-001",
-//     title: "Yêu cầu tuyển dụng - Cabin Crew (MRF)",
-//     proposer: "Đặng Bích Thu Thùy",
-//     position: "Cabin Crew",
-//     department: "Cabin Crew",
-//     unit: "Cabin Crew - Tiếp viên hàng không",
-//     quantity: 20,
-//     status: "pending",
-//     requestType: "recruitment",
-//     startDate: "2024-10-01",
-//     endDate: "2024-12-31",
-//     description:
-//       "Bổ sung nhân sự Cabin Crew do biến động nghỉ việc và mở rộng đội bay",
-//   },
-//   {
-//     id: 102,
-//     code: "REQ-2024-002",
-//     title: "Yêu cầu tuyển dụng - IT Specialist",
-//     proposer: "Nguyễn Văn Nam",
-//     position: "IT Specialist",
-//     department: "Information Technology",
-//     unit: "IT Operations",
-//     quantity: 5,
-//     status: "approved",
-//     requestType: "recruitment",
-//     startDate: "2024-08-01",
-//     endDate: "2024-09-30",
-//     description: "Tăng cường đội ngũ IT phục vụ triển khai hệ thống mới",
-//   },
-//   {
-//     id: 103,
-//     code: "REQ-2024-003",
-//     title: "Yêu cầu tuyển dụng - Aircraft Mechanic",
-//     proposer: "Trần Bảo Vy",
-//     position: "Aircraft Mechanic",
-//     department: "Maintenance",
-//     unit: "Base Maintenance",
-//     quantity: 12,
-//     status: "rejected",
-//     requestType: "recruitment",
-//     startDate: "2024-07-15",
-//     endDate: "2024-10-15",
-//     description:
-//       "Bổ sung kỹ thuật viên bảo trì, đợt đề xuất chưa đáp ứng ngân sách",
-//   },
-//   {
-//     id: 104,
-//     code: "REQ-2024-004",
-//     title: "Yêu cầu nâng bậc - Senior Cabin Crew",
-//     proposer: "Lê Thị Hoa",
-//     position: "Senior Cabin Crew",
-//     department: "Cabin Crew",
-//     unit: "Cabin Crew - Tiếp viên hàng không",
-//     quantity: 15,
-//     status: "pending",
-//     requestType: "promotion",
-//     startDate: "2024-11-01",
-//     endDate: "2025-01-31",
-//     description: "Nâng bậc cho các cabin crew có kinh nghiệm lâu năm",
-//   },
-//   {
-//     id: 105,
-//     code: "REQ-2024-005",
-//     title: "Yêu cầu nâng bậc - Lead IT Specialist",
-//     proposer: "Phạm Minh Tuấn",
-//     position: "Lead IT Specialist",
-//     department: "Information Technology",
-//     unit: "IT Operations",
-//     quantity: 3,
-//     status: "approved",
-//     requestType: "promotion",
-//     startDate: "2024-09-01",
-//     endDate: "2024-12-31",
-//     description: "Nâng bậc cho các IT Specialist xuất sắc",
-//   },
-// ];
-
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
     // Normalize status to lowercase for comparison
@@ -185,10 +104,11 @@ const CampaignCard = ({ request }) => {
               <StatusBadge status={request.status} />
             </div>
             <div>
-              <span className="text-gray-500">Mô tả:</span>{" "}
-              {request.description || "Không có mô tả"}
+              <span className="text-sm text-slate-600">Đối tác:</span>{" "}
+              {request.partnerName || "Không có đối tác"}
             </div>
           </div>
+          <div className="mt-4">{request.description || "Không có mô tả"}</div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
