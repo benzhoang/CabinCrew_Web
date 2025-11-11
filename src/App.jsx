@@ -48,18 +48,15 @@ import ProfileCabinCrewPage from "./pages/CabinCrew/ProfileCabinCrewPage";
 import DirectorSidebar from "./components/DirectorSidebar";
 import DirectorCampaign from "./pages/Director/DirectorCampaign";
 import DirectorCampInfo from "./pages/Director/DirectorCampDetail/DirectorCampInfo";
-import CreateCampaignInfoPage from "./pages/AirlinePartner/CreateCampaignInfoPage";
 import SettingsPage from "./pages/CabinCrew/SettingsPage";
 import SeniorCampaignPage from "./pages/SeniorRecruiter/SeniorCampaignPage";
 import SeniorRecruiterLayout from "./layouts/SeniorRecruiterLayout";
 import SeniorCampaignDetailPage from "./pages/SeniorRecruiter/SeniorCampaignDetailPage";
-import CreatePromotionInfoPage from "./pages/AirlinePartner/CreatePromotionInfo";
 import SeniorRequestPage from "./pages/SeniorRecruiter/SeniorRequestPage";
 import AirlineRequestPage from "./pages/AirlinePartner/AirlineRequestPage";
 import SeniorCreateCampaignPage from "./pages/SeniorRecruiter/SeniorCreateCampaignPage";
 import DirectorRequestList from "./pages/Director/RequestList";
 import RequestCampInfo from "./pages/Director/RequestDetail/RequestCampInfo";
-import DirectorBatchInfo from "./pages/Director/DirectorCampDetail/DirectorBatchInfo";
 import ExaminerSidebar from "./components/ExaminerComponent/ExaminerSidebar";
 import ExaminerCampaign from "./pages/Examiner/ExaminerCampaign";
 import ExaminerCampDetail from "./pages/Examiner/ExaminerDetail/ExaminerCampDetail";
@@ -68,7 +65,7 @@ import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetail
 import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
 import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
-import ExamPage from "./pages/Candidate/ExamPage";
+import ExamPage from "./pages/Candidate/ExamTest/ExamPage";
 import ExamResultPage from "./pages/Candidate/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
@@ -78,6 +75,9 @@ import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppoin
 import AppointmentPage from "./pages/Candidate/Appointment";
 import TestResultPage from "./pages/CabinCrew/TestResultPage";
 import ExaminerListPage from "./pages/Admin/ExaminerListPage";
+import TestingPage from "./pages/Examiner/TestingPage";
+import CreatePromotionRequestPage from "./pages/AirlinePartner/CreatePromotionRequestPage";
+import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequestPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -379,18 +379,18 @@ function App() {
           }
         />
         <Route
-          path="/airline-partner/campaigns/create"
+          path="/airline-partner/requests/campaign/create"
           element={
             <AirlinePartnerLayout>
-              <CreateCampaignInfoPage />
+              <CreateCampaignRequestPage />
             </AirlinePartnerLayout>
           }
         />
         <Route
-          path="/airline-partner/campaigns/create/promotion"
+          path="/airline-partner/requests/promotion/create"
           element={
             <AirlinePartnerLayout>
-              <CreatePromotionInfoPage />
+              <CreatePromotionRequestPage />
             </AirlinePartnerLayout>
           }
         />
@@ -626,6 +626,17 @@ function App() {
             </div>
           }
         />
+        <Route
+          path="/examiner/testing"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <TestingPage />
+              </main>
+            </div>
+          }
+        />
       </Routes>
 
       {/* Director Routes */}
@@ -649,7 +660,6 @@ function App() {
               <main className="flex-1 overflow-auto">
                 <div className="space-y-2">
                   <DirectorCampInfo />
-                  <DirectorBatchInfo />
                 </div>
               </main>
             </div>

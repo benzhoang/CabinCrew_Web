@@ -78,7 +78,7 @@ const RequestList = () => {
     }, [campaigns, searchTerm, statusFilter])
 
     const handleViewDetails = (campaign) => {
-        navigate(`/director/campaigns/${campaign.id}`, { state: { campaign } })
+        navigate(`/director/requirements/${campaign.id}`, { state: { campaign } })
     }
 
     const handleDelete = (id) => {
@@ -209,12 +209,14 @@ const RequestList = () => {
                                             <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                                        {campaign.partnerName && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                        {campaign.partnerName ? (
                                             <div>
                                                 <span className="text-sm text-slate-600">Đối tác:</span>
                                                 <p className="font-medium text-slate-800">{campaign.partnerName}</p>
                                             </div>
+                                        ) : (
+                                            <div></div>
                                         )}
                                         {campaign.directorName && (
                                             <div>

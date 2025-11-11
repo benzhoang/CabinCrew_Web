@@ -10,22 +10,24 @@ const AirlineRequestPage = () => {
 
   return (
     <div className="w-full h-full">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate("/airline-partner/campaigns/create")}
-                className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() =>
+                  navigate("/airline-partner/requests/campaign/create")
+                }
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 <FaPlus />
                 <span>Tạo yêu cầu chiến dịch</span>
               </button>
               <button
                 onClick={() =>
-                  navigate("/airline-partner/campaigns/create/promotion")
+                  navigate("/airline-partner/requests/promotion/create")
                 }
-                className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 <FaPlus />
                 <span>Tạo yêu cầu nâng bậc</span>
@@ -39,14 +41,14 @@ const AirlineRequestPage = () => {
                   placeholder="Tìm theo tên, vị trí, phòng ban..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-100 h-10 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                  className="h-10 pl-3 text-sm border border-gray-300 rounded-lg w-100 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
                 />
-                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <FaSearch className="absolute text-gray-500 -translate-y-1/2 right-3 top-1/2" />
               </div>
               <select
                 value={campaignTypeFilter}
                 onChange={(e) => setCampaignTypeFilter(e.target.value)}
-                className="h-10 pl-3 pr-8 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
+                className="h-10 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               >
                 <option value="all">Tất cả loại yêu cầu</option>
                 <option value="Recruitment">Tuyển dụng</option>

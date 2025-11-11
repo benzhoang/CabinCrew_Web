@@ -3,16 +3,14 @@ import { FaSearch } from "react-icons/fa";
 import RequestList from "../../components/SeniorRecruiterComponent/RequestList";
 
 const SeniorRequestPage = () => {
-  const [search, setSearch] = useState('')
-  const [campaignTypeFilter, setCampaignTypeFilter] = useState('all')
+  const [search, setSearch] = useState("");
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
 
   return (
-
     <div className="w-full h-full">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col gap-6">
           <div className="flex items-center mb-5">
-
             <div className="flex items-center gap-3">
               <div className="relative">
                 <input
@@ -30,13 +28,16 @@ const SeniorRequestPage = () => {
                 className="h-10 pl-3 pr-8 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
               >
                 <option value="all">Tất cả loại yêu cầu</option>
-                <option value="recruitment">Tuyển dụng</option>
-                <option value="promotion">Nâng bậc</option>
+                <option value="Recruitment">Tuyển dụng</option>
+                <option value="Promotion">Nâng bậc</option>
               </select>
             </div>
           </div>
 
-          <RequestList search={search} campaignTypeFilter={campaignTypeFilter} />
+          <RequestList
+            search={search}
+            campaignTypeFilter={campaignTypeFilter}
+          />
         </div>
       </div>
     </div>
