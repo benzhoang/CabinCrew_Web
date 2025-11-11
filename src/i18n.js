@@ -448,6 +448,7 @@ const dictionaries = {
         image_format_hint: 'Hình ảnh phải có định dạng PNG, JPG, JPEG, GIF, SVG',
         save: 'Lưu',
         cancel: 'Hủy',
+        sidebar_testing: 'Kiểm tra',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -903,6 +904,7 @@ const dictionaries = {
         image_format_hint: 'Image must be in PNG, JPG, JPEG, GIF, SVG format',
         save: 'Save',
         cancel: 'Cancel',
+        sidebar_testing: 'Testing',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',

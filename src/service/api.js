@@ -412,4 +412,64 @@ export const getCampaignRequests = async () => {
   }
 };
 
+// API lấy chi tiết campaign request theo ID
+export const getCampaignRequestById = async (id) => {
+  try {
+    const response = await api.get(`/campaign-requests/${id}`);
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy chi tiết campaign request",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể lấy chi tiết campaign request",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách tests
+export const getTests = async (page = 1, pageSize = 10) => {
+  try {
+    const response = await api.get("/tests", {
+      params: {
+        page: page,
+        pageSize: pageSize
+      }
+    });
+
+    console.log('Raw API Response:', response.data);
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy danh sách đề thi",
+      };
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api;

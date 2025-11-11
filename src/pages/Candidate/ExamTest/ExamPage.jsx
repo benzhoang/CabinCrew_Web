@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { t, onLangChange } from '../../i18n';
+import { t, onLangChange } from '../../../i18n';
+import AudioPlayer from './AudioPlayer';
 
 // Mock data - Listening test với câu hỏi tiếng Anh
 const mockQuestions = [
@@ -48,9 +49,7 @@ const ExamPage = () => {
     const [answers, setAnswers] = useState({});
     const [timeRemaining, setTimeRemaining] = useState(1800); // 30 phút = 1800 giây
     const [langVersion, setLangVersion] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
     const [playCounts, setPlayCounts] = useState({}); // Đếm số lần phát audio cho mỗi câu hỏi
-    const speechSynthesisRef = useRef(null);
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [startTime] = useState(Date.now()); // Lưu thời gian bắt đầu làm bài
     const [markedQuestions, setMarkedQuestions] = useState(new Set()); // Lưu các câu hỏi được đánh dấu
@@ -60,6 +59,7 @@ const ExamPage = () => {
         const off = onLangChange(() => setLangVersion((v) => v + 1));
         return () => off();
     }, []);
+
 
     // Timer countdown
     useEffect(() => {
@@ -108,64 +108,14 @@ const ExamPage = () => {
         });
     };
 
-    // Play audio using Web Speech API
-    const playAudio = (text) => {
-        if (speechSynthesisRef.current) {
-            window.speechSynthesis.cancel();
-        }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
-
-        utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => setIsPlaying(false);
-        utterance.onerror = () => setIsPlaying(false);
-
-        window.speechSynthesis.speak(utterance);
-        speechSynthesisRef.current = utterance;
+    // Callback để cập nhật playCount từ AudioPlayer
+    const handlePlayCountChange = (questionId, newPlayCount) => {
+        setPlayCounts(prev => ({
+            ...prev,
+            [questionId]: newPlayCount
+        }));
     };
 
-    const stopAudio = () => {
-        window.speechSynthesis.cancel();
-        setIsPlaying(false);
-    };
-
-    const handlePlayPause = () => {
-        if (isPlaying) {
-            stopAudio();
-        } else {
-            const currentQuestion = mockQuestions[currentQuestionIndex];
-            const questionId = currentQuestion.id;
-            const currentPlayCount = playCounts[questionId] || 0;
-
-            // Kiểm tra xem đã phát 3 lần chưa
-            if (currentPlayCount >= 3) {
-                return; // Không cho phát thêm
-            }
-
-            // Tăng số lần phát
-            setPlayCounts({
-                ...playCounts,
-                [questionId]: currentPlayCount + 1
-            });
-
-            playAudio(currentQuestion.audioText || currentQuestion.question);
-        }
-    };
-
-    // Stop audio when component unmounts or question changes
-    useEffect(() => {
-        return () => {
-            stopAudio();
-        };
-    }, []);
-
-    // Stop audio when question changes
-    useEffect(() => {
-        stopAudio();
-    }, [currentQuestionIndex]);
 
     // Handle question navigation
     const handleQuestionClick = (index) => {
@@ -232,8 +182,6 @@ const ExamPage = () => {
 
     const currentQuestion = mockQuestions[currentQuestionIndex];
     const currentAnswer = answers[currentQuestion.id];
-    const currentPlayCount = playCounts[currentQuestion.id] || 0;
-    const canPlay = currentPlayCount < 3;
 
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -274,50 +222,14 @@ const ExamPage = () => {
                                 </div>
                             </div>
 
-                            {/* Audio Player */}
-                            {canPlay ? (
-                                <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                                    <div className="flex items-center justify-center mb-4">
-                                        <button
-                                            onClick={handlePlayPause}
-                                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
-                                        >
-                                            {isPlaying ? (
-                                                <>
-                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                    </svg>
-                                                    {t('pause') || 'Tạm dừng'}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                                                    </svg>
-                                                    {t('play') || 'Phát'}
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                    <div className="text-sm text-gray-600 text-center">
-                                        <p className="mb-1">{t('listening_instruction') || 'Nghe audio và chọn đáp án đúng'}</p>
-                                        <p className="text-amber-600 font-medium">
-                                            {t('plays_remaining') || 'Còn lại'} {3 - currentPlayCount} {t('times') || 'lần'}
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="mb-8 p-6 bg-red-50 rounded-lg border border-red-200">
-                                    <div className="flex items-center justify-center">
-                                        <svg className="w-8 h-8 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <p className="text-sm text-red-700 font-medium">
-                                            {t('audio_limit_reached') || 'Bạn đã sử dụng hết 3 lần phát audio cho câu hỏi này'}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Audio Player - Sử dụng component riêng */}
+                            <AudioPlayer
+                                questionId={currentQuestion.id}
+                                audioText={currentQuestion.audioText || currentQuestion.question}
+                                allQuestions={mockQuestions}
+                                maxPlays={3}
+                                onPlayCountChange={handlePlayCountChange}
+                            />
 
                             {/* Các lựa chọn */}
                             <div className="mb-8">

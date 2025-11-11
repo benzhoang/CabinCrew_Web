@@ -1,4 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import DirectorBatchInfo from './DirectorBatchInfo'
+import RejectCampaignModal from './RejectCampaignModal'
 
 const formatDate = (isoString) => {
     if (!isoString) return ''
@@ -12,7 +15,6 @@ const formatDate = (isoString) => {
 
 const mockCampaign = {
     id: 1,
-    name: 'Chiến dịch Tuyển dụng Hàng không Toàn quốc 2024',
     code: "CCD1 MRF",
     title: "Yêu cầu tuyển dụng - MRF",
     subtitle: "Cabin Crew (Thay thế do nghỉ việc/Thai sản)",
@@ -71,53 +73,32 @@ const InfoRow = ({ label, value }) => (
     </div>
 )
 
-const DirectorCampInfo = () => {
+const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
     const { state } = useLocation()
-    const data = state?.campaign || mockCampaign
-    const navigate = useNavigate()
+    const campaignData = state?.campaign || campaign
+    const data = campaignData || mockCampaign
+    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
 
-    const handleApprove = () => {
-        if (window.confirm('Bạn có chắc chắn muốn duyệt chiến dịch này?')) {
-            console.log('Chiến dịch đã được duyệt:', data.id)
-            // Thực hiện logic duyệt
-            navigate('/director/campaigns')
-        }
-    }
-
-    const handleReject = () => {
-        if (window.confirm('Bạn có chắc chắn muốn từ chối chiến dịch này?')) {
-            console.log('Chiến dịch đã bị từ chối:', data.id)
-            // Thực hiện logic từ chối
-            navigate('/director/campaigns')
-        }
-    }
-
-    const handleAssign = () => {
-        console.log('Giao việc cho chiến dịch:', data.id)
-        // Thực hiện logic giao việc
+    const handleReject = (reason) => {
+        console.log('Reject reason:', reason)
+        // TODO: Gọi API để từ chối đề xuất với lý do
+        alert(`Đã từ chối đề xuất với lý do: ${reason}`)
     }
 
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">{data?.name || data?.title || 'Chi tiết Chiến dịch'}</h2>
-                        <p className="text-slate-600">Xem thông tin chi tiết và quản lý chiến dịch tuyển dụng</p>
-                    </div>
-                </div>
-            </div>
-
+        <div className="w-full h-full">
             <div className="grid grid-cols-1 gap-5">
                 <Section title="Thông tin đề xuất">
-                    <div className="text-gray-900 font-medium">{data.proposer}</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-                        <InfoRow label="Vị trí tuyển" value={data.role} />
-                        <InfoRow label="Phòng ban" value={data.department} />
-                        <InfoRow label="Đơn vị" value={data.unit} />
-                        <InfoRow label="Số lượng tuyển" value={data.quantity} />
-                        <InfoRow label="Ngày bắt đầu" value={formatDate(data.startDate)} />
-                        <InfoRow label="Ngày kết thúc" value={formatDate(data.endDate)} />
+                    <div className="space-y-4">
+                        <div className="text-gray-900 font-medium">{data.proposer || "Đặng Bích Thu Thùy (Crew Welfare Team Leader)"}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <InfoRow label="Vị trí tuyển" value={data.role || "Tiếp viên hàng không"} />
+                            <InfoRow label="Phòng ban" value={data.department || "Cabin Crew"} />
+                            <InfoRow label="Đơn vị" value={data.unit || "Cabin Crew - Tiếp viên hàng không"} />
+                            <InfoRow label="Số lượng tuyển" value={data.quantity || 20} />
+                            <InfoRow label="Ngày bắt đầu" value={formatDate(data.startDate) || "15/01/2024"} />
+                            <InfoRow label="Ngày kết thúc" value={formatDate(data.endDate) || "15/03/2024"} />
+                        </div>
                     </div>
 
                     {/* Job Description */}
@@ -311,13 +292,42 @@ const DirectorCampInfo = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Batch Management Section */}
+                    <div className="mt-6">
+                        <DirectorBatchInfo campaign={data} onCreateBatch={onCreateBatch} />
+                    </div>
                 </Section>
+
+                {/* Action buttons footer */}
+                <div className="flex items-center justify-end gap-3 px-4 pb-4">
+                    <button
+                        type="button"
+                        onClick={() => setIsRejectModalOpen(true)}
+                        className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-sm text-sm font-medium transition-colors"
+                    >
+                        Từ chối
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => alert('Đã duyệt đề xuất')}
+                        className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white shadow-sm text-sm font-medium transition-colors"
+                    >
+                        Duyệt
+                    </button>
+                </div>
+
             </div>
 
-
+            {/* Reject Campaign Modal */}
+            <RejectCampaignModal
+                isOpen={isRejectModalOpen}
+                onClose={() => setIsRejectModalOpen(false)}
+                onSubmit={handleReject}
+                campaignTitle={data.title || data.subtitle}
+            />
         </div>
     )
 }
 
-export default DirectorCampInfo
-
+export default DirectorCampInfo;

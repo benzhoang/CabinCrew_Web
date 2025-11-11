@@ -59,7 +59,6 @@ import AirlineRequestPage from "./pages/AirlinePartner/AirlineRequestPage";
 import SeniorCreateCampaignPage from "./pages/SeniorRecruiter/SeniorCreateCampaignPage";
 import DirectorRequestList from "./pages/Director/RequestList";
 import RequestCampInfo from "./pages/Director/RequestDetail/RequestCampInfo";
-import DirectorBatchInfo from "./pages/Director/DirectorCampDetail/DirectorBatchInfo";
 import ExaminerSidebar from "./components/ExaminerComponent/ExaminerSidebar";
 import ExaminerCampaign from "./pages/Examiner/ExaminerCampaign";
 import ExaminerCampDetail from "./pages/Examiner/ExaminerDetail/ExaminerCampDetail";
@@ -68,7 +67,7 @@ import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetail
 import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
 import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
-import ExamPage from "./pages/Candidate/ExamPage";
+import ExamPage from "./pages/Candidate/ExamTest/ExamPage";
 import ExamResultPage from "./pages/Candidate/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
@@ -78,6 +77,7 @@ import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppoin
 import AppointmentPage from "./pages/Candidate/Appointment";
 import TestResultPage from "./pages/CabinCrew/TestResultPage";
 import ExaminerListPage from "./pages/Admin/ExaminerListPage";
+import TestingPage from "./pages/Examiner/TestingPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -626,6 +626,14 @@ function App() {
             </div>
           }
         />
+        <Route path="/examiner/testing" element={
+          <div className="flex h-screen bg-gray-50">
+            <ExaminerSidebar />
+            <main className="flex-1 overflow-auto">
+              <TestingPage />
+            </main>
+          </div>
+        } />
       </Routes>
 
       {/* Director Routes */}
@@ -649,7 +657,6 @@ function App() {
               <main className="flex-1 overflow-auto">
                 <div className="space-y-2">
                   <DirectorCampInfo />
-                  <DirectorBatchInfo />
                 </div>
               </main>
             </div>
