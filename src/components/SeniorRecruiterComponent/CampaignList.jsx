@@ -2,17 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import Loading from "../Loading.jsx";
-import { formatDate } from "../../config/formatDate.js";
-
-// Helper function to convert API date format (DD/MM/YYYY HH:mm) to ISO format
-const convertDateFormat = (dateString) => {
-  if (!dateString) return "";
-  // Format: "30/11/2025 00:00"
-  const parts = dateString.split(" ");
-  const datePart = parts[0]; // "30/11/2025"
-  const [day, month, year] = datePart.split("/");
-  return `${year}-${month}-${day}`;
-};
+import { formatDate, convertDateFormat } from "../../config/formatDate.js";
 
 // Helper function to map API status to component status
 const mapStatus = (status) => {
@@ -21,12 +11,12 @@ const mapStatus = (status) => {
     Active: "active",
     Pending: "pending",
     Completed: "completed",
+    Rejected: "rejected",
   };
   return statusMap[status] || status.toLowerCase();
 };
 
 // Helper function to map component status to API status
-// Đang comment lại vì không gửi status filter lên API, filter ở client-side
 // const mapStatusToAPI = (status) => {
 //   const statusMap = {
 //     draft: "Draft",
@@ -51,7 +41,7 @@ const StatusBadge = ({ status }) => {
     switch (status) {
       case "active":
         return {
-          className: "bg-green-100 text-green-700 border-green-200",
+          className: "bg-blue-100 text-blue-700 border-blue-200",
           text: "Đang diễn ra",
         };
       case "pending":
@@ -61,13 +51,18 @@ const StatusBadge = ({ status }) => {
         };
       case "completed":
         return {
-          className: "bg-red-100 text-red-600 border-red-200",
+          className: "bg-green-100 text-green-700 border-green-200",
           text: "Đã hoàn thành",
         };
       case "draft":
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
           text: "Bản nháp",
+        };
+      case "rejected":
+        return {
+          className: "bg-red-100 text-red-600 border-red-200",
+          text: "Bị từ chối",
         };
       default:
         return {
@@ -126,14 +121,14 @@ const CampaignCard = ({ campaign }) => {
   }, [campaign]);
 
   return (
-    <div className="border border-gray-200 rounded-xl p-5 bg-white">
+    <div className="p-5 bg-white border border-gray-200 rounded-xl">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-semibold text-gray-900 truncate">
             {campaign.title}
           </h3>
 
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 text-sm text-gray-700">
+          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
             <div>
               <span className="text-gray-500">Thời gian bắt đầu:</span>{" "}
               {formatDate(campaign.startDate)}
@@ -143,43 +138,50 @@ const CampaignCard = ({ campaign }) => {
               {formatDate(campaign.endDate)}
             </div>
             <div>
-              <span className="text-gray-500">Trạng thái:</span>{" "}
-              <StatusBadge status={campaign.status} />
-            </div>
-            <div>
               <span className="text-gray-500">Loại chiến dịch:</span>{" "}
               <CampaignTypeBadge type={campaign.campaignType} />
+            </div>
+            <div>
+              <span className="text-gray-500">Trạng thái:</span>{" "}
+              <StatusBadge status={campaign.status} />
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            onClick={() =>
-              navigate(`/senior-recruiter/campaigns/${campaign.id}`, {
-                state: { campaign: campaign },
-              })
-            }
-          >
-            Xem chi tiết
-          </button>
-          <button
-            onClick={() => navigate(`/senior-recruiter/campaigns/create`)}
-            className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
-          >
-            Tạo kế hoạch
-          </button>
+          {campaign.status === "draft" ? (
+            <button
+              onClick={() => navigate(`/senior-recruiter/campaigns/create`)}
+              className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
+            >
+              Tạo kế hoạch
+            </button>
+          ) : campaign.status === "rejected" ? (
+            <button className="px-3 py-1.5 text-sm rounded-lg bg-amber-600 text-white hover:bg-amber-700">
+              Gửi lại
+            </button>
+          ) : (
+            <button
+              className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() =>
+                navigate(`/senior-recruiter/campaigns/${campaign.id}`, {
+                  state: { campaign: campaign },
+                })
+              }
+            >
+              Xem chi tiết
+            </button>
+          )}
         </div>
       </div>
 
       <div className="mt-4">
-        <div className="flex justify-between text-sm text-slate-600 mb-1">
+        <div className="flex justify-between mb-1 text-sm text-slate-600">
           <span className="text-gray-500">Tiến độ tuyển dụng</span>{" "}
           {campaign.progress?.current ?? 0}/{campaign.progress?.total ?? 0} (
           {percent}%)
         </div>
-        <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+        <div className="h-2 overflow-hidden bg-gray-200 rounded-full">
           <div
             className="h-full bg-blue-600"
             style={{ width: `${percent}%` }}
@@ -193,7 +195,7 @@ const CampaignCard = ({ campaign }) => {
 };
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("active");
+  const [selectedStatus, setSelectedStatus] = useState("draft");
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -266,11 +268,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   if (error) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="text-xl font-bold text-gray-800 mb-6">
+        <h2 className="mb-6 text-xl font-bold text-gray-800">
           Danh sách chiến dịch
         </h2>
-        <div className="text-center py-8">
-          <div className="text-red-600 mb-2">{error}</div>
+        <div className="py-8 text-center">
+          <div className="mb-2 text-red-600">{error}</div>
           <button
             onClick={() => {
               setError(null);
@@ -310,7 +312,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
               };
               fetchCampaigns();
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             Thử lại
           </button>
@@ -321,17 +323,28 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
 
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-xl font-bold text-gray-800 mb-6">
+      <h2 className="mb-6 text-xl font-bold text-gray-800">
         Danh sách chiến dịch ({filtered.length})
       </h2>
       <div className="flex items-center gap-3">
         <div className="inline-flex items-stretch gap-3">
           <button
             type="button"
+            onClick={() => setSelectedStatus("draft")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "draft"
+                ? "bg-gray-200 text-gray-700 border-gray-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Bản nháp
+          </button>
+          <button
+            type="button"
             onClick={() => setSelectedStatus("active")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "active"
-                ? "bg-green-600 text-white border-green-600"
+                ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -350,25 +363,25 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("completed")}
+            onClick={() => setSelectedStatus("rejected")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "completed"
+              selectedStatus === "rejected"
                 ? "bg-red-600 text-white border-red-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Đã hoàn thành
+            Bị từ chối
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("draft")}
+            onClick={() => setSelectedStatus("completed")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "draft"
-                ? "bg-gray-200 text-gray-700 border-gray-600"
+              selectedStatus === "completed"
+                ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Bản nháp
+            Đã hoàn thành
           </button>
         </div>
       </div>

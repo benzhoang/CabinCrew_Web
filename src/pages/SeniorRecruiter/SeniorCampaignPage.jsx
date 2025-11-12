@@ -13,16 +13,6 @@ const SeniorCampaignPage = () => {
       <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between mb-5">
-            {/* <div>
-              <button
-                onClick={() => navigate("/senior-recruiter/campaigns/create")}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
-              >
-                <FaPlus />
-                <span>Tạo chiến dịch</span>
-              </button>
-            </div> */}
-
             <div className="flex items-center gap-3">
               <div className="relative">
                 <input

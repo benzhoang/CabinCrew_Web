@@ -78,6 +78,7 @@ import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 import TestingPage from "./pages/Examiner/TestingPage";
 import CreatePromotionRequestPage from "./pages/AirlinePartner/CreatePromotionRequestPage";
 import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequestPage";
+import CreateTestPage from "./pages/Examiner/CreateTestPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -633,6 +634,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <TestingPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/testing/create"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <CreateTestPage />
               </main>
             </div>
           }

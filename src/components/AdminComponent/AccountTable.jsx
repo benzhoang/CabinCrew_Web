@@ -61,12 +61,15 @@ const AccountTable = ({
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const params = {
+        const shouldFetchAllForRole =
+          roleName && (roleId === null || roleId === undefined);
+
+        const baseParams = {
           searchTerm: searchTerm?.trim() || undefined,
           roleId: roleId ?? undefined,
           partnerId: partnerId ?? undefined,
           isActive: typeof isActive === "boolean" ? isActive : undefined,
-          page: page ?? undefined,
+          page: shouldFetchAllForRole ? 1 : page ?? undefined,
           pageSize: pageSize ?? undefined,
         };
 
@@ -79,60 +82,124 @@ const AccountTable = ({
         };
 
         if (sortField && sortDirection) {
-          params.sortColumn = sortColumnMap[sortField] || sortField;
-          params.sortOrder = sortDirection;
+          baseParams.sortColumn = sortColumnMap[sortField] || sortField;
+          baseParams.sortOrder = sortDirection;
         }
 
-        const result = await getAllUsers(params);
+        let aggregatedItems = [];
+        let lastPagination = null;
 
-        if (result.success) {
-          let apiItems = result.data.items || [];
+        if (shouldFetchAllForRole) {
+          let currentPage = 1;
+          let totalPages = 1;
 
-          if (roleName) {
-            const normalizedRole = roleName.toLowerCase();
-            apiItems = apiItems.filter(
-              (user) => user.role?.toLowerCase() === normalizedRole
-            );
+          while (currentPage <= totalPages) {
+            const result = await getAllUsers({
+              ...baseParams,
+              page: currentPage,
+            });
+
+            if (!result.success) {
+              console.error("Error fetching users:", result.error);
+              aggregatedItems = [];
+              break;
+            }
+
+            aggregatedItems = aggregatedItems.concat(result.data.items || []);
+            lastPagination = result.data.pagination;
+
+            const nextTotalPages = lastPagination?.totalPages ?? totalPages;
+            totalPages = Math.max(totalPages, nextTotalPages);
+
+            if (!lastPagination?.hasNextPage) {
+              break;
+            }
+
+            currentPage += 1;
           }
+        } else {
+          const result = await getAllUsers(baseParams);
 
-          const mappedUsers = apiItems.map((user) => ({
-            userId: user.userId,
-            fullName: user.fullName,
-            position: user.role,
-            email: user.email,
-            phone: user.phoneNumber,
-            status: user.isActive,
-            originalData: user,
-          }));
+          if (result.success) {
+            aggregatedItems = result.data.items || [];
+            lastPagination = result.data.pagination;
+          } else {
+            console.error("Error fetching users:", result.error);
+            aggregatedItems = [];
+          }
+        }
 
-          setUsers(mappedUsers);
+        if (roleName) {
+          const normalizedRole = roleName.toLowerCase();
+          aggregatedItems = aggregatedItems.filter(
+            (user) => user.role?.toLowerCase() === normalizedRole
+          );
+        }
+
+        const mappedUsers = aggregatedItems.map((user) => ({
+          userId: user.userId,
+          fullName: user.fullName,
+          position: user.role,
+          email: user.email,
+          phone: user.phoneNumber,
+          status: user.isActive,
+          originalData: user,
+        }));
+
+        if (shouldFetchAllForRole) {
+          const effectivePageSize =
+            pageSize || mappedUsers.length || lastPagination?.pageSize || 1;
+          const currentPage = page ?? 1;
+          const startIndex = (currentPage - 1) * effectivePageSize;
+          const paginatedUsers = mappedUsers.slice(
+            startIndex,
+            startIndex + effectivePageSize
+          );
+
+          setUsers(paginatedUsers);
 
           if (onDataLoad) {
-            const hasServerRoleFilter =
-              params.roleId !== undefined && params.roleId !== null;
-            const effectivePageSize =
-              params.pageSize ??
-              result.data.pagination.pageSize ??
-              (mappedUsers.length || 1);
-            const totalRecords = hasServerRoleFilter
-              ? result.data.pagination.totalRecords
-              : mappedUsers.length;
-            const totalPages = hasServerRoleFilter
-              ? result.data.pagination.totalPages
-              : Math.max(1, Math.ceil(totalRecords / effectivePageSize));
+            const totalRecords = mappedUsers.length;
+            const totalPages = Math.max(
+              1,
+              Math.ceil(totalRecords / effectivePageSize)
+            );
 
             onDataLoad({
-              ...result.data.pagination,
-              currentPage:
-                result.data.pagination.currentPage ?? params.page ?? 1,
+              currentPage,
               pageSize: effectivePageSize,
               totalRecords,
               totalPages,
+              hasNextPage: currentPage < totalPages,
+              hasPreviousPage: currentPage > 1,
             });
           }
         } else {
-          console.error("Error fetching users:", result.error);
-          setUsers([]);
+          setUsers(mappedUsers);
+
+          if (onDataLoad && lastPagination) {
+            onDataLoad({
+              ...lastPagination,
+              currentPage: lastPagination.currentPage ?? baseParams.page ?? 1,
+              pageSize:
+                baseParams.pageSize ??
+                lastPagination.pageSize ??
+                (mappedUsers.length || 1),
+              totalRecords: lastPagination.totalRecords ?? mappedUsers.length,
+              totalPages:
+                lastPagination.totalPages ||
+                Math.max(
+                  1,
+                  Math.ceil(
+                    (lastPagination.totalRecords ?? mappedUsers.length) /
+                      (baseParams.pageSize ||
+                        lastPagination.pageSize ||
+                        mappedUsers.length ||
+                        1)
+                  )
+                ),
+            });
+          }
         }
       } catch (error) {
         console.error("Error fetching users:", error);
