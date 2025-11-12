@@ -1,79 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-
-// Mock data cho campaigns - Ngành hàng không
-const mockCampaigns = [
-    {
-        id: 1,
-        name: 'Tuyển dụng Tiếp viên hàng không 2024',
-        position: 'Flight Attendant',
-        department: 'Cabin Crew',
-        status: 'ongoing',
-        startDate: '2024-01-15',
-        endDate: '2024-03-15',
-        targetHires: 20,
-        currentHires: 8,
-        description: 'Tuyển dụng tiếp viên hàng không cho các chuyến bay nội địa và quốc tế',
-        requirements: 'Tiếng Anh tốt, Chiều cao 1.60m+, Kỹ năng giao tiếp, Sức khỏe tốt'
-    },
-    {
-        id: 2,
-        name: 'Chiến dịch Pilot Training',
-        position: 'Pilot',
-        department: 'Flight Operations',
-        status: 'completed',
-        startDate: '2024-01-01',
-        endDate: '2024-02-28',
-        targetHires: 5,
-        currentHires: 5,
-        description: 'Tuyển dụng và đào tạo phi công cho đội bay mới',
-        requirements: 'Bằng lái máy bay, Kinh nghiệm bay, Tiếng Anh thành thạo'
-    },
-    {
-        id: 3,
-        name: 'Ground Staff Campaign',
-        position: 'Ground Staff',
-        department: 'Ground Operations',
-        status: 'pending',
-        startDate: '2024-02-01',
-        endDate: '2024-04-30',
-        targetHires: 15,
-        currentHires: 6,
-        description: 'Tuyển dụng nhân viên mặt đất cho sân bay',
-        requirements: 'Kỹ năng xử lý hành lý, Giao tiếp tốt, Làm việc ca'
-    },
-    {
-        id: 4,
-        name: 'Customer Service Expansion',
-        position: 'Customer Service Agent',
-        department: 'Customer Service',
-        status: 'ongoing',
-        startDate: '2024-02-15',
-        endDate: '2024-05-15',
-        targetHires: 12,
-        currentHires: 4,
-        description: 'Mở rộng đội ngũ chăm sóc khách hàng',
-        requirements: 'Kỹ năng giao tiếp, Tiếng Anh, Xử lý tình huống'
-    },
-    {
-        id: 5,
-        name: 'Maintenance Team',
-        position: 'Aircraft Mechanic',
-        department: 'Maintenance',
-        status: 'pending',
-        startDate: '2024-03-01',
-        endDate: '2024-06-30',
-        targetHires: 8,
-        currentHires: 2,
-        description: 'Tuyển dụng kỹ thuật viên bảo trì máy bay',
-        requirements: 'Bằng kỹ thuật, Kinh nghiệm bảo trì, An toàn lao động'
-    }
-]
+import { getCampaigns } from '../../service/api'
 
 const Campaign = () => {
-    const [campaigns, setCampaigns] = useState(mockCampaigns)
-    const [filteredCampaigns, setFilteredCampaigns] = useState(mockCampaigns)
+    const [campaigns, setCampaigns] = useState([])
+    const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [departmentFilter, setDepartmentFilter] = useState('all')
@@ -81,6 +13,8 @@ const Campaign = () => {
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -88,21 +22,108 @@ const Campaign = () => {
         return () => off()
     }, [])
 
+    const parseDateValue = (value) => {
+        if (!value) return null
+
+        const native = new Date(value)
+        if (!Number.isNaN(native.getTime())) return native
+
+        const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?/)
+        if (match) {
+            const [, day, month, year, hour = '0', minute = '0'] = match
+            return new Date(
+                Number(year),
+                Number(month) - 1,
+                Number(day),
+                Number(hour),
+                Number(minute)
+            )
+        }
+
+        return null
+    }
+
+    const formatDateValue = (value) => {
+        const date = parseDateValue(value)
+        if (!date) return value || 'Không xác định'
+        return date.toLocaleDateString('vi-VN')
+    }
+
+    const mapStatusValue = (status) => {
+        const normalized = (status || '').toString().trim().toLowerCase()
+        if (['ongoing', 'inprogress', 'in_progress', 'active', 'approved'].includes(normalized)) return 'ongoing'
+        if (['pending', 'draft', 'scheduled', 'waiting', 'reviewing'].includes(normalized)) return 'pending'
+        if (['completed', 'done', 'finished', 'closed'].includes(normalized)) return 'completed'
+        return 'ongoing'
+    }
+
+    const transformCampaignData = (item) => {
+        const targetQuantity = item.targetHires ?? item.targetQuantity ?? 0
+        const currentQuantity = item.currentHires ?? item.currentQuantity ?? 0
+
+        return {
+            id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
+            name: item.name ?? item.campaignName ?? 'Chiến dịch chưa có tên',
+            position: item.position ?? item.role ?? item.campaignType ?? 'Không xác định',
+            department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Không xác định',
+            status: mapStatusValue(item.status),
+            startDate: formatDateValue(item.startDate),
+            endDate: formatDateValue(item.endDate),
+            rawStartDate: item.startDate,
+            rawEndDate: item.endDate,
+            targetHires: targetQuantity,
+            currentHires: currentQuantity,
+            description: item.description ?? '',
+            requirements: item.requirements ?? item.requirement ?? ''
+        }
+    }
+
+    useEffect(() => {
+        const fetchCampaigns = async () => {
+            setIsLoading(true)
+            setError(null)
+            try {
+                const response = await getCampaigns()
+                if (response.success && Array.isArray(response.data)) {
+                    const normalizedCampaigns = response.data.map(transformCampaignData)
+                    setCampaigns(normalizedCampaigns)
+                    setFilteredCampaigns(normalizedCampaigns)
+                } else {
+                    setCampaigns([])
+                    setFilteredCampaigns([])
+                    setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                }
+            } catch (err) {
+                setCampaigns([])
+                setFilteredCampaigns([])
+                setError(err.message || 'Không thể lấy danh sách chiến dịch')
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchCampaigns()
+    }, [])
+
+    const normalizeString = (value) => (value || '').toString().toLowerCase()
+    const normalizeStatus = (value) => normalizeString(value)
+
     useEffect(() => {
         let filtered = campaigns
 
         // Filter by search term
         if (searchTerm) {
+            const term = searchTerm.toLowerCase()
             filtered = filtered.filter(campaign =>
-                campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                campaign.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                campaign.department.toLowerCase().includes(searchTerm.toLowerCase())
+                normalizeString(campaign.name).includes(term) ||
+                normalizeString(campaign.position).includes(term) ||
+                normalizeString(campaign.department).includes(term)
             )
         }
 
         // Filter by status
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(campaign => campaign.status === statusFilter)
+            filtered = filtered.filter(campaign => normalizeStatus(campaign.status) === statusFilter)
         }
 
         // Filter by department
@@ -111,27 +132,29 @@ const Campaign = () => {
         }
 
         // Sort campaigns
-        filtered.sort((a, b) => {
+        const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
                 case 'name':
-                    return a.name.localeCompare(b.name)
+                    return normalizeString(a.name).localeCompare(normalizeString(b.name))
                 case 'startDate':
-                    return new Date(a.startDate) - new Date(b.startDate)
+                    return (parseDateValue(a.rawStartDate) || 0) - (parseDateValue(b.rawStartDate) || 0)
                 case 'endDate':
-                    return new Date(a.endDate) - new Date(b.endDate)
+                    return (parseDateValue(a.rawEndDate) || 0) - (parseDateValue(b.rawEndDate) || 0)
                 case 'progress':
-                    const progressA = (a.currentHires / a.targetHires) * 100
-                    const progressB = (b.currentHires / b.targetHires) * 100
+                    const progressA = ((Number(a.currentHires) || 0) / (Number(a.targetHires) || 1)) * 100
+                    const progressB = ((Number(b.currentHires) || 0) / (Number(b.targetHires) || 1)) * 100
                     return progressB - progressA
                 case 'status':
                     const statusOrder = { ongoing: 1, pending: 2, completed: 3 }
-                    return statusOrder[a.status] - statusOrder[b.status]
+                    const statusA = statusOrder[normalizeStatus(a.status)] || 4
+                    const statusB = statusOrder[normalizeStatus(b.status)] || 4
+                    return statusA - statusB
                 default:
                     return 0
             }
         })
 
-        setFilteredCampaigns(filtered)
+        setFilteredCampaigns(sorted)
     }, [campaigns, searchTerm, statusFilter, departmentFilter, sortBy])
 
     const handleViewDetails = (campaign) => {
@@ -150,7 +173,7 @@ const Campaign = () => {
             completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
             pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ diễn ra' }
         }
-        const config = statusConfig[status] || statusConfig.ongoing
+        const config = statusConfig[normalizeStatus(status)] || statusConfig.ongoing
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
                 {config.text}
@@ -159,7 +182,14 @@ const Campaign = () => {
     }
 
     const getProgressPercentage = (current, target) => {
-        return Math.round((current / target) * 100)
+        const numericCurrent = Number(current) || 0
+        const numericTarget = Number(target) || 0
+        if (numericTarget <= 0) return 0
+        return Math.round((numericCurrent / numericTarget) * 100)
+    }
+
+    const hasProgressData = (campaign) => {
+        return Number(campaign.targetHires) > 0
     }
 
     return (
@@ -272,6 +302,18 @@ const Campaign = () => {
                 </div>
 
                 <div className="divide-y divide-slate-200">
+                    {isLoading && (
+                        <div className="p-6 text-center text-slate-500">
+                            Đang tải danh sách chiến dịch...
+                        </div>
+                    )}
+
+                    {!isLoading && error && (
+                        <div className="p-6 text-center text-red-500">
+                            {error}
+                        </div>
+                    )}
+
                     {filteredCampaigns.map((campaign) => (
                         <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
@@ -283,11 +325,11 @@ const Campaign = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
                                             <span className="text-sm text-slate-600">Vị trí:</span>
-                                            <p className="font-medium text-slate-800">{campaign.position}</p>
+                                            <p className="font-medium text-slate-800">{campaign.position || 'Không xác định'}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Phòng ban:</span>
-                                            <p className="font-medium text-slate-800">{campaign.department}</p>
+                                            <p className="font-medium text-slate-800">{campaign.department || 'Không xác định'}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Trạng thái:</span>
@@ -300,18 +342,20 @@ const Campaign = () => {
                                     </div>
 
                                     {/* Progress Bar */}
-                                    <div className="mb-3">
-                                        <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                            <span>Tiến độ tuyển dụng</span>
-                                            <span>{campaign.currentHires}/{campaign.targetHires} ({getProgressPercentage(campaign.currentHires, campaign.targetHires)}%)</span>
+                                    {hasProgressData(campaign) && (
+                                        <div className="mb-3">
+                                            <div className="flex justify-between text-sm text-slate-600 mb-1">
+                                                <span>Tiến độ tuyển dụng</span>
+                                                <span>{campaign.currentHires}/{campaign.targetHires} ({getProgressPercentage(campaign.currentHires, campaign.targetHires)}%)</span>
+                                            </div>
+                                            <div className="w-full bg-slate-200 rounded-full h-2">
+                                                <div
+                                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                                    style={{ width: `${getProgressPercentage(campaign.currentHires, campaign.targetHires)}%` }}
+                                                ></div>
+                                            </div>
                                         </div>
-                                        <div className="w-full bg-slate-200 rounded-full h-2">
-                                            <div
-                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${getProgressPercentage(campaign.currentHires, campaign.targetHires)}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
+                                    )}
 
                                     <p className="text-sm text-slate-600">{campaign.description}</p>
                                 </div>
@@ -369,11 +413,11 @@ const Campaign = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <span className="text-sm text-slate-600">Vị trí:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.position}</p>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.position || 'Không xác định'}</p>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Phòng ban:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.department}</p>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.department || 'Không xác định'}</p>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Trạng thái:</span>
@@ -399,30 +443,34 @@ const Campaign = () => {
 
                                 <div>
                                     <span className="text-sm text-slate-600">Mô tả:</span>
-                                    <p className="text-slate-800 mt-1">{selectedCampaign.description}</p>
+                                    <p className="text-slate-800 mt-1">{selectedCampaign.description || 'Không có mô tả'}</p>
                                 </div>
 
-                                <div>
-                                    <span className="text-sm text-slate-600">Yêu cầu:</span>
-                                    <p className="text-slate-800 mt-1">{selectedCampaign.requirements}</p>
-                                </div>
+                                {selectedCampaign.requirements && (
+                                    <div>
+                                        <span className="text-sm text-slate-600">Yêu cầu:</span>
+                                        <p className="text-slate-800 mt-1">{selectedCampaign.requirements}</p>
+                                    </div>
+                                )}
 
                                 {/* Progress Bar */}
-                                <div>
-                                    <span className="text-sm text-slate-600">Tiến độ tuyển dụng:</span>
-                                    <div className="mt-2">
-                                        <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                            <span>{selectedCampaign.currentHires}/{selectedCampaign.targetHires} người</span>
-                                            <span>{getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%</span>
-                                        </div>
-                                        <div className="w-full bg-slate-200 rounded-full h-3">
-                                            <div
-                                                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                                                style={{ width: `${getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%` }}
-                                            ></div>
+                                {hasProgressData(selectedCampaign) && (
+                                    <div>
+                                        <span className="text-sm text-slate-600">Tiến độ tuyển dụng:</span>
+                                        <div className="mt-2">
+                                            <div className="flex justify-between text-sm text-slate-600 mb-1">
+                                                <span>{selectedCampaign.currentHires}/{selectedCampaign.targetHires} người</span>
+                                                <span>{getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%</span>
+                                            </div>
+                                            <div className="w-full bg-slate-200 rounded-full h-3">
+                                                <div
+                                                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                                                    style={{ width: `${getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%` }}
+                                                ></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
