@@ -10,6 +10,7 @@ const AirlinePartnerListPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalAirlinePartners, setTotalAirlinePartners] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleCreateUser = (userData) => {
@@ -28,13 +29,21 @@ const AirlinePartnerListPage = () => {
   };
 
   const handleDataLoad = (pagination) => {
-    if (pagination) {
-      setTotalItems(pagination.totalRecords ?? 0);
-      if (pagination.pageSize && pagination.pageSize !== pageSize) {
-        setPageSize(pagination.pageSize);
-      }
+    if (!pagination) return;
+
+    const totalRecords = pagination.totalRecords ?? 0;
+    setTotalItems(totalRecords);
+
+    if (!searchTerm?.trim()) {
+      setTotalAirlinePartners(totalRecords);
+    }
+
+    if (pagination.pageSize && pagination.pageSize !== pageSize) {
+      setPageSize(pagination.pageSize);
     }
   };
+
+  const isCreateDisabled = totalAirlinePartners >= 4;
 
   return (
     <div className="w-full h-full">
@@ -42,8 +51,17 @@ const AirlinePartnerListPage = () => {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+              onClick={() => {
+                if (!isCreateDisabled) {
+                  setIsModalOpen(true);
+                }
+              }}
+              disabled={isCreateDisabled}
+              className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isCreateDisabled
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "text-white bg-blue-600 hover:bg-blue-700"
+              }`}
             >
               <FaPlus />
               <span>Create new airline partner</span>

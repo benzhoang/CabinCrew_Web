@@ -7,3 +7,13 @@ export const formatDate = (isoString) => {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
+
+// Helper function to convert API date format (DD/MM/YYYY HH:mm) to ISO format
+export const convertDateFormat = (dateString) => {
+  if (!dateString) return "";
+  // Format: "30/11/2025 00:00"
+  const parts = dateString.split(" ");
+  const datePart = parts[0]; // "30/11/2025"
+  const [day, month, year] = datePart.split("/");
+  return `${day}/${month}/${year}`;
+};

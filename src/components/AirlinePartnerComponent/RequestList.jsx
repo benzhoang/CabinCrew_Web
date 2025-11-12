@@ -104,8 +104,10 @@ const CampaignCard = ({ request }) => {
               <StatusBadge status={request.status} />
             </div>
             <div>
-              <span className="text-sm text-slate-600">Đối tác:</span>{" "}
-              {request.partnerName || "Không có đối tác"}
+              <span className="text-gray-500">Đối tác:</span>{" "}
+              <span className="bg-blue-100 text-blue-700 border-blue-200 inline-block rounded-full border px-2 py-0.5 text-xs font-medium">
+                {request.partnerName || "Không có đối tác"}
+              </span>
             </div>
           </div>
           <div className="mt-4">{request.description || "Không có mô tả"}</div>
@@ -115,9 +117,7 @@ const CampaignCard = ({ request }) => {
           <button
             className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
             onClick={() =>
-              navigate(`/airline-partner/requests/${request.requestId}`, {
-                state: { request: request },
-              })
+              navigate(`/airline-partner/requests/${request.requestId}`)
             }
           >
             Xem chi tiết
