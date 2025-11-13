@@ -12,11 +12,6 @@ const CampaignDetail = () => {
     const navigate = useNavigate()
     const campaign = state?.campaign
 
-    // Kiểm tra nếu campaign đang chờ phê duyệt (pending)
-    // if (campaign?.status === 'pending') {
-    //     return <PendingCampaignDetail campaign={campaign} />
-    // }
-
     const timeline = useMemo(() => ([
         { time: '15:24', text: 'Request created', by: 'Đặng Bích Thu Thủy' },
         { time: '17:51', text: 'Tony Quok approved the request', by: 'Tony Quok' },

@@ -52,7 +52,6 @@ const SpeakingExam = ({ examInfo }) => {
     const [markedQuestions, setMarkedQuestions] = useState(new Set());
     const [startTime] = useState(Date.now());
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-    const [submittedQuestions, setSubmittedQuestions] = useState(new Set()); // Track các câu hỏi đã nộp file
 
     // re-render on language change
     useEffect(() => {
@@ -109,12 +108,12 @@ const SpeakingExam = ({ examInfo }) => {
             delete newRecordings[questionId];
             return newRecordings;
         });
-        // Xóa trạng thái đã nộp nếu có
-        setSubmittedQuestions(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(questionId);
-            return newSet;
-        });
+    };
+
+    // Callback khi nộp file ghi âm
+    const handleSubmitRecording = (questionId, recording) => {
+        // Có thể thêm logic xử lý nộp file ở đây (ví dụ: gọi API)
+        console.log(`Đã nộp file ghi âm cho câu hỏi ${questionId}`, recording);
     };
 
     // Handle question navigation
@@ -137,24 +136,6 @@ const SpeakingExam = ({ examInfo }) => {
 
     const openSubmitModal = () => setIsSubmitModalOpen(true);
     const closeSubmitModal = () => setIsSubmitModalOpen(false);
-
-    // Xử lý nộp file cho từng câu hỏi
-    const handleSubmitRecording = (questionId) => {
-        if (!recordings[questionId]) {
-            alert(t('no_recording_to_submit') || 'Chưa có bản ghi âm để nộp');
-            return;
-        }
-
-        // Đánh dấu câu hỏi đã nộp
-        setSubmittedQuestions(prev => {
-            const newSet = new Set(prev);
-            newSet.add(questionId);
-            return newSet;
-        });
-
-        // Hiển thị thông báo (vì không có API)
-        alert(t('recording_submitted') || `Đã nộp file ghi âm cho câu hỏi ${questionId}`);
-    };
 
     const handleConfirmSubmit = () => {
         const endTime = Date.now();
@@ -273,26 +254,8 @@ const SpeakingExam = ({ examInfo }) => {
                                     existingRecording={recordings[currentQuestion.id]}
                                     onRecordingComplete={handleRecordingComplete}
                                     onDelete={handleDeleteRecording}
+                                    onSubmit={handleSubmitRecording}
                                 />
-
-                                {/* Nút nộp file cho câu hỏi này */}
-                                {recordings[currentQuestion.id] && (
-                                    <div className="mt-4 flex justify-center">
-                                        <button
-                                            onClick={() => handleSubmitRecording(currentQuestion.id)}
-                                            disabled={submittedQuestions.has(currentQuestion.id)}
-                                            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${submittedQuestions.has(currentQuestion.id)
-                                                ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                : 'bg-purple-600 text-white hover:bg-purple-700'
-                                                }`}
-                                        >
-                                            {submittedQuestions.has(currentQuestion.id)
-                                                ? (t('recording_submitted') || 'Đã nộp file')
-                                                : (t('submit_recording') || 'Nộp file ghi âm')
-                                            }
-                                        </button>
-                                    </div>
-                                )}
                             </div>
 
                             {/* Nút điều hướng */}

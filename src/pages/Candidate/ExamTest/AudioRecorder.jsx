@@ -5,10 +5,13 @@ import { t } from '../../../i18n';
  * AudioRecorder Component
  * Component quản lý việc ghi âm, phát lại, xuất và xóa recording
  */
-const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onDelete }) => {
+const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onDelete, onSubmit }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
     const [recording, setRecording] = useState(existingRecording || null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [recordingCount, setRecordingCount] = useState(0); // Đếm số lần ghi âm
+    const MAX_RECORDINGS = 3; // Số lần ghi âm tối đa
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
@@ -19,6 +22,11 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
     // Cập nhật recording khi existingRecording thay đổi
     useEffect(() => {
         setRecording(existingRecording || null);
+        // Reset trạng thái nộp khi recording thay đổi
+        if (!existingRecording) {
+            setIsSubmitted(false);
+            setRecordingCount(0);
+        }
     }, [existingRecording]);
 
     // Cleanup khi component unmount
@@ -46,6 +54,25 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
 
     // Bắt đầu ghi âm
     const startRecording = async () => {
+        // Kiểm tra số lần ghi âm đã đạt tối đa
+        if (recordingCount >= MAX_RECORDINGS) {
+            alert(t('max_recordings_reached') || `Bạn đã ghi âm tối đa ${MAX_RECORDINGS} lần. Vui lòng nộp file ghi âm hiện tại.`);
+            return;
+        }
+
+        // Xóa recording cũ nếu đang ghi lại (nhưng không gọi onDelete vì đây là ghi lại, không phải xóa)
+        if (recording) {
+            setRecording(null);
+            setRecordingTime(0);
+            recordingTimeRef.current = 0;
+            setIsSubmitted(false); // Reset trạng thái nộp khi ghi lại
+            // Dừng audio player nếu đang phát
+            if (audioPlayerRef.current) {
+                audioPlayerRef.current.pause();
+                audioPlayerRef.current = null;
+            }
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream, {
@@ -72,6 +99,8 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
                 };
 
                 setRecording(newRecording);
+                // Tăng số lần ghi âm
+                setRecordingCount(prev => prev + 1);
 
                 // Gọi callback để thông báo cho component cha
                 if (onRecordingComplete) {
@@ -116,6 +145,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
         setRecording(null);
         setRecordingTime(0);
         recordingTimeRef.current = 0;
+        setIsSubmitted(false);
 
         // Dừng audio player nếu đang phát
         if (audioPlayerRef.current) {
@@ -156,21 +186,25 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
         });
     };
 
-    // Export recording thành file WebM
-    const exportRecording = (questionId) => {
+    // Nộp file ghi âm
+    const submitRecording = () => {
         if (!recording) {
-            alert(t('no_recording') || 'Không có bản ghi âm để xuất');
+            alert(t('no_recording') || 'Không có bản ghi âm để nộp');
             return;
         }
 
-        const url = URL.createObjectURL(recording.blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `speaking_question_${questionId}_${Date.now()}.mp3`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (isSubmitted) {
+            alert(t('recording_already_submitted') || 'Bản ghi âm đã được nộp');
+            return;
+        }
+
+        // Gọi callback để thông báo cho component cha
+        if (onSubmit) {
+            onSubmit(questionId, recording);
+        }
+
+        setIsSubmitted(true);
+        alert(t('submit_recording') || `Đã nộp file ghi âm cho câu hỏi ${questionId}`);
     };
 
     // Export recording thành file MP3 (cần thư viện lamejs)
@@ -236,15 +270,26 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
             <div className="flex flex-col items-center gap-4">
                 {/* Trạng thái chưa ghi âm */}
                 {!isRecording && !recording && (
-                    <button
-                        onClick={startRecording}
-                        className="px-8 py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center gap-3 font-semibold"
-                    >
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                        </svg>
-                        {t('start_recording') || 'Bắt đầu ghi âm'}
-                    </button>
+                    <div className="flex flex-col items-center gap-3">
+                        <button
+                            onClick={startRecording}
+                            disabled={recordingCount >= MAX_RECORDINGS}
+                            className={`px-8 py-4 rounded-lg focus:outline-none focus:ring-2 flex items-center gap-3 font-semibold ${recordingCount >= MAX_RECORDINGS
+                                ? 'bg-gray-400 text-white cursor-not-allowed'
+                                : 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
+                                }`}
+                        >
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                            {t('start_recording') || 'Bắt đầu ghi âm'}
+                        </button>
+                        {recordingCount > 0 && (
+                            <p className="text-sm text-gray-600">
+                                {t('recording_attempts') || `Đã ghi âm: ${recordingCount}/${MAX_RECORDINGS} lần`}
+                            </p>
+                        )}
+                    </div>
                 )}
 
                 {/* Trạng thái đang ghi âm */}
@@ -281,7 +326,15 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
                                 {t('recording_completed') || 'Đã ghi âm'} ({formatTime(recording.duration)})
                             </span>
                         </div>
-                        <div className="flex gap-3 justify-center">
+                        <div className="text-center text-sm text-gray-600">
+                            {t('recording_attempts_info') || `Đã ghi âm: ${recordingCount}/${MAX_RECORDINGS} lần`}
+                            {recordingCount < MAX_RECORDINGS && (
+                                <span className="ml-2 text-blue-600">
+                                    ({MAX_RECORDINGS - recordingCount} {t('attempts_remaining') || 'lần còn lại'})
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex gap-3 justify-center flex-wrap">
                             <button
                                 onClick={playRecording}
                                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -291,23 +344,29 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
                                 </svg>
                                 {t('play_recording') || 'Phát lại'}
                             </button>
+                            {recordingCount < MAX_RECORDINGS && (
+                                <button
+                                    onClick={startRecording}
+                                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                    </svg>
+                                    {t('record_again') || 'Ghi âm lại'}
+                                </button>
+                            )}
                             <button
-                                onClick={() => exportRecording(questionId)}
-                                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                                onClick={submitRecording}
+                                disabled={isSubmitted}
+                                className={`px-6 py-2 rounded-lg flex items-center gap-2 ${isSubmitted
+                                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                                    }`}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
-                                {t('export_recording') || 'Xuất file'}
-                            </button>
-                            <button
-                                onClick={deleteRecording}
-                                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
-                            >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                                {t('delete_recording') || 'Xóa'}
+                                {isSubmitted ? (t('submit_recording') || 'Đã nộp file') : (t('submit_recording') || 'Nộp file ghi âm')}
                             </button>
                         </div>
                     </div>

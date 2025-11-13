@@ -66,7 +66,7 @@ import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
 import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
 import ExamPage from "./pages/Candidate/ExamTest/ExamPage";
-import ExamResultPage from "./pages/Candidate/ExamResultPage";
+import ExamResultPage from "./pages/Candidate/ExamResult/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ScoreListPage";
