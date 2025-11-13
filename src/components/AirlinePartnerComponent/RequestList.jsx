@@ -105,7 +105,7 @@ const CampaignCard = ({ request }) => {
             </div>
             <div>
               <span className="text-gray-500">Đối tác:</span>{" "}
-              <span className="bg-blue-100 text-blue-700 border-blue-200 inline-block rounded-full border px-2 py-0.5 text-xs font-medium">
+              <span className="bg-gray-100 text-gray-700 border-gray-300 inline-block rounded-full border px-2 py-0.5 text-xs font-medium">
                 {request.partnerName || "Không có đối tác"}
               </span>
             </div>

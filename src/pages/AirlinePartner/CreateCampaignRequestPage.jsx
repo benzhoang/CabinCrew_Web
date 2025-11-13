@@ -162,6 +162,27 @@ const CreateCampaignRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
+                    Mô tả chung *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows="4"
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.description ? "border-red-300" : "border-slate-300"
+                    }`}
+                    placeholder="Mô tả chung về chiến dịch..."
+                  />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-6">
+                  <label className="block mb-2 text-sm font-medium text-slate-700">
                     Mô tả nhu cầu *
                   </label>
                   <textarea
@@ -209,39 +230,6 @@ const CreateCampaignRequestPage = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Thông tin tổng kết */}
-            <div className="bg-white border rounded-lg shadow-sm border-slate-200">
-              <div className="px-5 py-4 font-semibold border-b border-slate-200 text-slate-800">
-                Tổng quan Campaign
-              </div>
-              <div className="p-5 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Tổng đợt tuyển:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.batches.length}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Chỉ tiêu tổng:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.batches.reduce(
-                      (sum, batch) => sum + (parseInt(batch.target) || 0),
-                      0
-                    )}{" "}
-                    người
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Thời gian dự kiến:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.startDate && formData.endDate
-                      ? `${formData.startDate} - ${formData.endDate}`
-                      : "Chưa xác định"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Action Buttons */}
             <div className="p-5 bg-white border rounded-lg shadow-sm border-slate-200">
               <div className="space-y-3">

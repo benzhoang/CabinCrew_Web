@@ -90,7 +90,7 @@ const CreatePromotionRequestPage = () => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 mr-50">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-slate-700">
               Tiêu đề *
             </label>
             <input
@@ -107,38 +107,38 @@ const CreatePromotionRequestPage = () => {
               <p className="mt-1 text-sm text-red-600">{errors.title}</p>
             )}
           </div>
-          <p className="text-slate-600 mt-1 text-sm">
+          <p className="mt-1 text-sm text-slate-600">
             Đăng công khai nâng bậc - Cabin Crew
           </p>
         </div>
         <button
           onClick={() => navigate(-1)}
-          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700"
+          className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
           Quay lại
         </button>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
             {/* Thông tin cơ bịn */}
-            <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-              <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500">
                     Thông tin đề xuất
                   </div>
-                  <div className="text-slate-800 font-semibold">
+                  <div className="font-semibold text-slate-800">
                     Đặng Bích Thu Thủy (Crew Welfare Team Leader)
                   </div>
                 </div>
               </div>
 
               <div className="p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block mb-2 text-sm font-medium text-slate-700">
                       Số lượng tuyển *
                     </label>
                     <input
@@ -161,7 +161,28 @@ const CreatePromotionRequestPage = () => {
                 </div>
 
                 <div className="mt-6">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block mb-2 text-sm font-medium text-slate-700">
+                    Mô tả chung *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows="4"
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.description ? "border-red-300" : "border-slate-300"
+                    }`}
+                    placeholder="Mô tả chung về chiến dịch..."
+                  />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.description}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-6">
+                  <label className="block mb-2 text-sm font-medium text-slate-700">
                     Mô tả nhu cầu *
                   </label>
                   <textarea
@@ -182,7 +203,7 @@ const CreatePromotionRequestPage = () => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block mb-2 text-sm font-medium text-slate-700">
                     Yêu cầu *
                   </label>
                   <textarea
@@ -209,46 +230,13 @@ const CreatePromotionRequestPage = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Thông tin tổng kết */}
-            <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
-              <div className="px-5 py-4 border-b border-slate-200 font-semibold text-slate-800">
-                Tổng quan Campaign
-              </div>
-              <div className="p-5 space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Tổng đợt tuyển:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.batches.length}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Chỉ tiêu tổng:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.batches.reduce(
-                      (sum, batch) => sum + (parseInt(batch.target) || 0),
-                      0
-                    )}{" "}
-                    người
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Thời gian dự kiến:</span>
-                  <span className="font-medium text-slate-800">
-                    {formData.startDate && formData.endDate
-                      ? `${formData.startDate} - ${formData.endDate}`
-                      : "Chưa xác định"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Action Buttons */}
-            <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-5">
+            <div className="p-5 bg-white border rounded-lg shadow-sm border-slate-200">
               <div className="space-y-3">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="w-full px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors font-medium"
+                  className="w-full px-4 py-2 font-medium transition-colors border rounded-md border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
                   Hủy
                 </button>
