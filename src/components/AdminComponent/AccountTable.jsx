@@ -81,7 +81,7 @@ const AccountTable = ({
           status: "isActive",
         };
 
-        if (sortField && sortDirection) {
+        if (sortField && sortDirection && sortField !== "no") {
           baseParams.sortColumn = sortColumnMap[sortField] || sortField;
           baseParams.sortOrder = sortDirection;
         }
@@ -338,19 +338,37 @@ const AccountTable = ({
     return <Loading message="Đang tải dữ liệu..." />;
   }
 
+  // Client-side sorting for "no" column
+  const sortedUsers = [...users];
+  if (sortField === "no" && sortDirection) {
+    if (sortDirection === "desc") {
+      sortedUsers.reverse();
+    }
+    // For "asc", keep original order (already sorted)
+  }
+
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
       <table className="min-w-full border-collapse table-fixed">
         <thead>
           <tr className="text-sm text-left text-gray-600 bg-gray-50">
-            <th className="w-16 px-5 py-3 font-semibold">No.</th>
+            <th className="w-16 px-5 py-3 font-semibold">
+              <button
+                type="button"
+                onClick={() => handleSort("no")}
+                className="flex items-center hover:text-gray-900"
+              >
+                No. {getSortIcon("no")}
+              </button>
+            </th>
             <th className="px-5 py-3 font-semibold">
               <button
                 type="button"
                 onClick={() => handleSort("fullName")}
                 className="flex items-center hover:text-gray-900"
               >
-                Full Name {getSortIcon("fullName")}
+                {roleName === "Airline Partner" ? "Name" : "Full Name"}{" "}
+                {getSortIcon("fullName")}
               </button>
             </th>
             <th className="px-5 py-3 font-semibold">
@@ -393,63 +411,80 @@ const AccountTable = ({
           </tr>
         </thead>
         <tbody>
-          {users.length === 0 ? (
+          {sortedUsers.length === 0 ? (
             <tr>
               <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
                 Không có dữ liệu
               </td>
             </tr>
           ) : (
-            users.map((u, idx) => (
-              <tr
-                key={u.userId || idx}
-                className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-              >
-                <td className="px-5 py-4 text-sm text-center text-gray-700">
-                  {idx + 1}
-                </td>
-                <td className="px-5 py-4 text-sm text-gray-800 truncate">
-                  {u.fullName}
-                </td>
-                <td className="px-5 py-4 text-sm text-gray-700 truncate">
-                  {u.email}
-                </td>
-                <td className="px-5 py-4 text-sm text-gray-700">{u.phone}</td>
-                <td className="px-5 py-4">
-                  <PositionBadge value={u.position} />
-                </td>
-                <td className="px-5 py-4">
-                  <StatusBadge value={u.status} />
-                </td>
-                <td className="px-5 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    {(() => {
-                      const isActive =
-                        typeof u.status === "boolean"
-                          ? u.status
-                          : u.status?.toLowerCase() === "active";
-                      return isActive ? (
-                        <button
-                          aria-label="Delete user"
-                          className="p-2 text-red-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-red-700"
-                          onClick={() => handleDeleteClick(u)}
-                        >
-                          <FaTrash />
-                        </button>
-                      ) : (
-                        <button
-                          aria-label="Enable user"
-                          className="p-2 text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-700"
-                          onClick={() => handleEnableClick(u)}
-                        >
-                          <FaArrowsRotate />
-                        </button>
-                      );
-                    })()}
-                  </div>
-                </td>
-              </tr>
-            ))
+            sortedUsers.map((u, idx) => {
+              // Calculate row number based on page and sort direction
+              // Always calculate based on page and pageSize to reflect correct position
+              let rowNumber;
+              if (sortField === "no" && sortDirection === "desc") {
+                // When sorting "no" column desc, reverse the numbers
+                const totalInPage = sortedUsers.length;
+                rowNumber = (page - 1) * pageSize + (totalInPage - idx);
+              } else if (sortDirection === "asc") {
+                // When sorting asc (any column), reverse the numbers
+                const totalInPage = sortedUsers.length;
+                rowNumber = (page - 1) * pageSize + (totalInPage - idx);
+              } else {
+                // For desc (other columns) or no sort, calculate normally
+                rowNumber = (page - 1) * pageSize + idx + 1;
+              }
+              return (
+                <tr
+                  key={u.userId || idx}
+                  className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="px-5 py-4 text-sm text-center text-gray-700">
+                    {rowNumber}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-800 truncate">
+                    {u.fullName}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-700 truncate">
+                    {u.email}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-700">{u.phone}</td>
+                  <td className="px-5 py-4">
+                    <PositionBadge value={u.position} />
+                  </td>
+                  <td className="px-5 py-4">
+                    <StatusBadge value={u.status} />
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      {(() => {
+                        const isActive =
+                          typeof u.status === "boolean"
+                            ? u.status
+                            : u.status?.toLowerCase() === "active";
+                        return isActive ? (
+                          <button
+                            aria-label="Delete user"
+                            className="p-2 text-red-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-red-700"
+                            onClick={() => handleDeleteClick(u)}
+                          >
+                            <FaTrash />
+                          </button>
+                        ) : (
+                          <button
+                            aria-label="Enable user"
+                            className="p-2 text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 hover:text-gray-700"
+                            onClick={() => handleEnableClick(u)}
+                          >
+                            <FaArrowsRotate />
+                          </button>
+                        );
+                      })()}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>

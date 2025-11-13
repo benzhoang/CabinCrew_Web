@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiFileText } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiEye, FiFileText } from "react-icons/fi";
 
 // Mock data cho đề thi tiếng Anh
 const mockEnglishTests = [
@@ -122,11 +122,6 @@ const TestingPage = () => {
     });
   }, [tests, searchTerm, statusFilter, levelFilter]);
 
-  const handleCreateTest = () => {
-    // TODO: Navigate to create test page or open modal
-    navigate("/examiner/testing/create");
-  };
-
   const handleEditTest = (testId) => {
     // TODO: Navigate to edit test page
     alert(`Chỉnh sửa đề thi ID: ${testId}`);
@@ -146,30 +141,23 @@ const TestingPage = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">
+          <h2 className="mb-2 text-2xl font-bold text-slate-800">
             Quản lý đề thi tiếng Anh
           </h2>
           <p className="text-slate-600">
             Danh sách các đề thi tiếng Anh đã tạo
           </p>
         </div>
-        <button
-          onClick={handleCreateTest}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-medium transition-colors"
-        >
-          <FiPlus className="w-5 h-5" />
-          Tạo đề thi mới
-        </button>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-slate-700">
               Tìm kiếm
             </label>
             <input
@@ -177,19 +165,19 @@ const TestingPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Tìm theo tên, mã đề thi..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-slate-700">
               Trạng thái
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="all">Tất cả</option>
               <option value="active">Đang sử dụng</option>
@@ -200,13 +188,13 @@ const TestingPage = () => {
 
           {/* Level Filter */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block mb-2 text-sm font-medium text-slate-700">
               Mức độ
             </label>
             <select
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="all">Tất cả</option>
               <option value="Cơ bản">Cơ bản</option>
@@ -219,14 +207,14 @@ const TestingPage = () => {
       </div>
 
       {/* Tests List */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+      <div className="bg-white border shadow-sm rounded-xl border-slate-200">
         {filteredTests.length === 0 ? (
           <div className="p-12 text-center">
-            <FiFileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-600 text-lg font-medium mb-2">
+            <FiFileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+            <p className="mb-2 text-lg font-medium text-slate-600">
               Không tìm thấy đề thi nào
             </p>
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm text-slate-500">
               Thử thay đổi bộ lọc hoặc tạo đề thi mới
             </p>
           </div>
@@ -235,7 +223,7 @@ const TestingPage = () => {
             {filteredTests.map((test) => (
               <div
                 key={test.id}
-                className="p-5 hover:bg-slate-50 transition-colors"
+                className="p-5 transition-colors hover:bg-slate-50"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -246,10 +234,10 @@ const TestingPage = () => {
                       <StatusBadge status={test.status} />
                       <LevelBadge level={test.level} />
                     </div>
-                    <p className="text-sm text-slate-600 mb-3">
+                    <p className="mb-3 text-sm text-slate-600">
                       {test.description}
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                       <div>
                         <span className="text-slate-500">Mã đề thi:</span>
                         <span className="ml-2 font-medium text-slate-800">
@@ -285,21 +273,21 @@ const TestingPage = () => {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => handleViewTest(test.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
                       title="Xem chi tiết"
                     >
                       <FiEye className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleEditTest(test.id)}
-                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-2 text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50"
                       title="Chỉnh sửa"
                     >
                       <FiEdit2 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDeleteTest(test.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50"
                       title="Xóa"
                     >
                       <FiTrash2 className="w-5 h-5" />
