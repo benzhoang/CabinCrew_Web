@@ -463,6 +463,9 @@ const dictionaries = {
         delete_recording: 'Xóa ghi âm',
         recording_completed: 'Ghi âm đã hoàn thành',
         submit_recording: 'Nộp ghi âm',
+        recording_attempts_info: 'Đã ghi âm',
+        attempts_remaining: 'lần còn lại',
+        record_again: 'Ghi âm lại',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -933,6 +936,10 @@ const dictionaries = {
         delete_recording: 'Delete Record',
         recording_completed: 'Recording Completed',
         submit_recording: 'Submit Recording',
+        recording_attempts_info: 'Recording Attempts Info',
+        attempts_remaining: 'Attempts Remaining',
+        record_again: 'Record Again',
+
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',
         interview_appointments_subtitle: 'Track, search and view details of your interview schedule',

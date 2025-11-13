@@ -494,6 +494,45 @@ export const getCampaigns = async (params = {}) => {
   }
 };
 
+// API lấy chi tiết campaign theo ID
+export const getCampaignById = async (id) => {
+  try {
+    const response = await api.get(`/campaigns/${id}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    // Một số API trả trực tiếp object campaign mà không bọc trong {code, data}
+    if (responseData && typeof responseData === "object" && !Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Lấy chi tiết chiến dịch thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy chi tiết chiến dịch",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy chi tiết chiến dịch",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách tests
 export const getTests = async (page = 1, pageSize = 10) => {
   try {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { t, onLangChange } from '../../i18n';
+import { t, onLangChange } from '../../../i18n';
 import { toast } from 'react-toastify';
-import AppealModal from '../../components/AppealModal';
+import AppealModal from '../../../components/AppealModal';
 
-const ExamResultPage = () => {
+const ListeningExamResult = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [langVersion, setLangVersion] = useState(0);
@@ -274,5 +274,5 @@ const ExamResultPage = () => {
     );
 };
 
-export default ExamResultPage;
+export default ListeningExamResult;
 
