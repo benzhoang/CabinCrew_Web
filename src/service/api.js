@@ -567,4 +567,31 @@ export const getTests = async (page = 1, pageSize = 10) => {
   }
 };
 
+// API xóa test theo ID
+export const deleteTest = async (testId) => {
+  try {
+    const response = await api.delete(`/tests/${testId}`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0) {
+      return {
+        success: true,
+        message: response.data.message || "Xóa đề thi thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể xóa đề thi",
+      };
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể xóa đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api;

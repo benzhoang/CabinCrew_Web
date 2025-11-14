@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { t } from '../../../i18n';
+import SubmitWarningModal from './SubmitWarningModal';
 
 /**
  * AudioRecorder Component
@@ -11,6 +12,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
     const [recording, setRecording] = useState(existingRecording || null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [recordingCount, setRecordingCount] = useState(0); // Đếm số lần ghi âm
+    const [showWarningModal, setShowWarningModal] = useState(false); // Hiển thị pop-up warning
     const MAX_RECORDINGS = 3; // Số lần ghi âm tối đa
 
     const mediaRecorderRef = useRef(null);
@@ -186,8 +188,8 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
         });
     };
 
-    // Nộp file ghi âm
-    const submitRecording = () => {
+    // Hiển thị pop-up warning khi nhấn nộp
+    const handleSubmitClick = () => {
         if (!recording) {
             alert(t('no_recording') || 'Không có bản ghi âm để nộp');
             return;
@@ -198,12 +200,19 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
             return;
         }
 
+        // Hiển thị pop-up warning
+        setShowWarningModal(true);
+    };
+
+    // Xác nhận nộp file ghi âm (sau khi người dùng xác nhận trong pop-up)
+    const confirmSubmitRecording = () => {
         // Gọi callback để thông báo cho component cha
         if (onSubmit) {
             onSubmit(questionId, recording);
         }
 
         setIsSubmitted(true);
+        setShowWarningModal(false);
         alert(t('submit_recording') || `Đã nộp file ghi âm cho câu hỏi ${questionId}`);
     };
 
@@ -328,50 +337,64 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
                         </div>
                         <div className="text-center text-sm text-gray-600">
                             {t('recording_attempts_info') || `Đã ghi âm: ${recordingCount}/${MAX_RECORDINGS} lần`}
-                            {recordingCount < MAX_RECORDINGS && (
+                            {recordingCount < MAX_RECORDINGS && !isSubmitted && (
                                 <span className="ml-2 text-blue-600">
                                     ({MAX_RECORDINGS - recordingCount} {t('attempts_remaining') || 'lần còn lại'})
                                 </span>
                             )}
                         </div>
-                        <div className="flex gap-3 justify-center flex-wrap">
-                            <button
-                                onClick={playRecording}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                            >
+                        {isSubmitted ? (
+                            <div className="flex items-center justify-center gap-2 text-purple-600">
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
-                                {t('play_recording') || 'Phát lại'}
-                            </button>
-                            {recordingCount < MAX_RECORDINGS && (
+                                <span className="font-medium">
+                                    {t('recording_submitted') || 'Đã nộp file ghi âm'}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex gap-3 justify-center flex-wrap">
                                 <button
-                                    onClick={startRecording}
-                                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                                    onClick={playRecording}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                                     </svg>
-                                    {t('record_again') || 'Ghi âm lại'}
+                                    {t('play_recording') || 'Phát lại'}
                                 </button>
-                            )}
-                            <button
-                                onClick={submitRecording}
-                                disabled={isSubmitted}
-                                className={`px-6 py-2 rounded-lg flex items-center gap-2 ${isSubmitted
-                                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                                    : 'bg-purple-600 text-white hover:bg-purple-700'
-                                    }`}
-                            >
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                                {isSubmitted ? (t('submit_recording') || 'Đã nộp file') : (t('submit_recording') || 'Nộp file ghi âm')}
-                            </button>
-                        </div>
+                                {recordingCount < MAX_RECORDINGS && (
+                                    <button
+                                        onClick={startRecording}
+                                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                        </svg>
+                                        {t('record_again') || 'Ghi âm lại'}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleSubmitClick}
+                                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    {t('submit_recording') || 'Nộp file ghi âm'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
+            {/* Pop-up warning khi nộp file */}
+            <SubmitWarningModal
+                isOpen={showWarningModal}
+                onClose={() => setShowWarningModal(false)}
+                onConfirm={confirmSubmitRecording}
+                questionId={questionId}
+            />
         </div>
     );
 };
