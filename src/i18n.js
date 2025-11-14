@@ -466,6 +466,16 @@ const dictionaries = {
         recording_attempts_info: 'Đã ghi âm',
         attempts_remaining: 'lần còn lại',
         record_again: 'Ghi âm lại',
+        submit_recording_warning_title: 'Xác nhận nộp ghi âm',
+        submit_recording_warning_message: 'Bạn có chắc chắn muốn nộp ghi âm này không?',
+        submit_recording_warning_note: 'Lưu ý: Sau khi nộp, bạn sẽ không thể thay đổi file ghi âm này.',
+        confirm_submit: 'Xác nhận nộp',
+        submitted: 'Đã nộp',
+        not_submitted: 'Chưa nộp',
+        submitted_recordings: 'Đã nộp ghi âm',
+        unsubmitted_recordings: 'Chưa nộp ghi âm',
+        speaking_exam_result_title: 'Kết quả kiểm tra nói',
+        speaking_exam_result_subtitle: 'Xem kết quả kiểm tra nói của bạn',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -939,6 +949,16 @@ const dictionaries = {
         recording_attempts_info: 'Recording Attempts Info',
         attempts_remaining: 'Attempts Remaining',
         record_again: 'Record Again',
+        submit_recording_warning_title: 'Confirm Submit Recording',
+        submit_recording_warning_message: 'Are you sure you want to submit this recording?',
+        submit_recording_warning_note: 'Note: After submission, you will not be able to change this recording.',
+        confirm_submit: 'Confirm Submit',
+        submitted: 'Submitted',
+        not_submitted: 'Not Submitted',
+        submitted_recordings: 'Submitted Recordings',
+        unsubmitted_recordings: 'Unsubmitted Recordings',
+        speaking_exam_result_title: 'Speaking Exam Result',
+        speaking_exam_result_subtitle: 'View your speaking exam result',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',

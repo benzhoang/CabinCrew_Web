@@ -1,85 +1,41 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit2, FiTrash2, FiEye, FiFileText } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiEye, FiFileText, FiLoader, FiMusic, FiExternalLink } from "react-icons/fi";
+import { getTests, deleteTest } from "../../service/api";
+import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 
-// Mock data cho đề thi tiếng Anh
-const mockEnglishTests = [
-  {
-    id: 1,
-    code: "ENG-001",
-    name: "Đề thi tiếng Anh cơ bản",
-    description: "Đề thi đánh giá trình độ tiếng Anh cơ bản cho ứng viên",
-    level: "Cơ bản",
-    duration: 60, // phút
-    totalQuestions: 15,
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-20",
-    status: "active",
-    usageCount: 15,
-  },
-  {
-    id: 2,
-    code: "ENG-002",
-    name: "Đề thi tiếng Anh nâng cao",
-    description:
-      "Đề thi đánh giá trình độ tiếng Anh nâng cao cho ứng viên có kinh nghiệm",
-    level: "Nâng cao",
-    duration: 90,
-    totalQuestions: 10,
-    createdAt: "2024-02-10",
-    updatedAt: "2024-02-15",
-    status: "active",
-    usageCount: 8,
-  },
-  {
-    id: 3,
-    code: "ENG-003",
-    name: "Đề thi TOEIC mẫu",
-    description: "Đề thi mô phỏng format TOEIC chuẩn",
-    level: "Trung cấp",
-    duration: 120,
-    totalQuestions: 20,
-    createdAt: "2024-03-01",
-    updatedAt: "2024-03-05",
-    status: "active",
-    usageCount: 25,
-  },
-  {
-    id: 4,
-    code: "ENG-004",
-    name: "Đề thi giao tiếp hàng không",
-    description:
-      "Đề thi chuyên biệt về tiếng Anh giao tiếp trong ngành hàng không",
-    level: "Chuyên ngành",
-    duration: 75,
-    totalQuestions: 15,
-    createdAt: "2024-03-20",
-    updatedAt: "2024-03-25",
-    status: "draft",
+// Transform data từ API sang format của component
+const transformTestData = (item) => {
+
+  const getStatusFromTestType = (testType) => {
+    return "active";
+  };
+
+  return {
+    id: item.testId || item.id,
+    code: item.joinCode || `TEST-${item.testId || item.id}`,
+    name: item.testName || item.name || "Đề thi chưa có tên",
+    description: item.purpose || item.description || "Không có mô tả",
+    duration: item.durationInMinutes || item.duration || 0,
+    totalQuestions: 0,
+    createdAt: item.createdAt || new Date().toISOString(),
+    status: getStatusFromTestType(item.testType),
     usageCount: 0,
-  },
-];
+    testType: item.testType,
+    maxScore: item.maxScore,
+    audioFileURL: item.audioFileURL,
+  };
+};
 
 const StatusBadge = ({ status }) => {
   const map = {
-    active: {
-      cls: "bg-green-100 text-green-700 border-green-200",
-      text: "Đang sử dụng",
-    },
-    draft: {
-      cls: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      text: "Bản nháp",
-    },
-    archived: {
-      cls: "bg-slate-100 text-slate-700 border-slate-200",
-      text: "Đã lưu trữ",
-    },
+    active: { cls: "bg-green-100 text-green-700 border-green-200", text: "Đang sử dụng" },
+    draft: { cls: "bg-yellow-100 text-yellow-700 border-yellow-200", text: "Bản nháp" },
+    archived: { cls: "bg-slate-100 text-slate-700 border-slate-200", text: "Đã lưu trữ" },
   };
   const cfg = map[status] || map.draft;
   return (
-    <span
-      className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${cfg.cls}`}
-    >
+    <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${cfg.cls}`}>
       {cfg.text}
     </span>
   );
@@ -94,20 +50,94 @@ const LevelBadge = ({ level }) => {
   };
   const cls = map[level] || "bg-slate-100 text-slate-700";
   return (
-    <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
-    >
+    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
       {level}
+    </span>
+  );
+};
+
+const TestTypeBadge = ({ testType }) => {
+  if (!testType) return null;
+  const map = {
+    "listening": "bg-cyan-100 text-cyan-700",
+    "speaking": "bg-pink-100 text-pink-700",
+    "reading": "bg-emerald-100 text-emerald-700",
+    "writing": "bg-amber-100 text-amber-700",
+  };
+  const type = testType.toLowerCase();
+  let cls = "bg-gray-100 text-gray-700";
+  if (type.includes("listening") || type.includes("nghe")) cls = map["listening"];
+  else if (type.includes("speaking") || type.includes("nói")) cls = map["speaking"];
+  else if (type.includes("reading") || type.includes("đọc")) cls = map["reading"];
+  else if (type.includes("writing") || type.includes("viết")) cls = map["writing"];
+  return (
+    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+      {testType}
     </span>
   );
 };
 
 const TestingPage = () => {
   const navigate = useNavigate();
-  const [tests, setTests] = useState(mockEnglishTests);
+  const [tests, setTests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [deletingTestId, setDeletingTestId] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalRecords: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
+  const fetchTests = useCallback(async (page = null, pageSize = null, showLoading = true) => {
+    const currentPage = page !== null ? page : pagination.currentPage;
+    const currentPageSize = pageSize !== null ? pageSize : pagination.pageSize;
+    if (showLoading) setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getTests(currentPage, currentPageSize);
+      if (response.success) {
+        let items = [];
+        if (response.data?.items && Array.isArray(response.data.items)) {
+          items = response.data.items;
+          setPagination(prev => ({
+            currentPage: response.data.currentPage,
+            pageSize: response.data.pageSize || prev.pageSize,
+            totalRecords: response.data.totalRecords || 0,
+            totalPages: response.data.totalPages || 0,
+            hasNextPage: response.data.hasNextPage || false,
+            hasPreviousPage: response.data.hasPreviousPage || false,
+          }));
+        } else if (Array.isArray(response.data)) {
+          items = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          items = response.data.items || [response.data];
+        }
+        const transformedTests = items.map(transformTestData);
+        setTests(transformedTests);
+      } else {
+        setTests([]);
+        setError(response.error || "Không thể lấy danh sách đề thi");
+      }
+    } catch (err) {
+      setTests([]);
+      setError(err.message || "Không thể lấy danh sách đề thi");
+    } finally {
+      if (showLoading) setIsLoading(false);
+    }
+  }, [pagination.currentPage, pagination.pageSize]);
+
+  useEffect(() => {
+    fetchTests();
+  }, [fetchTests]);
 
   const filteredTests = useMemo(() => {
     return tests.filter((test) => {
@@ -115,51 +145,75 @@ const TestingPage = () => {
         test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         test.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         test.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || test.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || test.status === statusFilter;
       const matchesLevel = levelFilter === "all" || test.level === levelFilter;
       return matchesSearch && matchesStatus && matchesLevel;
     });
   }, [tests, searchTerm, statusFilter, levelFilter]);
 
   const handleEditTest = (testId) => {
-    // TODO: Navigate to edit test page
-    alert(`Chỉnh sửa đề thi ID: ${testId}`);
+    const test = tests.find(t => t.id === testId);
+    if (test) {
+      setSelectedTest(test);
+      setIsEditModalOpen(true);
+    }
   };
 
-  const handleDeleteTest = (testId) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa đề thi này?")) {
-      setTests((prev) => prev.filter((test) => test.id !== testId));
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedTest(null);
+  };
+
+  const handleSaveTest = (formData) => {
+    console.log('Lưu dữ liệu đề thi:', formData);
+    alert('Đã lưu thay đổi (chưa có API)');
+  };
+
+  const handleDeleteTest = async (testId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa đề thi này?")) return;
+    setDeletingTestId(testId);
+    setError(null);
+    try {
+      const response = await deleteTest(testId);
+      if (response.success) {
+        // Loại bỏ test khỏi state ngay lập tức
+        setTests(prev => prev.filter(test => test.id !== testId));
+        // Tải lại danh sách để đồng bộ với server
+        await fetchTests(pagination.currentPage, pagination.pageSize, true);
+        alert(response.message || "Xóa đề thi thành công");
+      } else {
+        setError(response.error || "Không thể xóa đề thi");
+        alert(response.error || "Không thể xóa đề thi");
+        // Nếu xóa thất bại, tải lại danh sách để khôi phục trạng thái
+        await fetchTests(pagination.currentPage, pagination.pageSize, true);
+      }
+    } catch (err) {
+      setError(err.message || "Không thể xóa đề thi");
+      alert(err.message || "Không thể xóa đề thi");
+      // Tải lại danh sách nếu có lỗi để khôi phục trạng thái
+      await fetchTests(pagination.currentPage, pagination.pageSize, true);
+    } finally {
+      setDeletingTestId(null);
     }
   };
 
   const handleViewTest = (testId) => {
-    // TODO: Navigate to view test details
     alert(`Xem chi tiết đề thi ID: ${testId}`);
   };
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="mb-2 text-2xl font-bold text-slate-800">
-            Quản lý đề thi tiếng Anh
-          </h2>
-          <p className="text-slate-600">
-            Danh sách các đề thi tiếng Anh đã tạo
-          </p>
+          <h2 className="mb-2 text-2xl font-bold text-slate-800">Quản lý đề thi tiếng Anh</h2>
+          <p className="text-slate-600">Danh sách các đề thi tiếng Anh đã tạo</p>
         </div>
       </div>
 
-      {/* Filters and Search */}
       <div className="p-4 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Search */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Tìm kiếm
-            </label>
+            <label className="block mb-2 text-sm font-medium text-slate-700">Tìm kiếm</label>
             <input
               type="text"
               value={searchTerm}
@@ -168,12 +222,8 @@ const TestingPage = () => {
               className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
-
-          {/* Status Filter */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Trạng thái
-            </label>
+            <label className="block mb-2 text-sm font-medium text-slate-700">Trạng thái</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -185,12 +235,8 @@ const TestingPage = () => {
               <option value="archived">Đã lưu trữ</option>
             </select>
           </div>
-
-          {/* Level Filter */}
           <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Mức độ
-            </label>
+            <label className="block mb-2 text-sm font-medium text-slate-700">Mức độ</label>
             <select
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
@@ -206,68 +252,79 @@ const TestingPage = () => {
         </div>
       </div>
 
-      {/* Tests List */}
+      {error && (
+        <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
       <div className="bg-white border shadow-sm rounded-xl border-slate-200">
-        {filteredTests.length === 0 ? (
+        {isLoading ? (
+          <div className="p-12 text-center">
+            <FiLoader className="w-16 h-16 mx-auto mb-4 text-indigo-600 animate-spin" />
+            <p className="text-lg font-medium text-slate-600">Đang tải danh sách đề thi...</p>
+          </div>
+        ) : filteredTests.length === 0 ? (
           <div className="p-12 text-center">
             <FiFileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
             <p className="mb-2 text-lg font-medium text-slate-600">
-              Không tìm thấy đề thi nào
+              {tests.length === 0 ? "Chưa có đề thi nào" : "Không tìm thấy đề thi nào"}
             </p>
             <p className="text-sm text-slate-500">
-              Thử thay đổi bộ lọc hoặc tạo đề thi mới
+              {tests.length === 0 ? "Hãy tạo đề thi mới để bắt đầu" : "Thử thay đổi bộ lọc hoặc tạo đề thi mới"}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-200">
             {filteredTests.map((test) => (
-              <div
-                key={test.id}
-                className="p-5 transition-colors hover:bg-slate-50"
-              >
+              <div key={test.id} className="p-5 transition-colors hover:bg-slate-50">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-slate-800">
-                        {test.name}
-                      </h3>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h3 className="text-lg font-semibold text-slate-800">{test.name}</h3>
                       <StatusBadge status={test.status} />
                       <LevelBadge level={test.level} />
+                      {test.testType && <TestTypeBadge testType={test.testType} />}
                     </div>
-                    <p className="mb-3 text-sm text-slate-600">
-                      {test.description}
-                    </p>
+                    <p className="mb-3 text-sm text-slate-600">{test.description}</p>
                     <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                       <div>
                         <span className="text-slate-500">Mã đề thi:</span>
-                        <span className="ml-2 font-medium text-slate-800">
-                          {test.code}
-                        </span>
+                        <span className="ml-2 font-medium text-slate-800">{test.code}</span>
                       </div>
                       <div>
                         <span className="text-slate-500">Thời gian:</span>
-                        <span className="ml-2 font-medium text-slate-800">
-                          {test.duration} phút
-                        </span>
+                        <span className="ml-2 font-medium text-slate-800">{test.duration} phút</span>
                       </div>
                       <div>
                         <span className="text-slate-500">Số câu hỏi:</span>
-                        <span className="ml-2 font-medium text-slate-800">
-                          {test.totalQuestions}
-                        </span>
+                        <span className="ml-2 font-medium text-slate-800">{test.totalQuestions}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Đã sử dụng:</span>
-                        <span className="ml-2 font-medium text-slate-800">
-                          {test.usageCount} lần
-                        </span>
+                        <span className="text-slate-500">Điểm tối đa:</span>
+                        <span className="ml-2 font-medium text-slate-800">{test.maxScore || 0}</span>
                       </div>
                     </div>
+                    {test.audioFileURL && (
+                      <div className="mt-3">
+                        <div className="flex items-center gap-2">
+                          <FiMusic className="w-4 h-4 text-slate-500" />
+                          <span className="text-sm text-slate-500">File âm thanh:</span>
+                          <a
+                            href={test.audioFileURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                          >
+                            <span className="truncate max-w-xs">{test.audioFileURL}</span>
+                            <FiExternalLink className="w-3 h-3 flex-shrink-0" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-3 text-xs text-slate-500">
-                      Tạo:{" "}
-                      {new Date(test.createdAt).toLocaleDateString("vi-VN")} |
-                      Cập nhật:{" "}
-                      {new Date(test.updatedAt).toLocaleDateString("vi-VN")}
+                      Tạo: {new Date(test.createdAt).toLocaleDateString("vi-VN")}
+                      {test.createdBy && <> bởi <span className="font-medium">{test.createdBy}</span></>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -287,10 +344,11 @@ const TestingPage = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteTest(test.id)}
-                      className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                      disabled={deletingTestId === test.id}
+                      className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Xóa"
                     >
-                      <FiTrash2 className="w-5 h-5" />
+                      {deletingTestId === test.id ? <FiLoader className="w-5 h-5 animate-spin" /> : <FiTrash2 className="w-5 h-5" />}
                     </button>
                   </div>
                 </div>
@@ -300,12 +358,27 @@ const TestingPage = () => {
         )}
       </div>
 
-      {/* Summary */}
-      {filteredTests.length > 0 && (
+      {!isLoading && (
         <div className="mt-4 text-sm text-slate-600">
-          Hiển thị {filteredTests.length} / {tests.length} đề thi
+          {pagination.totalRecords > 0 ? (
+            <>
+              Hiển thị {filteredTests.length} / {tests.length} đề thi
+              {pagination.totalRecords > tests.length && (
+                <span className="ml-2">(Tổng: {pagination.totalRecords} đề thi)</span>
+              )}
+            </>
+          ) : (
+            <>Hiển thị {filteredTests.length} / {tests.length} đề thi</>
+          )}
         </div>
       )}
+
+      <EditTestModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        testData={selectedTest}
+        onSave={handleSaveTest}
+      />
     </div>
   );
 };
