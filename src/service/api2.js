@@ -282,34 +282,76 @@ export const createCampaignRequest = async (campaignRequestData) => {
   try {
     const response = await api2.post("/campaign-requests", campaignRequestData);
 
-    // Kiểm tra HTTP status code (200, 201 là success)
-    const isHttpSuccess = response.status >= 200 && response.status < 300;
+    // Log raw response để dễ debug giống createUser
+    console.log("Raw Campaign Request Response:", response);
 
-    // Kiểm tra code === 0 (success) theo format API
+    const responseCode = response.data?.code;
+    const normalizedCode =
+      typeof responseCode === "string"
+        ? responseCode.trim().toUpperCase()
+        : responseCode;
+    const responseMessage = response.data?.message || "";
+    const httpSuccess = response.status >= 200 && response.status < 300;
+    const successCodes = new Set([
+      0,
+      true,
+      "SUCCESS",
+      "CREATED_SUCCESS",
+      "CREATED",
+      "OK",
+    ]);
+
+    const messageImpliesSuccess =
+      responseMessage.toLowerCase().includes("success") ||
+      responseMessage.toLowerCase().includes("created");
+
     const isSuccess =
-      response.data.code === 0 ||
-      (isHttpSuccess && response.data.code === undefined);
+      successCodes.has(normalizedCode) ||
+      successCodes.has(responseCode) ||
+      response.data?.success === true ||
+      response.data?.isSuccess === true ||
+      messageImpliesSuccess ||
+      (httpSuccess && (responseCode === undefined || responseCode === null));
 
     if (isSuccess) {
       return {
         success: true,
-        data: response.data.data || null,
-        message: response.data.message || "Tạo campaign request thành công",
-      };
-    } else {
-      return {
-        success: false,
-        error: response.data.message || "Tạo campaign request thất bại",
+        data: response.data?.data ?? null,
+        message:
+          responseMessage ||
+          (typeof normalizedCode === "string" ? normalizedCode : null) ||
+          "Tạo campaign request thành công",
       };
     }
-  } catch (error) {
+
     return {
       success: false,
-      error:
-        error.response?.data?.message ||
-        error.message ||
-        "Tạo campaign request thất bại",
-      status: error.response?.status,
+      error: responseMessage || "Tạo campaign request thất bại",
+    };
+  } catch (error) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.message || "";
+      if (
+        errorMessage.toLowerCase().includes("success") ||
+        errorMessage.toLowerCase().includes("created")
+      ) {
+        return {
+          success: true,
+          data: error.response.data?.data || null,
+          message: errorMessage,
+        };
+      }
+
+      return {
+        success: false,
+        error: errorMessage || "Tạo campaign request thất bại",
+        status: error.response.status,
+      };
+    }
+
+    return {
+      success: false,
+      error: error.message || "Tạo campaign request thất bại",
     };
   }
 };
@@ -542,6 +584,46 @@ export const updateCampaignAndCreateRounds = async (
         error.response?.data?.message ||
         error.message ||
         "Cập nhật campaign và tạo rounds thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API resubmit campaign - PUT /api/v1/campaigns/{id}/resubmit
+export const resubmitCampaign = async (campaignId, campaignData) => {
+  try {
+    const response = await api2.put(
+      `/campaigns/${campaignId}/resubmit`,
+      campaignData
+    );
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message: response.data.message || "Resubmit campaign thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Resubmit campaign thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Resubmit campaign thất bại",
       status: error.response?.status,
     };
   }

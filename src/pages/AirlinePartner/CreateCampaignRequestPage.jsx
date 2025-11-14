@@ -1,18 +1,53 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { toast } from "react-toastify";
+import { createCampaignRequest } from "../../service/api2";
 
 const CreateCampaignRequestPage = () => {
   const [formData, setFormData] = useState({
-    title: "",
-    quantity: "",
+    campaignName: "",
+    targetQuantity: "",
     description: "",
-    requirements: "",
-    batches: [],
+    jobDescription: "",
+    jobRequirement: "",
+    requestType: 1,
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
+  const displayName = employeeData?.displayName;
+
+  const airlineDisplayNames = {
+    vietjet: "Vietjet Air",
+    vietnamairlines: "Vietnam Airlines",
+    bambooairways: "Bamboo Airways",
+    sunphuquoc: "SunPhuQuoc Airways",
+  };
+
+  const normalizedDisplayName =
+    typeof displayName === "string" ? displayName.toLowerCase() : "";
+  const formattedDisplayName =
+    airlineDisplayNames[normalizedDisplayName] || displayName;
+
+  const stripHtmlTags = (value = "") => {
+    if (!value) return "";
+
+    if (typeof window === "undefined") {
+      return value;
+    }
+
+    const div = document.createElement("div");
+    div.innerHTML = value;
+    return (div.textContent || div.innerText || "").trim();
+  };
+
+  const requestTypeLabels = {
+    1: "Tuyển dụng",
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -29,49 +64,75 @@ const CreateCampaignRequestPage = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const handleEditorChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
-    if (!formData.title.trim()) {
-      newErrors.title = "Tiêu đề là bắt buộc";
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
     }
-    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-      newErrors.quantity = "Số lượng tuyển phải lớn hơn 0";
-    }
-    if (
-      formData.startDate &&
-      formData.endDate &&
-      formData.startDate >= formData.endDate
-    ) {
-      newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "Mô tả nhu cầu là bắt buộc";
-    }
-    if (!formData.requirements.trim()) {
-      newErrors.requirements = "Yêu cầu là bắt buộc";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
+
+  // const validateForm = () => {
+  //   const newErrors = {};
+
+  //   if (!formData.title.trim()) {
+  //     newErrors.title = "Tiêu đề là bắt buộc";
+  //   }
+  //   if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+  //     newErrors.quantity = "Số lượng tuyển phải lớn hơn 0";
+  //   }
+  //   if (!formData.description.trim()) {
+  //     newErrors.description = "Mô tả nhu cầu là bắt buộc";
+  //   }
+  //   if (!formData.requirements.trim()) {
+  //     newErrors.requirements = "Yêu cầu là bắt buộc";
+  //   }
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    // if (!validateForm()) {
+    //   return;
+    // }
 
     setIsSubmitting(true);
 
+    const parsedQuantity = Number.parseInt(
+      `${formData.targetQuantity}`.trim(),
+      10
+    );
+
+    const payload = {
+      campaignName: formData.campaignName.trim(),
+      description: formData.description.trim(),
+      jobDescription: stripHtmlTags(formData.jobDescription),
+      jobRequirement: stripHtmlTags(formData.jobRequirement),
+      targetQuantity: Number.isNaN(parsedQuantity) ? 0 : parsedQuantity,
+      requestType: Number(formData.requestType),
+    };
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Creating campaign:", formData);
-      alert("Tạo campaign thành công!");
-      navigate("/airline-partner/campaigns");
+      const response = await createCampaignRequest(payload);
+      console.log("Creating campaign:", payload);
+
+      if (response.success) {
+        toast.success(response.message || "Tạo yêu cầu thành công!");
+        navigate("/airline-partner/requests");
+      } else {
+        throw new Error(response.error || "Tạo yêu cầu thất bại");
+      }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      alert("Có lỗi xảy ra khi tạo campaign");
+      toast.error(error.message || "Có lỗi xảy ra khi tạo campaign");
     } finally {
       setIsSubmitting(false);
     }
@@ -95,8 +156,8 @@ const CreateCampaignRequestPage = () => {
             </label>
             <input
               type="text"
-              name="title"
-              value={formData.title}
+              name="campaignName"
+              value={formData.campaignName}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.title ? "border-red-300" : "border-slate-300"
@@ -130,7 +191,7 @@ const CreateCampaignRequestPage = () => {
                     Thông tin đề xuất
                   </div>
                   <div className="font-semibold text-slate-800">
-                    Đặng Bích Thu Thủy (Crew Welfare Team Leader)
+                    {formattedDisplayName}
                   </div>
                 </div>
               </div>
@@ -143,8 +204,8 @@ const CreateCampaignRequestPage = () => {
                     </label>
                     <input
                       type="number"
-                      name="quantity"
-                      value={formData.quantity}
+                      name="targetQuantity"
+                      value={formData.targetQuantity}
                       onChange={handleInputChange}
                       min="1"
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
@@ -157,6 +218,21 @@ const CreateCampaignRequestPage = () => {
                         {errors.quantity}
                       </p>
                     )}
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-sm font-medium text-slate-700">
+                      Loại yêu cầu
+                    </label>
+                    <input
+                      type="text"
+                      name="requestType"
+                      value={
+                        requestTypeLabels[formData.requestType] ||
+                        formData.requestType
+                      }
+                      disabled
+                      className="w-full px-3 py-2 border rounded-md border-slate-300 bg-slate-50 text-slate-600"
+                    />
                   </div>
                 </div>
 
@@ -183,18 +259,22 @@ const CreateCampaignRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả nhu cầu *
+                    Mô tả công việc *
                   </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  <div
+                    className={`rounded-md border ${
                       errors.description ? "border-red-300" : "border-slate-300"
                     }`}
-                    placeholder="Mô tả chi tiết về nhu cầu tuyển dụng..."
-                  />
+                  >
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobDescription}
+                      onChange={(_, editor) =>
+                        handleEditorChange("jobDescription", editor.getData())
+                      }
+                      config={{ placeholder: "Mô tả chi tiết về công việc..." }}
+                    />
+                  </div>
                   {errors.description && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.description}
@@ -204,20 +284,26 @@ const CreateCampaignRequestPage = () => {
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Yêu cầu *
+                    Yêu cầu công việc *
                   </label>
-                  <textarea
-                    name="requirements"
-                    value={formData.requirements}
-                    onChange={handleInputChange}
-                    rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  <div
+                    className={`rounded-md border ${
                       errors.requirements
                         ? "border-red-300"
                         : "border-slate-300"
                     }`}
-                    placeholder="Liệt kê các yêu cầu cho ứng viên..."
-                  />
+                  >
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobRequirement}
+                      onChange={(_, editor) =>
+                        handleEditorChange("jobRequirement", editor.getData())
+                      }
+                      config={{
+                        placeholder: "Liệt kê các yêu cầu cho ứng viên...",
+                      }}
+                    />
+                  </div>
                   {errors.requirements && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.requirements}
