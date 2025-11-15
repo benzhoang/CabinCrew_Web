@@ -64,6 +64,11 @@ const StatusBadge = ({ status }) => {
           className: "bg-red-100 text-red-600 border-red-200",
           text: "Bị từ chối",
         };
+      case "approved":
+        return {
+          className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          text: "Đã được duyệt",
+        };
       default:
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
@@ -341,17 +346,6 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("active")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "active"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Đang diễn ra
-          </button>
-          <button
-            type="button"
             onClick={() => setSelectedStatus("pending")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "pending"
@@ -360,6 +354,28 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Đang chờ duyệt
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("approved")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "approved"
+                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Đã được duyệt
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("active")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "active"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Đang diễn ra
           </button>
           <button
             type="button"

@@ -629,4 +629,120 @@ export const resubmitCampaign = async (campaignId, campaignData) => {
   }
 };
 
+// API tạo test mới với audio file upload - POST /api/v1/tests
+export const createTest = async (testData, audioFile) => {
+  try {
+    // Tạo FormData để gửi file và dữ liệu
+    const formData = new FormData();
+
+    // Append audio file nếu có (theo format API: AudioFile)
+    if (audioFile) {
+      formData.append("AudioFile", audioFile);
+    }
+
+    // Append các trường dữ liệu khác từ testData
+    if (testData) {
+      Object.keys(testData).forEach((key) => {
+        // Bỏ qua AudioFile/audioFile nếu đã append riêng
+        if (
+          key !== "audioFile" &&
+          key !== "AudioFile" &&
+          testData[key] !== undefined &&
+          testData[key] !== null
+        ) {
+          // Nếu là object hoặc array, stringify nó
+          if (
+            typeof testData[key] === "object" &&
+            !(testData[key] instanceof File)
+          ) {
+            formData.append(key, JSON.stringify(testData[key]));
+          } else {
+            formData.append(key, testData[key]);
+          }
+        }
+      });
+    }
+
+    // Gửi request với Content-Type: multipart/form-data
+    const response = await api2.post("/tests", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 60000, // 60 giây timeout cho upload file
+    });
+
+    // Log raw response để debug
+    console.log("Raw Test Creation Response:", response);
+
+    const responseCode = response.data?.code;
+    const normalizedCode =
+      typeof responseCode === "string"
+        ? responseCode.trim().toUpperCase()
+        : responseCode;
+    const responseMessage = response.data?.message || "";
+    const httpSuccess = response.status >= 200 && response.status < 300;
+    const successCodes = new Set([
+      0,
+      true,
+      "SUCCESS",
+      "CREATED_SUCCESS",
+      "CREATED",
+      "OK",
+    ]);
+
+    const messageImpliesSuccess =
+      responseMessage.toLowerCase().includes("success") ||
+      responseMessage.toLowerCase().includes("created");
+
+    const isSuccess =
+      successCodes.has(normalizedCode) ||
+      successCodes.has(responseCode) ||
+      response.data?.success === true ||
+      response.data?.isSuccess === true ||
+      messageImpliesSuccess ||
+      (httpSuccess && (responseCode === undefined || responseCode === null));
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data?.data ?? null,
+        message:
+          responseMessage ||
+          (typeof normalizedCode === "string" ? normalizedCode : null) ||
+          "Tạo test thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseMessage || "Tạo test thất bại",
+    };
+  } catch (error) {
+    if (error.response) {
+      const errorMessage = error.response.data?.message || error.message || "";
+      if (
+        errorMessage.toLowerCase().includes("success") ||
+        errorMessage.toLowerCase().includes("created")
+      ) {
+        return {
+          success: true,
+          data: error.response.data?.data || null,
+          message: errorMessage,
+        };
+      }
+
+      return {
+        success: false,
+        error: errorMessage || "Tạo test thất bại",
+        status: error.response.status,
+      };
+    }
+
+    return {
+      success: false,
+      error: error.message || "Tạo test thất bại",
+    };
+  }
+};
+
 export default api2;

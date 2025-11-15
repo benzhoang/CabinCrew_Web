@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { FiUploadCloud, FiFile, FiInfo, FiArrowLeft } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { createTest } from "../../service/api2";
+import { toast } from "react-toastify";
 
 const testTypeOptions = [
-  { value: 1, label: "English" },
-  { value: 2, label: "Practical" },
+  { value: 1, label: "English Listening" },
+  { value: 2, label: "English Speaking" },
+  { value: 3, label: "Practical" },
 ];
 
 const CreateTestPage = () => {
@@ -14,9 +17,12 @@ const CreateTestPage = () => {
     purpose: "",
     testType: "1",
     maxScore: "",
+    durationInMinutes: "",
     audioFile: null,
   });
   const [previewFile, setPreviewFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (field) => (event) => {
     const value =
@@ -47,10 +53,99 @@ const CreateTestPage = () => {
     navigate(-1);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: hook API tạo đề thi (multipart/form-data)
-    alert("Tính năng đang phát triển. Vui lòng kiểm tra lại sau.");
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      // Validation cho tên đề thi
+      if (!formData.testName || !formData.testName.trim()) {
+        setErrorMessage("Tên đề thi là bắt buộc");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validation cho mô tả
+      if (!formData.purpose || !formData.purpose.trim()) {
+        setErrorMessage("Mô tả là bắt buộc");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validation theo điều kiện từ hình 2
+      const testType = parseInt(formData.testType);
+      const durationInMinutes = parseInt(formData.durationInMinutes);
+      const maxScore = parseInt(formData.maxScore);
+
+      // Validate DurationInMinutes: > 0
+      if (!durationInMinutes || durationInMinutes <= 0) {
+        setErrorMessage("Thời gian phải lớn hơn 0");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate MaxScore
+      if (!maxScore || maxScore <= 0) {
+        setErrorMessage("Điểm tối đa phải lớn hơn 0");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate AudioFile cho EnglishListening (TestType = 1)
+      if (testType === 1 && !formData.audioFile) {
+        setErrorMessage(
+          "Audio file là bắt buộc đối với loại bài kiểm tra nghe tiếng Anh"
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate audio file format và size nếu có
+      if (formData.audioFile) {
+        const file = formData.audioFile;
+        const fileExtension = file.name.split(".").pop().toLowerCase();
+
+        if (fileExtension !== "mp3" && fileExtension !== "wav") {
+          setErrorMessage("File audio phải có định dạng .mp3 hoặc .wav");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const fileSizeMB = file.size / (1024 * 1024);
+        if (fileSizeMB > 50) {
+          setErrorMessage("File audio không được vượt quá 50 MB");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Chuẩn bị dữ liệu để gửi API
+      const testData = {
+        TestName: formData.testName,
+        Purpose: formData.purpose,
+        TestType: testType,
+        MaxScore: maxScore,
+        DurationInMinutes: durationInMinutes,
+      };
+
+      // Gọi API createTest
+      const result = await createTest(testData, formData.audioFile);
+      console.log("Creating test:", testData);
+
+      if (result.success) {
+        toast.success(result.message || "Tạo đề thi thành công!");
+        // Có thể navigate đến trang chi tiết test hoặc danh sách test
+        navigate(-1);
+      } else {
+        toast.error(result.error || "Tạo đề thi thất bại. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error creating test:", error);
+      setErrorMessage("Đã xảy ra lỗi khi tạo đề thi. Vui lòng thử lại.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -143,13 +238,19 @@ const CreateTestPage = () => {
             onSubmit={handleSubmit}
             className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-6"
           >
+            {errorMessage && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <p>{errorMessage}</p>
+              </div>
+            )}
+
             <div className="grid gap-6 md:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="testName"
                   className="text-sm font-medium text-slate-700"
                 >
-                  TestName
+                  Tên đề thi
                 </label>
                 <input
                   id="testName"
@@ -158,7 +259,6 @@ const CreateTestPage = () => {
                   value={formData.testName}
                   onChange={handleChange("testName")}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  required
                 />
                 <span className="text-xs text-slate-500">
                   Tên hiển thị cho đề thi, ví dụ "English Level Test".
@@ -170,16 +270,15 @@ const CreateTestPage = () => {
                   htmlFor="purpose"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Purpose
+                  Mục đích
                 </label>
                 <input
                   id="purpose"
                   type="text"
-                  placeholder="Mục tiêu đề thi..."
+                  placeholder="Mục đích đề thi..."
                   value={formData.purpose}
                   onChange={handleChange("purpose")}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  required
                 />
                 <span className="text-xs text-slate-500">
                   Ghi chú ngắn giúp xác định mục đích sử dụng đề thi.
@@ -191,7 +290,7 @@ const CreateTestPage = () => {
                   htmlFor="testType"
                   className="text-sm font-medium text-slate-700"
                 >
-                  TestType
+                  Loại đề thi
                 </label>
                 <select
                   id="testType"
@@ -215,7 +314,7 @@ const CreateTestPage = () => {
                   htmlFor="maxScore"
                   className="text-sm font-medium text-slate-700"
                 >
-                  MaxScore
+                  Điểm tối đa
                 </label>
                 <input
                   id="maxScore"
@@ -225,17 +324,39 @@ const CreateTestPage = () => {
                   value={formData.maxScore}
                   onChange={handleChange("maxScore")}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                  required
                 />
                 <span className="text-xs text-slate-500">
                   Điểm tối đa cho đề thi (ví dụ 100).
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="durationInMinutes"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Thời gian
+                </label>
+                <input
+                  id="durationInMinutes"
+                  type="number"
+                  min="1"
+                  max="480"
+                  placeholder="Thời gian (phút)"
+                  value={formData.durationInMinutes}
+                  onChange={handleChange("durationInMinutes")}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                />
+                <span className="text-xs text-slate-500">
+                  Thời gian làm bài từ 1 đến 480 phút (khuyến nghị: 30-180
+                  phút).
                 </span>
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
               <label className="text-sm font-medium text-slate-700">
-                AudioFile
+                File audio
               </label>
               <div className="flex flex-col gap-4 rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-6 text-center text-indigo-700">
                 <FiUploadCloud className="mx-auto h-10 w-10" />
@@ -276,15 +397,17 @@ const CreateTestPage = () => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                disabled={isSubmitting}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Hủy
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                disabled={isSubmitting}
+                className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Lưu đề thi
+                {isSubmitting ? "Đang xử lý..." : "Lưu đề thi"}
               </button>
             </div>
           </form>
