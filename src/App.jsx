@@ -76,6 +76,7 @@ import AppointmentPage from "./pages/Candidate/Appointment";
 import TestResultPage from "./pages/CabinCrew/TestResultPage";
 import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 import TestingPage from "./pages/Examiner/TestingPage";
+import TestDetailPage from "./pages/Examiner/TestDetailPage";
 import CreatePromotionRequestPage from "./pages/AirlinePartner/CreatePromotionRequestPage";
 import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequestPage";
 import CreateTestPage from "./pages/Examiner/CreateTestPage";
@@ -634,6 +635,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <TestingPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/testing/:id"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <TestDetailPage />
               </main>
             </div>
           }

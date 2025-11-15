@@ -159,14 +159,28 @@ const TestingPage = () => {
     }
   };
 
-  const handleCloseEditModal = () => {
+  const handleCloseEditModal = async () => {
     setIsEditModalOpen(false);
     setSelectedTest(null);
+    // Đợi một chút để đảm bảo backend đã xử lý xong, sau đó reload danh sách đề thi
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await fetchTests(pagination.currentPage, pagination.pageSize, false);
   };
 
-  const handleSaveTest = (formData) => {
-    console.log('Lưu dữ liệu đề thi:', formData);
-    alert('Đã lưu thay đổi (chưa có API)');
+  const handleSaveTest = async (formData, responseData) => {
+    // Lưu selectedTest ID trước khi nó bị reset
+    const testIdToUpdate = selectedTest?.id;
+
+    // Cập nhật test trong state với dữ liệu mới từ response nếu có
+    if (responseData && testIdToUpdate) {
+      setTests(prevTests =>
+        prevTests.map(test =>
+          test.id === testIdToUpdate
+            ? transformTestData(responseData)
+            : test
+        )
+      );
+    }
   };
 
   const handleDeleteTest = async (testId) => {
@@ -198,7 +212,7 @@ const TestingPage = () => {
   };
 
   const handleViewTest = (testId) => {
-    alert(`Xem chi tiết đề thi ID: ${testId}`);
+    navigate(`/examiner/testing/${testId}`);
   };
 
   return (

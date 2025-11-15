@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { getCampaignRequestById } from '../../../service/api'
+import RejectRequestModal from './RejectRequestModal'
 
 const formatDate = (isoString) => {
     if (!isoString) return ''
@@ -22,7 +23,7 @@ const Section = ({ title, children }) => (
 const InfoRow = ({ label, value }) => (
     <div className="flex items-start gap-3">
         <div className="w-36 shrink-0 text-gray-500 text-sm">{label}</div>
-        <div className="text-gray-900 text-sm">{value}</div>
+        <div className="text-gray-900 text-sm whitespace-pre-wrap">{value}</div>
     </div>
 )
 
@@ -33,16 +34,18 @@ const RequestCampInfo = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
+    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false)
+    const [isApproving, setIsApproving] = useState(false)
+    const [isRejecting, setIsRejecting] = useState(false)
+
+    // Fetch API
     useEffect(() => {
         const fetchRequestDetail = async () => {
-            // Nếu có ID từ params, gọi API
             if (id) {
                 setLoading(true)
-                setError(null)
                 try {
                     const result = await getCampaignRequestById(id)
-                    if (result.success && result.data) {
-                        // Map dữ liệu từ API response sang format component đang dùng
+                    if (result.success) {
                         const apiData = result.data
                         setData({
                             id: apiData.requestId || apiData.id,
@@ -53,7 +56,7 @@ const RequestCampInfo = () => {
                             department: apiData.partnerName || apiData.department || 'N/A',
                             unit: apiData.unit || 'N/A',
                             quantity: apiData.targetQuantity || apiData.quantity || 0,
-                            startDate: apiData.startDate || apiData.createdAt || '',
+                            startDate: apiData.startDate || '',
                             endDate: apiData.endDate || '',
                             description: apiData.description || '',
                             jobDescription: apiData.jobDescription || '',
@@ -69,23 +72,14 @@ const RequestCampInfo = () => {
                         })
                     } else {
                         setError(result.error || 'Không thể tải chi tiết yêu cầu')
-                        // Nếu có data từ state, dùng nó làm fallback
-                        if (state?.campaign) {
-                            setData(state.campaign)
-                        }
                     }
                 } catch (err) {
-                    console.error('Error fetching request detail:', err)
-                    setError('Đã xảy ra lỗi khi tải dữ liệu: ' + (err.message || 'Unknown error'))
-                    // Nếu có data từ state, dùng nó làm fallback
-                    if (state?.campaign) {
-                        setData(state.campaign)
-                    }
+                    console.error(err)
+                    setError('Đã xảy ra lỗi khi tải dữ liệu')
                 } finally {
                     setLoading(false)
                 }
             } else {
-                // Không có ID, dùng data từ state
                 if (state?.campaign) {
                     setData(state.campaign)
                 } else {
@@ -100,19 +94,17 @@ const RequestCampInfo = () => {
 
     if (loading) {
         return (
-            <div className="p-6">
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-slate-600">Đang tải dữ liệu...</p>
-                </div>
+            <div className="p-6 h-64 flex justify-center items-center">
+                <p className="text-slate-600">Đang tải dữ liệu...</p>
             </div>
         )
     }
 
-    if (error && !state?.campaign) {
+    if (error && !data) {
         return (
             <div className="p-6">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-800">Lỗi: {error}</p>
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <p className="text-red-800">{error}</p>
                 </div>
             </div>
         )
@@ -120,34 +112,34 @@ const RequestCampInfo = () => {
 
     if (!data) {
         return (
-            <div className="p-6">
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-slate-600">Không có dữ liệu</p>
-                </div>
+            <div className="p-6 h-64 flex justify-center items-center">
+                <p className="text-slate-600">Không có dữ liệu</p>
             </div>
         )
     }
 
     return (
         <div className="p-6">
+
+            {/* HEADER */}
             <div className="mb-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-1">{data.title || 'Chi tiết Yêu cầu tuyển dụng'}</h2>
-                        <p className="text-slate-600">Mã yêu cầu: <span className="font-medium">{data.code}</span></p>
-                    </div>
-                </div>
+                <h2 className="text-2xl font-bold text-slate-800">{data.title}</h2>
+                <p className="text-slate-600">Mã yêu cầu: <span className="font-medium">{data.code}</span></p>
             </div>
+
+            {/* SECTION */}
             <div className="grid grid-cols-1 gap-5">
                 <Section title="Thông tin yêu cầu">
+
                     <div className="text-gray-900 font-medium">{data.proposer}</div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-                        <InfoRow label="Loại yêu cầu" value={data.requestType || data.position} />
-                        <InfoRow label="Đối tác" value={data.partnerName || data.department} />
+                        <InfoRow label="Loại yêu cầu" value={data.requestType} />
+                        <InfoRow label="Đối tác" value={data.partnerName} />
                         <InfoRow label="Giám đốc" value={data.directorName || 'N/A'} />
                         <InfoRow label="Số lượng mục tiêu" value={data.quantity} />
                         <InfoRow label="Ngày tạo" value={formatDate(data.createdAt)} />
-                        <InfoRow label="Trạng thái" value={data.status || 'N/A'} />
+                        <InfoRow label="Trạng thái" value={data.status} />
                     </div>
 
                     {data.description && (
@@ -156,81 +148,111 @@ const RequestCampInfo = () => {
                         </div>
                     )}
 
-                    {/* Job Description */}
+                    {/* JOB DESCRIPTION */}
                     <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📋 Mô tả công việc / Job Description</h3>
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">📋 Mô tả công việc</h3>
                         {data.jobDescription ? (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <div className="text-sm text-slate-700 whitespace-pre-wrap">{data.jobDescription}</div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-slate-700 whitespace-pre-wrap">
+                                {data.jobDescription}
                             </div>
                         ) : (
-                            <div className="text-sm text-slate-500 italic">Chưa có mô tả công việc</div>
+                            <p className="text-sm text-slate-500 italic">Chưa có mô tả công việc</p>
                         )}
                     </div>
 
-                    {/* Job Requirements */}
+                    {/* JOB REQUIREMENT */}
                     <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📝 Yêu cầu công việc / Job Requirements</h3>
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">📝 Yêu cầu công việc</h3>
                         {data.jobRequirement ? (
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <div className="text-sm text-slate-700 whitespace-pre-wrap">{data.jobRequirement}</div>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-slate-700 whitespace-pre-wrap">
+                                {data.jobRequirement}
                             </div>
                         ) : (
-                            <div className="text-sm text-slate-500 italic">Chưa có yêu cầu công việc</div>
+                            <p className="text-sm text-slate-500 italic">Chưa có yêu cầu công việc</p>
                         )}
                     </div>
-
-                    {/* Recruitment Process */}
-                    <div className="mt-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">🔄 Quy trình tuyển dụng / Recruitment Process</h3>
-                    </div>
-
-                    {/* Additional Info */}
-                    {(data.approvedAt || data.rejectedAt || data.rejectReason) && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold text-slate-800 mb-4">Thông tin bổ sung</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                {data.approvedAt && (
-                                    <InfoRow label="Ngày duyệt" value={formatDate(data.approvedAt)} />
-                                )}
-                                {data.rejectedAt && (
-                                    <InfoRow label="Ngày từ chối" value={formatDate(data.rejectedAt)} />
-                                )}
-                                {data.rejectReason && (
-                                    <div className="md:col-span-2">
-                                        <InfoRow label="Lý do từ chối" value={data.rejectReason} />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
 
                 </Section>
-
             </div>
-            <div className="mt-4 flex justify-end gap-3">
+
+            {/* ACTION BUTTONS */}
+            <div className="mt-6 flex justify-end gap-4">
+
+                {/* NÚT TỪ CHỐI */}
+                <button
+                    onClick={() => setIsRejectModalOpen(true)}
+                    disabled={isRejecting || isApproving}
+                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+                        font-medium shadow-md transform
+                        ${isRejecting || isApproving
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                        }`}
+                >
+                    {isRejecting ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Đang từ chối...
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Từ chối
+                        </>
+                    )}
+                </button>
+
+                {/* NÚT DUYỆT */}
                 <button
                     onClick={() => {
                         if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
-                            console.log('Yêu cầu đã được duyệt')
+                            setIsApproving(true)
+                            setTimeout(() => {
+                                console.log('Yêu cầu đã được duyệt')
+                                setIsApproving(false)
+                            }, 1500)
                         }
                     }}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
+                    disabled={isApproving || isRejecting}
+                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+                        font-medium shadow-md transform
+                        ${isApproving || isRejecting
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                        }`}
                 >
-                    Duyệt
-                </button>
-                <button
-                    onClick={() => {
-                        if (window.confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?')) {
-                            console.log('Yêu cầu đã bị từ chối')
-                        }
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
-                >
-                    Từ chối
+                    {isApproving ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Đang duyệt...
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Duyệt
+                        </>
+                    )}
                 </button>
             </div>
+
+            {/* MODAL TỪ CHỐI */}
+            <RejectRequestModal
+                isOpen={isRejectModalOpen}
+                onClose={() => setIsRejectModalOpen(false)}
+                onSubmit={(reason) => {
+                    setIsRejecting(true)
+                    setTimeout(() => {
+                        console.log('Yêu cầu bị từ chối với lý do: ', reason)
+                        setIsRejecting(false)
+                        setIsRejectModalOpen(false)
+                    }, 1500)
+                }}
+                requestTitle={data.title}
+            />
         </div>
     )
 }

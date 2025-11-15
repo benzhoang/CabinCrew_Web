@@ -594,4 +594,94 @@ export const deleteTest = async (testId) => {
   }
 };
 
+// API lấy chi tiết test theo ID
+export const getTestById = async (testId) => {
+  try {
+    const response = await api.get(`/tests/${testId}`);
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy chi tiết đề thi",
+      };
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể lấy chi tiết đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật test theo ID
+export const updateTest = async (testId, testData) => {
+  try {
+    // Luôn sử dụng FormData để backend có thể xử lý đúng (kể cả khi không có file audio)
+    const formData = new FormData();
+    formData.append("testName", testData.testName || "");
+    formData.append("purpose", testData.purpose || "");
+    formData.append("testType", testData.testType || "");
+    formData.append("maxScore", testData.maxScore || "");
+    formData.append("durationInMinutes", testData.durationInMinutes || "");
+
+    // Xử lý audio file
+    if (testData.shouldDeleteAudio === true) {
+      // Backend yêu cầu field RemoveAudio (boolean) để xóa audio file
+      formData.append("RemoveAudio", "true");
+      // Không gửi audioFile khi muốn xóa file cũ
+    } else if (testData.audioFile) {
+      // Chỉ append audioFile nếu có file mới được chọn
+      formData.append("audioFile", testData.audioFile);
+    }
+
+    // Lấy token từ localStorage
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    // Không set Content-Type thủ công - axios sẽ tự động set với boundary phù hợp cho FormData
+
+    // Gọi API PUT
+    const response = await axios.put(
+      `${API_BASE_URL}/tests/${testId}`,
+      formData,
+      {
+        headers,
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || "Cập nhật đề thi thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || response.data.errorMessage || "Không thể cập nhật đề thi",
+      };
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error: errorData?.message || errorData?.errorMessage || error.message || "Không thể cập nhật đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api;
