@@ -272,9 +272,12 @@ const RequestInfo = () => {
               📋 Mô tả công việc / Job Description
             </h3>
             <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-              <div className="text-sm whitespace-pre-wrap text-slate-700">
-                {data.jobDescription || "N/A"}
-              </div>
+              <div
+                className="text-sm text-slate-700 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: data.jobDescription || "N/A",
+                }}
+              />
             </div>
           </div>
 
@@ -284,9 +287,12 @@ const RequestInfo = () => {
               📝 Yêu cầu công việc / Job Requirements
             </h3>
             <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-              <div className="text-sm whitespace-pre-wrap text-slate-700">
-                {data.jobRequirement || "N/A"}
-              </div>
+              <div
+                className="text-sm text-slate-700 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: data.jobRequirement || "N/A",
+                }}
+              />
             </div>
           </div>
 
@@ -405,59 +411,6 @@ const RequestInfo = () => {
                         <span className="text-slate-700">Panel Interview</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Recruitment Schedule */}
-          <div className="mt-6">
-            <h3 className="mb-4 text-lg font-semibold text-slate-800">
-              📅 Lịch tuyển dụng / Recruitment Schedule
-            </h3>
-            <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      CabinCrew áp dụng công nghệ AI
-                    </div>
-                    <div className="text-slate-600">
-                      Tăng hiệu quả, cải thiện trải nghiệm ứng viên, số hóa dữ
-                      liệu, không giấy tờ và bảo vệ môi trường 🍃
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">📌</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      Địa điểm: TP. Hồ Chí Minh
-                    </div>
-                    <div className="text-slate-600">
-                      Học viện Hàng không CabinCrew
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">⏰</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      Thời gian: 8:00 AM | Thứ Bảy, 01/11/2025
-                    </div>
-                    <div className="text-slate-600">
-                      Saturday, November 1, 2025
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 mt-3 bg-blue-100 border border-blue-300 rounded">
-                  <div className="text-xs text-blue-800">
-                    <strong>Lưu ý:</strong> Lịch tuyển dụng có thể thay đổi
-                    trong một số trường hợp cụ thể. Ứng viên vui lòng thường
-                    xuyên kiểm tra website chính thức CabinCrew Careers để cập
-                    nhật thông tin mới nhất.
                   </div>
                 </div>
               </div>

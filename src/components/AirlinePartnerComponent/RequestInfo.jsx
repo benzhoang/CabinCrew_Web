@@ -272,9 +272,12 @@ const RequestInfo = () => {
               📋 Mô tả công việc / Job Description
             </h3>
             <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-              <div className="text-sm whitespace-pre-wrap text-slate-700">
-                {data.jobDescription || "N/A"}
-              </div>
+              <div
+                className="text-sm prose-sm prose text-slate-700 max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: data.jobDescription || "N/A",
+                }}
+              />
             </div>
           </div>
 
@@ -284,9 +287,12 @@ const RequestInfo = () => {
               📝 Yêu cầu công việc / Job Requirements
             </h3>
             <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-              <div className="text-sm whitespace-pre-wrap text-slate-700">
-                {data.jobRequirement || "N/A"}
-              </div>
+              <div
+                className="text-sm prose-sm prose text-slate-700 max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: data.jobRequirement || "N/A",
+                }}
+              />
             </div>
           </div>
 
@@ -297,167 +303,55 @@ const RequestInfo = () => {
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-slate-800">
-                      🇻🇳 Tiếng Việt:
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          1
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và
-                          lấy số báo danh
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          2
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra ngoại hình AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          3
-                        </span>
-                        <span className="text-slate-700">
-                          Cân đo chiều cao và BMI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          4
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Catwalk - Phỏng vấn AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          5
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Tài năng (theo nhóm)
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          6
-                        </span>
-                        <span className="text-slate-700">
-                          Phỏng vấn Hội đồng
-                        </span>
-                      </div>
+                <div className="space-y-3">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        1
+                      </span>
+                      <span className="text-slate-700">
+                        Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và
+                        lấy số báo danh
+                      </span>
                     </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-slate-800">🇺🇸 English:</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          1
-                        </span>
-                        <span className="text-slate-700">
-                          Document Check: candidates bring the ID Card (Passport
-                          for expat) for verification and candidate's number
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          2
-                        </span>
-                        <span className="text-slate-700">
-                          AI Grooming Check
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          3
-                        </span>
-                        <span className="text-slate-700">
-                          Height and BMI Check
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          4
-                        </span>
-                        <span className="text-slate-700">
-                          Catwalk - AI Interview
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          5
-                        </span>
-                        <span className="text-slate-700">
-                          Talent Show (in groups)
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          6
-                        </span>
-                        <span className="text-slate-700">Panel Interview</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        2
+                      </span>
+                      <span className="text-slate-700">
+                        Kiểm tra ngoại hình AI
+                      </span>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Recruitment Schedule */}
-          <div className="mt-6">
-            <h3 className="mb-4 text-lg font-semibold text-slate-800">
-              📅 Lịch tuyển dụng / Recruitment Schedule
-            </h3>
-            <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      CabinCrew áp dụng công nghệ AI
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        3
+                      </span>
+                      <span className="text-slate-700">
+                        Cân đo chiều cao và BMI
+                      </span>
                     </div>
-                    <div className="text-slate-600">
-                      Tăng hiệu quả, cải thiện trải nghiệm ứng viên, số hóa dữ
-                      liệu, không giấy tờ và bảo vệ môi trường 🍃
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        4
+                      </span>
+                      <span className="text-slate-700">
+                        Thi Catwalk - Phỏng vấn AI
+                      </span>
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">📌</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      Địa điểm: TP. Hồ Chí Minh
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        5
+                      </span>
+                      <span className="text-slate-700">
+                        Thi Tài năng (theo nhóm)
+                      </span>
                     </div>
-                    <div className="text-slate-600">
-                      Học viện Hàng không CabinCrew
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        6
+                      </span>
+                      <span className="text-slate-700">Phỏng vấn Hội đồng</span>
                     </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">⏰</span>
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      Thời gian: 8:00 AM | Thứ Bảy, 01/11/2025
-                    </div>
-                    <div className="text-slate-600">
-                      Saturday, November 1, 2025
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 mt-3 bg-blue-100 border border-blue-300 rounded">
-                  <div className="text-xs text-blue-800">
-                    <strong>Lưu ý:</strong> Lịch tuyển dụng có thể thay đổi
-                    trong một số trường hợp cụ thể. Ứng viên vui lòng thường
-                    xuyên kiểm tra website chính thức CabinCrew Careers để cập
-                    nhật thông tin mới nhất.
                   </div>
                 </div>
               </div>

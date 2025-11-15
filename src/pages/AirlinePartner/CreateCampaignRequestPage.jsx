@@ -33,18 +33,6 @@ const CreateCampaignRequestPage = () => {
   const formattedDisplayName =
     airlineDisplayNames[normalizedDisplayName] || displayName;
 
-  const stripHtmlTags = (value = "") => {
-    if (!value) return "";
-
-    if (typeof window === "undefined") {
-      return value;
-    }
-
-    const div = document.createElement("div");
-    div.innerHTML = value;
-    return (div.textContent || div.innerText || "").trim();
-  };
-
   const requestTypeLabels = {
     1: "Tuyển dụng",
   };
@@ -78,31 +66,34 @@ const CreateCampaignRequestPage = () => {
     }
   };
 
-  // const validateForm = () => {
-  //   const newErrors = {};
+  const validateForm = () => {
+    const newErrors = {};
 
-  //   if (!formData.title.trim()) {
-  //     newErrors.title = "Tiêu đề là bắt buộc";
-  //   }
-  //   if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-  //     newErrors.quantity = "Số lượng tuyển phải lớn hơn 0";
-  //   }
-  //   if (!formData.description.trim()) {
-  //     newErrors.description = "Mô tả nhu cầu là bắt buộc";
-  //   }
-  //   if (!formData.requirements.trim()) {
-  //     newErrors.requirements = "Yêu cầu là bắt buộc";
-  //   }
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
+    if (!formData.campaignName.trim()) {
+      newErrors.campaignName = "Tên chiến dịch là bắt buộc";
+    }
+    if (!formData.targetQuantity || parseInt(formData.targetQuantity) <= 0) {
+      newErrors.targetQuantity = "Số lượng mục tiêu phải lớn hơn 0";
+    }
+    if (!formData.description.trim()) {
+      newErrors.description = "Mô tả chung là bắt buộc";
+    }
+    if (!formData.jobDescription.trim()) {
+      newErrors.jobDescription = "Mô tả công việc là bắt buộc";
+    }
+    if (!formData.jobRequirement.trim()) {
+      newErrors.jobRequirement = "Yêu cầu công việc là bắt buộc";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // if (!validateForm()) {
-    //   return;
-    // }
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -112,10 +103,10 @@ const CreateCampaignRequestPage = () => {
     );
 
     const payload = {
-      campaignName: formData.campaignName.trim(),
-      description: formData.description.trim(),
-      jobDescription: stripHtmlTags(formData.jobDescription),
-      jobRequirement: stripHtmlTags(formData.jobRequirement),
+      campaignName: formData.campaignName,
+      description: formData.description,
+      jobDescription: formData.jobDescription,
+      jobRequirement: formData.jobRequirement,
       targetQuantity: Number.isNaN(parsedQuantity) ? 0 : parsedQuantity,
       requestType: Number(formData.requestType),
     };
@@ -160,12 +151,12 @@ const CreateCampaignRequestPage = () => {
               value={formData.campaignName}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.title ? "border-red-300" : "border-slate-300"
+                errors.campaignName ? "border-red-300" : "border-slate-300"
               }`}
               placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+            {errors.campaignName && (
+              <p className="mt-1 text-sm text-red-600">{errors.campaignName}</p>
             )}
           </div>
           <p className="mt-1 text-sm text-slate-600">
@@ -209,13 +200,15 @@ const CreateCampaignRequestPage = () => {
                       onChange={handleInputChange}
                       min="1"
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.quantity ? "border-red-300" : "border-slate-300"
+                        errors.targetQuantity
+                          ? "border-red-300"
+                          : "border-slate-300"
                       }`}
                       placeholder="Nhập số lượng cần tuyển"
                     />
-                    {errors.quantity && (
+                    {errors.targetQuantity && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.quantity}
+                        {errors.targetQuantity}
                       </p>
                     )}
                   </div>
@@ -263,7 +256,9 @@ const CreateCampaignRequestPage = () => {
                   </label>
                   <div
                     className={`rounded-md border ${
-                      errors.description ? "border-red-300" : "border-slate-300"
+                      errors.jobDescription
+                        ? "border-red-300"
+                        : "border-slate-300"
                     }`}
                   >
                     <CKEditor
@@ -275,9 +270,9 @@ const CreateCampaignRequestPage = () => {
                       config={{ placeholder: "Mô tả chi tiết về công việc..." }}
                     />
                   </div>
-                  {errors.description && (
+                  {errors.jobDescription && (
                     <p className="mt-1 text-sm text-red-600">
-                      {errors.description}
+                      {errors.jobDescription}
                     </p>
                   )}
                 </div>
@@ -288,7 +283,7 @@ const CreateCampaignRequestPage = () => {
                   </label>
                   <div
                     className={`rounded-md border ${
-                      errors.requirements
+                      errors.jobRequirement
                         ? "border-red-300"
                         : "border-slate-300"
                     }`}
@@ -304,9 +299,9 @@ const CreateCampaignRequestPage = () => {
                       }}
                     />
                   </div>
-                  {errors.requirements && (
+                  {errors.jobRequirement && (
                     <p className="mt-1 text-sm text-red-600">
-                      {errors.requirements}
+                      {errors.jobRequirement}
                     </p>
                   )}
                 </div>

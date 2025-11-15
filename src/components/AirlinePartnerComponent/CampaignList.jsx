@@ -28,7 +28,7 @@ const StatusBadge = ({ status }) => {
     switch (status) {
       case "active":
         return {
-          className: "bg-green-100 text-green-700 border-green-200",
+          className: "bg-blue-100 text-blue-700 border-blue-200",
           text: "Đang diễn ra",
         };
       case "pending":
@@ -38,8 +38,13 @@ const StatusBadge = ({ status }) => {
         };
       case "completed":
         return {
-          className: "bg-red-100 text-red-600 border-red-200",
+          className: "bg-green-100 text-green-600 border-green-200",
           text: "Đã hoàn thành",
+        };
+      case "approved":
+        return {
+          className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          text: "Đã được duyệt",
         };
       default:
         return {
@@ -162,7 +167,7 @@ const CampaignCard = ({ campaign }) => {
 };
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("active");
+  const [selectedStatus, setSelectedStatus] = useState("pending");
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -297,17 +302,6 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         <div className="inline-flex items-stretch gap-3">
           <button
             type="button"
-            onClick={() => setSelectedStatus("active")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "active"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Đang diễn ra
-          </button>
-          <button
-            type="button"
             onClick={() => setSelectedStatus("pending")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "pending"
@@ -316,6 +310,28 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Đang chờ duyệt
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("approved")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "approved"
+                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Đã được duyệt
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("active")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "active"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Đang diễn ra
           </button>
           <button
             type="button"
