@@ -40,6 +40,14 @@ const CampaignIcon = ({ className = '' }) => (
     </svg>
 )
 
+const TaskIcon = ({ className = '' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M9 9h6" />
+        <path d="M9 13h6" />
+    </svg>
+)
+
 const LogoutIcon = ({ className = '' }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -50,8 +58,9 @@ const LogoutIcon = ({ className = '' }) => (
 
 const navItems = [
     { to: '/recruiter/campaigns', key: 'sidebar_campaign', icon: CampaignIcon },
-    { to: '/interviews', key: 'sidebar_interviews', icon: MicIcon },
-    { to: '/scoring', key: 'sidebar_evaluation', icon: StarIcon },
+    { to: '/recruiter/tasks', key: 'sidebar_task', icon: TaskIcon },
+    { to: '/recruiter/interviews', key: 'sidebar_interviews', icon: MicIcon },
+    { to: '/recruiter/scoring', key: 'sidebar_evaluation', icon: StarIcon },
 ]
 
 const Sidebar = ({ username = 'Nguyễn Văn A' }) => {

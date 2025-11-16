@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import { getCampaigns } from '../../service/api'
+import { getMyCampaigns } from '../../service/api'
 
 const Campaign = () => {
     const [campaigns, setCampaigns] = useState([])
@@ -83,7 +83,7 @@ const Campaign = () => {
             setIsLoading(true)
             setError(null)
             try {
-                const response = await getCampaigns()
+                const response = await getMyCampaigns()
                 if (response.success && Array.isArray(response.data)) {
                     const normalizedCampaigns = response.data.map(transformCampaignData)
                     setCampaigns(normalizedCampaigns)
@@ -378,12 +378,6 @@ const Campaign = () => {
                         </div>
                     ))}
                 </div>
-
-                {filteredCampaigns.length === 0 && (
-                    <div className="p-12 text-center">
-                        <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
-                    </div>
-                )}
             </div>
 
             {/* Modal Chi tiết */}

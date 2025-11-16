@@ -17,8 +17,9 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   const [shouldDeleteAudio, setShouldDeleteAudio] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  // Load test data khi mở modal
+  // Load test data when modal opens
   useEffect(() => {
     if (isOpen && testData) {
       setFormData({
@@ -35,7 +36,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     }
   }, [isOpen, testData]);
 
-  // Reset form khi đóng modal
+  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setFormData({
@@ -50,6 +51,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
       setCurrentAudioFileURL(null);
       setShouldDeleteAudio(false);
       setError(null);
+      setSuccessMessage(null);
       setIsLoading(false);
     }
   }, [isOpen]);
@@ -70,7 +72,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         audioFile: file,
         audioFileName: file.name
       }));
-      // Khi chọn file mới, bỏ đánh dấu xóa file cũ
+      // When a new file is selected, unmark deletion of the old file
       setShouldDeleteAudio(false);
     }
   };
@@ -95,9 +97,10 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
-      // Chuẩn bị dữ liệu gửi lên, bao gồm flag xóa audio nếu cần
+      // Prepare data to send, including delete audio flag if needed
       const submitData = {
         testName: formData.testName,
         purpose: formData.purpose,
@@ -105,26 +108,36 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         maxScore: formData.maxScore,
         durationInMinutes: formData.durationInMinutes,
         shouldDeleteAudio: shouldDeleteAudio,
-        // Chỉ gửi audioFile nếu có file mới (không phải null)
         ...(formData.audioFile && { audioFile: formData.audioFile })
       };
 
       const response = await updateTest(testData.id, submitData);
 
       if (response.success) {
-        // Hiển thị thông báo thành công
-        alert(response.message || 'Cập nhật đề thi thành công');
-        // Gọi callback onSave với dữ liệu mới từ response (bao gồm audioFileURL đã được cập nhật)
+        // Display success message
+        setSuccessMessage(response.message || 'Cập nhật đề thi thành công');
+        // Call onSave callback with new data from response (including updated audioFileURL)
         if (onSave) {
           onSave(formData, response.data);
         }
-        // Đóng modal (sẽ trigger reload trong TestingPage)
-        onClose();
+        // Automatically close modal after 1.5 seconds
+        setTimeout(() => {
+          onClose();
+        }, 1500);
       } else {
+        // Display specific error from API response
         setError(response.error || 'Không thể cập nhật đề thi');
       }
     } catch (err) {
-      setError(err.message || 'Đã xảy ra lỗi khi cập nhật đề thi');
+      // Handle error from exception (network error, etc.)
+      const errorMessage = err.response?.data?.errorMessage ||
+        err.response?.data?.message ||
+        (Array.isArray(err.response?.data?.errors)
+          ? err.response.data.errors.join('. ')
+          : null) ||
+        err.message ||
+        'Đã xảy ra lỗi khi cập nhật đề thi';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -151,10 +164,17 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         {/* FORM CONTENT */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
 
+          {/* SUCCESS MESSAGE */}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-300 rounded-lg">
+              <p className="text-sm font-medium text-green-700">{successMessage}</p>
+            </div>
+          )}
+
           {/* ERROR MESSAGE */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="mb-4 p-4 bg-red-50 border border-red-300 rounded-lg">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
@@ -232,7 +252,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
           </div>
 
-          {/* PURPOSE (Cả chiều ngang) */}
+          {/* PURPOSE (Full width) */}
           <div className="mt-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
               Mục đích <span className="text-red-500">*</span>
@@ -254,7 +274,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
               File âm thanh
             </label>
 
-            {/* Hiển thị file hiện tại nếu có */}
+            {/* Display current file if available */}
             {currentAudioFileURL && !shouldDeleteAudio && (
               <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -279,7 +299,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
               </div>
             )}
 
-            {/* Input chọn file mới */}
+            {/* Input for new file selection */}
             <input
               type="file"
               accept="audio/*"
@@ -287,14 +307,14 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
             />
 
-            {/* Hiển thị file mới đã chọn */}
+            {/* Display newly selected file */}
             {formData.audioFile && (
               <p className="text-sm mt-2 text-gray-600">
                 File mới: {formData.audioFileName}
               </p>
             )}
 
-            {/* Thông báo khi đã xóa file */}
+            {/* Notification when file is marked for deletion */}
             {shouldDeleteAudio && !formData.audioFile && (
               <p className="text-sm mt-2 text-amber-600">
                 File âm thanh sẽ bị xóa khi lưu thay đổi

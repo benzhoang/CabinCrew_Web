@@ -494,6 +494,118 @@ export const getCampaigns = async (params = {}) => {
   }
 };
 
+// API lấy danh sách campaigns được giao cho recruiter/examiner
+export const getMyCampaigns = async () => {
+  try {
+    const response = await api.get("/users/my-campaigns");
+    const responseData = response.data;
+
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách chiến dịch thành công",
+      };
+    }
+
+    if (responseData.code === 0) {
+      let items = [];
+
+      if (Array.isArray(responseData.data)) {
+        items = responseData.data;
+      } else if (Array.isArray(responseData.data?.items)) {
+        items = responseData.data.items;
+      } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+        items = responseData.data.data;
+      }
+
+      return {
+        success: true,
+        data: items,
+        pagination: {
+          currentPage: responseData.data?.currentPage,
+          pageSize: responseData.data?.pageSize,
+          totalRecords: responseData.data?.totalRecords,
+          totalPages: responseData.data?.totalPages,
+          hasNextPage: responseData.data?.hasNextPage,
+          hasPreviousPage: responseData.data?.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy danh sách chiến dịch",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách chiến dịch",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách tasks được giao cho recruiter/examiner
+export const getMyTasks = async () => {
+  try {
+    const response = await api.get("/users/my-tasks");
+    const responseData = response.data;
+
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách task thành công",
+      };
+    }
+
+    if (responseData.code === 0) {
+      let items = [];
+
+      if (Array.isArray(responseData.data)) {
+        items = responseData.data;
+      } else if (Array.isArray(responseData.data?.items)) {
+        items = responseData.data.items;
+      } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+        items = responseData.data.data;
+      }
+
+      return {
+        success: true,
+        data: items,
+        pagination: {
+          currentPage: responseData.data?.currentPage,
+          pageSize: responseData.data?.pageSize,
+          totalRecords: responseData.data?.totalRecords,
+          totalPages: responseData.data?.totalPages,
+          hasNextPage: responseData.data?.hasNextPage,
+          hasPreviousPage: responseData.data?.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy danh sách task",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách task",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy chi tiết campaign theo ID
 export const getCampaignById = async (id) => {
   try {
@@ -674,11 +786,34 @@ export const updateTest = async (testId, testData) => {
       };
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Update Error:", error);
+
+    // Xử lý lỗi từ response
     const errorData = error.response?.data;
+    let errorMessage = "Đã xảy ra lỗi khi cập nhật đề thi";
+
+    if (errorData) {
+      // Ưu tiên errorMessage từ API
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      }
+      // Nếu có errors array, kết hợp các lỗi
+      else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      }
+      // Nếu có message
+      else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    }
+    // Nếu không có errorData, sử dụng error.message
+    else if (error.message) {
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      error: errorData?.message || errorData?.errorMessage || error.message || "Không thể cập nhật đề thi",
+      error: errorMessage,
       status: error.response?.status,
     };
   }
