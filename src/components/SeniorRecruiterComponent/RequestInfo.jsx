@@ -273,7 +273,7 @@ const RequestInfo = () => {
             </h3>
             <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
               <div
-                className="text-sm text-slate-700 prose prose-sm max-w-none"
+                className="text-sm prose-sm prose text-slate-700 max-w-none"
                 dangerouslySetInnerHTML={{
                   __html: data.jobDescription || "N/A",
                 }}
@@ -288,7 +288,7 @@ const RequestInfo = () => {
             </h3>
             <div className="p-4 border border-green-200 rounded-lg bg-green-50">
               <div
-                className="text-sm text-slate-700 prose prose-sm max-w-none"
+                className="text-sm prose-sm prose text-slate-700 max-w-none"
                 dangerouslySetInnerHTML={{
                   __html: data.jobRequirement || "N/A",
                 }}
@@ -303,113 +303,54 @@ const RequestInfo = () => {
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-slate-800">
-                      🇻🇳 Tiếng Việt:
-                    </h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          1
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và
-                          lấy số báo danh
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          2
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra ngoại hình AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          3
-                        </span>
-                        <span className="text-slate-700">
-                          Cân đo chiều cao và BMI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          4
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Catwalk - Phỏng vấn AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          5
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Tài năng (theo nhóm)
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          6
-                        </span>
-                        <span className="text-slate-700">
-                          Phỏng vấn Hội đồng
-                        </span>
-                      </div>
+                <div className="space-y-3">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        1
+                      </span>
+                      <span className="text-slate-700">
+                        Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và
+                        lấy số báo danh
+                      </span>
                     </div>
-                  </div>
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-slate-800">🇺🇸 English:</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          1
-                        </span>
-                        <span className="text-slate-700">
-                          Document Check: candidates bring the ID Card (Passport
-                          for expat) for verification and candidate's number
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          2
-                        </span>
-                        <span className="text-slate-700">
-                          AI Grooming Check
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          3
-                        </span>
-                        <span className="text-slate-700">
-                          Height and BMI Check
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          4
-                        </span>
-                        <span className="text-slate-700">
-                          Catwalk - AI Interview
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          5
-                        </span>
-                        <span className="text-slate-700">
-                          Talent Show (in groups)
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-green-500 rounded-full">
-                          6
-                        </span>
-                        <span className="text-slate-700">Panel Interview</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        2
+                      </span>
+                      <span className="text-slate-700">
+                        Kiểm tra ngoại hình AI
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        3
+                      </span>
+                      <span className="text-slate-700">
+                        Cân đo chiều cao và BMI
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        4
+                      </span>
+                      <span className="text-slate-700">
+                        Thi Catwalk - Phỏng vấn AI
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        5
+                      </span>
+                      <span className="text-slate-700">
+                        Thi Tài năng (theo nhóm)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
+                        6
+                      </span>
+                      <span className="text-slate-700">Phỏng vấn Hội đồng</span>
                     </div>
                   </div>
                 </div>

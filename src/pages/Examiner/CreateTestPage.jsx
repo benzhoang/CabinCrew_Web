@@ -1,13 +1,21 @@
-import React, { useState } from "react";
-import { FiUploadCloud, FiFile, FiInfo, FiArrowLeft } from "react-icons/fi";
+import { useState } from "react";
+import { FaFileUpload, FaCloudUploadAlt, FaInfoCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { createTest } from "../../service/api2";
 import { toast } from "react-toastify";
 
 const testTypeOptions = [
+  { value: 0, label: "Chọn loại đề thi" },
   { value: 1, label: "English Listening" },
   { value: 2, label: "English Speaking" },
   { value: 3, label: "Practical" },
+];
+
+const durationOptions = [
+  { value: 0, label: "Chọn thời gian" },
+  { value: 60, label: "60 phút" },
+  { value: 90, label: "90 phút" },
+  { value: 120, label: "120 phút" },
 ];
 
 const CreateTestPage = () => {
@@ -15,9 +23,9 @@ const CreateTestPage = () => {
   const [formData, setFormData] = useState({
     testName: "",
     purpose: "",
-    testType: "1",
-    maxScore: "",
-    durationInMinutes: "",
+    testType: "0",
+    maxScore: 0,
+    durationInMinutes: "0",
     audioFile: null,
   });
   const [previewFile, setPreviewFile] = useState(null);
@@ -76,17 +84,28 @@ const CreateTestPage = () => {
       // Validation theo điều kiện từ hình 2
       const testType = parseInt(formData.testType);
       const durationInMinutes = parseInt(formData.durationInMinutes);
-      const maxScore = parseInt(formData.maxScore);
+      //const maxScore = parseInt(formData.maxScore);
 
-      // Validate DurationInMinutes: > 0
-      if (!durationInMinutes || durationInMinutes <= 0) {
-        setErrorMessage("Thời gian phải lớn hơn 0");
+      // Validate TestType: không được là 0 hoặc empty
+      if (!testType || testType === 0) {
+        setErrorMessage("Vui lòng chọn loại đề thi");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate DurationInMinutes: phải là 60, 90, hoặc 120
+      if (
+        !durationInMinutes ||
+        durationInMinutes === 0 ||
+        ![60, 90, 120].includes(durationInMinutes)
+      ) {
+        setErrorMessage("Vui lòng chọn thời gian: 60, 90 hoặc 120 phút");
         setIsSubmitting(false);
         return;
       }
 
       // Validate MaxScore
-      if (!maxScore || maxScore <= 0) {
+      if (!formData.maxScore || !formData.maxScore > 0) {
         setErrorMessage("Điểm tối đa phải lớn hơn 0");
         setIsSubmitting(false);
         return;
@@ -125,7 +144,7 @@ const CreateTestPage = () => {
         TestName: formData.testName,
         Purpose: formData.purpose,
         TestType: testType,
-        MaxScore: maxScore,
+        MaxScore: formData.maxScore,
         DurationInMinutes: durationInMinutes,
       };
 
@@ -136,7 +155,7 @@ const CreateTestPage = () => {
       if (result.success) {
         toast.success(result.message || "Tạo đề thi thành công!");
         // Có thể navigate đến trang chi tiết test hoặc danh sách test
-        navigate(-1);
+        navigate("/examiner/testing");
       } else {
         toast.error(result.error || "Tạo đề thi thất bại. Vui lòng thử lại.");
       }
@@ -153,7 +172,7 @@ const CreateTestPage = () => {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold text-slate-900">Tạo đề thi</h1>
-          <p className="text-slate-600 max-w-3xl">
+          <p className="max-w-3xl text-slate-600">
             Nhập thông tin đề thi và upload file audio đáp ứng yêu cầu định
             dạng.
           </p>
@@ -161,7 +180,7 @@ const CreateTestPage = () => {
         <button
           type="button"
           onClick={handleCancel}
-          className="inline-flex items-center gap-2 self-start rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          className="inline-flex items-center self-start gap-2 px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100"
         >
           Quay lại
         </button>
@@ -169,10 +188,10 @@ const CreateTestPage = () => {
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6">
+          <div className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
             <div className="flex items-start gap-3">
-              <span className="mt-1 rounded-full bg-indigo-50 p-2 text-indigo-600">
-                <FiInfo className="h-5 w-5" />
+              <span className="p-2 mt-1 text-indigo-600 rounded-full bg-indigo-50">
+                <FaInfoCircle className="w-5 h-5" />
               </span>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
@@ -187,7 +206,7 @@ const CreateTestPage = () => {
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-4">
+            <div className="p-6 space-y-4 bg-white border shadow-sm rounded-2xl border-slate-200">
               <h3 className="text-lg font-semibold text-slate-900">
                 Thông tin nhắc nhanh
               </h3>
@@ -219,7 +238,7 @@ const CreateTestPage = () => {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-6 text-sm text-indigo-700 space-y-3">
+            <div className="p-6 space-y-3 text-sm text-indigo-700 border border-indigo-100 rounded-2xl bg-indigo-50">
               <h4 className="text-base font-semibold text-indigo-800">
                 Gợi ý bảo mật
               </h4>
@@ -236,10 +255,10 @@ const CreateTestPage = () => {
 
           <form
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 space-y-6"
+            className="p-6 space-y-6 bg-white border shadow-sm rounded-2xl border-slate-200"
           >
             {errorMessage && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="p-4 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50">
                 <p>{errorMessage}</p>
               </div>
             )}
@@ -258,7 +277,7 @@ const CreateTestPage = () => {
                   placeholder="Nhập tên đề thi..."
                   value={formData.testName}
                   onChange={handleChange("testName")}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
                   Tên hiển thị cho đề thi, ví dụ "English Level Test".
@@ -278,7 +297,7 @@ const CreateTestPage = () => {
                   placeholder="Mục đích đề thi..."
                   value={formData.purpose}
                   onChange={handleChange("purpose")}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
                   Ghi chú ngắn giúp xác định mục đích sử dụng đề thi.
@@ -296,7 +315,7 @@ const CreateTestPage = () => {
                   id="testType"
                   value={formData.testType}
                   onChange={handleChange("testType")}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 >
                   {testTypeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -319,11 +338,9 @@ const CreateTestPage = () => {
                 <input
                   id="maxScore"
                   type="number"
-                  min="0"
-                  placeholder="Điểm tối đa"
                   value={formData.maxScore}
                   onChange={handleChange("maxScore")}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                  className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
                   Điểm tối đa cho đề thi (ví dụ 100).
@@ -337,19 +354,20 @@ const CreateTestPage = () => {
                 >
                   Thời gian
                 </label>
-                <input
+                <select
                   id="durationInMinutes"
-                  type="number"
-                  min="1"
-                  max="480"
-                  placeholder="Thời gian (phút)"
                   value={formData.durationInMinutes}
                   onChange={handleChange("durationInMinutes")}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                />
+                  className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                >
+                  {durationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
                 <span className="text-xs text-slate-500">
-                  Thời gian làm bài từ 1 đến 480 phút (khuyến nghị: 30-180
-                  phút).
+                  Chọn thời gian làm bài: 60, 90 hoặc 120 phút.
                 </span>
               </div>
             </div>
@@ -358,8 +376,8 @@ const CreateTestPage = () => {
               <label className="text-sm font-medium text-slate-700">
                 File audio
               </label>
-              <div className="flex flex-col gap-4 rounded-xl border border-dashed border-indigo-300 bg-indigo-50/60 p-6 text-center text-indigo-700">
-                <FiUploadCloud className="mx-auto h-10 w-10" />
+              <div className="flex flex-col gap-4 p-6 text-center text-indigo-700 border border-indigo-300 border-dashed rounded-xl bg-indigo-50/60">
+                <FaCloudUploadAlt className="w-10 h-10 mx-auto" />
                 <div className="space-y-1">
                   <p className="text-sm font-semibold">
                     Kéo thả file vào đây hoặc bấm chọn tệp
@@ -370,9 +388,9 @@ const CreateTestPage = () => {
                 </div>
                 <label
                   htmlFor="audioFile"
-                  className="mx-auto inline-flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+                  className="inline-flex items-center gap-2 px-4 py-2 mx-auto text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-700"
                 >
-                  <FiFile className="h-4 w-4" />
+                  <FaFileUpload className="w-4 h-4" />
                   Chọn tệp từ thiết bị
                   <input
                     id="audioFile"
@@ -384,7 +402,7 @@ const CreateTestPage = () => {
                 </label>
               </div>
               {previewFile && (
-                <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="p-4 text-sm bg-white border rounded-lg border-slate-200 text-slate-700">
                   <p className="font-medium">{previewFile.name}</p>
                   <p className="text-xs text-slate-500">
                     {previewFile.type} · {previewFile.size} MB
@@ -398,14 +416,14 @@ const CreateTestPage = () => {
                 type="button"
                 onClick={handleCancel}
                 disabled={isSubmitting}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Hủy
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-sm font-semibold text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Đang xử lý..." : "Lưu đề thi"}
               </button>
