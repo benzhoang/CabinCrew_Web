@@ -32,6 +32,7 @@ import CampaignDetail from "./pages/Recruiter/CampaignDetail";
 import Screening from "./pages/Recruiter/Screening";
 import FinalReview from "./pages/Recruiter/FinalReview";
 import CandidateApplyDetail from "./pages/Recruiter/CandidateApplyDetail";
+import Tasks from "./pages/Recruiter/Tasks";
 import CampaignPage from "./pages/AirlinePartner/CampaignPage";
 import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
 import CampaignDetailPage from "./pages/AirlinePartner/CampaignDetailPage";
@@ -80,6 +81,7 @@ import TestDetailPage from "./pages/Examiner/TestDetailPage";
 import CreatePromotionRequestPage from "./pages/AirlinePartner/CreatePromotionRequestPage";
 import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequestPage";
 import CreateTestPage from "./pages/Examiner/CreateTestPage";
+import ExamTask from "./pages/Examiner/ExamTask";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -232,6 +234,17 @@ function App() {
               <SidebarRecruiter />
               <main className="flex-1 overflow-auto">
                 <CampaignDetail />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/recruiter/tasks"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <SidebarRecruiter />
+              <main className="flex-1 overflow-auto">
+                <Tasks />
               </main>
             </div>
           }
@@ -580,6 +593,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <ExaminerCampDetail />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/tasks"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExamTask />
               </main>
             </div>
           }

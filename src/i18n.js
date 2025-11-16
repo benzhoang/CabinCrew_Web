@@ -350,6 +350,7 @@ const dictionaries = {
         sidebar_evaluation: 'Đánh giá',
         sidebar_logout: 'Đăng xuất',
         sidebar_role: 'Recruiter',
+        sidebar_task: 'Công việc',
         // SidebarDirector
         sidebar_requirements: 'Yêu cầu',
         // SidebarSenior
@@ -836,6 +837,7 @@ const dictionaries = {
         sidebar_evaluation: 'Evaluation',
         sidebar_logout: 'Logout',
         sidebar_role: 'Recruiter',
+        sidebar_task: 'Tasks',
         // SidebarDirector
         sidebar_requirements: 'Requests',
         // SidebarSenior & Airline

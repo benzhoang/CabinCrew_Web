@@ -1,14 +1,170 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import { getCampaigns } from '../../service/api'
+import { formatDate } from '../../config/formatDate.js'
+
+// StatusBadge component giống CampaignList.jsx
+const StatusBadge = ({ status }) => {
+    const getStatusConfig = (status) => {
+        const normalized = (status || '').toString().trim().toLowerCase()
+        switch (normalized) {
+            case 'active':
+            case 'ongoing':
+                return {
+                    className: 'bg-blue-100 text-blue-700 border-blue-200',
+                    text: 'Đang diễn ra',
+                }
+            case 'pending':
+                return {
+                    className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                    text: 'Đang chờ duyệt',
+                }
+            case 'completed':
+                return {
+                    className: 'bg-green-100 text-green-600 border-green-200',
+                    text: 'Đã hoàn thành',
+                }
+            case 'approved':
+                return {
+                    className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                    text: 'Đã được duyệt',
+                }
+            default:
+                return {
+                    className: 'bg-gray-100 text-gray-600 border-gray-200',
+                    text: 'Không xác định',
+                }
+        }
+    }
+
+    const config = getStatusConfig(status)
+
+    return (
+        <span
+            className={`${config.className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+        >
+            {config.text}
+        </span>
+    )
+}
+
+// Helper function to map campaignType to Vietnamese label
+const getCampaignTypeLabel = (campaignType) => {
+    const normalized = (campaignType || '').toString().trim().toLowerCase()
+    switch (normalized) {
+        case 'recruitment':
+        case 'tuyển dụng':
+            return 'Tuyển dụng'
+        case 'promotion':
+        case 'thăng bậc':
+            return 'Thăng bậc'
+        default:
+            return 'Không xác định'
+    }
+}
+
+// CampaignTypeBadge component giống CampaignList.jsx
+const CampaignTypeBadge = ({ type }) => {
+    const label = getCampaignTypeLabel(type)
+    const normalized = (type || '').toString().trim().toLowerCase()
+    const className =
+        normalized === 'promotion' || normalized === 'thăng bậc'
+            ? 'bg-purple-100 text-purple-700 border-purple-200'
+            : normalized === 'recruitment' || normalized === 'tuyển dụng'
+                ? 'bg-blue-100 text-blue-700 border-blue-200'
+                : 'bg-gray-100 text-gray-600 border-gray-200'
+
+    return (
+        <span
+            className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+        >
+            {label}
+        </span>
+    )
+}
+
+// CampaignCard component giống CampaignList.jsx
+const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
+    const navigate = useNavigate()
+    const percent = useMemo(() => {
+        const current = Number(campaign.currentHires) || 0
+        const total = Number(campaign.targetHires) || 0
+        if (!total) return 0
+        return Math.min(100, Math.round((current / total) * 100))
+    }, [campaign])
+
+    return (
+        <div className="p-5 bg-white border border-gray-200 rounded-xl">
+            <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-semibold text-gray-900 truncate">
+                        {campaign.name}
+                    </h3>
+
+                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
+                        <div>
+                            <span className="text-gray-500">Thời gian bắt đầu:</span>{' '}
+                            {formatDate(campaign.rawStartDate) || campaign.startDate}
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Thời gian kết thúc:</span>{' '}
+                            {formatDate(campaign.rawEndDate) || campaign.endDate}
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Loại chiến dịch:</span>{' '}
+                            <CampaignTypeBadge type={campaign.position || campaign.campaignType} />
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Trạng thái:</span>{' '}
+                            <StatusBadge status={campaign.status} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                        onClick={() => onViewDetails(campaign)}
+                    >
+                        Xem chi tiết
+                    </button>
+                    <button
+                        className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
+                        onClick={() => onDelete(campaign.id)}
+                    >
+                        Xóa
+                    </button>
+                </div>
+            </div>
+
+            {campaign.targetHires > 0 && (
+                <div className="mt-4">
+                    <div className="flex justify-between mb-1 text-sm text-slate-600">
+                        <span className="text-gray-500">Tiến độ tuyển dụng</span>{' '}
+                        {campaign.currentHires}/{campaign.targetHires} ({percent}%)
+                    </div>
+                    <div className="h-2 overflow-hidden bg-gray-200 rounded-full">
+                        <div
+                            className="h-full bg-blue-600"
+                            style={{ width: `${percent}%` }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {campaign.description && (
+                <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
+            )}
+        </div>
+    )
+}
 
 const DirectorCampaign = () => {
     const [campaigns, setCampaigns] = useState([])
     const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-    const [departmentFilter, setDepartmentFilter] = useState('all')
     const [sortBy, setSortBy] = useState('name')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
@@ -51,10 +207,11 @@ const DirectorCampaign = () => {
 
     const mapStatusValue = (status) => {
         const normalized = (status || '').toString().trim().toLowerCase()
-        if (['ongoing', 'inprogress', 'in_progress', 'active', 'approved'].includes(normalized)) return 'ongoing'
+        if (['ongoing', 'inprogress', 'in_progress', 'active'].includes(normalized)) return 'active'
         if (['pending', 'draft', 'scheduled', 'waiting', 'reviewing'].includes(normalized)) return 'pending'
         if (['completed', 'done', 'finished', 'closed'].includes(normalized)) return 'completed'
-        return 'ongoing'
+        if (['approved'].includes(normalized)) return 'approved'
+        return 'active'
     }
 
     const transformCampaignData = (item) => {
@@ -116,19 +273,20 @@ const DirectorCampaign = () => {
             const term = searchTerm.toLowerCase()
             filtered = filtered.filter(campaign =>
                 normalizeString(campaign.name).includes(term) ||
-                normalizeString(campaign.position).includes(term) ||
-                normalizeString(campaign.department).includes(term)
+                normalizeString(campaign.position).includes(term)
             )
         }
 
         // Filter by status
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(campaign => normalizeStatus(campaign.status) === statusFilter)
-        }
-
-        // Filter by department
-        if (departmentFilter !== 'all') {
-            filtered = filtered.filter(campaign => campaign.department === departmentFilter)
+            filtered = filtered.filter(campaign => {
+                const campaignStatus = normalizeStatus(campaign.status)
+                // Map 'ongoing' to 'active' for compatibility
+                if (statusFilter === 'active' || statusFilter === 'ongoing') {
+                    return campaignStatus === 'active' || campaignStatus === 'ongoing'
+                }
+                return campaignStatus === statusFilter
+            })
         }
 
         // Sort campaigns
@@ -145,9 +303,9 @@ const DirectorCampaign = () => {
                     const progressB = ((Number(b.currentHires) || 0) / (Number(b.targetHires) || 1)) * 100
                     return progressB - progressA
                 case 'status':
-                    const statusOrder = { ongoing: 1, pending: 2, completed: 3 }
-                    const statusA = statusOrder[normalizeStatus(a.status)] || 4
-                    const statusB = statusOrder[normalizeStatus(b.status)] || 4
+                    const statusOrder = { active: 1, ongoing: 1, pending: 2, completed: 3, approved: 4 }
+                    const statusA = statusOrder[normalizeStatus(a.status)] || 5
+                    const statusB = statusOrder[normalizeStatus(b.status)] || 5
                     return statusA - statusB
                 default:
                     return 0
@@ -155,7 +313,7 @@ const DirectorCampaign = () => {
         })
 
         setFilteredCampaigns(sorted)
-    }, [campaigns, searchTerm, statusFilter, departmentFilter, sortBy])
+    }, [campaigns, searchTerm, statusFilter, sortBy])
 
     const handleViewDetails = (campaign) => {
         navigate(`/director/campaigns/${campaign.id}`, { state: { campaign } })
@@ -167,72 +325,65 @@ const DirectorCampaign = () => {
         }
     }
 
-    const getStatusBadge = (status) => {
-        const statusConfig = {
-            ongoing: { color: 'bg-green-100 text-green-800', text: 'Đang diễn ra' },
-            completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ diễn ra' }
-        }
-        const config = statusConfig[normalizeStatus(status)] || statusConfig.ongoing
+    if (error) {
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-                {config.text}
-            </span>
+            <div className="flex flex-col gap-5 p-6">
+                <h2 className="mb-6 text-xl font-bold text-gray-800">
+                    Quản lý Chiến dịch
+                </h2>
+                <div className="py-8 text-center">
+                    <div className="mb-2 text-red-600">{error}</div>
+                    <button
+                        onClick={() => {
+                            setError(null)
+                            setIsLoading(true)
+                            const fetchCampaigns = async () => {
+                                try {
+                                    const response = await getCampaigns()
+                                    if (response.success && Array.isArray(response.data)) {
+                                        const normalizedCampaigns = response.data.map(transformCampaignData)
+                                        setCampaigns(normalizedCampaigns)
+                                        setFilteredCampaigns(normalizedCampaigns)
+                                        setError(null)
+                                    } else {
+                                        setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                                    }
+                                } catch (err) {
+                                    setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                                } finally {
+                                    setIsLoading(false)
+                                }
+                            }
+                            fetchCampaigns()
+                        }}
+                        className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
         )
     }
 
-    const getProgressPercentage = (current, target) => {
-        const numericCurrent = Number(current) || 0
-        const numericTarget = Number(target) || 0
-        if (numericTarget <= 0) return 0
-        return Math.round((numericCurrent / numericTarget) * 100)
-    }
-
-    const hasProgressData = (campaign) => {
-        return Number(campaign.targetHires) > 0
-    }
-
     return (
-        <div className="p-6">
-            <div className="mb-6">
-                <div className="flex justify-between items-start mb-2">
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Chiến dịch</h2>
-                        <p className="text-slate-600">Quản lý các chiến dịch tuyển dụng và kế hoạch nhân sự</p>
-                    </div>
-                </div>
-            </div>
+        <div className="flex flex-col gap-5 p-6">
+            <h2 className="mb-6 text-xl font-bold text-gray-800">
+                Quản lý Chiến dịch ({filteredCampaigns.length})
+            </h2>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Search Bar */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
                         <input
                             type="text"
-                            placeholder="Tìm theo tên, vị trí, phòng ban..."
+                            placeholder="Tìm theo tên, loại chiến dịch..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
-                    </div>
-
-                    {/* Department Filter */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Phòng ban</label>
-                        <select
-                            value={departmentFilter}
-                            onChange={(e) => setDepartmentFilter(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="all">Tất cả phòng ban</option>
-                            <option value="Cabin Crew">Cabin Crew</option>
-                            <option value="Flight Operations">Flight Operations</option>
-                            <option value="Ground Operations">Ground Operations</option>
-                            <option value="Customer Service">Customer Service</option>
-                            <option value="Maintenance">Maintenance</option>
-                        </select>
                     </div>
 
                     {/* Sort Filter */}
@@ -253,138 +404,77 @@ const DirectorCampaign = () => {
                 </div>
             </div>
 
-            {/* Campaigns List */}
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200">
-                <div className="p-6 border-b border-slate-200">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
-                    </div>
-
-                    {/* Status Filter Buttons */}
-                    <div className="flex gap-3 flex-wrap">
-                        <button
-                            onClick={() => setStatusFilter('ongoing')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
-                                ? 'bg-green-600 text-white border-green-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
-                                }`}
-                        >
-                            Đang diễn ra
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('pending')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
-                                ? 'bg-yellow-600 text-white border-yellow-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
-                                }`}
-                        >
-                            Đang chờ diễn ra
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('completed')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
-                                }`}
-                        >
-                            Đã hoàn thành
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
-                                ? 'bg-slate-600 text-white border-slate-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                }`}
-                        >
-                            Tất cả
-                        </button>
-                    </div>
+            {/* Status Filter Buttons */}
+            <div className="flex items-center gap-3">
+                <div className="inline-flex items-stretch gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('pending')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'pending'
+                            ? 'bg-yellow-600 text-white border-yellow-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Đang chờ duyệt
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('approved')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'approved'
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Đã được duyệt
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('active')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'active' || statusFilter === 'ongoing'
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Đang diễn ra
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('completed')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'completed'
+                            ? 'bg-green-600 text-white border-green-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Đã hoàn thành
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('all')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'all'
+                            ? 'bg-slate-600 text-white border-slate-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Tất cả
+                    </button>
                 </div>
-
-                <div className="divide-y divide-slate-200">
-                    {isLoading && (
-                        <div className="p-6 text-center text-slate-500">
-                            Đang tải danh sách chiến dịch...
-                        </div>
-                    )}
-
-                    {!isLoading && error && (
-                        <div className="p-6 text-center text-red-500">
-                            {error}
-                        </div>
-                    )}
-
-                    {filteredCampaigns.map((campaign) => (
-                        <div key={campaign.id} className="p-6 hover:bg-slate-50 transition-colors">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="mb-2">
-                                        <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                                        <div>
-                                            <span className="text-sm text-slate-600">Vị trí:</span>
-                                            <p className="font-medium text-slate-800">{campaign.position || 'Không xác định'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Phòng ban:</span>
-                                            <p className="font-medium text-slate-800">{campaign.department || 'Không xác định'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Trạng thái:</span>
-                                            <div className="mt-1">{getStatusBadge(campaign.status)}</div>
-                                        </div>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="text-sm text-slate-600">Thời gian:</span>
-                                        <p className="font-medium text-slate-800">{campaign.startDate} - {campaign.endDate}</p>
-                                    </div>
-
-                                    {/* Progress Bar */}
-                                    {hasProgressData(campaign) && (
-                                        <div className="mb-3">
-                                            <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                                <span>Tiến độ tuyển dụng</span>
-                                                <span>{campaign.currentHires}/{campaign.targetHires} ({getProgressPercentage(campaign.currentHires, campaign.targetHires)}%)</span>
-                                            </div>
-                                            <div className="w-full bg-slate-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${getProgressPercentage(campaign.currentHires, campaign.targetHires)}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <p className="text-sm text-slate-600">{campaign.description}</p>
-                                </div>
-
-                                <div className="flex items-center gap-2 ml-4">
-                                    <button
-                                        onClick={() => handleViewDetails(campaign)}
-                                        className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                                    >
-                                        Xem chi tiết
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(campaign.id)}
-                                        className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
-                                    >
-                                        Xóa
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {filteredCampaigns.length === 0 && (
-                    <div className="p-12 text-center">
-                        <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
-                    </div>
-                )}
             </div>
+
+            {/* Campaign Cards */}
+            {filteredCampaigns.length === 0 ? (
+                <div className="py-12 text-center">
+                    <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
+                </div>
+            ) : (
+                filteredCampaigns.map((campaign) => (
+                    <CampaignCard
+                        key={campaign.id}
+                        campaign={campaign}
+                        onViewDetails={handleViewDetails}
+                        onDelete={handleDelete}
+                    />
+                ))
+            )}
 
             {/* Modal Chi tiết */}
             {showModal && selectedCampaign && (
@@ -412,16 +502,14 @@ const DirectorCampaign = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Vị trí:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.position || 'Không xác định'}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm text-slate-600">Phòng ban:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.department || 'Không xác định'}</p>
+                                        <span className="text-sm text-slate-600">Loại chiến dịch:</span>
+                                        <div className="mt-1">
+                                            <CampaignTypeBadge type={selectedCampaign.position || selectedCampaign.campaignType} />
+                                        </div>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Trạng thái:</span>
-                                        <div className="mt-1">{getStatusBadge(selectedCampaign.status)}</div>
+                                        <div className="mt-1"><StatusBadge status={selectedCampaign.status} /></div>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
@@ -454,20 +542,29 @@ const DirectorCampaign = () => {
                                 )}
 
                                 {/* Progress Bar */}
-                                {hasProgressData(selectedCampaign) && (
+                                {selectedCampaign.targetHires > 0 && (
                                     <div>
                                         <span className="text-sm text-slate-600">Tiến độ tuyển dụng:</span>
                                         <div className="mt-2">
-                                            <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                                <span>{selectedCampaign.currentHires}/{selectedCampaign.targetHires} người</span>
-                                                <span>{getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%</span>
-                                            </div>
-                                            <div className="w-full bg-slate-200 rounded-full h-3">
-                                                <div
-                                                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                                                    style={{ width: `${getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%` }}
-                                                ></div>
-                                            </div>
+                                            {(() => {
+                                                const current = Number(selectedCampaign.currentHires) || 0
+                                                const total = Number(selectedCampaign.targetHires) || 0
+                                                const percent = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0
+                                                return (
+                                                    <>
+                                                        <div className="flex justify-between text-sm text-slate-600 mb-1">
+                                                            <span>{current}/{total} người</span>
+                                                            <span>{percent}%</span>
+                                                        </div>
+                                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                                            <div
+                                                                className="h-full bg-blue-600"
+                                                                style={{ width: `${percent}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </>
+                                                )
+                                            })()}
                                         </div>
                                     </div>
                                 )}
