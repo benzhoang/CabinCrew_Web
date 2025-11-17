@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { FaPlus, FaSearch } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import CampaignList from "../../components/SeniorRecruiterComponent/CampaignList";
-//import { useNavigate } from "react-router-dom";
 
 const SeniorCampaignPage = () => {
   const [search, setSearch] = useState("");
   const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
-  //const navigate = useNavigate();
 
   return (
     <div className="w-full h-full">

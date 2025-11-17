@@ -3,6 +3,7 @@ import { FaFileUpload, FaCloudUploadAlt, FaInfoCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { createTest } from "../../service/api2";
 import { toast } from "react-toastify";
+import ModalConfirm from "../../components/AirlinePartnerComponent/ModalConfirm";
 
 const testTypeOptions = [
   { value: 0, label: "Chọn loại đề thi" },
@@ -31,6 +32,7 @@ const CreateTestPage = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleChange = (field) => (event) => {
     const value =
@@ -58,6 +60,11 @@ const CreateTestPage = () => {
   };
 
   const handleCancel = () => {
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
     navigate(-1);
   };
 
@@ -179,7 +186,7 @@ const CreateTestPage = () => {
         </div>
         <button
           type="button"
-          onClick={handleCancel}
+          onClick={() => navigate(-1)}
           className="inline-flex items-center self-start gap-2 px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100"
         >
           Quay lại
@@ -429,6 +436,15 @@ const CreateTestPage = () => {
               </button>
             </div>
           </form>
+          <ModalConfirm
+            isOpen={showCancelModal}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={handleConfirmCancel}
+            title="Xác nhận hủy"
+            message="Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất."
+            confirmText="Hủy"
+            cancelText="Quay lại"
+          />
         </div>
       </section>
     </div>

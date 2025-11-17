@@ -156,7 +156,9 @@ const CampaignCard = ({ campaign }) => {
         <div className="flex items-center gap-2 shrink-0">
           {campaign.status === "draft" ? (
             <button
-              onClick={() => navigate(`/senior-recruiter/campaigns/create`)}
+              onClick={() =>
+                navigate(`/senior-recruiter/campaigns/${campaign.id}/create`)
+              }
               className="px-3 py-1.5 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700"
             >
               Tạo kế hoạch
