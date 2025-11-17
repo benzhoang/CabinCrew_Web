@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit2, FiTrash2, FiEye, FiFileText, FiLoader, FiMusic, FiExternalLink } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink } from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 
 // Transform data từ API sang format của component
 const transformTestData = (item) => {
-
   const getStatusFromTestType = (testType) => {
     return "active";
   };
@@ -88,6 +87,7 @@ const TestingPage = () => {
   const [deletingTestId, setDeletingTestId] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+  const [codeVisibility, setCodeVisibility] = useState({}); // Tracks visibility for each test code
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: 10,
@@ -96,6 +96,14 @@ const TestingPage = () => {
     hasNextPage: false,
     hasPreviousPage: false,
   });
+
+  // Toggle visibility for a specific test code
+  const toggleCodeVisibility = (testId) => {
+    setCodeVisibility((prev) => ({
+      ...prev,
+      [testId]: !prev[testId],
+    }));
+  };
 
   const fetchTests = useCallback(async (page = null, pageSize = null, showLoading = true) => {
     const currentPage = page !== null ? page : pagination.currentPage;
@@ -302,9 +310,20 @@ const TestingPage = () => {
                     </div>
                     <p className="mb-3 text-sm text-slate-600">{test.description}</p>
                     <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-                      <div>
+                      <div className="flex items-center">
                         <span className="text-slate-500">Mã đề thi:</span>
-                        <span className="ml-2 font-medium text-slate-800">{test.code}</span>
+                        <div className="ml-2 flex items-center gap-2">
+                          <span className="font-medium text-slate-800">
+                            {codeVisibility[test.id] ? test.code : '•'.repeat(test.code.length)}
+                          </span>
+                          <button
+                            onClick={() => toggleCodeVisibility(test.id)}
+                            className="text-slate-500 hover:text-slate-700"
+                            title={codeVisibility[test.id] ? "Ẩn mã" : "Hiện mã"}
+                          >
+                            {codeVisibility[test.id] ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <span className="text-slate-500">Thời gian:</span>
