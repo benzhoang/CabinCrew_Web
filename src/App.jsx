@@ -548,7 +548,7 @@ function App() {
           }
         />
         <Route
-          path="/senior-recruiter/campaigns/create"
+          path="/senior-recruiter/campaigns/:id/create"
           element={
             <SeniorRecruiterLayout>
               <SeniorCreateCampaignPage />

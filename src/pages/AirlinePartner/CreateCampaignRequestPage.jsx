@@ -4,6 +4,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
 import { createCampaignRequest } from "../../service/api2";
+import ModalConfirm from "../../components/AirlinePartnerComponent/ModalConfirm";
 
 const CreateCampaignRequestPage = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const CreateCampaignRequestPage = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const navigate = useNavigate();
   const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
   const displayName = employeeData?.displayName;
@@ -130,11 +132,12 @@ const CreateCampaignRequestPage = () => {
   };
 
   const handleCancel = () => {
-    if (
-      window.confirm("Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất.")
-    ) {
-      navigate(-1);
-    }
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    navigate(-1);
   };
 
   return (
@@ -337,6 +340,16 @@ const CreateCampaignRequestPage = () => {
           </div>
         </div>
       </form>
+
+      <ModalConfirm
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="Xác nhận hủy"
+        message="Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất."
+        confirmText="Hủy"
+        cancelText="Quay lại"
+      />
     </div>
   );
 };

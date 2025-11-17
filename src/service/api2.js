@@ -514,6 +514,65 @@ export const getCampaignList = async (params = {}) => {
   }
 };
 
+// API lấy danh sách campaigns được giao cho recruiter/examiner
+export const getMyCampaigns = async () => {
+  try {
+    const response = await api2.get("/users/my-campaigns");
+    const responseData = response.data;
+
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách chiến dịch thành công",
+      };
+    }
+
+    if (responseData.code === 0) {
+      let items = [];
+
+      if (Array.isArray(responseData.data)) {
+        items = responseData.data;
+      } else if (Array.isArray(responseData.data?.items)) {
+        items = responseData.data.items;
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
+      ) {
+        items = responseData.data.data;
+      }
+
+      return {
+        success: true,
+        data: items,
+        pagination: {
+          currentPage: responseData.data?.currentPage,
+          pageSize: responseData.data?.pageSize,
+          totalRecords: responseData.data?.totalRecords,
+          totalPages: responseData.data?.totalPages,
+          hasNextPage: responseData.data?.hasNextPage,
+          hasPreviousPage: responseData.data?.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy danh sách chiến dịch",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách chiến dịch",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy chi tiết campaign theo ID - GET /api/v1/campaigns/{id}
 export const getCampaignDetail = async (campaignId) => {
   try {
