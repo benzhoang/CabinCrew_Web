@@ -8,7 +8,8 @@ const ExamTask = () => {
     const [filteredTasks, setFilteredTasks] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-    const [sortBy, setSortBy] = useState('name')
+    const [taskFilter, setTaskFilter] = useState('all')
+    const [sortBy, setSortBy] = useState('assignedAt')
     const [selectedTask, setSelectedTask] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
@@ -45,33 +46,68 @@ const ExamTask = () => {
     const formatDateValue = (value) => {
         const date = parseDateValue(value)
         if (!date) return value || 'Không xác định'
+        return date.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    }
+
+    const formatDateOnly = (value) => {
+        const date = parseDateValue(value)
+        if (!date) return value || 'Không xác định'
         return date.toLocaleDateString('vi-VN')
     }
 
     const mapStatusValue = (status) => {
         const normalized = (status || '').toString().trim().toLowerCase()
-        if (['ongoing', 'inprogress', 'in_progress', 'active', 'assigned'].includes(normalized)) return 'ongoing'
-        if (['pending', 'draft', 'scheduled', 'waiting', 'reviewing'].includes(normalized)) return 'pending'
-        if (['completed', 'done', 'finished', 'closed'].includes(normalized)) return 'completed'
-        return 'ongoing'
+        const compact = normalized.replace(/[\s_-]+/g, '')
+        if (['completed', 'done', 'finished'].includes(compact)) return 'completed'
+        if (['inprogress', 'processing', 'ongoing'].includes(compact)) return 'inProgress'
+        if (['cancelled', 'canceled', 'cancel', 'aborted'].includes(compact)) return 'cancelled'
+        if (['assigned', 'pending', 'todo'].includes(compact)) return 'assigned'
+        return 'assigned'
     }
 
-    const transformTaskData = (item) => {
-        return {
-            id: item.id ?? item.taskId ?? item.taskID ?? item.Id,
-            title: item.title ?? item.taskTitle ?? item.name ?? 'Task chưa có tên',
-            description: item.description ?? item.taskDescription ?? '',
-            status: mapStatusValue(item.status),
-            assignedDate: formatDateValue(item.assignedDate ?? item.createdDate),
-            dueDate: formatDateValue(item.dueDate ?? item.deadline),
-            rawAssignedDate: item.assignedDate ?? item.createdDate,
-            rawDueDate: item.dueDate ?? item.deadline,
-            campaignId: item.campaignId ?? item.campaignID,
-            campaignName: item.campaignName ?? item.campaign?.name ?? 'Không xác định',
-            taskType: item.taskType ?? item.type ?? 'Không xác định',
-            priority: item.priority ?? 'normal',
-            assigner: item.assigner ?? item.createdBy ?? 'Không xác định'
+    // Transform data từ API thành format dễ sử dụng
+    const transformTasksData = (data) => {
+        const allTasks = []
+
+        // Duyệt qua từng campaign
+        if (Array.isArray(data)) {
+            data.forEach(campaign => {
+                const campaignId = campaign.campaignId || campaign.id
+                const campaignName = campaign.campaignName || campaign.name || 'Chiến dịch chưa có tên'
+                const description = campaign.description || ''
+                const startDate = campaign.startDate
+                const endDate = campaign.endDate
+
+                // Duyệt qua từng assignment trong campaign
+                if (Array.isArray(campaign.assignments)) {
+                    campaign.assignments.forEach(assignment => {
+                        allTasks.push({
+                            id: assignment.assignmentId || assignment.id,
+                            campaignId: campaignId,
+                            campaignName: campaignName,
+                            description: description,
+                            startDate: startDate,
+                            endDate: endDate,
+                            task: assignment.task || 'Không xác định',
+                            taskDescription: assignment.taskDescription || assignment.description || '',
+                            status: mapStatusValue(assignment.status),
+                            assignedAt: assignment.assignedAt,
+                            assignedBy: assignment.assignedBy || 'N/A',
+                            completedAt: assignment.completedAt,
+                            notes: assignment.notes || ''
+                        })
+                    })
+                }
+            })
         }
+
+        return allTasks
     }
 
     useEffect(() => {
@@ -80,19 +116,19 @@ const ExamTask = () => {
             setError(null)
             try {
                 const response = await getMyTasks()
-                if (response.success && Array.isArray(response.data)) {
-                    const normalizedTasks = response.data.map(transformTaskData)
-                    setTasks(normalizedTasks)
-                    setFilteredTasks(normalizedTasks)
+                if (response.success && response.data) {
+                    const transformedTasks = transformTasksData(response.data)
+                    setTasks(transformedTasks)
+                    setFilteredTasks(transformedTasks)
                 } else {
                     setTasks([])
                     setFilteredTasks([])
-                    setError(response.error || 'Không thể lấy danh sách task')
+                    setError(response.error || 'Không thể lấy danh sách công việc')
                 }
             } catch (err) {
                 setTasks([])
                 setFilteredTasks([])
-                setError(err.message || 'Không thể lấy danh sách task')
+                setError(err.message || 'Không thể lấy danh sách công việc')
             } finally {
                 setIsLoading(false)
             }
@@ -102,7 +138,6 @@ const ExamTask = () => {
     }, [])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
-    const normalizeStatus = (value) => normalizeString(value)
 
     useEffect(() => {
         let filtered = tasks
@@ -111,39 +146,41 @@ const ExamTask = () => {
         if (searchTerm) {
             const term = searchTerm.toLowerCase()
             filtered = filtered.filter(task =>
-                normalizeString(task.title).includes(term) ||
-                normalizeString(task.description).includes(term) ||
                 normalizeString(task.campaignName).includes(term) ||
-                normalizeString(task.taskType).includes(term)
+                normalizeString(task.task).includes(term) ||
+                normalizeString(task.taskDescription).includes(term)
             )
         }
 
         // Filter by status
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(task => normalizeStatus(task.status) === statusFilter)
+            filtered = filtered.filter(task => task.status === statusFilter)
+        }
+
+        // Filter by task type
+        if (taskFilter !== 'all') {
+            filtered = filtered.filter(task => normalizeString(task.task) === normalizeString(taskFilter))
         }
 
         // Sort tasks
         const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
-                case 'name':
-                    return normalizeString(a.title).localeCompare(normalizeString(b.title))
-                case 'assignedDate':
-                    return (parseDateValue(a.rawAssignedDate) || 0) - (parseDateValue(b.rawAssignedDate) || 0)
-                case 'dueDate':
-                    return (parseDateValue(a.rawDueDate) || 0) - (parseDateValue(b.rawDueDate) || 0)
+                case 'assignedAt':
+                    return (parseDateValue(b.assignedAt) || 0) - (parseDateValue(a.assignedAt) || 0)
+                case 'campaignName':
+                    return normalizeString(a.campaignName).localeCompare(normalizeString(b.campaignName))
+                case 'task':
+                    return normalizeString(a.task).localeCompare(normalizeString(b.task))
                 case 'status':
-                    const statusOrder = { ongoing: 1, pending: 2, completed: 3 }
-                    const statusA = statusOrder[normalizeStatus(a.status)] || 4
-                    const statusB = statusOrder[normalizeStatus(b.status)] || 4
-                    return statusA - statusB
+                    const statusOrder = { completed: 1, inProgress: 2, assigned: 3, cancelled: 4 }
+                    return (statusOrder[a.status] || 5) - (statusOrder[b.status] || 5)
                 default:
                     return 0
             }
         })
 
         setFilteredTasks(sorted)
-    }, [tasks, searchTerm, statusFilter, sortBy])
+    }, [tasks, searchTerm, statusFilter, taskFilter, sortBy])
 
     const handleViewDetails = (task) => {
         setSelectedTask(task)
@@ -152,11 +189,12 @@ const ExamTask = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            ongoing: { color: 'bg-green-100 text-green-800', text: 'Đang thực hiện' },
-            completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ' }
+            assigned: { color: 'bg-yellow-100 text-yellow-800', text: 'Đã giao' },
+            inProgress: { color: 'bg-blue-100 text-blue-800', text: 'Đang thực hiện' },
+            completed: { color: 'bg-green-100 text-green-800', text: 'Đã hoàn thành' },
+            cancelled: { color: 'bg-red-100 text-red-700', text: 'Đã hủy' }
         }
-        const config = statusConfig[normalizeStatus(status)] || statusConfig.ongoing
+        const config = statusConfig[status] || statusConfig.assigned
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
                 {config.text}
@@ -164,19 +202,15 @@ const ExamTask = () => {
         )
     }
 
-    const getPriorityBadge = (priority) => {
-        const priorityConfig = {
-            high: { color: 'bg-red-100 text-red-800', text: 'Cao' },
-            medium: { color: 'bg-orange-100 text-orange-800', text: 'Trung bình' },
-            normal: { color: 'bg-blue-100 text-blue-800', text: 'Bình thường' },
-            low: { color: 'bg-gray-100 text-gray-800', text: 'Thấp' }
-        }
-        const config = priorityConfig[normalizeString(priority)] || priorityConfig.normal
-        return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-                {config.text}
-            </span>
-        )
+    // Lấy danh sách các task types duy nhất
+    const getUniqueTaskTypes = () => {
+        const taskTypes = new Set()
+        tasks.forEach(task => {
+            if (task.task) {
+                taskTypes.add(task.task)
+            }
+        })
+        return Array.from(taskTypes).sort()
     }
 
     return (
@@ -184,25 +218,40 @@ const ExamTask = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Task</h2>
-                        <p className="text-slate-600">Danh sách các task được giao cho bạn</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Công Việc Được Giao</h2>
+                        <p className="text-slate-600">Danh sách các công việc được giao cho bạn</p>
                     </div>
                 </div>
             </div>
 
             {/* Search and Filter */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Search Bar */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
                         <input
                             type="text"
-                            placeholder="Tìm theo tiêu đề, mô tả, chiến dịch..."
+                            placeholder="Tìm theo tên chiến dịch, công việc..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
+                    </div>
+
+                    {/* Task Type Filter */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Loại công việc</label>
+                        <select
+                            value={taskFilter}
+                            onChange={(e) => setTaskFilter(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="all">Tất cả loại công việc</option>
+                            {getUniqueTaskTypes().map(taskType => (
+                                <option key={taskType} value={taskType}>{taskType}</option>
+                            ))}
+                        </select>
                     </div>
 
                     {/* Sort Filter */}
@@ -213,9 +262,9 @@ const ExamTask = () => {
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="name">Tên task</option>
-                            <option value="assignedDate">Ngày giao</option>
-                            <option value="dueDate">Hạn hoàn thành</option>
+                            <option value="assignedAt">Ngày giao (mới nhất)</option>
+                            <option value="campaignName">Tên chiến dịch</option>
+                            <option value="task">Loại công việc</option>
                             <option value="status">Trạng thái</option>
                         </select>
                     </div>
@@ -226,37 +275,46 @@ const ExamTask = () => {
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Task ({filteredTasks.length})</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Công Việc ({filteredTasks.length})</h3>
                     </div>
 
                     {/* Status Filter Buttons */}
                     <div className="flex gap-3 flex-wrap">
                         <button
-                            onClick={() => setStatusFilter('ongoing')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
-                                ? 'bg-green-600 text-white border-green-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
+                            onClick={() => setStatusFilter('assigned')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'assigned'
+                                ? 'bg-yellow-600 text-white border-yellow-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
+                                }`}
+                        >
+                            Đã giao
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('inProgress')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'inProgress'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
                                 }`}
                         >
                             Đang thực hiện
                         </button>
                         <button
-                            onClick={() => setStatusFilter('pending')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
-                                ? 'bg-yellow-600 text-white border-yellow-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
-                                }`}
-                        >
-                            Đang chờ
-                        </button>
-                        <button
                             onClick={() => setStatusFilter('completed')}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
+                                ? 'bg-green-600 text-white border-green-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
                                 }`}
                         >
                             Đã hoàn thành
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('cancelled')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'cancelled'
+                                ? 'bg-red-600 text-white border-red-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-red-50'
+                                }`}
+                        >
+                            Đã hủy
                         </button>
                         <button
                             onClick={() => setStatusFilter('all')}
@@ -273,7 +331,7 @@ const ExamTask = () => {
                 <div className="divide-y divide-slate-200">
                     {isLoading && (
                         <div className="p-6 text-center text-slate-500">
-                            Đang tải danh sách task...
+                            Đang tải danh sách công việc...
                         </div>
                     )}
 
@@ -283,52 +341,68 @@ const ExamTask = () => {
                         </div>
                     )}
 
-                    {!isLoading && !error && filteredTasks.map((task) => (
+                    {!isLoading && !error && filteredTasks.length === 0 && (
+                        <div className="p-6 text-center text-slate-500">
+                            Không có công việc nào được giao
+                        </div>
+                    )}
+
+                    {filteredTasks.map((task) => (
                         <div key={task.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <div className="mb-2">
-                                        <h4 className="text-lg font-semibold text-slate-800">{task.title}</h4>
+                                        <h4 className="text-lg font-semibold text-slate-800">{task.campaignName}</h4>
+                                        {task.description && (
+                                            <p className="text-sm text-slate-600 mt-1">{task.description}</p>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
-                                            <span className="text-sm text-slate-600">Chiến dịch:</span>
-                                            <p className="font-medium text-slate-800">{task.campaignName}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Loại task:</span>
-                                            <p className="font-medium text-slate-800">{task.taskType}</p>
+                                            <span className="text-sm text-slate-600">Công việc:</span>
+                                            <p className="font-medium text-slate-800">{task.task}</p>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Trạng thái:</span>
                                             <div className="mt-1">{getStatusBadge(task.status)}</div>
                                         </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
                                             <span className="text-sm text-slate-600">Ngày giao:</span>
-                                            <p className="font-medium text-slate-800">{task.assignedDate}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Hạn hoàn thành:</span>
-                                            <p className="font-medium text-slate-800">{task.dueDate}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Độ ưu tiên:</span>
-                                            <div className="mt-1">{getPriorityBadge(task.priority)}</div>
+                                            <p className="font-medium text-slate-800">{formatDateValue(task.assignedAt)}</p>
                                         </div>
                                     </div>
 
-                                    {task.description && (
-                                        <p className="text-sm text-slate-600 mb-2">{task.description}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                                        {task.taskDescription && (
+                                            <div>
+                                                <span className="text-sm text-slate-600">Mô tả công việc:</span>
+                                                <p className="text-slate-800">{task.taskDescription}</p>
+                                            </div>
+                                        )}
+                                        <div>
+                                            <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                            <p className="font-medium text-slate-800">{formatDateOnly(task.startDate)}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                            <p className="font-medium text-slate-800">{formatDateOnly(task.endDate)}</p>
+                                        </div>
+                                    </div>
+
+                                    {task.completedAt && (
+                                        <div className="mb-2">
+                                            <span className="text-sm text-slate-600">Hoàn thành lúc:</span>
+                                            <p className="font-medium text-green-600">{formatDateValue(task.completedAt)}</p>
+                                        </div>
                                     )}
 
-                                    <div className="text-sm text-slate-500">
-                                        <span>Người giao: </span>
-                                        <span className="font-medium">{task.assigner}</span>
-                                    </div>
+                                    {task.assignedBy && (
+                                        <div className="mb-2">
+                                            <span className="text-sm text-slate-600">Giao bởi:</span>
+                                            <p className="font-medium text-slate-800">{task.assignedBy}</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-2 ml-4">
@@ -343,12 +417,6 @@ const ExamTask = () => {
                         </div>
                     ))}
                 </div>
-
-                {!isLoading && !error && filteredTasks.length === 0 && (
-                    <div className="p-12 text-center">
-                        <p className="text-slate-500">Không tìm thấy task nào</p>
-                    </div>
-                )}
             </div>
 
             {/* Modal Chi tiết */}
@@ -357,7 +425,7 @@ const ExamTask = () => {
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-slate-200">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-slate-800">Chi tiết Task</h3>
+                                <h3 className="text-xl font-semibold text-slate-800">Chi tiết Công Việc</h3>
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="text-slate-400 hover:text-slate-600"
@@ -372,44 +440,61 @@ const ExamTask = () => {
                         <div className="p-6">
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="text-lg font-semibold text-slate-800 mb-2">{selectedTask.title}</h4>
+                                    <h4 className="text-lg font-semibold text-slate-800 mb-2">{selectedTask.campaignName}</h4>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Chiến dịch:</span>
-                                        <p className="font-medium text-slate-800">{selectedTask.campaignName}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm text-slate-600">Loại task:</span>
-                                        <p className="font-medium text-slate-800">{selectedTask.taskType}</p>
+                                        <span className="text-sm text-slate-600">Công việc:</span>
+                                        <p className="font-medium text-slate-800">{selectedTask.task}</p>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Trạng thái:</span>
                                         <div className="mt-1">{getStatusBadge(selectedTask.status)}</div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Độ ưu tiên:</span>
-                                        <div className="mt-1">{getPriorityBadge(selectedTask.priority)}</div>
-                                    </div>
-                                    <div>
                                         <span className="text-sm text-slate-600">Ngày giao:</span>
-                                        <p className="font-medium text-slate-800">{selectedTask.assignedDate}</p>
+                                        <p className="font-medium text-slate-800">{formatDateValue(selectedTask.assignedAt)}</p>
+                                    </div>
+                                    {selectedTask.completedAt && (
+                                        <div>
+                                            <span className="text-sm text-slate-600">Hoàn thành lúc:</span>
+                                            <p className="font-medium text-green-600">{formatDateValue(selectedTask.completedAt)}</p>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <span className="text-sm text-slate-600">Giao bởi:</span>
+                                        <p className="font-medium text-slate-800">{selectedTask.assignedBy}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Hạn hoàn thành:</span>
-                                        <p className="font-medium text-slate-800">{selectedTask.dueDate}</p>
+                                        <span className="text-sm text-slate-600">Mã chiến dịch:</span>
+                                        <p className="font-medium text-slate-800">{selectedTask.campaignId}</p>
                                     </div>
-                                    <div>
-                                        <span className="text-sm text-slate-600">Người giao:</span>
-                                        <p className="font-medium text-slate-800">{selectedTask.assigner}</p>
-                                    </div>
+                                </div>
+
+                                <div>
+                                    <span className="text-sm text-slate-600">Thời gian chiến dịch:</span>
+                                    <p className="font-medium text-slate-800">{formatDateOnly(selectedTask.startDate)} - {formatDateOnly(selectedTask.endDate)}</p>
                                 </div>
 
                                 {selectedTask.description && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Mô tả:</span>
-                                        <p className="text-slate-800 mt-1">{selectedTask.description}</p>
+                                        <span className="text-sm text-slate-600">Mô tả chiến dịch:</span>
+                                        <p className="text-slate-800 mt-1">{selectedTask.description || 'Không có mô tả'}</p>
+                                    </div>
+                                )}
+
+                                {selectedTask.taskDescription && (
+                                    <div>
+                                        <span className="text-sm text-slate-600">Mô tả công việc:</span>
+                                        <p className="text-slate-800 mt-1">{selectedTask.taskDescription}</p>
+                                    </div>
+                                )}
+
+                                {selectedTask.notes && (
+                                    <div>
+                                        <span className="text-sm text-slate-600">Ghi chú:</span>
+                                        <p className="text-slate-800 mt-1">{selectedTask.notes}</p>
                                     </div>
                                 )}
                             </div>
@@ -431,4 +516,3 @@ const ExamTask = () => {
 }
 
 export default ExamTask
-
