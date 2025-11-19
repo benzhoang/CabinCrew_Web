@@ -4,13 +4,50 @@ import { t, onLangChange } from '../../i18n'
 import { getCampaigns } from '../../service/api'
 import { formatDate } from '../../config/formatDate.js'
 
-// StatusBadge component giống CampaignList.jsx
+// StatusBadge component - hỗ trợ tất cả status từ API
 const StatusBadge = ({ status }) => {
     const getStatusConfig = (status) => {
-        const normalized = (status || '').toString().trim().toLowerCase()
+        const normalized = (status || '').toString().trim()
+        // Giữ nguyên case-sensitive để match chính xác với API
         switch (normalized) {
-            case 'active':
+            case 'Ongoing':
+                return {
+                    className: 'bg-blue-100 text-blue-700 border-blue-200',
+                    text: 'Đang diễn ra',
+                }
+            case 'Pending':
+                return {
+                    className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+                    text: 'Đang chờ duyệt',
+                }
+            case 'Approved':
+                return {
+                    className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                    text: 'Đã được duyệt',
+                }
+            case 'Rejected':
+                return {
+                    className: 'bg-red-100 text-red-700 border-red-200',
+                    text: 'Đã từ chối',
+                }
+            case 'Upcoming':
+                return {
+                    className: 'bg-purple-100 text-purple-700 border-purple-200',
+                    text: 'Sắp diễn ra',
+                }
+            case 'Ended':
+                return {
+                    className: 'bg-gray-100 text-gray-700 border-gray-200',
+                    text: 'Đã kết thúc',
+                }
+            case 'Draft':
+                return {
+                    className: 'bg-slate-100 text-slate-600 border-slate-200',
+                    text: 'Bản nháp',
+                }
+            // Fallback cho các giá trị cũ (lowercase) để tương thích ngược
             case 'ongoing':
+            case 'active':
                 return {
                     className: 'bg-blue-100 text-blue-700 border-blue-200',
                     text: 'Đang diễn ra',
@@ -20,20 +57,26 @@ const StatusBadge = ({ status }) => {
                     className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
                     text: 'Đang chờ duyệt',
                 }
-            case 'completed':
-                return {
-                    className: 'bg-green-100 text-green-600 border-green-200',
-                    text: 'Đã hoàn thành',
-                }
             case 'approved':
                 return {
                     className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
                     text: 'Đã được duyệt',
                 }
+            case 'rejected':
+                return {
+                    className: 'bg-red-100 text-red-700 border-red-200',
+                    text: 'Đã từ chối',
+                }
+            case 'completed':
+            case 'ended':
+                return {
+                    className: 'bg-gray-100 text-gray-700 border-gray-200',
+                    text: 'Đã kết thúc',
+                }
             default:
                 return {
                     className: 'bg-gray-100 text-gray-600 border-gray-200',
-                    text: 'Không xác định',
+                    text: normalized || 'Không xác định',
                 }
         }
     }
@@ -205,13 +248,26 @@ const DirectorCampaign = () => {
         return date.toLocaleDateString('vi-VN')
     }
 
+    // Giữ nguyên status từ API, không transform
     const mapStatusValue = (status) => {
-        const normalized = (status || '').toString().trim().toLowerCase()
-        if (['ongoing', 'inprogress', 'in_progress', 'active'].includes(normalized)) return 'active'
-        if (['pending', 'draft', 'scheduled', 'waiting', 'reviewing'].includes(normalized)) return 'pending'
-        if (['completed', 'done', 'finished', 'closed'].includes(normalized)) return 'completed'
-        if (['approved'].includes(normalized)) return 'approved'
-        return 'active'
+        if (!status) return 'Draft'
+        // Giữ nguyên status từ API (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft)
+        const statusStr = status.toString().trim()
+        // Chỉ normalize nếu là các giá trị cũ (lowercase) để tương thích ngược
+        const normalized = statusStr.toLowerCase()
+        if (['ongoing', 'inprogress', 'in_progress', 'active'].includes(normalized)) return 'Ongoing'
+        if (['pending', 'waiting', 'reviewing'].includes(normalized)) return 'Pending'
+        if (['approved', 'approve'].includes(normalized)) return 'Approved'
+        if (['rejected', 'reject'].includes(normalized)) return 'Rejected'
+        if (['ended', 'completed', 'done', 'finished', 'closed'].includes(normalized)) return 'Ended'
+        if (['upcoming', 'scheduled'].includes(normalized)) return 'Upcoming'
+        if (['draft'].includes(normalized)) return 'Draft'
+        // Nếu đã là format đúng từ API (PascalCase), giữ nguyên
+        if (['Upcoming', 'Ended', 'Ongoing', 'Rejected', 'Approved', 'Pending', 'Draft'].includes(statusStr)) {
+            return statusStr
+        }
+        // Mặc định
+        return statusStr || 'Draft'
     }
 
     const transformCampaignData = (item) => {
@@ -280,12 +336,10 @@ const DirectorCampaign = () => {
         // Filter by status
         if (statusFilter !== 'all') {
             filtered = filtered.filter(campaign => {
-                const campaignStatus = normalizeStatus(campaign.status)
-                // Map 'ongoing' to 'active' for compatibility
-                if (statusFilter === 'active' || statusFilter === 'ongoing') {
-                    return campaignStatus === 'active' || campaignStatus === 'ongoing'
-                }
-                return campaignStatus === statusFilter
+                const campaignStatus = (campaign.status || '').toString().trim()
+                const filterStatus = statusFilter.toString().trim()
+                // So sánh case-insensitive
+                return campaignStatus.toLowerCase() === filterStatus.toLowerCase()
             })
         }
 
@@ -303,9 +357,17 @@ const DirectorCampaign = () => {
                     const progressB = ((Number(b.currentHires) || 0) / (Number(b.targetHires) || 1)) * 100
                     return progressB - progressA
                 case 'status':
-                    const statusOrder = { active: 1, ongoing: 1, pending: 2, completed: 3, approved: 4 }
-                    const statusA = statusOrder[normalizeStatus(a.status)] || 5
-                    const statusB = statusOrder[normalizeStatus(b.status)] || 5
+                    const statusOrder = {
+                        'Pending': 1,
+                        'Approved': 2,
+                        'Rejected': 3,
+                        'Draft': 4,
+                        'Upcoming': 5,
+                        'Ongoing': 6,
+                        'Ended': 7
+                    }
+                    const statusA = statusOrder[a.status] || statusOrder[normalizeStatus(a.status)] || 8
+                    const statusB = statusOrder[b.status] || statusOrder[normalizeStatus(b.status)] || 8
                     return statusA - statusB
                 default:
                     return 0
@@ -405,12 +467,12 @@ const DirectorCampaign = () => {
             </div>
 
             {/* Status Filter Buttons */}
-            <div className="flex items-center gap-3">
-                <div className="inline-flex items-stretch gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+                <div className="inline-flex items-stretch gap-3 flex-wrap">
                     <button
                         type="button"
-                        onClick={() => setStatusFilter('pending')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'pending'
+                        onClick={() => setStatusFilter('Pending')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'pending'
                             ? 'bg-yellow-600 text-white border-yellow-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
@@ -419,9 +481,9 @@ const DirectorCampaign = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setStatusFilter('approved')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'approved'
-                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                        onClick={() => setStatusFilter('Approved')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'approved'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
@@ -429,8 +491,8 @@ const DirectorCampaign = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setStatusFilter('active')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'active' || statusFilter === 'ongoing'
+                        onClick={() => setStatusFilter('Ongoing')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'ongoing'
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
@@ -439,19 +501,49 @@ const DirectorCampaign = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setStatusFilter('completed')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'completed'
-                            ? 'bg-green-600 text-white border-green-600'
+                        onClick={() => setStatusFilter('Rejected')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'rejected'
+                            ? 'bg-red-600 text-white border-red-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đã hoàn thành
+                        Đã từ chối
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('Upcoming')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'upcoming'
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Sắp diễn ra
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('Ended')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'ended'
+                            ? 'bg-gray-600 text-white border-gray-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Đã kết thúc
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('Draft')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'draft'
+                            ? 'bg-slate-600 text-white border-slate-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Bản nháp
                     </button>
                     <button
                         type="button"
                         onClick={() => setStatusFilter('all')}
                         className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'all'
-                            ? 'bg-slate-600 text-white border-slate-600'
+                            ? 'bg-slate-700 text-white border-slate-700'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >

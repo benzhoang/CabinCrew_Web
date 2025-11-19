@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { updateCampaignStatus } from '../../../service/api'
 import RejectCampaignModal from './RejectCampaignModal'
 // Helper function to format date for display
 const formatDateForDisplay = (dateString, fallbackTime = null, isEndDate = false) => {
@@ -310,28 +311,48 @@ const DirectorBatchInfo = ({ campaign }) => {
         return Math.max(0, Math.min(100, p))
     }
 
+    // Kiểm tra xem campaign có status là "đang chờ duyệt" không
+    const isPendingApproval = () => {
+        if (!campaign?.status) return false
+
+        const statusLower = String(campaign.status).toLowerCase().trim()
+
+        // Kiểm tra các giá trị status có thể có cho "đang chờ duyệt"
+        return statusLower === 'pending' ||
+            statusLower === 'pending_approval' ||
+            statusLower === 'pending approval' ||
+            statusLower === 'đang chờ duyệt' ||
+            statusLower === 'chờ duyệt' ||
+            statusLower === 'waiting for approval' ||
+            statusLower === 'waiting'
+    }
+
     const handleApprove = async () => {
         if (currentBatches.length === 0) {
             alert('Chưa có đợt tuyển nào để duyệt!')
             return
         }
 
+        // Lấy campaign ID
+        const campaignId = campaign?.campaignId || campaign?.id
+        if (!campaignId) {
+            alert('Không tìm thấy ID chiến dịch!')
+            return
+        }
+
         setIsApproving(true)
 
         try {
-            // Simulate API call to approve campaign
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            // Gọi API để duyệt campaign (status = 2 = Approved)
+            const result = await updateCampaignStatus(campaignId, 2)
 
-            // Update all batches status to 'ongoing' or 'approved'
-            const updatedBatches = currentBatches.map(batch => ({
-                ...batch,
-                status: batch.status === 'planned' || batch.status === 'upcoming' ? 'ongoing' : batch.status,
-                isApproved: true
-            }))
-
-            setCurrentBatches(updatedBatches)
-
-            alert('Đã duyệt chiến dịch thành công!')
+            if (result.success) {
+                alert(result.message || 'Đã duyệt chiến dịch thành công!')
+                // Reload trang để cập nhật dữ liệu mới nhất
+                window.location.reload()
+            } else {
+                alert(result.error || 'Có lỗi xảy ra khi duyệt chiến dịch')
+            }
         } catch (error) {
             console.error('Error approving campaign:', error)
             alert('Có lỗi xảy ra khi duyệt chiến dịch')
@@ -345,23 +366,34 @@ const DirectorBatchInfo = ({ campaign }) => {
     }
 
     const handleRejectSubmit = async (rejectReason) => {
+        // Lấy campaign ID
+        const campaignId = campaign?.campaignId || campaign?.id
+        if (!campaignId) {
+            alert('Không tìm thấy ID chiến dịch!')
+            setIsRejectModalOpen(false)
+            return
+        }
+
+        // Kiểm tra rejectReason
+        if (!rejectReason || !rejectReason.trim()) {
+            alert('Vui lòng nhập lý do từ chối!')
+            return
+        }
+
         setIsRejecting(true)
 
         try {
-            // Simulate API call to reject campaign
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            // Gọi API để từ chối campaign (status = 3 = Rejected)
+            const result = await updateCampaignStatus(campaignId, 3, rejectReason.trim())
 
-            // Update campaign status to rejected
-            const updatedBatches = currentBatches.map(batch => ({
-                ...batch,
-                status: 'cancelled',
-                rejectReason: rejectReason
-            }))
-
-            setCurrentBatches(updatedBatches)
-
-            alert('Đã từ chối chiến dịch thành công!')
-            setIsRejectModalOpen(false)
+            if (result.success) {
+                alert(result.message || 'Đã từ chối chiến dịch thành công!')
+                setIsRejectModalOpen(false)
+                // Reload trang để cập nhật dữ liệu mới nhất
+                window.location.reload()
+            } else {
+                alert(result.error || 'Có lỗi xảy ra khi từ chối chiến dịch')
+            }
         } catch (error) {
             console.error('Error rejecting campaign:', error)
             alert('Có lỗi xảy ra khi từ chối chiến dịch')
@@ -399,53 +431,55 @@ const DirectorBatchInfo = ({ campaign }) => {
                 </div>
             )}
 
-            {/* Action Buttons at the bottom */}
-            <div className="mt-6 flex gap-4 justify-end">
-                <button
-                    onClick={handleReject}
-                    disabled={isRejecting || isApproving}
-                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isRejecting || isApproving
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95'
-                        }`}
-                >
-                    {isRejecting ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang từ chối...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Từ chối
-                        </>
-                    )}
-                </button>
-                <button
-                    onClick={handleApprove}
-                    disabled={isApproving || isRejecting}
-                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isApproving || isRejecting
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
-                        }`}
-                >
-                    {isApproving ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang duyệt...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Duyệt
-                        </>
-                    )}
-                </button>
-            </div>
+            {/* Action Buttons at the bottom - chỉ hiển thị khi campaign đang chờ duyệt */}
+            {isPendingApproval() && (
+                <div className="mt-6 flex gap-4 justify-end">
+                    <button
+                        onClick={handleReject}
+                        disabled={isRejecting || isApproving}
+                        className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isRejecting || isApproving
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                            }`}
+                    >
+                        {isRejecting ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang từ chối...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Từ chối
+                            </>
+                        )}
+                    </button>
+                    <button
+                        onClick={handleApprove}
+                        disabled={isApproving || isRejecting}
+                        className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isApproving || isRejecting
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                            }`}
+                    >
+                        {isApproving ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang duyệt...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Duyệt
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Reject Campaign Modal */}
             <RejectCampaignModal

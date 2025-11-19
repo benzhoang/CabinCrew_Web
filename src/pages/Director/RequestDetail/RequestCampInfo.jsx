@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
-import { getCampaignRequestById } from '../../../service/api'
+import { getCampaignRequestById, approveOrRejectCampaignRequest } from '../../../service/api'
 import RejectRequestModal from './RejectRequestModal'
 
 const formatDate = (isoString) => {
@@ -206,13 +206,32 @@ const RequestCampInfo = () => {
 
                 {/* NÚT DUYỆT */}
                 <button
-                    onClick={() => {
+                    onClick={async () => {
                         if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
                             setIsApproving(true)
-                            setTimeout(() => {
-                                console.log('Yêu cầu đã được duyệt')
+                            try {
+                                const result = await approveOrRejectCampaignRequest(data.id, 2)
+                                if (result.success) {
+                                    alert(result.message || 'Duyệt yêu cầu thành công')
+                                    // Reload dữ liệu để cập nhật trạng thái
+                                    const refreshResult = await getCampaignRequestById(data.id)
+                                    if (refreshResult.success) {
+                                        const apiData = refreshResult.data
+                                        setData({
+                                            ...data,
+                                            status: apiData.status || 'approved',
+                                            approvedAt: apiData.approvedAt || '',
+                                        })
+                                    }
+                                } else {
+                                    alert(result.error || 'Không thể duyệt yêu cầu')
+                                }
+                            } catch (err) {
+                                console.error('Error approving request:', err)
+                                alert('Đã xảy ra lỗi khi duyệt yêu cầu')
+                            } finally {
                                 setIsApproving(false)
-                            }, 1500)
+                            }
                         }
                     }}
                     disabled={isApproving || isRejecting}
@@ -243,15 +262,36 @@ const RequestCampInfo = () => {
             <RejectRequestModal
                 isOpen={isRejectModalOpen}
                 onClose={() => setIsRejectModalOpen(false)}
-                onSubmit={(reason) => {
+                onSubmit={async (reason) => {
                     setIsRejecting(true)
-                    setTimeout(() => {
-                        console.log('Yêu cầu bị từ chối với lý do: ', reason)
+                    try {
+                        const result = await approveOrRejectCampaignRequest(data.id, 3, reason)
+                        if (result.success) {
+                            alert(result.message || 'Từ chối yêu cầu thành công')
+                            setIsRejectModalOpen(false)
+                            // Reload dữ liệu để cập nhật trạng thái
+                            const refreshResult = await getCampaignRequestById(data.id)
+                            if (refreshResult.success) {
+                                const apiData = refreshResult.data
+                                setData({
+                                    ...data,
+                                    status: apiData.status || 'rejected',
+                                    rejectReason: apiData.rejectReason || reason,
+                                    rejectedAt: apiData.rejectedAt || '',
+                                })
+                            }
+                        } else {
+                            alert(result.error || 'Không thể từ chối yêu cầu')
+                        }
+                    } catch (err) {
+                        console.error('Error rejecting request:', err)
+                        alert('Đã xảy ra lỗi khi từ chối yêu cầu')
+                    } finally {
                         setIsRejecting(false)
-                        setIsRejectModalOpen(false)
-                    }, 1500)
+                    }
                 }}
                 requestTitle={data.title}
+                requestId={data.id}
             />
         </div>
     )
