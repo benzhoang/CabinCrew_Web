@@ -111,6 +111,9 @@ const getDefaultAssignments = () => ({
   interview: [],
 });
 
+const getSelectLabel = (roundKey) =>
+  roundKey === "screening" ? "Chọn recruiter" : "Chọn examiner";
+
 const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const [assignments, setAssignments] = useState(getDefaultAssignments);
   const [errors, setErrors] = useState({});
@@ -221,6 +224,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const renderDropdownList = (roundKey, isMulti = false) => {
     const isOpen = openDropdown === roundKey;
 
+    const selectLabel = getSelectLabel(roundKey);
+
     return (
       <div className="relative">
         <button
@@ -235,8 +240,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
               {isMulti
                 ? assignments[roundKey].length > 0
                   ? `${assignments[roundKey].length} người đã chọn`
-                  : "Chọn recruiter"
-                : assignments[roundKey]?.name || "Chọn recruiter"}
+                  : selectLabel
+                : assignments[roundKey]?.name || selectLabel}
             </p>
             <p className="text-xs text-slate-500">
               {isMulti ? "Tối đa 3 người" : "1 người phụ trách"}
@@ -353,9 +358,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
         <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50">
           <div className="flex items-start justify-between gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-amber-500 mb-2">
-                GIAO VIỆC
-              </p>
               <h2 className="text-2xl font-bold text-slate-900">Giao việc</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Phân công recruiter phụ trách từng vòng tuyển dụng của chiến
