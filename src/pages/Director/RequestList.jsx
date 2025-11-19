@@ -25,6 +25,29 @@ const RequestList = () => {
             try {
                 const result = await getCampaignRequests()
                 if (result.success) {
+                    // Hàm normalize status từ API
+                    const normalizeStatus = (status) => {
+                        if (!status) return 'pending_approval'
+
+                        // Nếu là số
+                        if (typeof status === 'number') {
+                            if (status === 2) return 'approved'
+                            if (status === 3) return 'rejected'
+                            return 'pending_approval' // 1 hoặc các giá trị khác
+                        }
+
+                        // Nếu là string, chuyển về chữ thường và xử lý
+                        const statusLower = String(status).toLowerCase().trim()
+
+                        // Xử lý các format khác nhau
+                        if (statusLower === 'approved' || statusLower === 'approve') return 'approved'
+                        if (statusLower === 'rejected' || statusLower === 'reject') return 'rejected'
+                        if (statusLower === 'pending' || statusLower === 'pending_approval' || statusLower === 'pending approval') return 'pending_approval'
+
+                        // Mặc định
+                        return 'pending_approval'
+                    }
+
                     // Map dữ liệu từ API response sang format component đang dùng
                     const mappedCampaigns = (result.data || []).map(item => ({
                         id: item.requestId,
@@ -32,7 +55,7 @@ const RequestList = () => {
                         description: item.description || '',
                         targetQuantity: item.targetQuantity || 0,
                         requestType: item.requestType || '',
-                        status: item.status || 'pending_approval',
+                        status: normalizeStatus(item.status), // Normalize status từ API
                         rejectReason: item.rejectReason || '',
                         approvedAt: item.approvedAt || '',
                         rejectedAt: item.rejectedAt || '',
@@ -88,13 +111,37 @@ const RequestList = () => {
         }
     }
 
+    // Hàm normalize status từ API (có thể là số, string với chữ hoa/thường) sang format UI
+    const normalizeStatus = (status) => {
+        if (!status) return 'pending_approval'
+
+        // Nếu là số
+        if (typeof status === 'number') {
+            if (status === 2) return 'approved'
+            if (status === 3) return 'rejected'
+            return 'pending_approval' // 1 hoặc các giá trị khác
+        }
+
+        // Nếu là string, chuyển về chữ thường và xử lý
+        const statusLower = String(status).toLowerCase().trim()
+
+        // Xử lý các format khác nhau
+        if (statusLower === 'approved' || statusLower === 'approve') return 'approved'
+        if (statusLower === 'rejected' || statusLower === 'reject') return 'rejected'
+        if (statusLower === 'pending' || statusLower === 'pending_approval' || statusLower === 'pending approval') return 'pending_approval'
+
+        // Mặc định
+        return 'pending_approval'
+    }
+
     const getStatusBadge = (status) => {
+        const normalizedStatus = normalizeStatus(status)
         const statusConfig = {
             pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ duyệt' },
             rejected: { color: 'bg-red-100 text-red-800', text: 'Bị từ chối' },
             approved: { color: 'bg-green-100 text-green-800', text: 'Đã được duyệt' }
         }
-        const config = statusConfig[status] || statusConfig.pending_approval
+        const config = statusConfig[normalizedStatus] || statusConfig.pending_approval
         return (
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
                 {config.text}

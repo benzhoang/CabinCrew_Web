@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiLoader, FiMusic, FiEdit2, FiTrash2, FiPlay, FiPause, FiEye, FiEyeOff } from 'react-icons/fi';
-import { getTestById, deleteTest } from '../../service/api';
+import { FiArrowLeft, FiLoader, FiMusic, FiPlay, FiPause, FiEye, FiEyeOff, FiUpload, FiPlusCircle } from 'react-icons/fi';
+import { getTestById } from '../../service/api';
+import ImportQuestionModal from './ModalTestQuestion/ImportQuestionModal';
+import CreateQuestionModal from './ModalTestQuestion/CreateQuestionModal';
 
 const formatDate = (isoString) => {
   if (!isoString) return '';
@@ -137,8 +139,9 @@ const TestDetailPage = () => {
   const [testData, setTestData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showTestCode, setShowTestCode] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTestDetail();
@@ -159,29 +162,6 @@ const TestDetailPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa đề thi này?')) return;
-
-    setIsDeleting(true);
-    try {
-      const response = await deleteTest(id);
-      if (response.success) {
-        alert(response.message || 'Xóa đề thi thành công');
-        navigate('/examiner/testing');
-      } else {
-        alert(response.error || 'Không thể xóa đề thi');
-      }
-    } catch (err) {
-      alert(err.message || 'Đã xảy ra lỗi khi xóa đề thi');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEdit = () => {
-    navigate('/examiner/testing', { state: { editTestId: id, testData } });
   };
 
   // Get test code and obscure it
@@ -270,23 +250,20 @@ const TestDetailPage = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleEdit}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="px-4 py-2 bg-white text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors font-medium flex items-center gap-2"
             >
-              <FiEdit2 className="w-4 h-4" />
-              Chỉnh sửa
+              <FiUpload className="w-4 h-4" />
+              Import
             </button>
             <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
             >
-              {isDeleting ? (
-                <FiLoader className="w-4 h-4 animate-spin" />
-              ) : (
-                <FiTrash2 className="w-4 h-4" />
-              )}
-              Xóa
+              <FiPlusCircle className="w-4 h-4" />
+              Tạo câu hỏi
             </button>
           </div>
         </div>
@@ -349,6 +326,15 @@ const TestDetailPage = () => {
           </Section>
         </div>
       </div>
+      <ImportQuestionModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+      />
+      <CreateQuestionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        testType={testData.testType}
+      />
     </div>
   );
 };

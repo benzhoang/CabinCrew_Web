@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink } from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
+import { exportQuestionTemplate } from "./ExportQuestionTemplate";
 
 // Transform data từ API sang format của component
 const transformTestData = (item) => {
@@ -74,6 +75,36 @@ const TestTypeBadge = ({ testType }) => {
       {testType}
     </span>
   );
+};
+
+// Helper function để format date an toàn
+const formatDate = (dateValue) => {
+  if (!dateValue) return "Không có thông tin";
+
+  try {
+    // Nếu đã là format "dd/MM/yyyy" hoặc "dd/MM/yyyy HH:mm" thì dùng trực tiếp
+    if (typeof dateValue === 'string' && dateValue.includes('/')) {
+      return dateValue.split(' ')[0]; // Lấy phần date nếu có cả time
+    }
+
+    // Parse date
+    const date = new Date(dateValue);
+
+    // Kiểm tra xem date có hợp lệ không
+    if (isNaN(date.getTime())) {
+      return "Ngày không hợp lệ";
+    }
+
+    // Format thành "dd/MM/yyyy"
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch (err) {
+    console.error('Error formatting date:', err);
+    return "Ngày không hợp lệ";
+  }
 };
 
 const TestingPage = () => {
@@ -230,6 +261,16 @@ const TestingPage = () => {
           <h2 className="mb-2 text-2xl font-bold text-slate-800">Quản lý đề thi tiếng Anh</h2>
           <p className="text-slate-600">Danh sách các đề thi tiếng Anh đã tạo</p>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={exportQuestionTemplate}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100"
+          >
+            <FiFileText className="w-4 h-4 mr-2" />
+            Export Template
+          </button>
+        </div>
       </div>
 
       <div className="p-4 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
@@ -356,7 +397,7 @@ const TestingPage = () => {
                       </div>
                     )}
                     <div className="mt-3 text-xs text-slate-500">
-                      Tạo: {new Date(test.createdAt).toLocaleDateString("vi-VN")}
+                      Tạo: {formatDate(test.createdAt)}
                       {test.createdBy && <> bởi <span className="font-medium">{test.createdBy}</span></>}
                     </div>
                   </div>

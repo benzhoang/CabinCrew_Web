@@ -438,6 +438,110 @@ export const getCampaignRequestById = async (id) => {
   }
 };
 
+// API duyệt hoặc từ chối campaign request
+// status: 2 = Approved, 3 = Rejected
+// rejectReason: bắt buộc khi status = 3
+export const approveOrRejectCampaignRequest = async (id, status, rejectReason = null) => {
+  try {
+    const payload = { status };
+
+    // Nếu từ chối, thêm rejectReason
+    if (status === 3 && rejectReason) {
+      payload.rejectReason = rejectReason;
+    }
+
+    const response = await api.put(`/campaign-requests/${id}`, payload);
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== "undefined") {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || responseData.errorMessage || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+          };
+        } else {
+          let errorMessage = responseData.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu");
+
+          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+            errorMessage = responseData.errors.join(". ");
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errors: responseData.errors || [],
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Kiểm tra nếu có field code
+      if (responseData && typeof responseData.code !== "undefined") {
+        const message = responseData.message || "";
+        const isSuccessMessage =
+          message.toLowerCase().includes("success") ||
+          responseData.code === 0 ||
+          responseData.code === 4;
+
+        if (isSuccessMessage) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+          };
+        } else {
+          return {
+            success: false,
+            error: responseData.message || responseData.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu"),
+          };
+        }
+      }
+
+      // HTTP status thành công nhưng không có code/errorCode => coi như thành công
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.message || response.data?.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu"),
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    const errorData = error.response?.data;
+    let errorMessage = status === 2 ? "Đã xảy ra lỗi khi duyệt yêu cầu" : "Đã xảy ra lỗi khi từ chối yêu cầu";
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách campaigns
 export const getCampaigns = async (params = {}) => {
   try {
@@ -640,6 +744,107 @@ export const getCampaignById = async (id) => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy chi tiết chiến dịch",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API duyệt hoặc từ chối campaign (cập nhật status)
+// status: 2 = Approved, 3 = Rejected
+// rejectReason: bắt buộc khi status = 3
+export const updateCampaignStatus = async (id, status, rejectReason = null) => {
+  try {
+    // Tạo payload object với status (theo API documentation: { "status": 2 } hoặc { "status": 3, "rejectReason": "..." })
+    const payload = { status };
+
+    // Nếu từ chối, thêm rejectReason
+    if (status === 3 && rejectReason) {
+      payload.rejectReason = rejectReason;
+    }
+
+    const response = await api.put(`/campaigns/${id}/status`, payload);
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== "undefined") {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || responseData.errorMessage || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+          };
+        } else {
+          let errorMessage = responseData.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch");
+
+          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+            errorMessage = responseData.errors.join(". ");
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errors: responseData.errors || [],
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Kiểm tra nếu có field code (API trả về code: 0 = success, code: 1 = error)
+      if (responseData && typeof responseData.code !== "undefined") {
+        if (responseData.code === 0) {
+          // Thành công
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+          };
+        } else {
+          // Có lỗi (code !== 0)
+          return {
+            success: false,
+            error: responseData.message || responseData.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch"),
+          };
+        }
+      }
+
+      // HTTP status thành công nhưng không có code/errorCode => coi như thành công
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.message || response.data?.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch"),
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    const errorData = error.response?.data;
+    let errorMessage = status === 2 ? "Đã xảy ra lỗi khi duyệt chiến dịch" : "Đã xảy ra lỗi khi từ chối chiến dịch";
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
       status: error.response?.status,
     };
   }
@@ -887,6 +1092,146 @@ export const updateTest = async (testId, testData) => {
     return {
       success: false,
       error: errorMessage,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách thông báo
+export const getNotifications = async (isRead = null) => {
+  try {
+    const params = {};
+    if (isRead !== null) {
+      params.isRead = isRead;
+    }
+
+    const response = await api.get("/notifications", { params });
+    const responseData = response.data;
+
+    if (responseData.code === 0 && responseData.data) {
+      return {
+        success: true,
+        data: Array.isArray(responseData.data) ? responseData.data : [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy danh sách thông báo",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách thông báo",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API đánh dấu thông báo là đã đọc
+export const markNotificationAsRead = async (notificationId) => {
+  try {
+    const response = await api.put(`/notifications/${notificationId}/read`);
+    const httpSuccess = response.status >= 200 && response.status < 300;
+    const responseData = response.data ?? {};
+
+    if (httpSuccess) {
+      if (typeof responseData.errorCode !== "undefined") {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Đánh dấu thông báo thành công",
+          };
+        }
+
+        return {
+          success: false,
+          error:
+            responseData.errorMessage ||
+            responseData.message ||
+            "Không thể đánh dấu thông báo",
+          errorCode: responseData.errorCode,
+        };
+      }
+
+      if (typeof responseData.code !== "undefined") {
+        const message = responseData.message || "";
+        const normalizedMessage =
+          typeof message === "string" ? message.toLowerCase() : "";
+        const isSuccessCode =
+          responseData.code === 0 ||
+          responseData.code === 4 ||
+          normalizedMessage.includes("success");
+
+        if (isSuccessCode) {
+          return {
+            success: true,
+            message: responseData.message || "Đánh dấu thông báo thành công",
+          };
+        }
+
+        return {
+          success: false,
+          error: responseData.message || "Không thể đánh dấu thông báo",
+          errorCode: responseData.code,
+        };
+      }
+
+      return {
+        success: true,
+        message: responseData.message || "Đánh dấu thông báo thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể đánh dấu thông báo",
+      status: response.status,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.errorMessage ||
+        errorData?.message ||
+        error.message ||
+        "Không thể đánh dấu thông báo",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API đánh dấu tất cả thông báo là đã đọc
+export const markAllNotificationsAsRead = async () => {
+  try {
+    const response = await api.put("/notifications/read-all");
+
+    if (response.data.code === 0) {
+      return {
+        success: true,
+        message: response.data.message || "Đánh dấu tất cả thông báo thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: response.data.message || "Không thể đánh dấu tất cả thông báo",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể đánh dấu tất cả thông báo",
       status: error.response?.status,
     };
   }
