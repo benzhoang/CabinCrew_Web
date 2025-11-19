@@ -1,15 +1,22 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { getCampaignRequestDetail } from "../../service/api2";
+import Loading from "../../components/Loading";
 
 const SeniorCreateCampaignPage = () => {
+  const { id: requestId } = useParams();
   const todayString = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
-    title: "",
-    quantity: "",
+    campaignName: "",
+    targetQuantity: "",
     startDate: "",
     endDate: "",
     description: "",
     requirements: "",
+    jobDescription: "",
+    jobRequirement: "",
     batches: [
       {
         name: "Đợt 1",
@@ -25,12 +32,68 @@ const SeniorCreateCampaignPage = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [requestDetail, setRequestDetail] = useState(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(true);
+  const [detailError, setDetailError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const isRequestDataLocked = Boolean(requestDetail);
 
   const locations = ["Hà Nội", "TP.HCM", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
 
   const recruitmentMethods = ["Trực tiếp", "Trực tuyến", "Hybrid"];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchRequestDetail = async () => {
+      if (!requestId) {
+        setIsLoadingDetail(false);
+        return;
+      }
+
+      setIsLoadingDetail(true);
+      setDetailError(null);
+
+      try {
+        const result = await getCampaignRequestDetail(requestId);
+
+        if (!isMounted) return;
+
+        if (result.success && result.data) {
+          const detailData = result.data;
+          setRequestDetail(detailData);
+          setFormData((prev) => ({
+            ...prev,
+            campaignName: detailData.campaignName || "",
+            targetQuantity:
+              detailData.targetQuantity !== undefined &&
+              detailData.targetQuantity !== null
+                ? String(detailData.targetQuantity)
+                : "",
+            description: detailData.description || "",
+            jobDescription: detailData.jobDescription || "",
+            jobRequirement: detailData.jobRequirement || "",
+          }));
+        } else {
+          setDetailError(result.error || "Không thể tải chi tiết yêu cầu");
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        setDetailError(error.message || "Không thể tải chi tiết yêu cầu");
+      } finally {
+        if (isMounted) {
+          setIsLoadingDetail(false);
+        }
+      }
+    };
+
+    fetchRequestDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [requestId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +110,20 @@ const SeniorCreateCampaignPage = () => {
     }
   };
 
+  const handleEditorChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  };
+
   const handleBatchChange = (index, field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -57,6 +134,7 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const addBatch = () => {
+    if (formData.batches.length >= 3) return;
     setFormData((prev) => ({
       ...prev,
       batches: [
@@ -87,12 +165,6 @@ const SeniorCreateCampaignPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.title.trim()) {
-      newErrors.title = "Tiêu đề là bắt buộc";
-    }
-    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
-      newErrors.quantity = "Số lượng tuyển phải lớn hơn 0";
-    }
     if (!formData.startDate) {
       newErrors.startDate = "Ngày bắt đầu là bắt buộc";
     }
@@ -177,7 +249,8 @@ const SeniorCreateCampaignPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="relative p-6">
+      {isLoadingDetail && <Loading message="Đang tải thông tin yêu cầu..." />}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 mr-50">
           <div className="mb-4">
@@ -186,17 +259,15 @@ const SeniorCreateCampaignPage = () => {
             </label>
             <input
               type="text"
-              name="title"
-              value={formData.title}
+              name="campaignName"
+              value={formData.campaignName}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.title ? "border-red-300" : "border-slate-300"
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-slate-300 ${
+                isRequestDataLocked ? "bg-slate-100 cursor-not-allowed" : ""
               }`}
               placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
+              disabled={isRequestDataLocked}
             />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-            )}
           </div>
           <p className="mt-1 text-sm text-slate-600">
             Đăng công khai tuyển dụng - Cabin Crew
@@ -210,10 +281,16 @@ const SeniorCreateCampaignPage = () => {
         </button>
       </div>
 
+      {detailError && (
+        <div className="p-3 mb-4 text-sm text-red-700 border border-red-200 rounded bg-red-50">
+          {detailError}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            {/* Thông tin cơ bịn */}
+            {/* Thông tin cơ bản */}
             <div className="bg-white border rounded-lg shadow-sm border-slate-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div className="space-y-1">
@@ -221,12 +298,30 @@ const SeniorCreateCampaignPage = () => {
                     Thông tin đề xuất
                   </div>
                   <div className="font-semibold text-slate-800">
-                    Đặng Bích Thu Thủy (Crew Welfare Team Leader)
+                    {requestDetail?.partnerName
+                      ? requestDetail.partnerName
+                      : isLoadingDetail
+                      ? "Đang tải..."
+                      : "Chưa có thông tin đối tác"}
                   </div>
                 </div>
                 <div className="text-xs text-right text-slate-500">
-                  <div>Ngày tạo: {new Date().toLocaleString("vi-VN")}</div>
-                  <div>Mã số: {Math.floor(Math.random() * 1000000)}</div>
+                  <div>
+                    Ngày tạo:{" "}
+                    {requestDetail?.createdAt
+                      ? new Date(requestDetail.createdAt).toLocaleString(
+                          "vi-VN"
+                        )
+                      : isLoadingDetail
+                      ? "Đang tải..."
+                      : "Chưa xác định"}
+                  </div>
+                  <div>
+                    Mã số:{" "}
+                    {requestDetail?.requestId ||
+                      requestId ||
+                      (isLoadingDetail ? "Đang tải..." : "—")}
+                  </div>
                 </div>
               </div>
 
@@ -238,18 +333,21 @@ const SeniorCreateCampaignPage = () => {
                     </label>
                     <input
                       type="number"
-                      name="quantity"
-                      value={formData.quantity}
+                      name="targetQuantity"
+                      value={formData.targetQuantity}
                       onChange={handleInputChange}
                       min="1"
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.quantity ? "border-red-300" : "border-slate-300"
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-slate-300 ${
+                        isRequestDataLocked
+                          ? "bg-slate-100 cursor-not-allowed"
+                          : ""
                       }`}
                       placeholder="Nhập số lượng cần tuyển"
+                      disabled={isRequestDataLocked}
                     />
-                    {errors.quantity && (
+                    {errors.targetQuantity && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.quantity}
+                        {errors.targetQuantity}
                       </p>
                     )}
                   </div>
@@ -266,7 +364,7 @@ const SeniorCreateCampaignPage = () => {
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         errors.startDate ? "border-red-300" : "border-slate-300"
                       }`}
-                      max={todayString}
+                      min={todayString}
                     />
                     {errors.startDate && (
                       <p className="mt-1 text-sm text-red-600">
@@ -287,7 +385,7 @@ const SeniorCreateCampaignPage = () => {
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         errors.endDate ? "border-red-300" : "border-slate-300"
                       }`}
-                      max={todayString}
+                      min={formData.startDate || todayString}
                     />
                     {errors.endDate && (
                       <p className="mt-1 text-sm text-red-600">
@@ -299,17 +397,20 @@ const SeniorCreateCampaignPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả nhu cầu *
+                    Mô tả chung *
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.description ? "border-red-300" : "border-slate-300"
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-slate-300 ${
+                      isRequestDataLocked
+                        ? "bg-slate-100 cursor-not-allowed"
+                        : ""
                     }`}
-                    placeholder="Mô tả chi tiết về nhu cầu tuyển dụng..."
+                    placeholder="Mô tả chung về chiến dịch..."
+                    disabled={isRequestDataLocked}
                   />
                   {errors.description && (
                     <p className="mt-1 text-sm text-red-600">
@@ -318,25 +419,48 @@ const SeniorCreateCampaignPage = () => {
                   )}
                 </div>
 
+                <div className="mt-6">
+                  <label className="block mb-2 text-sm font-medium text-slate-700">
+                    Mô tả công việc *
+                  </label>
+                  <div className={`rounded-md border border-slate-300`}>
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobDescription}
+                      onChange={(_, editor) =>
+                        handleEditorChange("jobDescription", editor.getData())
+                      }
+                      config={{ placeholder: "Mô tả chi tiết về công việc..." }}
+                      disabled={isRequestDataLocked}
+                    />
+                  </div>
+                  {errors.jobDescription && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.jobDescription}
+                    </p>
+                  )}
+                </div>
+
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Yêu cầu *
+                    Yêu cầu công việc *
                   </label>
-                  <textarea
-                    name="requirements"
-                    value={formData.requirements}
-                    onChange={handleInputChange}
-                    rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.requirements
-                        ? "border-red-300"
-                        : "border-slate-300"
-                    }`}
-                    placeholder="Liệt kê các yêu cầu cho ứng viên..."
-                  />
-                  {errors.requirements && (
+                  <div className={`rounded-md border border-slate-300`}>
+                    <CKEditor
+                      editor={ClassicEditor}
+                      data={formData.jobRequirement}
+                      onChange={(_, editor) =>
+                        handleEditorChange("jobRequirement", editor.getData())
+                      }
+                      config={{
+                        placeholder: "Liệt kê các yêu cầu cho ứng viên...",
+                      }}
+                      disabled={isRequestDataLocked}
+                    />
+                  </div>
+                  {errors.jobRequirement && (
                     <p className="mt-1 text-sm text-red-600">
-                      {errors.requirements}
+                      {errors.jobRequirement}
                     </p>
                   )}
                 </div>
@@ -352,7 +476,12 @@ const SeniorCreateCampaignPage = () => {
                 <button
                   type="button"
                   onClick={addBatch}
-                  className="px-3 py-1 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                  disabled={formData.batches.length >= 3}
+                  className={`px-3 py-1 text-sm text-white rounded-md ${
+                    formData.batches.length >= 3
+                      ? "bg-slate-300 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }`}
                 >
                   + Thêm đợt
                 </button>
@@ -403,7 +532,7 @@ const SeniorCreateCampaignPage = () => {
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              max={todayString}
+                              min={todayString}
                             />
                             {errors[`batches.${index}.startTime`] && (
                               <p className="mt-1 text-xs text-red-600">
@@ -430,8 +559,7 @@ const SeniorCreateCampaignPage = () => {
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              min={batch.startTime || undefined}
-                              max={todayString}
+                              min={batch.startTime || todayString}
                             />
                             {errors[`batches.${index}.endTime`] && (
                               <p className="mt-1 text-xs text-red-600">

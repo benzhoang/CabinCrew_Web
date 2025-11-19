@@ -129,22 +129,23 @@ const RoundDetailPage = () => {
 
   const filteredCandidates = React.useMemo(() => {
     let filtered = candidates;
-    
+
     // Filter by round
     if (roundFilter !== "all") {
       filtered = filtered.filter((c) => c.stage === roundFilter);
     }
-    
+
     // Filter by search term
     if (applicantSearchTerm.trim()) {
       const searchTerm = applicantSearchTerm.toLowerCase().trim();
-      filtered = filtered.filter((c) => 
-        c.name.toLowerCase().includes(searchTerm) ||
-        c.email.toLowerCase().includes(searchTerm) ||
-        c.phone.includes(searchTerm)
+      filtered = filtered.filter(
+        (c) =>
+          c.name.toLowerCase().includes(searchTerm) ||
+          c.email.toLowerCase().includes(searchTerm) ||
+          c.phone.includes(searchTerm)
       );
     }
-    
+
     return filtered;
   }, [candidates, roundFilter, applicantSearchTerm]);
 
@@ -163,37 +164,48 @@ const RoundDetailPage = () => {
 
   const getRoundBadge = (round) => {
     const roundConfig = {
-        screening: { color: 'bg-indigo-100 text-indigo-800', text: 'Vòng sàng lọc' },
-        grooming: { color: 'bg-purple-100 text-purple-800', text: 'Vòng grooming' },
-        test: { color: 'bg-amber-100 text-amber-800', text: 'Vòng kiểm tra' },
-        interview: { color: 'bg-teal-100 text-teal-800', text: 'Vòng phỏng vấn' },
-        final: { color: 'bg-slate-200 text-slate-800', text: 'Kết quả cuối cùng' }
-    }
-    const config = roundConfig[round] || roundConfig.screening
+      screening: {
+        color: "bg-indigo-100 text-indigo-800",
+        text: "Vòng sàng lọc",
+      },
+      grooming: {
+        color: "bg-purple-100 text-purple-800",
+        text: "Vòng grooming",
+      },
+      test: { color: "bg-amber-100 text-amber-800", text: "Vòng kiểm tra" },
+      interview: { color: "bg-teal-100 text-teal-800", text: "Vòng phỏng vấn" },
+      final: {
+        color: "bg-slate-200 text-slate-800",
+        text: "Kết quả cuối cùng",
+      },
+    };
+    const config = roundConfig[round] || roundConfig.screening;
     return (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-            {config.text}
-        </span>
-    )
-}
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}
+      >
+        {config.text}
+      </span>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="text-white bg-gradient-to-r from-indigo-600 to-blue-600">
+        <div className="px-6 py-8 mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold">
+              <h1 className="text-2xl font-extrabold md:text-3xl">
                 Danh sách ứng viên - {roundInfo.name}
               </h1>
-              <p className="text-white/90 mt-1 text-sm">
+              <p className="mt-1 text-sm text-white/90">
                 Sàng lọc và đánh giá ứng viên cho vòng tuyển dụng
               </p>
             </div>
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+              className="px-4 py-2 font-medium text-blue-700 transition-colors bg-blue-100 rounded-lg hover:bg-blue-200"
             >
               Quay lại
             </button>
@@ -201,42 +213,42 @@ const RoundDetailPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="px-6 py-8 mx-auto max-w-7xl">
         {/* Recruitment Batch Information Card */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">
+        <div className="p-6 mb-6 bg-white rounded-lg shadow-md">
+          <h2 className="mb-4 text-xl font-bold text-gray-800">
             Thông tin vòng tuyển
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
             <div>
-              <p className="text-gray-600 text-sm mb-1">Tên vòng:</p>
+              <p className="mb-1 text-sm text-gray-600">Tên vòng:</p>
               <p className="font-bold text-gray-900">{roundInfo.name}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm mb-1">Thời gian bắt đầu:</p>
+              <p className="mb-1 text-sm text-gray-600">Thời gian bắt đầu:</p>
               <p className="font-bold text-gray-900">
                 {formatDate(roundInfo.startDate)}
               </p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm mb-1">Thời gian kết thúc:</p>
+              <p className="mb-1 text-sm text-gray-600">Thời gian kết thúc:</p>
               <p className="font-bold text-gray-900">
                 {formatDate(roundInfo.endDate)}
               </p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm mb-1">Địa điểm:</p>
+              <p className="mb-1 text-sm text-gray-600">Địa điểm:</p>
               <p className="font-bold text-gray-900">{roundInfo.location}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm mb-1">Chỉ tiêu:</p>
+              <p className="mb-1 text-sm text-gray-600">Chỉ tiêu:</p>
               <p className="font-bold text-gray-900">{roundInfo.quota}</p>
             </div>
           </div>
         </div>
 
         {/* Candidate List Card */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="p-6 bg-white rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800">
               Danh sách ứng viên ({filteredCandidates.length})
@@ -245,7 +257,7 @@ const RoundDetailPage = () => {
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600">Vòng:</label>
                 <select
-                  className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-2 text-sm border rounded-md border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={roundFilter}
                   onChange={(e) => setRoundFilter(e.target.value)}
                 >
@@ -257,16 +269,16 @@ const RoundDetailPage = () => {
                   <option value="final">Kết quả cuối cùng</option>
                 </select>
               </div>
-              <div className="relative md:w-64 w-full">
+              <div className="relative w-full md:w-64">
                 <input
                   type="text"
                   placeholder="Tìm theo tên, email, SĐT..."
-                  className="w-full border border-slate-300 rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={applicantSearchTerm}
                   onChange={(e) => setApplicantSearchTerm(e.target.value)}
                 />
                 <svg
-                  className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -286,25 +298,25 @@ const RoundDetailPage = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     HÌNH
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     ỨNG VIÊN
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     LIÊN HỆ
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     NGÀY ỨNG TUYỂN
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     TRẠNG THÁI
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     VÒNG
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-700">
                     HÀNH ĐỘNG
                   </th>
                 </tr>
@@ -322,11 +334,11 @@ const RoundDetailPage = () => {
                       key={candidate.id}
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <img
                           src={candidate.avatar}
                           alt={candidate.name}
-                          className="w-16 h-20 rounded-md object-cover border-2 border-gray-200"
+                          className="object-cover w-16 h-20 border-2 border-gray-200 rounded-md"
                           onError={(e) => {
                             e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                               candidate.name
@@ -334,7 +346,7 @@ const RoundDetailPage = () => {
                           }}
                         />
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <div>
                           <p className="font-bold text-gray-900">
                             {candidate.name}
@@ -344,7 +356,7 @@ const RoundDetailPage = () => {
                           </p>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <div>
                           <p className="text-sm text-gray-900">
                             {candidate.email}
@@ -354,12 +366,12 @@ const RoundDetailPage = () => {
                           </p>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <p className="text-sm text-gray-900">
                           {formatDate(candidate.applicationDate)}
                         </p>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <span
                           className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                             candidate.status
@@ -368,17 +380,17 @@ const RoundDetailPage = () => {
                           {candidate.status}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <span
                           className={`inline-flex px-3 py-1 rounded-full text-xs font-medium`}
                         >
                           {getRoundBadge(candidate.stage)}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <div className="flex justify-center">
                           <button
-                            className="p-2 rounded-md border border-gray-200  hover:bg-gray-100 text-yellow-300 hover:text-yellow-400"
+                            className="p-2 text-yellow-300 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-yellow-400"
                             onClick={() =>
                               navigate(
                                 `/airline-partner/campaigns/${id}/candidates/${candidate.id}`,

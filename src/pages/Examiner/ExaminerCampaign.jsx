@@ -7,9 +7,7 @@ const ExaminerCampaign = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("Tuyển dụng");
+  const [typeFilter, setTypeFilter] = useState("All");
   const [selectedCampaign] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,15 +71,10 @@ const ExaminerCampaign = () => {
       const currentQuantity = item.currentHires ?? item.currentQuantity ?? 0;
 
       return {
-        id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
-        name: item.name ?? item.campaignName ?? "Chiến dịch chưa có tên",
-        position:
-          item.position ?? item.role ?? item.campaignType ?? "Không xác định",
-        department:
-          item.department ??
-          item.campaignDepartment ??
-          item.departmentName ??
-          "Không xác định",
+        id: item.campaignId,
+        name: item.campaignName || "Chiến dịch chưa có tên",
+        type: item.campaignType || "Không xác định",
+        partner: item.partnerName || "Không xác định",
         status: mapStatusValue(item.status),
         startDate: formatDateValue(item.startDate),
         endDate: formatDateValue(item.endDate),
@@ -89,8 +82,7 @@ const ExaminerCampaign = () => {
         rawEndDate: item.endDate,
         targetHires: targetQuantity,
         currentHires: currentQuantity,
-        description: item.description ?? "",
-        requirements: item.requirements ?? item.requirement ?? "",
+        description: item.description || "Không có mô tả",
       };
     },
     [formatDateValue, mapStatusValue]
@@ -141,55 +133,18 @@ const ExaminerCampaign = () => {
       filtered = filtered.filter(
         (campaign) =>
           normalizeString(campaign.name).includes(term) ||
-          normalizeString(campaign.position).includes(term) ||
-          normalizeString(campaign.department).includes(term)
+          normalizeString(campaign.type).includes(term) ||
+          normalizeString(campaign.partner).includes(term)
       );
     }
 
-    // Filter by status
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (campaign) => normalizeStatus(campaign.status) === statusFilter
-      );
+    // Filter by campaign type
+    if (typeFilter !== "All") {
+      filtered = filtered.filter((campaign) => campaign.type === typeFilter);
     }
 
-    // Filter by department
-    if (departmentFilter !== "all") {
-      filtered = filtered.filter(
-        (campaign) => campaign.department === departmentFilter
-      );
-    }
-
-    // Sort campaigns
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case "Tuyển dụng":
-          if (a.department === "Tuyển dụng" && b.department !== "Tuyển dụng")
-            return -1;
-          if (a.department !== "Tuyển dụng" && b.department === "Tuyển dụng")
-            return 1;
-          return 0;
-        case "Thăng bậc":
-          if (a.department === "Thăng bậc" && b.department !== "Thăng bậc")
-            return -1;
-          if (a.department !== "Thăng bậc" && b.department === "Thăng bậc")
-            return 1;
-          return 0;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredCampaigns(sorted);
-  }, [
-    campaigns,
-    searchTerm,
-    statusFilter,
-    departmentFilter,
-    sortBy,
-    normalizeString,
-    normalizeStatus,
-  ]);
+    setFilteredCampaigns(filtered);
+  }, [campaigns, searchTerm, typeFilter, normalizeString]);
 
   const handleViewDetails = (campaign) => {
     navigate(`/examiner/campaigns/${campaign.id}`, { state: { campaign } });
@@ -217,6 +172,38 @@ const ExaminerCampaign = () => {
         className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}
       >
         {config.text}
+      </span>
+    );
+  };
+
+  const getRequestTypeLabel = (requestType) => {
+    // Normalize requestType to lowercase for comparison
+    const normalizedType = requestType?.toLowerCase() || "";
+    switch (normalizedType) {
+      case "recruitment":
+        return "Tuyển dụng";
+      case "promotion":
+        return "Thăng bậc";
+      default:
+        return requestType || "Không xác định";
+    }
+  };
+
+  const RequestTypeBadge = ({ type }) => {
+    const normalizedType = type?.toLowerCase() || "";
+    const label = getRequestTypeLabel(type);
+    const className =
+      normalizedType === "promotion"
+        ? "bg-purple-100 text-purple-700 border-purple-200"
+        : normalizedType === "recruitment"
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
+
+    return (
+      <span
+        className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+      >
+        {label}
       </span>
     );
   };
@@ -249,7 +236,7 @@ const ExaminerCampaign = () => {
 
       {/* Search and Filter */}
       <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Search Bar */}
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
@@ -257,44 +244,26 @@ const ExaminerCampaign = () => {
             </label>
             <input
               type="text"
-              placeholder="Tìm theo tên, vị trí, phòng ban..."
+              placeholder="Tìm theo tên, loại chiến dịch, đối tác..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          {/* Department Filter */}
+          {/* Campaign Type Filter */}
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Phòng ban
+              Loại chiến dịch
             </label>
             <select
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">Tất cả phòng ban</option>
-              <option value="Cabin Crew">Cabin Crew</option>
-              <option value="Flight Operations">Flight Operations</option>
-              <option value="Ground Operations">Ground Operations</option>
-              <option value="Customer Service">Customer Service</option>
-              <option value="Maintenance">Maintenance</option>
-            </select>
-          </div>
-
-          {/* Sort Filter */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Sắp xếp theo
-            </label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="Tuyển dụng">Tuyển dụng</option>
-              <option value="Thăng bậc">Thăng bậc</option>
+              <option value="All">Tất cả loại chiến dịch</option>
+              <option value="Recruitment">Tuyển dụng</option>
+              <option value="Promotion">Thăng bậc</option>
             </select>
           </div>
         </div>
@@ -307,50 +276,6 @@ const ExaminerCampaign = () => {
             <h3 className="text-lg font-semibold text-slate-800">
               Danh sách Chiến dịch ({filteredCampaigns.length})
             </h3>
-          </div>
-
-          {/* Status Filter Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setStatusFilter("ongoing")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "ongoing"
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
-              }`}
-            >
-              Đang diễn ra
-            </button>
-            <button
-              onClick={() => setStatusFilter("pending")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "pending"
-                  ? "bg-yellow-600 text-white border-yellow-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-yellow-50"
-              }`}
-            >
-              Đang chờ diễn ra
-            </button>
-            <button
-              onClick={() => setStatusFilter("completed")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "completed"
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
-              }`}
-            >
-              Đã hoàn thành
-            </button>
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "all"
-                  ? "bg-slate-600 text-white border-slate-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              Tất cả
-            </button>
           </div>
         </div>
 
@@ -378,18 +303,20 @@ const ExaminerCampaign = () => {
 
                     <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3">
                       <div>
-                        <span className="text-sm text-slate-600">Vị trí:</span>
-                        <p className="mt-1 font-medium text-slate-800">
-                          {campaign.position || "Không xác định"}
-                        </p>
+                        <span className="text-sm text-slate-600">
+                          Loại chiến dịch:
+                        </span>
+                        <div className="mt-1">
+                          <RequestTypeBadge type={campaign.type} />
+                        </div>
                       </div>
                       <div>
-                        <span className="text-sm text-slate-600">
-                          Phòng ban:
-                        </span>
-                        <p className="mt-1 font-medium text-slate-800">
-                          {campaign.department || "Không xác định"}
-                        </p>
+                        <span className="text-sm text-slate-600">Đối tác:</span>
+                        <div className="mt-1">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
+                            {campaign.partner || "Không xác định"}
+                          </span>
+                        </div>
                       </div>
                       <div>
                         <span className="text-sm text-slate-600">
@@ -516,16 +443,20 @@ const ExaminerCampaign = () => {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <span className="text-sm text-slate-600">Vị trí:</span>
-                    <p className="font-medium text-slate-800">
-                      {selectedCampaign.position || "Không xác định"}
-                    </p>
+                    <span className="text-sm text-slate-600">
+                      Loại chiến dịch:
+                    </span>
+                    <div className="mt-1">
+                      <RequestTypeBadge type={selectedCampaign.type} />
+                    </div>
                   </div>
                   <div>
-                    <span className="text-sm text-slate-600">Phòng ban:</span>
-                    <p className="font-medium text-slate-800">
-                      {selectedCampaign.department || "Không xác định"}
-                    </p>
+                    <span className="text-sm text-slate-600">Đối tác:</span>
+                    <div className="mt-1">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
+                        {selectedCampaign.partner || "Không xác định"}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <span className="text-sm text-slate-600">Trạng thái:</span>
@@ -571,15 +502,6 @@ const ExaminerCampaign = () => {
                     {selectedCampaign.description || "Không có mô tả"}
                   </p>
                 </div>
-
-                {selectedCampaign.requirements && (
-                  <div>
-                    <span className="text-sm text-slate-600">Yêu cầu:</span>
-                    <p className="mt-1 text-slate-800">
-                      {selectedCampaign.requirements}
-                    </p>
-                  </div>
-                )}
 
                 {/* Progress Bar */}
                 {hasProgressData(selectedCampaign) && (
