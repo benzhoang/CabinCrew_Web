@@ -135,12 +135,12 @@ const CampaignCard = ({ campaign }) => {
 
           <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
             <div>
-              <span className="text-gray-500">Thời gian bắt đầu:</span>{" "}
-              {formatDate(campaign.startDate)}
+              <span className="text-gray-500">Ngày bắt đầu:</span>{" "}
+              {formatDate(campaign.startDate) || "-"}
             </div>
             <div>
-              <span className="text-gray-500">Thời gian kết thúc:</span>{" "}
-              {formatDate(campaign.endDate)}
+              <span className="text-gray-500">Ngày kết thúc:</span>{" "}
+              {formatDate(campaign.endDate) || "-"}
             </div>
             <div>
               <span className="text-gray-500">Loại chiến dịch:</span>{" "}
@@ -403,9 +403,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
         </div>
       </div>
-      {filtered.map((c) => (
-        <CampaignCard key={c.id} campaign={c} />
-      ))}
+      {filtered.length === 0 ? (
+        <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
+      ) : (
+        filtered.map((c) => <CampaignCard key={c.id} campaign={c} />)
+      )}
     </div>
   );
 };

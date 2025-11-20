@@ -577,20 +577,55 @@ export const getMyCampaigns = async () => {
 export const getCampaignDetail = async (campaignId) => {
   try {
     const response = await api2.get(`/campaigns/${campaignId}`);
+    const responseData = response.data;
 
-    // Kiểm tra code === 0 (success) theo format API
-    if (response.data.code === 0 && response.data.data) {
+    // Trường hợp API chuẩn: { code: 0, data: {...} }
+    if (responseData?.code === 0 && responseData?.data) {
       return {
         success: true,
-        data: response.data.data,
-        message: response.data.message,
-      };
-    } else {
-      return {
-        success: false,
-        error: response.data.message || "Lấy chi tiết campaign thất bại",
+        data: responseData.data,
+        message: responseData.message,
       };
     }
+
+    // Một số API trả về { success: true, data: {...} }
+    if (
+      (responseData?.success === true || responseData?.isSuccess === true) &&
+      responseData?.data
+    ) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy chi tiết campaign thành công",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp object campaign
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      !Array.isArray(responseData)
+    ) {
+      const hasCampaignShape =
+        responseData.campaignId !== undefined ||
+        responseData.campaignName !== undefined ||
+        responseData.status !== undefined ||
+        responseData.id !== undefined;
+
+      if (hasCampaignShape) {
+        return {
+          success: true,
+          data: responseData,
+          message: responseData.message || "Lấy chi tiết campaign thành công",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Lấy chi tiết campaign thất bại",
+      rawResponse: responseData,
+    };
   } catch (error) {
     return {
       success: false,

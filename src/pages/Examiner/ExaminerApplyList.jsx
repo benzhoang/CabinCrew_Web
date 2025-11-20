@@ -245,28 +245,6 @@ const ExaminerApplyList = () => {
     );
   };
 
-  const getApplicationTypeBadge = (type) => {
-    const map = {
-      recruitment: {
-        color: "bg-blue-100 text-blue-700",
-        text: "Tuyển dụng",
-      },
-      promotion: {
-        color: "bg-purple-100 text-purple-700",
-        text: "Thăng bậc",
-      },
-    };
-
-    const config = map[type] || map.recruitment;
-    return (
-      <span
-        className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${config.color}`}
-      >
-        {config.text}
-      </span>
-    );
-  };
-
   const handleCreateTest = () => {
     // TODO: Navigate to create test page or open modal
     navigate("/examiner/testing/create");
@@ -318,6 +296,16 @@ const ExaminerApplyList = () => {
             <div>
               <h1 className="text-2xl font-extrabold md:text-3xl">
                 Danh sách ứng viên
+                {applicationTypeFilter !== "all" && (
+                  <span className="ml-2">
+                    -{" "}
+                    {applicationTypeFilter === "recruitment"
+                      ? "Tuyển dụng"
+                      : applicationTypeFilter === "promotion"
+                      ? "Thăng bậc"
+                      : ""}
+                  </span>
+                )}
               </h1>
               <p className="mt-1 text-sm text-white/90">
                 Sàng lọc và đánh giá ứng viên tuyển dụng & thăng bậc
@@ -451,9 +439,6 @@ const ExaminerApplyList = () => {
                         </div>
                         <div className="text-sm text-slate-500">
                           {applicant.education}
-                        </div>
-                        <div className="mt-1">
-                          {getApplicationTypeBadge(applicant.applicationType)}
                         </div>
                       </div>
                     </td>
