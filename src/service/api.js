@@ -189,6 +189,41 @@ export const getWardsForCity = async (cityId) => {
   }
 };
 
+// API lấy danh sách tiêu chí phỏng vấn
+export const getInterviewCriterias = async () => {
+  try {
+    const response = await api.get("/interview-criterias");
+    const responseData = response.data;
+
+    if (responseData.code === 0 && Array.isArray(responseData.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.message ||
+        responseData.errorMessage ||
+        "Không thể lấy tiêu chí phỏng vấn",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy tiêu chí phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API cập nhật thông tin user theo ID
 export const updateUserProfile = async (userId, userData) => {
   try {
@@ -324,7 +359,7 @@ export const uploadProfileImage = async (file) => {
   try {
     // Tạo FormData để gửi file
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
 
     // Tạo axios instance riêng cho upload file (cần Content-Type: multipart/form-data)
     const token = localStorage.getItem("token");
@@ -938,6 +973,42 @@ export const getTestById = async (testId) => {
   }
 };
 
+// API lấy danh sách câu hỏi của đề thi theo testId
+// Trong api.js → hàm getTestQuestions
+export const getTestQuestions = async (testId, options = {}) => {
+  const { forceRefresh = false } = options;
+  try {
+    const params = {};
+    if (forceRefresh) {
+      // Cách ĐẬM BẢO bypass cache 100%
+      params.cacheBuster = Date.now() + Math.random();
+    }
+
+    const response = await api.get(`/test-questions/test/${testId}`, { params });
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData && responseData.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: responseData?.message || "Không thể lấy danh sách câu hỏi",
+      };
+    }
+  } catch (error) {
+    console.error('API Error getTestQuestions:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể lấy danh sách câu hỏi",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API cập nhật test theo ID
 export const updateTest = async (testId, testData) => {
   try {
@@ -1233,6 +1304,158 @@ export const markAllNotificationsAsRead = async () => {
         error.message ||
         "Không thể đánh dấu tất cả thông báo",
       status: error.response?.status,
+    };
+  }
+};
+
+// API import câu hỏi từ file Excel
+export const importQuestionsFromExcel = async (testId, file) => {
+  try {
+    // Kiểm tra file hợp lệ
+    if (!file) {
+      return {
+        success: false,
+        error: 'Vui lòng chọn file Excel để tải lên.',
+      };
+    }
+
+    // Kiểm tra định dạng file
+    const isExcelFile = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    if (!isExcelFile) {
+      return {
+        success: false,
+        error: 'Vui lòng chọn đúng định dạng Excel (.xlsx hoặc .xls).',
+      };
+    }
+
+    // Kiểm tra kích thước file (10 MB = 10 * 1024 * 1024 bytes)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return {
+        success: false,
+        error: 'Kích thước file không được vượt quá 10 MB.',
+      };
+    }
+
+    // Kiểm tra và chuyển đổi testId sang number
+    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
+      return {
+        success: false,
+        error: 'Test ID không hợp lệ. Vui lòng kiểm tra lại.',
+      };
+    }
+
+    // Tạo FormData để gửi file
+    // Backend yêu cầu field name là 'excelFile' chứ không phải 'file'
+    const formData = new FormData();
+    formData.append('excelFile', file);
+    // Không gửi testId trong FormData, sẽ gửi như query parameter
+
+    // Lấy token từ localStorage
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    // Không set Content-Type thủ công - axios sẽ tự động set với boundary phù hợp cho FormData
+
+    // Gọi API POST với testId như query parameter (thử cách này trước)
+    const response = await axios.post(
+      `${API_BASE_URL}/test-questions/import-excel?testId=${testIdNum}`,
+      formData,
+      {
+        headers,
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== 'undefined') {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || responseData.errorMessage || 'Import câu hỏi thành công',
+          };
+        } else {
+          let errorMessage = responseData.errorMessage || 'Không thể import câu hỏi';
+
+          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+            errorMessage = responseData.errors.join('. ');
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errors: responseData.errors || [],
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Kiểm tra nếu có field code
+      if (responseData && typeof responseData.code !== 'undefined') {
+        if (responseData.code === 0) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || 'Import câu hỏi thành công',
+          };
+        } else {
+          return {
+            success: false,
+            error: responseData.message || responseData.errorMessage || 'Không thể import câu hỏi',
+          };
+        }
+      }
+
+      // HTTP status thành công nhưng không có code/errorCode => coi như thành công
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || 'Import câu hỏi thành công',
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.message || response.data?.errorMessage || 'Không thể import câu hỏi',
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    console.error('Import Excel Error:', error);
+    const errorData = error.response?.data;
+    let errorMessage = 'Đã xảy ra lỗi khi import câu hỏi';
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (error.response?.status === 400) {
+        errorMessage = errorData.title || errorData || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại file Excel.';
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      status: error.response?.status,
+      errorData: errorData, // Thêm errorData để debug
     };
   }
 };

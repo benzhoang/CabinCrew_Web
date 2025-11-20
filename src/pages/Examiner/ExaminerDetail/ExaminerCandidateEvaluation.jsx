@@ -1,6 +1,27 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { onLangChange } from '../../../i18n'
+import { getInterviewCriterias } from '../../../service/api'
+
+const mapCriteriaToEvaluations = (criteriaGroups, previousEvaluations = {}) => {
+    const mapped = {}
+    criteriaGroups?.forEach(group => {
+        group?.items?.forEach(item => {
+            if (!item) return
+            const hasId = typeof item.interviewCriteriaItemId !== 'undefined' && item.interviewCriteriaItemId !== null
+            const key = hasId ? item.interviewCriteriaItemId : item.criteria
+            if (typeof key === 'undefined' || key === null) return
+            const previousValue = previousEvaluations[key] || {}
+            mapped[key] = {
+                score: typeof previousValue.score === 'number' ? previousValue.score : 1,
+                comment: previousValue.comment || ''
+            }
+        })
+    })
+    return mapped
+}
+
+const SCORE_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 const ExaminerCandidateEvaluation = () => {
     const location = useLocation()
@@ -21,36 +42,42 @@ const ExaminerCandidateEvaluation = () => {
         availabilityDate: ''
     })
 
-    // Evaluation criteria state - 17 criteria with scores (1-10) and comments
-    const [evaluations, setEvaluations] = useState({
-        // A. ATTITUDE / CHARACTER (11 criteria)
-        appearance: { score: 1, comment: '' },
-        selfPresentation: { score: 1, comment: '' },
-        knowledgeAboutVietjet: { score: 1, comment: '' },
-        honestPoliteTrustworthy: { score: 1, comment: '' },
-        careerGoalIntention: { score: 1, comment: '' },
-        culturalAdaptation: { score: 1, comment: '' },
-        enthusiasticAttitude: { score: 1, comment: '' },
-        funFriendlyTeamwork: { score: 1, comment: '' },
-        englishProficiency: { score: 1, comment: '' },
-        answering: { score: 1, comment: '' },
-        listening: { score: 1, comment: '' },
-        // B. PROFESSIONAL / TECHNICAL KNOWLEDGE (6 criteria)
-        relevantExperience: { score: 1, comment: '' },
-        decisionMaking: { score: 1, comment: '' },
-        problemSolving: { score: 1, comment: '' },
-        customerServiceOriented: { score: 1, comment: '' },
-        qualifications: { score: 1, comment: '' },
-        technicalKnowledgeSkills: { score: 1, comment: '' }
-    })
+    // Interview criteria fetched from API
+    const [criteriaGroups, setCriteriaGroups] = useState([])
+    const [evaluations, setEvaluations] = useState({})
+    const [criteriaLoading, setCriteriaLoading] = useState(true)
+    const [criteriaError, setCriteriaError] = useState('')
 
     const [result, setResult] = useState('') // PASS, FAIL, or RESERVED
     const [generalComments, setGeneralComments] = useState('')
+
+    const loadInterviewCriterias = useCallback(async () => {
+        setCriteriaLoading(true)
+        setCriteriaError('')
+        try {
+            const response = await getInterviewCriterias()
+            if (response.success) {
+                const groups = response.data || []
+                setCriteriaGroups(groups)
+                setEvaluations(prev => mapCriteriaToEvaluations(groups, prev))
+            } else {
+                setCriteriaError(response.error || 'Không thể lấy tiêu chí phỏng vấn')
+            }
+        } catch (error) {
+            setCriteriaError(error.message || 'Không thể lấy tiêu chí phỏng vấn')
+        } finally {
+            setCriteriaLoading(false)
+        }
+    }, [])
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
         return () => off()
     }, [])
+
+    useEffect(() => {
+        loadInterviewCriterias()
+    }, [loadInterviewCriterias])
 
     useEffect(() => {
         if (candidate) {
@@ -66,13 +93,14 @@ const ExaminerCandidateEvaluation = () => {
     const totalScore = Object.values(evaluations).reduce((sum, criterion) => {
         return sum + (criterion.score || 0)
     }, 0)
+    const maxScore = Object.keys(evaluations).length * 10
 
     const handleScoreChange = (criterionKey, score) => {
         setEvaluations(prev => ({
             ...prev,
             [criterionKey]: {
-                ...prev[criterionKey],
-                score: parseInt(score) || 0
+                score: Number(score) || 0,
+                comment: prev[criterionKey]?.comment || ''
             }
         }))
     }
@@ -81,7 +109,7 @@ const ExaminerCandidateEvaluation = () => {
         setEvaluations(prev => ({
             ...prev,
             [criterionKey]: {
-                ...prev[criterionKey],
+                score: prev[criterionKey]?.score ?? 1,
                 comment: comment
             }
         }))
@@ -94,11 +122,22 @@ const ExaminerCandidateEvaluation = () => {
         }))
     }
 
+    const formatEvaluationsForSubmit = () => {
+        return Object.entries(evaluations).map(([criterionId, value]) => {
+            const parsedId = Number(criterionId)
+            return {
+                interviewCriteriaItemId: Number.isNaN(parsedId) ? criterionId : parsedId,
+                score: value?.score || 0,
+                comment: value?.comment || ''
+            }
+        })
+    }
+
     const handleSave = () => {
         // Save evaluation logic here
         const evaluationData = {
             headerInfo,
-            evaluations,
+            evaluations: formatEvaluationsForSubmit(),
             totalScore,
             result,
             generalComments,
@@ -112,7 +151,7 @@ const ExaminerCandidateEvaluation = () => {
         // Submit evaluation logic here
         const evaluationData = {
             headerInfo,
-            evaluations,
+            evaluations: formatEvaluationsForSubmit(),
             totalScore,
             result,
             generalComments,
@@ -138,6 +177,8 @@ const ExaminerCandidateEvaluation = () => {
             </div>
         )
     }
+
+    let criterionCounter = 0
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -233,504 +274,103 @@ const ExaminerCandidateEvaluation = () => {
                     </div>
                 </div>
 
-                {/* A. ATTITUDE / CHARACTER */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-4">A. ATTITUDE / CHARACTER</h2>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-slate-300">
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Criteria</th>
-                                    <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Assessment Score</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Comments / Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {/* 1. APPEARANCE */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">1. APPEARANCE</div>
-                                        <div className="text-xs text-slate-500 mt-1">(Neatly groomed? Appropriately dressed?)</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.appearance.score}
-                                            onChange={(e) => handleScoreChange('appearance', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.appearance.comment}
-                                            onChange={(e) => handleCommentChange('appearance', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 2. SELF PRESENTATION */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">2. SELF PRESENTATION</div>
-                                        <div className="text-xs text-slate-500 mt-1">(Sits properly? Confident?)</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.selfPresentation.score}
-                                            onChange={(e) => handleScoreChange('selfPresentation', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.selfPresentation.comment}
-                                            onChange={(e) => handleCommentChange('selfPresentation', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 3. KNOWLEDGE ABOUT VIETJET AIR */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">3. KNOWLEDGE ABOUT VIETJET AIR</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.knowledgeAboutVietjet.score}
-                                            onChange={(e) => handleScoreChange('knowledgeAboutVietjet', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.knowledgeAboutVietjet.comment}
-                                            onChange={(e) => handleCommentChange('knowledgeAboutVietjet', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 4. HONEST, POLITE, & TRUSTWORTHY */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">4. HONEST, POLITE, & TRUSTWORTHY</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.honestPoliteTrustworthy.score}
-                                            onChange={(e) => handleScoreChange('honestPoliteTrustworthy', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.honestPoliteTrustworthy.comment}
-                                            onChange={(e) => handleCommentChange('honestPoliteTrustworthy', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 5. CAREER GOAL & INTENTION */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">5. CAREER GOAL & INTENTION</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.careerGoalIntention.score}
-                                            onChange={(e) => handleScoreChange('careerGoalIntention', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.careerGoalIntention.comment}
-                                            onChange={(e) => handleCommentChange('careerGoalIntention', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 6. CULTURAL ADAPTATION */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">6. CULTURAL ADAPTATION</div>
-                                        <div className="text-xs text-slate-500 mt-1">(In Vietjet Air / In Vietnam)</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.culturalAdaptation.score}
-                                            onChange={(e) => handleScoreChange('culturalAdaptation', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.culturalAdaptation.comment}
-                                            onChange={(e) => handleCommentChange('culturalAdaptation', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 7. ENTHUSIASTIC ATTITUDE ABOUT WORK */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">7. ENTHUSIASTIC ATTITUDE ABOUT WORK</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.enthusiasticAttitude.score}
-                                            onChange={(e) => handleScoreChange('enthusiasticAttitude', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.enthusiasticAttitude.comment}
-                                            onChange={(e) => handleCommentChange('enthusiasticAttitude', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 8. FUN, FRIENDLY, TEAMWORK SPIRIT */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">8. FUN, FRIENDLY, TEAMWORK SPIRIT</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.funFriendlyTeamwork.score}
-                                            onChange={(e) => handleScoreChange('funFriendlyTeamwork', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.funFriendlyTeamwork.comment}
-                                            onChange={(e) => handleCommentChange('funFriendlyTeamwork', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 9. ENGLISH PROFICIENCY */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">9. ENGLISH PROFICIENCY</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.englishProficiency.score}
-                                            onChange={(e) => handleScoreChange('englishProficiency', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.englishProficiency.comment}
-                                            onChange={(e) => handleCommentChange('englishProficiency', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 10. ANSWERING */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">10. ANSWERING</div>
-                                        <div className="text-xs text-slate-500 mt-1">(Relevant? Communicates ideas clearly?)</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.answering.score}
-                                            onChange={(e) => handleScoreChange('answering', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.answering.comment}
-                                            onChange={(e) => handleCommentChange('answering', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 11. LISTENING */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">11. LISTENING</div>
-                                        <div className="text-xs text-slate-500 mt-1">(Attentive? Asks questions to clarify?)</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.listening.score}
-                                            onChange={(e) => handleScoreChange('listening', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.listening.comment}
-                                            onChange={(e) => handleCommentChange('listening', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* B. PROFESSIONAL / TECHNICAL KNOWLEDGE */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-4">B. PROFESSIONAL / TECHNICAL KNOWLEDGE</h2>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-slate-300">
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Criteria</th>
-                                    <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Assessment Score</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Comments / Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {/* 12. RELEVANT EXPERIENCE */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">12. RELEVANT EXPERIENCE</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.relevantExperience.score}
-                                            onChange={(e) => handleScoreChange('relevantExperience', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.relevantExperience.comment}
-                                            onChange={(e) => handleCommentChange('relevantExperience', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 13. DECISION MAKING */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">13. DECISION MAKING</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.decisionMaking.score}
-                                            onChange={(e) => handleScoreChange('decisionMaking', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.decisionMaking.comment}
-                                            onChange={(e) => handleCommentChange('decisionMaking', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 14. PROBLEM SOLVING */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">14. PROBLEM SOLVING</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.problemSolving.score}
-                                            onChange={(e) => handleScoreChange('problemSolving', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.problemSolving.comment}
-                                            onChange={(e) => handleCommentChange('problemSolving', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 15. CUSTOMER SERVICES ORIENTED */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">15. CUSTOMER SERVICES ORIENTED</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.customerServiceOriented.score}
-                                            onChange={(e) => handleScoreChange('customerServiceOriented', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.customerServiceOriented.comment}
-                                            onChange={(e) => handleCommentChange('customerServiceOriented', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 16. QUALIFICATIONS */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">16. QUALIFICATIONS</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.qualifications.score}
-                                            onChange={(e) => handleScoreChange('qualifications', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.qualifications.comment}
-                                            onChange={(e) => handleCommentChange('qualifications', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* 17. TECHNICAL KNOWLEDGE & SKILLS */}
-                                <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                    <td className="py-3 px-4">
-                                        <div className="font-medium text-slate-800">17. TECHNICAL KNOWLEDGE & SKILLS</div>
-                                    </td>
-                                    <td className="py-3 px-4 text-center">
-                                        <select
-                                            value={evaluations.technicalKnowledgeSkills.score}
-                                            onChange={(e) => handleScoreChange('technicalKnowledgeSkills', e.target.value)}
-                                            className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                                                <option key={num} value={num}>{num}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <input
-                                            type="text"
-                                            value={evaluations.technicalKnowledgeSkills.comment}
-                                            onChange={(e) => handleCommentChange('technicalKnowledgeSkills', e.target.value)}
-                                            className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Criteria Sections */}
+                <div className="space-y-6 mb-6">
+                    {criteriaLoading ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-lg font-semibold text-slate-800">Đang tải tiêu chí phỏng vấn...</h2>
+                                <p className="text-sm text-slate-500 mt-1">Vui lòng chờ trong giây lát.</p>
+                            </div>
+                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    ) : criteriaError ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-6">
+                            <p className="text-red-600 font-medium">{criteriaError}</p>
+                            <button
+                                onClick={loadInterviewCriterias}
+                                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                                Thử lại
+                            </button>
+                        </div>
+                    ) : criteriaGroups.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                            <p className="text-slate-600">Chưa có tiêu chí phỏng vấn nào.</p>
+                        </div>
+                    ) : (
+                        criteriaGroups.map((group, groupIndex) => (
+                            <div key={`${group.title || 'group'}-${groupIndex}`} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                                    <h2 className="text-xl font-semibold text-slate-800">
+                                        {group.title || `Nhóm ${groupIndex + 1}`}
+                                    </h2>
+                                    {group.description && (
+                                        <p className="text-sm text-slate-500">{group.description}</p>
+                                    )}
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b border-slate-300">
+                                                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Criteria</th>
+                                                <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">Assessment Score</th>
+                                                <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Comments / Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Array.isArray(group.items) && group.items.length > 0 ? (
+                                                group.items.map((item, itemIndex) => {
+                                                    const hasId = typeof item?.interviewCriteriaItemId !== 'undefined' && item?.interviewCriteriaItemId !== null
+                                                    const criterionKey = hasId ? item.interviewCriteriaItemId : item?.criteria ?? `${groupIndex}-${itemIndex}`
+                                                    const evaluation = evaluations[criterionKey] || { score: 1, comment: '' }
+                                                    const displayOrder = ++criterionCounter
+                                                    return (
+                                                        <tr key={`${criterionKey}-${itemIndex}`} className="border-b border-slate-200 hover:bg-slate-50">
+                                                            <td className="py-3 px-4">
+                                                                <div className="font-medium text-slate-800">
+                                                                    {displayOrder}. {item?.criteria || '—'}
+                                                                </div>
+                                                                {item?.description && (
+                                                                    <div className="text-xs text-slate-500 mt-1">{item.description}</div>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-3 px-4 text-center">
+                                                                <select
+                                                                    value={evaluation.score}
+                                                                    onChange={(e) => handleScoreChange(criterionKey, e.target.value)}
+                                                                    className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                >
+                                                                    {SCORE_OPTIONS.map(num => (
+                                                                        <option key={num} value={num}>{num}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <input
+                                                                    type="text"
+                                                                    value={evaluation.comment}
+                                                                    onChange={(e) => handleCommentChange(criterionKey, e.target.value)}
+                                                                    className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                                    placeholder="Ghi chú..."
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="3" className="py-4 text-center text-slate-500 text-sm">
+                                                        Không có tiêu chí nào trong nhóm này.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
 
                 {/* Total Score and Result */}
@@ -740,7 +380,7 @@ const ExaminerCandidateEvaluation = () => {
                             TOTAL SCORE
                         </div>
                         <div className="text-2xl font-bold text-blue-600">
-                            Total score (max 170) = {totalScore}
+                            Total score (max {maxScore || '—'}) = {totalScore}
                         </div>
                     </div>
 
@@ -777,4 +417,3 @@ const ExaminerCandidateEvaluation = () => {
 }
 
 export default ExaminerCandidateEvaluation
-
