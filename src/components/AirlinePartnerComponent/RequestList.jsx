@@ -282,9 +282,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         </div>
       </div>
       {filtered.length === 0 ? (
-        <div className="py-10 text-center text-gray-500">
-          Không có yêu cầu nào
-        </div>
+        <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
       ) : (
         filtered.map((c) => <CampaignCard key={c.requestId} request={c} />)
       )}

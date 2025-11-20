@@ -398,7 +398,7 @@ const ExaminerCampaign = () => {
 
         {!isLoading && !error && filteredCampaigns.length === 0 && (
           <div className="p-12 text-center">
-            <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
+            <p className="text-slate-500">Không có dữ liệu</p>
           </div>
         )}
       </div>

@@ -346,9 +346,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
         </div>
       </div>
-      {filtered.map((c) => (
-        <CampaignCard key={c.id} campaign={c} />
-      ))}
+      {filtered.length === 0 ? (
+        <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
+      ) : (
+        filtered.map((c) => <CampaignCard key={c.id} campaign={c} />)
+      )}
     </div>
   );
 };

@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { getCampaignRequestDetail } from "../../service/api2";
+import { toast } from "react-toastify";
+import {
+  getCampaignDetail,
+  updateCampaignAndCreateRounds,
+} from "../../service/api2";
 import Loading from "../../components/Loading";
 
 const SeniorCreateCampaignPage = () => {
-  const { id: requestId } = useParams();
+  const { id: campaignId } = useParams();
   const todayString = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     campaignName: "",
@@ -32,12 +36,12 @@ const SeniorCreateCampaignPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [requestDetail, setRequestDetail] = useState(null);
+  const [campaignDetail, setCampaignDetail] = useState(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(true);
   const [detailError, setDetailError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const isRequestDataLocked = Boolean(requestDetail);
+  const isRequestDataLocked = Boolean(campaignDetail);
 
   const locations = ["Hà Nội", "TP.HCM", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
 
@@ -46,8 +50,8 @@ const SeniorCreateCampaignPage = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchRequestDetail = async () => {
-      if (!requestId) {
+    const fetchCampaignDetail = async () => {
+      if (!campaignId) {
         setIsLoadingDetail(false);
         return;
       }
@@ -56,13 +60,13 @@ const SeniorCreateCampaignPage = () => {
       setDetailError(null);
 
       try {
-        const result = await getCampaignRequestDetail(requestId);
+        const result = await getCampaignDetail(campaignId);
 
         if (!isMounted) return;
 
         if (result.success && result.data) {
           const detailData = result.data;
-          setRequestDetail(detailData);
+          setCampaignDetail(detailData);
           setFormData((prev) => ({
             ...prev,
             campaignName: detailData.campaignName || "",
@@ -88,12 +92,12 @@ const SeniorCreateCampaignPage = () => {
       }
     };
 
-    fetchRequestDetail();
+    fetchCampaignDetail();
 
     return () => {
       isMounted = false;
     };
-  }, [requestId]);
+  }, [campaignId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -209,8 +213,9 @@ const SeniorCreateCampaignPage = () => {
       if (!batch.owner.trim()) {
         newErrors[`batches.${index}.owner`] = "Người phụ trách là bắt buộc";
       }
-      if (!batch.target || parseInt(batch.target) <= 0) {
-        newErrors[`batches.${index}.target`] = "Chỉ tiêu phải lớn hơn 0";
+      if (!batch.target || parseInt(batch.target, 10) <= 0) {
+        newErrors[`batches.${index}.target`] =
+          "Chỉ tiêu phải lớn hơn 0 cho mỗi đợt";
       }
     });
 
@@ -218,23 +223,133 @@ const SeniorCreateCampaignPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const mapBatchesToPayload = () => {
+    return formData.batches.map((batch, index) => ({
+      roundName: batch.name || `Round ${index + 1}`,
+      description: batch.note || "",
+      targetQuantity: parseInt(batch.target, 10) || 0,
+      roundStartDate: batch.startTime ? `${batch.startTime}T00:00:00Z` : null,
+      roundEndDate: batch.endTime ? `${batch.endTime}T23:59:59Z` : null,
+      location: batch.location,
+      method: batch.method,
+      owner: batch.owner,
+    }));
+  };
+
+  const validateBatchTargets = () => {
+    const campaignTarget = parseInt(formData.targetQuantity, 10) || 0;
+    if (campaignTarget <= 0) {
+      toast.error("Vui lòng nhập chỉ tiêu campaign hợp lệ.");
+      return false;
+    }
+
+    const batches = formData.batches;
+    if (batches.length === 0) {
+      toast.error("Cần ít nhất một đợt tuyển.");
+      return false;
+    }
+
+    // Round 1 must be 60-70% of campaign target
+    const firstTarget = parseInt(batches[0].target, 10) || 0;
+    if (
+      firstTarget < campaignTarget * 0.6 ||
+      firstTarget > campaignTarget * 0.7
+    ) {
+      toast.error(
+        "Đợt 1 phải có chỉ tiêu 60% - 70% tổng chỉ tiêu của campaign."
+      );
+      return false;
+    }
+
+    // Remaining target after round 1
+    let remaining = campaignTarget - firstTarget;
+
+    // Middle rounds (excluding first and last if there are >=2 rounds)
+    if (batches.length > 2) {
+      for (let i = 1; i < batches.length - 1; i += 1) {
+        const roundTarget = parseInt(batches[i].target, 10) || 0;
+        if (roundTarget < remaining * 0.6 || roundTarget > remaining * 0.7) {
+          toast.error(
+            `Đợt ${
+              i + 1
+            } phải có chỉ tiêu 60% - 70% của số lượng còn lại sau các đợt trước.`
+          );
+          return false;
+        }
+        remaining -= roundTarget;
+      }
+    }
+
+    // Last round must be >=80% of remaining
+    if (batches.length > 1) {
+      const lastTarget = parseInt(batches[batches.length - 1].target, 10) || 0;
+      if (lastTarget < remaining * 0.8) {
+        toast.error(
+          "Đợt cuối phải có chỉ tiêu tối thiểu 80% số lượng còn lại."
+        );
+        return false;
+      }
+    } else {
+      // If only one round, remaining was campaignTarget - firstTarget; ensure nothing left
+      if (remaining > 0) {
+        toast.error("Tổng chỉ tiêu các đợt chưa đạt 100% campaign target.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const incompleteBatchIndex = formData.batches.findIndex((batch, index) => {
+      if (!batch.startTime || !batch.endTime) return true;
+      if (!batch.location.trim()) return true;
+      if (index !== 0 && !batch.owner.trim()) return true;
+      if (!batch.target || parseInt(batch.target, 10) <= 0) return true;
+      return false;
+    });
+
+    if (incompleteBatchIndex !== -1) {
+      const batchName =
+        formData.batches[incompleteBatchIndex].name ||
+        `Đợt ${incompleteBatchIndex + 1}`;
+      toast.error(`Vui lòng nhập đầy đủ thông tin cho ${batchName}.`);
+      return;
+    }
+
     if (!validateForm()) {
+      return;
+    }
+
+    if (!validateBatchTargets()) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Creating campaign:", formData);
-      alert("Tạo campaign thành công!");
-      navigate("/senior-recruiter/campaigns");
+      const payload = {
+        startDate: formData.startDate
+          ? `${formData.startDate}T00:00:00Z`
+          : null,
+        endDate: formData.endDate ? `${formData.endDate}T23:59:59Z` : null,
+        rounds: mapBatchesToPayload(),
+      };
+
+      const response = await updateCampaignAndCreateRounds(campaignId, payload);
+      console.log("Updating campaign:", payload);
+
+      if (response.success) {
+        toast.success(response.message || "Cập nhật campaign thành công!");
+        navigate("/senior-recruiter/campaigns");
+      } else {
+        toast.error(response.error || "Cập nhật campaign thất bại");
+      }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      alert("Có lỗi xảy ra khi tạo campaign");
+      toast.error("Có lỗi xảy ra khi tạo campaign");
     } finally {
       setIsSubmitting(false);
     }
@@ -298,8 +413,8 @@ const SeniorCreateCampaignPage = () => {
                     Thông tin đề xuất
                   </div>
                   <div className="font-semibold text-slate-800">
-                    {requestDetail?.partnerName
-                      ? requestDetail.partnerName
+                    {campaignDetail?.partnerName
+                      ? campaignDetail.partnerName
                       : isLoadingDetail
                       ? "Đang tải..."
                       : "Chưa có thông tin đối tác"}
@@ -308,8 +423,8 @@ const SeniorCreateCampaignPage = () => {
                 <div className="text-xs text-right text-slate-500">
                   <div>
                     Ngày tạo:{" "}
-                    {requestDetail?.createdAt
-                      ? new Date(requestDetail.createdAt).toLocaleString(
+                    {campaignDetail?.createdAt
+                      ? new Date(campaignDetail.createdAt).toLocaleString(
                           "vi-VN"
                         )
                       : isLoadingDetail
@@ -318,8 +433,8 @@ const SeniorCreateCampaignPage = () => {
                   </div>
                   <div>
                     Mã số:{" "}
-                    {requestDetail?.requestId ||
-                      requestId ||
+                    {campaignDetail?.campaignId ||
+                      campaignId ||
                       (isLoadingDetail ? "Đang tải..." : "—")}
                   </div>
                 </div>
@@ -624,33 +739,36 @@ const SeniorCreateCampaignPage = () => {
                             </select>
                           </div>
 
-                          <div>
-                            <label className="block mb-1 text-sm font-medium text-slate-700">
-                              Phụ trách *
-                            </label>
-                            <input
-                              type="text"
-                              value={batch.owner}
-                              onChange={(e) =>
-                                handleBatchChange(
-                                  index,
-                                  "owner",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full px-2 py-1 text-xs border rounded ${
-                                errors[`batches.${index}.owner`]
-                                  ? "border-red-300"
-                                  : "border-slate-300"
-                              }`}
-                              placeholder="Nguyễn Văn A"
-                            />
-                            {errors[`batches.${index}.owner`] && (
-                              <p className="mt-1 text-xs text-red-600">
-                                {errors[`batches.${index}.owner`]}
-                              </p>
-                            )}
-                          </div>
+                          {/* Ẩn input phụ trách cho đợt 1 (index 0) */}
+                          {index !== 0 && (
+                            <div>
+                              <label className="block mb-1 text-sm font-medium text-slate-700">
+                                Phụ trách *
+                              </label>
+                              <input
+                                type="text"
+                                value={batch.owner}
+                                onChange={(e) =>
+                                  handleBatchChange(
+                                    index,
+                                    "owner",
+                                    e.target.value
+                                  )
+                                }
+                                className={`w-full px-2 py-1 text-xs border rounded ${
+                                  errors[`batches.${index}.owner`]
+                                    ? "border-red-300"
+                                    : "border-slate-300"
+                                }`}
+                                placeholder="Nguyễn Văn A"
+                              />
+                              {errors[`batches.${index}.owner`] && (
+                                <p className="mt-1 text-xs text-red-600">
+                                  {errors[`batches.${index}.owner`]}
+                                </p>
+                              )}
+                            </div>
+                          )}
 
                           <div>
                             <label className="block mb-1 text-sm font-medium text-slate-700">
@@ -666,13 +784,13 @@ const SeniorCreateCampaignPage = () => {
                                   e.target.value
                                 )
                               }
-                              min="1"
+                              min="0"
+                              step="10"
                               className={`w-full px-2 py-1 text-xs border rounded ${
                                 errors[`batches.${index}.target`]
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              placeholder="10"
                             />
                             {errors[`batches.${index}.target`] && (
                               <p className="mt-1 text-xs text-red-600">
@@ -722,7 +840,7 @@ const SeniorCreateCampaignPage = () => {
                   <span className="text-slate-600">Chỉ tiêu tổng:</span>
                   <span className="font-medium text-slate-800">
                     {formData.batches.reduce(
-                      (sum, batch) => sum + (parseInt(batch.target) || 0),
+                      (sum, batch) => sum + (parseInt(batch.target, 10) || 0),
                       0
                     )}{" "}
                     người
@@ -732,7 +850,14 @@ const SeniorCreateCampaignPage = () => {
                   <span className="text-slate-600">Thời gian dự kiến:</span>
                   <span className="font-medium text-slate-800">
                     {formData.startDate && formData.endDate
-                      ? `${formData.startDate} - ${formData.endDate}`
+                      ? (() => {
+                          const start = new Date(formData.startDate);
+                          const end = new Date(formData.endDate);
+                          const diffTime = Math.abs(end - start);
+                          const diffDays =
+                            Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 để bao gồm cả ngày bắt đầu và kết thúc
+                          return `${diffDays} ngày`;
+                        })()
                       : "Chưa xác định"}
                   </span>
                 </div>
