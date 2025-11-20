@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 import { exportQuestionTemplate } from "./ExportQuestionTemplate";
@@ -179,6 +179,20 @@ const TestingPage = () => {
   }, [fetchTests]);
 
   const filteredTests = useMemo(() => {
+    // Nếu có pagination từ server (totalPages > 1), chỉ filter trên trang hiện tại
+    // Vì filter nên được thực hiện ở server-side
+    if (pagination.totalPages > 1) {
+      return tests.filter((test) => {
+        const matchesSearch =
+          test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          test.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          test.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === "all" || test.status === statusFilter;
+        const matchesLevel = levelFilter === "all" || test.level === levelFilter;
+        return matchesSearch && matchesStatus && matchesLevel;
+      });
+    }
+    // Nếu không có pagination, filter toàn bộ
     return tests.filter((test) => {
       const matchesSearch =
         test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,7 +202,7 @@ const TestingPage = () => {
       const matchesLevel = levelFilter === "all" || test.level === levelFilter;
       return matchesSearch && matchesStatus && matchesLevel;
     });
-  }, [tests, searchTerm, statusFilter, levelFilter]);
+  }, [tests, searchTerm, statusFilter, levelFilter, pagination.totalPages]);
 
   const handleEditTest = (testId) => {
     const test = tests.find(t => t.id === testId);
@@ -252,6 +266,52 @@ const TestingPage = () => {
 
   const handleViewTest = (testId) => {
     navigate(`/examiner/testing/${testId}`);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= pagination.totalPages) {
+      fetchTests(newPage, pagination.pageSize, true);
+      // Scroll to top when page changes
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const totalPages = pagination.totalPages;
+    const currentPage = pagination.currentPage;
+
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      // Show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
   };
 
   return (
@@ -432,17 +492,69 @@ const TestingPage = () => {
         )}
       </div>
 
-      {!isLoading && (
+      {/* Pagination Controls */}
+      {!isLoading && pagination.totalPages > 1 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-sm text-slate-600">
+            Hiển thị {((pagination.currentPage - 1) * pagination.pageSize) + 1} - {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalRecords)} / {pagination.totalRecords} đề thi
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {/* Previous Button */}
+            <button
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={!pagination.hasPreviousPage}
+              className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <FiChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              {getPageNumbers().map((page, index) => {
+                if (page === '...') {
+                  return (
+                    <span key={`ellipsis-${index}`} className="px-2 text-slate-500">
+                      ...
+                    </span>
+                  );
+                }
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      page === pagination.currentPage
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-slate-700 bg-white border border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <FiChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && pagination.totalPages <= 1 && (
         <div className="mt-4 text-sm text-slate-600">
           {pagination.totalRecords > 0 ? (
             <>
-              Hiển thị {filteredTests.length} / {tests.length} đề thi
-              {pagination.totalRecords > tests.length && (
-                <span className="ml-2">(Tổng: {pagination.totalRecords} đề thi)</span>
-              )}
+              Hiển thị {filteredTests.length} / {pagination.totalRecords} đề thi
             </>
           ) : (
-            <>Hiển thị {filteredTests.length} / {tests.length} đề thi</>
+            <>Hiển thị {filteredTests.length} đề thi</>
           )}
         </div>
       )}

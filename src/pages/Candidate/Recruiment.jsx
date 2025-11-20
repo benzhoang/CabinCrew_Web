@@ -1,64 +1,85 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
+import { getCampaigns } from '../../service/api'
+import { convertDateFormat } from '../../config/formatDate'
 
-// Mock campaigns - hiển thị cho Candidate, chỉ các chiến dịch đang diễn ra
-const mockCampaigns = [
-    {
-        id: 1,
-        name: 'Tuyển dụng Tiếp viên Hàng không 2025',
-        airline: 'Vietnam Airlines',
-        position: 'Flight Attendant',
-        location: 'Hà Nội, TP.HCM',
-        status: 'active',
-        startDate: '2025-09-01',
-        endDate: '2025-10-31',
-        description: 'Cơ hội trở thành tiếp viên hàng không chuyên nghiệp.',
-        requirements: ['Tiếng Anh tốt', 'Ngoại hình ưa nhìn', 'Sức khỏe tốt']
-    },
-    {
-        id: 2,
-        name: 'Ground Staff Intake',
-        airline: 'Bamboo Airways',
-        position: 'Ground Staff',
-        location: 'Đà Nẵng',
-        status: 'active',
-        startDate: '2025-09-15',
-        endDate: '2025-11-15',
-        description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
-        requirements: ['Giao tiếp tốt', 'Ca kíp linh hoạt']
-    },
-    {
-        id: 3,
-        name: 'Pilot Cadet Program',
-        airline: 'VietJet Air',
-        position: 'Pilot Cadet',
-        location: 'TP.HCM',
-        status: 'completed',
-        startDate: '2025-06-01',
-        endDate: '2025-08-31',
-        description: 'Chương trình học viên phi công đã kết thúc.',
-        requirements: []
-    },
-    {
-        id: 4,
-        name: 'Customer Service Expansion',
-        airline: 'Pacific Airlines',
-        position: 'Customer Service Agent',
-        location: 'Hà Nội',
-        status: 'active',
-        startDate: '2025-09-20',
-        endDate: '2025-11-30',
-        description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
-        requirements: ['Kỹ năng giao tiếp', 'Tiếng Anh tốt', 'Xử lý tình huống']
+const formatDateDisplay = value => {
+    if (!value) return '—'
+
+    const tryParse = dateString => {
+        const date = new Date(dateString)
+        return Number.isNaN(date.getTime()) ? null : date
     }
-]
+
+    const directDate = tryParse(value)
+    if (directDate) {
+        return directDate.toLocaleDateString('vi-VN')
+    }
+
+    const converted = convertDateFormat(value)
+    if (converted) {
+        const convertedDate = tryParse(converted)
+        if (convertedDate) {
+            return convertedDate.toLocaleDateString('vi-VN')
+        }
+    }
+
+    return value
+}
+
+const normalizeRequirements = requirements => {
+    if (!requirements) return []
+    if (Array.isArray(requirements)) {
+        return requirements.filter(Boolean)
+    }
+    if (typeof requirements === 'string') {
+        return requirements
+            .split(/[\n,;•]/)
+            .map(item => item.trim())
+            .filter(Boolean)
+    }
+    return []
+}
+
+const mapStatusForCandidate = status => {
+    const normalized = (status || '').toString().trim().toLowerCase()
+    if (['ongoing', 'active', 'approved', 'upcoming', 'inprogress', 'in_progress', 'scheduled'].includes(normalized)) {
+        return 'active'
+    }
+    return 'inactive'
+}
+
+const transformCampaign = campaign => {
+    if (!campaign) return null
+    const id = campaign.id ?? campaign.campaignId ?? campaign.campaignID ?? campaign.Id
+    if (!id) return null
+
+    return {
+        id,
+        name: campaign.name ?? campaign.campaignName ?? 'Chiến dịch tuyển dụng',
+        airline: campaign.partnerName ?? campaign.airline ?? campaign.airlineName ?? 'Đối tác chưa cập nhật',
+        position: campaign.position ?? campaign.role ?? campaign.campaignType ?? 'Vị trí chưa cập nhật',
+        location: campaign.location ?? campaign.city ?? campaign.address ?? campaign.locationName ?? 'Chưa cập nhật',
+        status: mapStatusForCandidate(campaign.status),
+        rawStatus: campaign.status ?? '',
+        startDate: formatDateDisplay(campaign.startDate),
+        endDate: formatDateDisplay(campaign.endDate),
+        description: campaign.description ?? '',
+        requirements: normalizeRequirements(campaign.requirements ?? campaign.requirement),
+        targetHires: campaign.targetQuantity ?? campaign.targetHires ?? campaign.targetParticipants ?? campaign.targetNumber ?? 0,
+        batches: campaign.batches ?? []
+    }
+}
 
 const Recruiment = () => {
     const [search, setSearch] = useState('')
     const [airline, setAirline] = useState('all')
-    const [status, setStatus] = useState('all') // all | active
+    const [statusFilter, setStatusFilter] = useState('all') // all | active
     const [langVersion, setLangVersion] = useState(0)
+    const [campaigns, setCampaigns] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -66,9 +87,33 @@ const Recruiment = () => {
         return () => off()
     }, [])
 
+    const fetchCampaigns = useCallback(async () => {
+        setIsLoading(true)
+        setError(null)
+        try {
+            const response = await getCampaigns({ pageSize: 100 })
+            if (response.success && Array.isArray(response.data)) {
+                const normalized = response.data.map(transformCampaign).filter(Boolean)
+                setCampaigns(normalized)
+            } else {
+                setCampaigns([])
+                setError(response.error || 'Không thể lấy danh sách chiến dịch')
+            }
+        } catch (err) {
+            setCampaigns([])
+            setError(err.message || 'Không thể lấy danh sách chiến dịch')
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchCampaigns()
+    }, [fetchCampaigns])
+
     const baseCampaigns = useMemo(
-        () => (status === 'active' ? mockCampaigns.filter(c => c.status === 'active') : mockCampaigns),
-        [status]
+        () => (statusFilter === 'active' ? campaigns.filter(c => c.status === 'active') : campaigns),
+        [statusFilter, campaigns]
     )
 
     const filtered = useMemo(() => {
@@ -77,10 +122,10 @@ const Recruiment = () => {
         if (search) {
             const q = search.toLowerCase()
             data = data.filter(c =>
-                c.name.toLowerCase().includes(q) ||
-                c.position.toLowerCase().includes(q) ||
-                c.location.toLowerCase().includes(q) ||
-                c.airline.toLowerCase().includes(q)
+                (c.name || '').toLowerCase().includes(q) ||
+                (c.position || '').toLowerCase().includes(q) ||
+                (c.location || '').toLowerCase().includes(q) ||
+                (c.airline || '').toLowerCase().includes(q)
             )
         }
         return data
@@ -126,8 +171,8 @@ const Recruiment = () => {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
                             <select
-                                value={status}
-                                onChange={e => setStatus(e.target.value)}
+                                value={statusFilter}
+                                onChange={e => setStatusFilter(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="all">Tất cả</option>
@@ -137,27 +182,51 @@ const Recruiment = () => {
                     </div>
                 </div>
 
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <span>{error}</span>
+                        <button
+                            onClick={fetchCampaigns}
+                            className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700"
+                        >
+                            Thử lại
+                        </button>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {filtered.map(c => (
+                    {isLoading && (
+                        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
+                            Đang tải danh sách chiến dịch...
+                        </div>
+                    )}
+                    {!isLoading && filtered.map(c => (
                         <div key={c.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div className="p-5">
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-semibold text-slate-800">{c.name}</h3>
-                                        <p className="text-sm text-slate-600 mt-1">{c.airline} • {c.location}</p>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            {c.airline}
+                                            {c.location && c.location !== 'Chưa cập nhật' && ` • ${c.location}`}
+                                        </p>
                                     </div>
                                     <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                                         {c.status === 'active' ? 'Đang diễn ra' : 'Đã kết thúc'}
                                     </span>
                                 </div>
-                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                     <div>
                                         <span className="text-slate-500">Vị trí</span>
                                         <p className="font-medium text-slate-800">{c.position}</p>
                                     </div>
                                     <div>
-                                        <span className="text-slate-500">Thời gian</span>
-                                        <p className="font-medium text-slate-800">{c.startDate} - {c.endDate}</p>
+                                        <span className="text-slate-500">Ngày bắt đầu</span>
+                                        <p className="font-medium text-slate-800">{c.startDate}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-slate-500">Ngày kết thúc</span>
+                                        <p className="font-medium text-slate-800">{c.endDate}</p>
                                     </div>
                                 </div>
                                 <p className="text-slate-700 text-sm mt-4">{c.description}</p>
@@ -181,7 +250,7 @@ const Recruiment = () => {
                     ))}
                 </div>
 
-                {filtered.length === 0 && (
+                {!isLoading && filtered.length === 0 && (
                     <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
                         Không có chiến dịch phù hợp.
                     </div>
