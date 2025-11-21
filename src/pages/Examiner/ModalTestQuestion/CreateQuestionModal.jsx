@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiX, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiLoader } from 'react-icons/fi';
+import { createBulkTestQuestions } from '../../../service/api';
 
 const TEST_TYPE_CONFIG = {
   '1': { label: 'EnglishListening', requiresOptions: true },
@@ -13,20 +14,23 @@ const TEST_TYPE_CONFIG = {
 const MIN_OPTIONS = 4;
 const MAX_OPTIONS = 6;
 
-const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
+const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) => {
   const typeConfig = useMemo(() => {
     return TEST_TYPE_CONFIG[String(testType)] || { label: 'Question', requiresOptions: false };
   }, [testType]);
 
   const [numberOfQuestions, setNumberOfQuestions] = useState('');
   const [questions, setQuestions] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Xác định giới hạn số lượng câu hỏi dựa trên loại test
+  // API hỗ trợ tối đa 50 câu hỏi, nhưng có thể có giới hạn khuyến nghị cho từng loại test
   const questionLimits = useMemo(() => {
     if (typeConfig.label === 'EnglishSpeaking') {
-      return { min: 1, max: 10 };
+      return { min: 1, max: 50 }; // Tối đa 50 theo API, nhưng khuyến nghị 1-10
     } else if (typeConfig.label === 'EnglishListening' || typeConfig.label === 'Practical') {
-      return { min: 15, max: 25 };
+      return { min: 1, max: 50 }; // Tối đa 50 theo API, nhưng khuyến nghị 15-25
     }
     return { min: 1, max: 50 };
   }, [typeConfig.label]);
@@ -35,6 +39,8 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
     if (isOpen) {
       setNumberOfQuestions('');
       setQuestions([]);
+      setErrorMessage('');
+      setIsSubmitting(false);
     }
   }, [isOpen, testType]);
 
@@ -94,19 +100,128 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
     );
   };
 
-  const handleSubmit = (e) => {
+  const validateQuestions = () => {
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+
+      // Validate question content
+      if (!q.questionContent || q.questionContent.trim() === '') {
+        setErrorMessage(`Câu hỏi ${i + 1}: Nội dung câu hỏi không được để trống.`);
+        return false;
+      }
+
+      // Validate score (1-100)
+      const score = Number(q.score);
+      if (!q.score || isNaN(score) || score < 1 || score > 100) {
+        setErrorMessage(`Câu hỏi ${i + 1}: Điểm phải từ 1 đến 100.`);
+        return false;
+      }
+
+      // Validate options for Listening/Practical
+      if (typeConfig.requiresOptions) {
+        // Check if options array exists and has valid length
+        if (!q.options || !Array.isArray(q.options) || q.options.length < MIN_OPTIONS || q.options.length > MAX_OPTIONS) {
+          setErrorMessage(`Câu hỏi ${i + 1}: Phải có từ ${MIN_OPTIONS} đến ${MAX_OPTIONS} phương án.`);
+          return false;
+        }
+
+        // Check if all options have content
+        const emptyOptions = q.options.filter(opt => !opt || opt.trim() === '');
+        if (emptyOptions.length > 0) {
+          setErrorMessage(`Câu hỏi ${i + 1}: Tất cả phương án phải có nội dung.`);
+          return false;
+        }
+
+        // Check if correctAnswer is set and matches one of the options
+        if (!q.correctAnswer || q.correctAnswer.trim() === '') {
+          setErrorMessage(`Câu hỏi ${i + 1}: Phải chọn câu trả lời đúng.`);
+          return false;
+        }
+
+        // Check if correctAnswer matches one of the options
+        const correctOptionIndex = q.options.findIndex(opt => opt.trim() === q.correctAnswer.trim());
+        if (correctOptionIndex === -1) {
+          setErrorMessage(`Câu hỏi ${i + 1}: Câu trả lời đúng phải khớp với một trong các phương án.`);
+          return false;
+        }
+
+        // Check option content length (max 500 characters)
+        const longOptions = q.options.filter(opt => opt && opt.length > 500);
+        if (longOptions.length > 0) {
+          setErrorMessage(`Câu hỏi ${i + 1}: Nội dung phương án không được vượt quá 500 ký tự.`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = questions.map((q) => ({
-      questionContent: q.questionContent,
-      score: Number(q.score),
-      type: typeConfig.label,
-      options: typeConfig.requiresOptions ? q.options : undefined,
-      correctAnswer: typeConfig.requiresOptions ? q.correctAnswer : undefined,
-    }));
-    // TODO: integrate with create question API
-    console.log('Create questions payload', payload);
-    if (typeof onClose === 'function') {
-      onClose();
+    setErrorMessage('');
+
+    // Validate testId
+    if (!testId) {
+      setErrorMessage('Test ID không hợp lệ. Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    // Validate questions
+    if (questions.length === 0) {
+      setErrorMessage('Vui lòng tạo ít nhất một câu hỏi.');
+      return;
+    }
+
+    // Validate all questions
+    if (!validateQuestions()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Transform questions to match API format
+      const questionsPayload = questions.map((q, index) => {
+        const questionPayload = {
+          questionContent: q.questionContent.trim(),
+          score: Number(q.score),
+          orderNumber: index + 1, // orderNumber starts from 1
+        };
+
+        // Add options for Listening/Practical types
+        if (typeConfig.requiresOptions) {
+          // Find the index of the correct answer
+          const correctOptionIndex = q.options.findIndex(opt => opt.trim() === q.correctAnswer.trim());
+
+          // Transform options array to match API format
+          questionPayload.options = q.options.map((opt, optIndex) => ({
+            optionContent: opt.trim(),
+            isCorrect: optIndex === correctOptionIndex,
+          }));
+        }
+
+        return questionPayload;
+      });
+
+      const response = await createBulkTestQuestions(testId, questionsPayload);
+
+      if (response.success) {
+        // Success - close modal and refresh
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
+        if (typeof onClose === 'function') {
+          onClose();
+        }
+      } else {
+        // Error from API
+        setErrorMessage(response.error || 'Không thể tạo câu hỏi. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error creating questions:', error);
+      setErrorMessage('Đã xảy ra lỗi khi tạo câu hỏi. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -129,6 +244,11 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 px-6 py-5 max-h-[80vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-800">{errorMessage}</p>
+            </div>
+          )}
           {questions.length === 0 ? (
             <div className="space-y-4">
               <div className="flex items-end gap-3">
@@ -161,8 +281,8 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
               </div>
               <p className="text-xs text-gray-500">
                 {typeConfig.label === 'EnglishSpeaking'
-                  ? 'Nhập số lượng câu hỏi (tối đa 10 câu) và nhấn "Tạo form" để bắt đầu'
-                  : 'Nhập số lượng câu hỏi (từ 15-25 câu) và nhấn "Tạo form" để bắt đầu'}
+                  ? 'Nhập số lượng câu hỏi (tối đa 50 câu, khuyến nghị 1-10 câu) và nhấn "Tạo form" để bắt đầu'
+                  : 'Nhập số lượng câu hỏi (tối đa 50 câu, khuyến nghị 15-25 câu) và nhấn "Tạo form" để bắt đầu'}
               </p>
             </div>
           ) : (
@@ -196,15 +316,16 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Điểm</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Điểm (1-100)</label>
                       <input
                         type="number"
-                        min={0}
+                        min={1}
+                        max={100}
                         value={question.score}
                         onChange={(e) => handleQuestionChange(questionIndex, 'score', e.target.value)}
                         required
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder="Nhập số điểm"
+                        placeholder="Nhập số điểm (1-100)"
                       />
                     </div>
                   </div>
@@ -253,14 +374,24 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
 
                       <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">Câu trả lời chính xác</label>
-                        <input
-                          type="text"
+                        <select
                           value={question.correctAnswer}
                           onChange={(e) => handleQuestionChange(questionIndex, 'correctAnswer', e.target.value)}
                           required
                           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          placeholder="Nhập câu trả lời chính xác"
-                        />
+                        >
+                          <option value="">Chọn câu trả lời đúng</option>
+                          {question.options.map((opt, optIdx) => (
+                            opt && opt.trim() !== '' && (
+                              <option key={optIdx} value={opt.trim()}>
+                                {opt.trim()}
+                              </option>
+                            )
+                          ))}
+                        </select>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Chọn một trong các phương án trên làm câu trả lời đúng
+                        </p>
                       </div>
                     </div>
                   )}
@@ -290,9 +421,17 @@ const CreateQuestionModal = ({ isOpen, onClose, testType }) => {
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
+                disabled={isSubmitting}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Lưu {questions.length} câu hỏi
+                {isSubmitting ? (
+                  <>
+                    <FiLoader className="h-4 w-4 animate-spin" />
+                    Đang tạo...
+                  </>
+                ) : (
+                  `Lưu ${questions.length} câu hỏi`
+                )}
               </button>
             </div>
           )}

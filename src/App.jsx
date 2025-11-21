@@ -155,6 +155,7 @@ function App() {
             </>
           }
         />
+        <Route path="/apply/:id" element={<Apply />} />
         <Route path="/apply" element={<Apply />} />
         <Route path="/application-form" element={<ApplicationForm />} />
         <Route

@@ -1308,6 +1308,132 @@ export const markAllNotificationsAsRead = async () => {
   }
 };
 
+// API tạo nhiều câu hỏi cùng lúc (bulk create)
+export const createBulkTestQuestions = async (testId, questionsData) => {
+  try {
+    // Kiểm tra testId hợp lệ
+    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
+      return {
+        success: false,
+        error: 'Test ID không hợp lệ. Vui lòng kiểm tra lại.',
+      };
+    }
+
+    // Kiểm tra questionsData có hợp lệ không
+    if (!questionsData || !Array.isArray(questionsData) || questionsData.length === 0) {
+      return {
+        success: false,
+        error: 'Danh sách câu hỏi không hợp lệ.',
+      };
+    }
+
+    // Kiểm tra số lượng câu hỏi (tối đa 50)
+    if (questionsData.length > 50) {
+      return {
+        success: false,
+        error: 'Số lượng câu hỏi không được vượt quá 50.',
+      };
+    }
+
+    // Tạo payload theo format API
+    const payload = {
+      testId: testIdNum,
+      questions: questionsData,
+    };
+
+    const response = await api.post('/test-questions/bulk', payload);
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== 'undefined') {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || responseData.errorMessage || 'Tạo câu hỏi thành công',
+          };
+        } else {
+          let errorMessage = responseData.errorMessage || 'Không thể tạo câu hỏi';
+
+          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+            errorMessage = responseData.errors.join('. ');
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errors: responseData.errors || [],
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Kiểm tra nếu có field code
+      if (responseData && typeof responseData.code !== 'undefined') {
+        if (responseData.code === 0) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || 'Tạo câu hỏi thành công',
+          };
+        } else {
+          return {
+            success: false,
+            error: responseData.message || responseData.errorMessage || 'Không thể tạo câu hỏi',
+          };
+        }
+      }
+
+      // HTTP status thành công nhưng không có code/errorCode => coi như thành công
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || 'Tạo câu hỏi thành công',
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.message || response.data?.errorMessage || 'Không thể tạo câu hỏi',
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    console.error('Bulk Create Questions Error:', error);
+    const errorData = error.response?.data;
+    let errorMessage = 'Đã xảy ra lỗi khi tạo câu hỏi';
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+        errorMessage = errorData.errors.join('. ');
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      } else if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (error.response?.status === 400) {
+        errorMessage = errorData.title || errorData || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      status: error.response?.status,
+      errorData: errorData,
+    };
+  }
+};
+
 // API import câu hỏi từ file Excel
 export const importQuestionsFromExcel = async (testId, file) => {
   try {
