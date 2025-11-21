@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onLangChange } from "../../i18n";
-import { FiPlus } from "react-icons/fi";
+import { FaListUl } from "react-icons/fa";
 
 // Mock data for applicants (tuyển dụng + thăng bậc)
 const mockApplicants = [
@@ -245,11 +245,6 @@ const ExaminerApplyList = () => {
     );
   };
 
-  const handleCreateTest = () => {
-    // TODO: Navigate to create test page or open modal
-    navigate("/examiner/testing/create");
-  };
-
   const getEvaluationRoute = (applicant) =>
     applicant.applicationType === "promotion"
       ? `/examiner/cabin-crew/${applicant.id}`
@@ -325,12 +320,9 @@ const ExaminerApplyList = () => {
               </h3>
               <div className="flex flex-col w-full gap-3 md:flex-row md:w-auto md:items-center">
                 {roundFilter === "test" && (
-                  <button
-                    onClick={handleCreateTest}
-                    className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
-                  >
-                    <FiPlus className="w-5 h-5" />
-                    Tạo đề thi mới
+                  <button className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700">
+                    <FaListUl className="w-5 h-5" />
+                    Danh sách bài thi
                   </button>
                 )}
                 <div className="flex items-center gap-2">

@@ -74,33 +74,32 @@ const CreateTestPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Validation cho tên đề thi
+      // Validation testName
       if (!formData.testName || !formData.testName.trim()) {
         setErrorMessage("Tên đề thi là bắt buộc");
         setIsSubmitting(false);
         return;
       }
 
-      // Validation cho mô tả
+      // Validation purpose
       if (!formData.purpose || !formData.purpose.trim()) {
         setErrorMessage("Mô tả là bắt buộc");
         setIsSubmitting(false);
         return;
       }
 
-      // Validation theo điều kiện từ hình 2
       const testType = parseInt(formData.testType);
       const durationInMinutes = parseInt(formData.durationInMinutes);
       //const maxScore = parseInt(formData.maxScore);
 
-      // Validate TestType: không được là 0 hoặc empty
+      // Validate TestType
       if (!testType || testType === 0) {
         setErrorMessage("Vui lòng chọn loại đề thi");
         setIsSubmitting(false);
         return;
       }
 
-      // Validate DurationInMinutes: phải là 60, 90, hoặc 120
+      // Validate DurationInMinutes
       if (
         !durationInMinutes ||
         durationInMinutes === 0 ||
@@ -118,7 +117,7 @@ const CreateTestPage = () => {
         return;
       }
 
-      // Validate AudioFile cho EnglishListening (TestType = 1)
+      // Validate AudioFile for EnglishListening (TestType = 1)
       if (testType === 1 && !formData.audioFile) {
         setErrorMessage(
           "Audio file là bắt buộc đối với loại bài kiểm tra nghe tiếng Anh"
@@ -127,7 +126,7 @@ const CreateTestPage = () => {
         return;
       }
 
-      // Validate audio file format và size nếu có
+      // Validate audio file format và size
       if (formData.audioFile) {
         const file = formData.audioFile;
         const fileExtension = file.name.split(".").pop().toLowerCase();
@@ -146,7 +145,7 @@ const CreateTestPage = () => {
         }
       }
 
-      // Chuẩn bị dữ liệu để gửi API
+      // Prepare data to call API
       const testData = {
         TestName: formData.testName,
         Purpose: formData.purpose,
@@ -155,13 +154,12 @@ const CreateTestPage = () => {
         DurationInMinutes: durationInMinutes,
       };
 
-      // Gọi API createTest
+      // Call API createTest
       const result = await createTest(testData, formData.audioFile);
       console.log("Creating test:", testData);
 
       if (result.success) {
         toast.success(result.message || "Tạo đề thi thành công!");
-        // Có thể navigate đến trang chi tiết test hoặc danh sách test
         navigate("/examiner/testing");
       } else {
         toast.error(result.error || "Tạo đề thi thất bại. Vui lòng thử lại.");

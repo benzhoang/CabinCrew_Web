@@ -837,7 +837,7 @@ const SeniorCreateCampaignPage = () => {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Chỉ tiêu tổng:</span>
+                  <span className="text-slate-600">Chỉ tiêu các đợt:</span>
                   <span className="font-medium text-slate-800">
                     {formData.batches.reduce(
                       (sum, batch) => sum + (parseInt(batch.target, 10) || 0),
