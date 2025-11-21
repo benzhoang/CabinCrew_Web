@@ -301,7 +301,7 @@ const TestDetailPage = () => {
                             <span className="ml-4 text-sm bg-gray-100 px-2 py-1 rounded">{q.score} điểm</span>
                           </div>
 
-                          {q.options && q.options.length > 0 ? (
+                          {q.options && q.options.length > 0 && (
                             <div className="mt-3 space-y-2 ml-11">
                               {q.options.map((op, i) => (
                                 <div
@@ -316,10 +316,6 @@ const TestDetailPage = () => {
                                   {op.isCorrect && <span className="text-green-600 text-sm font-medium">✓ Đúng</span>}
                                 </div>
                               ))}
-                            </div>
-                          ) : (
-                            <div className="mt-2 ml-11 text-sm text-gray-500 italic">
-                              (Câu hỏi tự luận – không có đáp án)
                             </div>
                           )}
                         </div>
@@ -368,6 +364,7 @@ const TestDetailPage = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         testType={testData.testType}
+        testId={id}
         onSuccess={() => fetchTestQuestions()}
       />
     </div>

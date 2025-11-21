@@ -59,10 +59,11 @@ const transformCampaign = campaign => {
         id,
         name: campaign.name ?? campaign.campaignName ?? 'Chiến dịch tuyển dụng',
         airline: campaign.partnerName ?? campaign.airline ?? campaign.airlineName ?? 'Đối tác chưa cập nhật',
-        position: campaign.position ?? campaign.role ?? campaign.campaignType ?? 'Vị trí chưa cập nhật',
+        position: campaign.position ?? campaign.role ?? campaign.campaignType ?? 'Loại chưa cập nhật',
         location: campaign.location ?? campaign.city ?? campaign.address ?? campaign.locationName ?? 'Chưa cập nhật',
         status: mapStatusForCandidate(campaign.status),
         rawStatus: campaign.status ?? '',
+        campaignType: campaign.campaignType ?? '',
         startDate: formatDateDisplay(campaign.startDate),
         endDate: formatDateDisplay(campaign.endDate),
         description: campaign.description ?? '',
@@ -91,9 +92,31 @@ const Recruiment = () => {
         setIsLoading(true)
         setError(null)
         try {
-            const response = await getCampaigns({ pageSize: 100 })
+            // Gọi API với filter status và campaignType
+            const response = await getCampaigns({
+                pageSize: 100,
+                status: 'Ongoing',
+                campaignType: 'Recruitment'
+            })
             if (response.success && Array.isArray(response.data)) {
-                const normalized = response.data.map(transformCampaign).filter(Boolean)
+                // Filter trước khi transform để đảm bảo chỉ lấy campaign có status Ongoing và campaignType Recruitment
+                const filteredData = response.data.filter(campaign => {
+                    const status = (campaign.status || '').toString().trim()
+                    const campaignType = (campaign.campaignType || '').toString().trim()
+
+                    // Kiểm tra status là Ongoing (case-insensitive)
+                    const isOngoing = status.toLowerCase() === 'ongoing'
+
+                    // Kiểm tra campaignType là Recruitment (case-insensitive)
+                    const isRecruitment = campaignType.toLowerCase() === 'recruitment'
+
+                    return isOngoing && isRecruitment
+                })
+
+                // Transform sau khi filter
+                const normalized = filteredData
+                    .map(transformCampaign)
+                    .filter(Boolean)
                 setCampaigns(normalized)
             } else {
                 setCampaigns([])
@@ -152,7 +175,7 @@ const Recruiment = () => {
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Tìm theo tên, vị trí, hãng bay, địa điểm"
+                                placeholder="Tìm theo tên, Loại, hãng bay, địa điểm"
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             />
                         </div>
@@ -217,7 +240,7 @@ const Recruiment = () => {
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                     <div>
-                                        <span className="text-slate-500">Vị trí</span>
+                                        <span className="text-slate-500">Loại</span>
                                         <p className="font-medium text-slate-800">{c.position}</p>
                                     </div>
                                     <div>
@@ -239,7 +262,7 @@ const Recruiment = () => {
                                 )}
                                 <div className="mt-5 flex items-center gap-3">
                                     <button
-                                        onClick={() => navigate('/apply', { state: { campaign: c } })}
+                                        onClick={() => navigate(`/apply/${c.id}`, { state: { campaign: c } })}
                                         className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
                                     >
                                         Xem chi tiết
