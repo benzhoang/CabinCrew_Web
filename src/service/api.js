@@ -192,7 +192,7 @@ export const getWardsForCity = async (cityId) => {
 // API lấy danh sách tiêu chí phỏng vấn
 export const getInterviewCriterias = async () => {
   try {
-    const response = await api.get("/interview-criterias");
+    const response = await api.get("/interview-criterias/recruitment");
     const responseData = response.data;
 
     if (responseData.code === 0 && Array.isArray(responseData.data)) {
@@ -1582,6 +1582,132 @@ export const importQuestionsFromExcel = async (testId, file) => {
       error: errorMessage,
       status: error.response?.status,
       errorData: errorData, // Thêm errorData để debug
+    };
+  }
+};
+
+// API lấy thông tin đợt tuyển (campaign round) theo ID
+export const getCampaignRoundById = async (id) => {
+  try {
+    const response = await api.get(`/campaign-rounds/${id}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    // Một số API trả trực tiếp object mà không bọc trong {code, data}
+    if (responseData && typeof responseData === "object" && !Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Lấy thông tin đợt tuyển thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy thông tin đợt tuyển",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin đợt tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách participants (ứng viên) theo roundId
+export const getRoundParticipants = async (roundId, params = {}) => {
+  try {
+    const response = await api.get(`/rounds/${roundId}/participants`, { params });
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data.items || [],
+        pagination: {
+          currentPage: responseData.data.currentPage,
+          pageSize: responseData.data.pageSize,
+          totalRecords: responseData.data.totalRecords,
+          totalPages: responseData.data.totalPages,
+          hasNextPage: responseData.data.hasNextPage,
+          hasPreviousPage: responseData.data.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
+    }
+
+    // Một số API trả trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách ứng viên thành công",
+      };
+    }
+
+    // Nếu data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        pagination: responseData.pagination,
+        message: responseData.message || "Lấy danh sách ứng viên thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy danh sách ứng viên",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách ứng viên",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy chiến dịch đang ứng tuyển của user
+export const getOngoingCampaign = async () => {
+  try {
+    const response = await api.get("/users/ongoing-campaign");
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+      status: error.response?.status,
     };
   }
 };

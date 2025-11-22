@@ -116,6 +116,43 @@ const Apply = () => {
         return 'upcoming'
     }
 
+    // Hàm kiểm tra xem campaign có đang diễn ra không
+    const isCampaignActive = (campaign) => {
+        if (!campaign) return false
+
+        // Kiểm tra status trực tiếp
+        const status = campaign.status?.toLowerCase()
+        if (status === 'active' || status === 'ongoing' || status === 'approved') {
+            return true
+        }
+        if (status === 'inactive' || status === 'ended' || status === 'completed' || status === 'rejected') {
+            return false
+        }
+
+        // Kiểm tra xem có rounds đang diễn ra không
+        if (Array.isArray(campaign.batches) && campaign.batches.length > 0) {
+            const hasOngoingRound = campaign.batches.some(batch => {
+                const batchStatus = batch.status?.toLowerCase()
+                return batchStatus === 'ongoing' || batchStatus === 'active'
+            })
+            if (hasOngoingRound) {
+                return true
+            }
+        }
+
+        // Kiểm tra ngày tháng nếu có
+        if (campaign.startDate && campaign.endDate) {
+            const now = new Date()
+            const startDate = new Date(campaign.startDate)
+            const endDate = new Date(campaign.endDate)
+            if (now >= startDate && now <= endDate) {
+                return true
+            }
+        }
+
+        return false
+    }
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -147,18 +184,20 @@ const Apply = () => {
                             <div className="p-6 border-b border-gray-200 flex items-start justify-between gap-4">
                                 <div>
                                     <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800">{campaign.name}</h1>
-                                    <p className="text-sm text-slate-600 mt-1">{campaign.airline || '—'} • {campaign.location || '—'}</p>
+                                    <p className="text-sm text-slate-600 mt-1">
+                                        {campaign.airline || '—'}
+                                        {campaign.location && ` • ${campaign.location}`}
+                                    </p>
                                 </div>
-                                <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${campaign.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                    {campaign.status === 'active' ? 'Đang diễn ra' : 'Đã kết thúc'}
+                                <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                    {isCampaignActive(campaign) ? 'Đang diễn ra' : 'Đã kết thúc'}
                                 </span>
                             </div>
                             <div className="p-6">
                                 {/* Overview grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                    <Info label="Vị trí" value={campaign.position || '—'} />
+                                    <Info label="Loại" value={campaign.position || '—'} />
                                     <Info label="Hãng hàng không" value={campaign.airline || '—'} />
-                                    <Info label="Địa điểm" value={campaign.location || '—'} />
                                     <Info label="Ngày bắt đầu" value={campaign.startDate || '—'} />
                                     <Info label="Ngày kết thúc" value={campaign.endDate || '—'} />
                                     <Info label="Chỉ tiêu" value={`${campaign.targetHires ?? '—'}`} />
@@ -257,42 +296,6 @@ const Apply = () => {
                                     </div>
                                 </div>
 
-                                {/* Recruitment Schedule */}
-                                <div className="mt-6">
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-4">📅 Lịch tuyển dụng / Recruitment Schedule</h3>
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                        <div className="space-y-3 text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-2xl">🤖</span>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">CabinCrew áp dụng công nghệ AI</div>
-                                                    <div className="text-slate-600">Tăng hiệu quả, cải thiện trải nghiệm ứng viên, số hóa dữ liệu, không giấy tờ và bảo vệ môi trường 🍃</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-2xl">📌</span>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">Địa điểm: TP. Hồ Chí Minh</div>
-                                                    <div className="text-slate-600">Học viện Hàng không CabinCrew</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-2xl">⏰</span>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">Thời gian: 8:00 AM | Thứ Bảy, 01/11/2025</div>
-                                                    <div className="text-slate-600">Saturday, November 1, 2025</div>
-                                                </div>
-                                            </div>
-                                            <div className="bg-blue-100 border border-blue-300 rounded p-3 mt-3">
-                                                <div className="text-xs text-blue-800">
-                                                    <strong>Lưu ý:</strong> Lịch tuyển dụng có thể thay đổi trong một số trường hợp cụ thể.
-                                                    Ứng viên vui lòng thường xuyên kiểm tra website chính thức CabinCrew Careers để cập nhật thông tin mới nhất.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Batches (đợt tuyển) */}
                                 <div className="mt-6">
                                     <div className="text-sm text-slate-600 mb-2">Kế hoạch các đợt tuyển</div>
@@ -314,7 +317,6 @@ const Apply = () => {
                                                     <div className="p-4 space-y-4">
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                                             <InfoMini label="Thời gian" value={b.time || '—'} />
-                                                            <InfoMini label="Địa điểm" value={b.location || '—'} />
                                                             <InfoMini label="Hình thức" value={b.method || '—'} />
                                                             {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
                                                             {b.slots && <InfoMini label="Số lượng tuyển" value={`${b.slots} người`} />}

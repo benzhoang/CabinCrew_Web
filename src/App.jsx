@@ -252,7 +252,7 @@ function App() {
           }
         />
         <Route
-          path="/recruiter/applications"
+          path="/recruiter/applications/:id"
           element={
             <div className="flex h-screen bg-gray-50">
               <SidebarRecruiter />
