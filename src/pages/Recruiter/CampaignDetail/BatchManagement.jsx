@@ -44,7 +44,8 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
             return
         }
 
-        navigate('/recruiter/applications', {
+        const campaignRoundId = batch.id || batch.campaignRoundId
+        navigate(`/recruiter/applications/${campaignRoundId}`, {
             state: {
                 campaignId,
                 batchName: batch.name,
@@ -253,8 +254,6 @@ const convertRoundsToBatches = (rounds) => {
 }
 
 const BatchManagement = ({ campaign }) => {
-    const [isPosting, setIsPosting] = useState(false)
-
     const [currentBatches, setCurrentBatches] = useState(() => {
         console.log('BatchManagement: Initializing with campaign:', campaign)
         // Ưu tiên dùng rounds từ campaign data
@@ -307,64 +306,12 @@ const BatchManagement = ({ campaign }) => {
         return Math.max(0, Math.min(100, p))
     }
 
-    const handlePostJob = async () => {
-        if (currentBatches.length === 0) {
-            alert('Chưa có đợt tuyển nào để đăng bài!')
-            return
-        }
-
-        setIsPosting(true)
-
-        try {
-            // Simulate API call to post job
-            await new Promise(resolve => setTimeout(resolve, 1500))
-
-            // Update all batches status to 'ongoing' or 'posted'
-            const updatedBatches = currentBatches.map(batch => ({
-                ...batch,
-                status: batch.status === 'planned' || batch.status === 'upcoming' ? 'ongoing' : batch.status,
-                isPosted: true
-            }))
-
-            setCurrentBatches(updatedBatches)
-
-            alert('Đã đăng bài tuyển dụng thành công!')
-        } catch (error) {
-            console.error('Error posting job:', error)
-            alert('Có lỗi xảy ra khi đăng bài tuyển dụng')
-        } finally {
-            setIsPosting(false)
-        }
-    }
-
     return (
         <div className="mt-6">
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2">
                 <div className="text-sm text-slate-600">
                     Kế hoạch các đợt tuyển
                 </div>
-                <button
-                    onClick={handlePostJob}
-                    disabled={isPosting}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isPosting
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
-                        }`}
-                >
-                    {isPosting ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang đăng...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            Đăng bài
-                        </>
-                    )}
-                </button>
             </div>
             {currentBatches.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center text-slate-500 text-sm">

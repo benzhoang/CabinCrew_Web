@@ -1,183 +1,147 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { onLangChange } from '../../i18n'
-
-// Mock data giống Campaign.jsx
-const mockCampaigns = [
-    {
-        id: 1,
-        name: 'Tuyển dụng Tiếp viên hàng không 2024',
-        position: 'Flight Attendant',
-        department: 'Cabin Crew',
-        status: 'active',
-        startDate: '2024-01-15',
-        endDate: '2024-03-15',
-        targetHires: 20,
-        currentHires: 8,
-        description: 'Tuyển dụng tiếp viên hàng không cho các chuyến bay nội địa và quốc tế',
-        requirements: 'Tiếng Anh tốt, Chiều cao 1.60m+, Kỹ năng giao tiếp, Sức khỏe tốt'
-    },
-    {
-        id: 2,
-        name: 'Chiến dịch Pilot Training',
-        position: 'Pilot',
-        department: 'Flight Operations',
-        status: 'completed',
-        startDate: '2024-01-01',
-        endDate: '2024-02-28',
-        targetHires: 5,
-        currentHires: 5,
-        description: 'Tuyển dụng và đào tạo phi công cho đội bay mới',
-        requirements: 'Bằng lái máy bay, Kinh nghiệm bay, Tiếng Anh thành thạo'
-    },
-    {
-        id: 3,
-        name: 'Ground Staff Campaign',
-        position: 'Ground Staff',
-        department: 'Ground Operations',
-        status: 'paused',
-        startDate: '2024-02-01',
-        endDate: '2024-04-30',
-        targetHires: 15,
-        currentHires: 6,
-        description: 'Tuyển dụng nhân viên mặt đất cho sân bay',
-        requirements: 'Kỹ năng xử lý hành lý, Giao tiếp tốt, Làm việc ca'
-    },
-    {
-        id: 4,
-        name: 'Customer Service Expansion',
-        position: 'Customer Service Agent',
-        department: 'Customer Service',
-        status: 'active',
-        startDate: '2024-02-15',
-        endDate: '2024-05-15',
-        targetHires: 12,
-        currentHires: 4,
-        description: 'Mở rộng đội ngũ chăm sóc khách hàng',
-        requirements: 'Kỹ năng giao tiếp, Tiếng Anh, Xử lý tình huống'
-    },
-    {
-        id: 5,
-        name: 'Maintenance Team',
-        position: 'Aircraft Mechanic',
-        department: 'Maintenance',
-        status: 'active',
-        startDate: '2024-03-01',
-        endDate: '2024-06-30',
-        targetHires: 8,
-        currentHires: 2,
-        description: 'Tuyển dụng kỹ thuật viên bảo trì máy bay',
-        requirements: 'Bằng kỹ thuật, Kinh nghiệm bảo trì, An toàn lao động'
-    }
-]
-
-// Mock data for applicants
-const mockApplicants = [
-    {
-        id: 1,
-        name: 'Nguyễn Thị Lan',
-        email: 'lan.nguyen@email.com',
-        phone: '0901234567',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-15',
-        status: 'pending',
-        score: null,
-        experience: '2 năm',
-        education: 'Đại học Ngoại thương',
-        languages: ['Tiếng Việt', 'Tiếng Anh'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=200&fit=crop&crop=face',
-        round: 'screening'
-    },
-    {
-        id: 2,
-        name: 'Trần Văn Minh',
-        email: 'minh.tran@email.com',
-        phone: '0912345678',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-16',
-        status: 'approved',
-        score: 85,
-        experience: '3 năm',
-        education: 'Đại học Bách khoa',
-        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face',
-        round: 'final'
-    },
-    {
-        id: 3,
-        name: 'Lê Thị Hương',
-        email: 'huong.le@email.com',
-        phone: '0923456789',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-17',
-        status: 'rejected',
-        score: 65,
-        experience: '1 năm',
-        education: 'Cao đẳng Du lịch',
-        languages: ['Tiếng Việt', 'Tiếng Anh'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=200&fit=crop&crop=face',
-        round: 'test'
-    },
-    {
-        id: 4,
-        name: 'Phạm Văn Đức',
-        email: 'duc.pham@email.com',
-        phone: '0934567890',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-18',
-        status: 'pending',
-        score: null,
-        experience: '4 năm',
-        education: 'Đại học Kinh tế',
-        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Hàn'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        round: 'grooming'
-    },
-    {
-        id: 5,
-        name: 'Võ Thị Mai',
-        email: 'mai.vo@email.com',
-        phone: '0945678901',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-19',
-        status: 'pending',
-        score: 78,
-        experience: '2 năm',
-        education: 'Đại học Sư phạm',
-        languages: ['Tiếng Việt', 'Tiếng Anh'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        round: 'interview'
-    }
-]
+import { getCampaignRoundById, getRoundParticipants } from '../../service/api'
 
 const Screening = () => {
-    const [campaigns, setCampaigns] = useState(mockCampaigns)
-    const [filteredCampaigns, setFilteredCampaigns] = useState(mockCampaigns)
+    const [campaigns, setCampaigns] = useState([])
+    const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('active')
     const [departmentFilter, setDepartmentFilter] = useState('all')
     const [roundFilter, setRoundFilter] = useState('all')
     const [applicantSearchTerm, setApplicantSearchTerm] = useState('')
     const [, setLangVersion] = useState(0)
+    const [campaignRoundData, setCampaignRoundData] = useState(null)
+    const [availableRounds, setAvailableRounds] = useState([])
+    const [loadingRoundData, setLoadingRoundData] = useState(false)
+    const [participants, setParticipants] = useState([])
+    const [loadingParticipants, setLoadingParticipants] = useState(false)
     const navigate = useNavigate()
     const location = useLocation()
+    const params = useParams()
 
     // Check if we're viewing a specific batch
     const batchData = location.state
-    const isViewingBatch = batchData && batchData.batchName && batchData.campaignId
+    // Nếu có id trong URL params, đang xem batch cụ thể
+    const isViewingBatch = params.id || (batchData && batchData.batchName && batchData.campaignId)
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
         return () => off()
     }, [])
+
+    // Gọi API để lấy thông tin đợt tuyển khi đang xem batch
+    useEffect(() => {
+        const fetchCampaignRoundData = async () => {
+            if (!isViewingBatch) {
+                setCampaignRoundData(null)
+                setAvailableRounds([])
+                return
+            }
+
+            // Ưu tiên lấy campaignRoundId từ URL params (id)
+            // Nếu không có thì lấy từ batchData
+            const campaignRoundId = params.id || batchData?.batch?.id || batchData?.batch?.campaignRoundId || batchData?.campaignRoundId
+
+            if (!campaignRoundId) {
+                console.warn('Không tìm thấy campaignRoundId')
+                return
+            }
+
+            setLoadingRoundData(true)
+            try {
+                const result = await getCampaignRoundById(campaignRoundId)
+                if (result.success && result.data) {
+                    setCampaignRoundData(result.data)
+                    // Lưu danh sách rounds từ API để sử dụng cho filter
+                    const rounds = result.data.rounds || []
+                    setAvailableRounds(rounds)
+                } else {
+                    console.error('Lỗi khi lấy thông tin đợt tuyển:', result.error)
+                }
+            } catch (error) {
+                console.error('Lỗi khi gọi API getCampaignRoundById:', error)
+            } finally {
+                setLoadingRoundData(false)
+            }
+        }
+
+        fetchCampaignRoundData()
+    }, [isViewingBatch, params.id, batchData])
+
+    // Gọi API để lấy danh sách participants theo roundId khi filter thay đổi
+    useEffect(() => {
+        const fetchParticipants = async () => {
+            if (!isViewingBatch) {
+                setParticipants([])
+                return
+            }
+
+            // Nếu chọn "final", không gọi API
+            if (roundFilter === 'final') {
+                setParticipants([])
+                return
+            }
+
+            let roundId = null
+
+            // Nếu chọn "all", lấy round đầu tiên từ availableRounds
+            if (roundFilter === 'all') {
+                if (availableRounds.length > 0) {
+                    roundId = availableRounds[0].roundId
+                } else {
+                    // Chưa có rounds, đợi rounds được load
+                    setParticipants([])
+                    return
+                }
+            } else {
+                // Lấy roundId từ roundFilter
+                roundId = roundFilter
+            }
+
+            // Kiểm tra roundId hợp lệ
+            if (!roundId || roundId === 'final') {
+                setParticipants([])
+                return
+            }
+
+            setLoadingParticipants(true)
+            try {
+                const result = await getRoundParticipants(roundId)
+                if (result.success && result.data && Array.isArray(result.data)) {
+                    // Map dữ liệu từ API sang format hiển thị theo cấu trúc response
+                    // Response structure: { code: 0, message: "string", data: { items: [...], currentPage, pageSize, ... } }
+                    const mappedParticipants = result.data.map((participant) => ({
+                        id: participant.userId || participant.activityId,
+                        activityId: participant.activityId || 0,
+                        userId: participant.userId || 0,
+                        name: participant.fullName || '',
+                        email: participant.email || '',
+                        phone: participant.phoneNumber || '',
+                        photo: participant.imgURL || '',
+                        status: participant.status || 'pending',
+                        roundId: participant.roundId || 0,
+                        roundName: participant.roundName || '',
+                        // Giữ các field khác nếu cần
+                        appliedDate: participant.appliedDate || new Date().toISOString().split('T')[0],
+                        education: participant.education || '',
+                    }))
+                    setParticipants(mappedParticipants)
+                } else {
+                    console.error('Lỗi khi lấy danh sách ứng viên:', result.error || 'Dữ liệu không hợp lệ')
+                    setParticipants([])
+                }
+            } catch (error) {
+                console.error('Lỗi khi gọi API getRoundParticipants:', error)
+                setParticipants([])
+            } finally {
+                setLoadingParticipants(false)
+            }
+        }
+
+        fetchParticipants()
+    }, [isViewingBatch, roundFilter, availableRounds])
 
     useEffect(() => {
         let filtered = campaigns
@@ -260,16 +224,29 @@ const Screening = () => {
     // Filter applicants for specific batch
     const filteredApplicants = useMemo(() => {
         if (!isViewingBatch) return []
-        let list = mockApplicants.filter(applicant =>
-            applicant.campaignId === batchData.campaignId &&
-            applicant.batchName === batchData.batchName
-        )
+
+        // Chỉ sử dụng participants từ API, không dùng mock data
+        let list = [...participants]
+
+        // Filter theo roundFilter
         if (roundFilter === 'final') {
             // Lọc theo kết quả cuối cùng: đã có quyết định cuối (đã duyệt hoặc từ chối)
             list = list.filter(a => a.status === 'approved' || a.status === 'rejected')
         } else if (roundFilter !== 'all') {
-            list = list.filter(a => (a.round || 'screening') === roundFilter)
+            // Filter theo roundId được chọn
+            const selectedRoundId = String(roundFilter)
+            list = list.filter(a => {
+                if (a.roundId && String(a.roundId) === selectedRoundId) return true
+                if (a.roundName) {
+                    const selectedRound = availableRounds.find(r => String(r.roundId) === selectedRoundId)
+                    return selectedRound && a.roundName === selectedRound.roundName
+                }
+                return false
+            })
         }
+        // Nếu roundFilter === 'all', hiển thị tất cả participants (đã được load từ round đầu tiên)
+
+        // Áp dụng search filter
         if (applicantSearchTerm) {
             const q = applicantSearchTerm.toLowerCase()
             list = list.filter(a =>
@@ -278,17 +255,18 @@ const Screening = () => {
                 (a.phone || '').toLowerCase().includes(q)
             )
         }
-        return list
-    }, [isViewingBatch, batchData, roundFilter])
 
-    const getRoundText = (round) => {
+        return list
+    }, [isViewingBatch, roundFilter, availableRounds, participants, applicantSearchTerm])
+
+    const getRoundText = (rounds) => {
         const map = {
             screening: 'Vòng sàng lọc',
             grooming: 'Vòng grooming',
             test: 'Vòng kiểm tra',
             interview: 'Vòng phỏng vấn'
         }
-        return map[round] || 'Vòng sàng lọc'
+        return map[rounds] || 'Vòng sàng lọc'
     }
 
     const getApplicantStatusBadge = (status) => {
@@ -306,18 +284,56 @@ const Screening = () => {
         )
     }
 
-    const getRoundBadge = (round) => {
-        const roundConfig = {
-            screening: { color: 'bg-indigo-100 text-indigo-800', text: 'Vòng sàng lọc' },
-            grooming: { color: 'bg-purple-100 text-purple-800', text: 'Vòng grooming' },
-            test: { color: 'bg-amber-100 text-amber-800', text: 'Vòng kiểm tra' },
-            interview: { color: 'bg-teal-100 text-teal-800', text: 'Vòng phỏng vấn' },
-            final: { color: 'bg-slate-200 text-slate-800', text: 'Kết quả cuối cùng' }
+    const getRoundBadge = (round, applicant = null) => {
+        // Nếu có rounds từ API, tìm round tương ứng
+        if (availableRounds.length > 0) {
+            let foundRound = null
+
+            // Tìm round theo roundId hoặc roundName từ applicant
+            if (applicant) {
+                if (applicant.roundId) {
+                    foundRound = availableRounds.find(r => String(r.roundId) === String(applicant.roundId))
+                } else if (applicant.roundName) {
+                    foundRound = availableRounds.find(r => r.roundName === applicant.roundName)
+                } else if (round) {
+                    // Fallback: tìm theo round string nếu có
+                    foundRound = availableRounds.find(r =>
+                        String(r.roundId) === String(round) ||
+                        r.roundName?.toLowerCase() === String(round).toLowerCase()
+                    )
+                }
+            } else if (round) {
+                // Nếu chỉ có round (roundId hoặc roundName)
+                foundRound = availableRounds.find(r =>
+                    String(r.roundId) === String(round) ||
+                    r.roundName?.toLowerCase() === String(round).toLowerCase()
+                )
+            }
+
+            if (foundRound) {
+                // Sử dụng màu mặc định cho tất cả rounds từ API
+                const color = 'bg-indigo-100 text-indigo-800'
+                return (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${color}`}>
+                        {foundRound.roundName}
+                    </span>
+                )
+            }
         }
-        const config = roundConfig[round] || roundConfig.screening
+
+        // Fallback cho "Kết quả cuối cùng"
+        if (round === 'final') {
+            return (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-800">
+                    Kết quả cuối cùng
+                </span>
+            )
+        }
+
+        // Fallback mặc định nếu không tìm thấy
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-                {config.text}
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {round || 'Chưa xác định'}
             </span>
         )
     }
@@ -348,7 +364,7 @@ const Screening = () => {
                                 </svg>
                             </button>
                             <div>
-                                <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {batchData.batchName}</h1>
+                                <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {campaignRoundData?.roundName || batchData?.batchName || 'Đợt tuyển dụng'}</h1>
                                 <p className="text-white/90 mt-1 text-sm">Sàng lọc và đánh giá ứng viên cho đợt tuyển dụng</p>
                             </div>
                         </div>
@@ -359,24 +375,42 @@ const Screening = () => {
                     {/* Batch Info */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
                         <h3 className="text-lg font-semibold text-slate-800 mb-4">Thông tin đợt tuyển</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <span className="text-sm text-slate-600">Tên đợt:</span>
-                                <p className="font-medium text-slate-800">{batchData.batchName}</p>
+                        {loadingRoundData ? (
+                            <div className="text-center py-4">
+                                <p className="text-slate-500">Đang tải thông tin đợt tuyển...</p>
                             </div>
-                            <div>
-                                <span className="text-sm text-slate-600">Thời gian:</span>
-                                <p className="font-medium text-slate-800">{batchData.batch?.time || '—'}</p>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div>
+                                    <span className="text-sm text-slate-600">Tên đợt:</span>
+                                    <p className="font-medium text-slate-800">{campaignRoundData?.roundName || batchData?.batchName || '—'}</p>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                    <p className="font-medium text-slate-800">
+                                        {campaignRoundData?.startDate || batchData.batch?.time?.split(' - ')[0] || '—'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                    <p className="font-medium text-slate-800">
+                                        {campaignRoundData?.endDate || batchData.batch?.time?.split(' - ')[1] || '—'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-slate-600">Mô tả:</span>
+                                    <p className="font-medium text-slate-800">{campaignRoundData?.description || '—'}</p>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-slate-600">Chỉ tiêu:</span>
+                                    <p className="font-medium text-slate-800">
+                                        {campaignRoundData
+                                            ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0}`
+                                            : `${batchData.batch?.current || 0}/${batchData.batch?.target || 0}`}
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <span className="text-sm text-slate-600">Địa điểm:</span>
-                                <p className="font-medium text-slate-800">{batchData.batch?.location || '—'}</p>
-                            </div>
-                            <div>
-                                <span className="text-sm text-slate-600">Chỉ tiêu:</span>
-                                <p className="font-medium text-slate-800">{batchData.batch?.current || 0}/{batchData.batch?.target || 0}</p>
-                            </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Applicants List */}
@@ -391,13 +425,20 @@ const Screening = () => {
                                             className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             value={roundFilter}
                                             onChange={(e) => setRoundFilter(e.target.value)}
+                                            disabled={loadingRoundData}
                                         >
                                             <option value="all">Tất cả</option>
-                                            <option value="screening">Vòng sàng lọc</option>
-                                            <option value="grooming">Vòng grooming</option>
-                                            <option value="test">Vòng kiểm tra</option>
-                                            <option value="interview">Vòng phỏng vấn</option>
-                                            <option value="final">Kết quả cuối cùng</option>
+                                            {loadingRoundData ? (
+                                                <option value="" disabled>Đang tải...</option>
+                                            ) : availableRounds.length > 0 ? (
+                                                availableRounds.map((round) => (
+                                                    <option key={round.roundId} value={round.roundId}>
+                                                        {round.roundName}
+                                                    </option>
+                                                ))
+                                            ) : (
+                                                <option value="" disabled>Chưa có dữ liệu vòng</option>
+                                            )}
                                         </select>
                                     </div>
                                     <div className="relative md:w-64 w-full">
@@ -417,93 +458,99 @@ const Screening = () => {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ngày ứng tuyển</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vòng</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-slate-200">
-                                    {filteredApplicants.map((applicant) => (
-                                        <tr key={applicant.id} className="hover:bg-slate-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
-                                                    <img
-                                                        src={applicant.photo || 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'}
-                                                        alt={`Ảnh ${applicant.name}`}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.target.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'
-                                                        }}
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-slate-900">{applicant.name}</div>
-                                                    <div className="text-sm text-slate-500">{applicant.education}</div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-slate-900">{applicant.email}</div>
-                                                <div className="text-sm text-slate-500">{applicant.phone}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                                {applicant.appliedDate}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getApplicantStatusBadge(applicant.status)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getRoundBadge(applicant.round)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                                                <button
-                                                    className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
-                                                    title="Xem chi tiết"
-                                                    onClick={() =>
-                                                        navigate(`/candidate/${applicant.id}`, {
-                                                            state: {
-                                                                candidate: applicant,
-                                                                batchData: batchData
-                                                            }
-                                                        })
-                                                    }
-                                                >
-                                                    <svg
-                                                        className="w-4 h-4 mx-auto"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                        />
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </td>
+                            {loadingParticipants ? (
+                                <div className="p-12 text-center">
+                                    <p className="text-slate-500">Đang tải danh sách ứng viên...</p>
+                                </div>
+                            ) : (
+                                <table className="w-full">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ngày ứng tuyển</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vòng</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-slate-200">
+                                        {filteredApplicants.map((applicant) => (
+                                            <tr key={applicant.id} className="hover:bg-slate-50">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
+                                                        <img
+                                                            src={applicant.photo || 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'}
+                                                            alt={`Ảnh ${applicant.name}`}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-slate-900">{applicant.name}</div>
+                                                        <div className="text-sm text-slate-500">{applicant.education}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-slate-900">{applicant.email}</div>
+                                                    <div className="text-sm text-slate-500">{applicant.phone}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                                                    {applicant.appliedDate}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getApplicantStatusBadge(applicant.status)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getRoundBadge(applicant.roundId || applicant.roundName || applicant.round, applicant)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                                    <button
+                                                        className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                                                        title="Xem chi tiết"
+                                                        onClick={() =>
+                                                            navigate(`/candidate/${applicant.id}`, {
+                                                                state: {
+                                                                    candidate: applicant,
+                                                                    batchData: batchData
+                                                                }
+                                                            })
+                                                        }
+                                                    >
+                                                        <svg
+                                                            className="w-4 h-4 mx-auto"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                            />
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={2}
+                                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
 
-                        {filteredApplicants.length === 0 && (
+                        {!loadingParticipants && filteredApplicants.length === 0 && (
                             <div className="p-12 text-center">
                                 <p className="text-slate-500">Chưa có ứng viên nào cho đợt này</p>
                             </div>
