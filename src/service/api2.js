@@ -652,23 +652,31 @@ export const updateCampaignAndCreateRounds = async (
     // Kiểm tra HTTP status code (200, 201 là success)
     const isHttpSuccess = response.status >= 200 && response.status < 300;
 
-    // Kiểm tra code === 0 (success) theo format API
+    // Kiểm tra success dựa trên success flag hoặc code (code 0 hoặc 4 là success)
+    // Code 4 cũng được coi là success (có thể là warning/info code)
+    const responseCode = response.data.code;
     const isSuccess =
-      response.data.code === 0 ||
-      (isHttpSuccess && response.data.code === undefined);
+      responseCode === 0 ||
+      responseCode === 4 ||
+      (isHttpSuccess && responseCode === undefined);
+
+    // Luôn trả về message nếu có trong response
+    const responseMessage = response.data.message;
 
     if (isSuccess) {
       return {
         success: true,
         data: response.data.data || null,
         message:
-          response.data.message || "Cập nhật campaign và tạo rounds thành công",
+          responseMessage || "Cập nhật campaign và tạo rounds thành công",
+        code: response.data.code,
       };
     } else {
       return {
         success: false,
-        error:
-          response.data.message || "Cập nhật campaign và tạo rounds thất bại",
+        error: responseMessage || "Cập nhật campaign và tạo rounds thất bại",
+        message: responseMessage, // Vẫn trả về message để hiển thị
+        code: response.data.code,
       };
     }
   } catch (error) {
@@ -678,6 +686,7 @@ export const updateCampaignAndCreateRounds = async (
         error.response?.data?.message ||
         error.message ||
         "Cập nhật campaign và tạo rounds thất bại",
+      message: error.response?.data?.message, // Vẫn trả về message để hiển thị
       status: error.response?.status,
     };
   }
@@ -871,6 +880,40 @@ export const getTests = async (page = 1, pageSize = 10) => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy interview criterias cho promotion - GET /api/v1/interview-criterias/promotion
+export const getInterviewCriteriasPromotion = async () => {
+  try {
+    const response = await api2.get("/interview-criterias/promotion");
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message:
+          response.data.message ||
+          "Lấy interview criterias cho promotion thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data.message ||
+          "Lấy interview criterias cho promotion thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy interview criterias cho promotion thất bại",
       status: error.response?.status,
     };
   }

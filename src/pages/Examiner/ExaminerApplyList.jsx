@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onLangChange } from "../../i18n";
-import { FaListUl } from "react-icons/fa";
+import { FaFilePen } from "react-icons/fa6";
+import TestListModal from "../../components/ExaminerComponent/TestListModal";
 
 // Mock data for applicants (tuyển dụng + thăng bậc)
 const mockApplicants = [
@@ -166,6 +167,8 @@ const ExaminerApplyList = () => {
   const [, setLangVersion] = useState(0);
   const [roundFilter, setRoundFilter] = useState("all");
   const [applicationTypeFilter, setApplicationTypeFilter] = useState("all");
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [selectedTest, setSelectedTest] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -263,6 +266,19 @@ const ExaminerApplyList = () => {
     navigate(-1);
   };
 
+  const handleOpenTestModal = () => {
+    setIsTestModalOpen(true);
+  };
+
+  const handleCloseTestModal = () => {
+    setIsTestModalOpen(false);
+  };
+
+  const handleSelectTest = (test) => {
+    setSelectedTest(test);
+    setIsTestModalOpen(false);
+  };
+
   // Render applicant list view
   return (
     <div className="">
@@ -320,10 +336,23 @@ const ExaminerApplyList = () => {
               </h3>
               <div className="flex flex-col w-full gap-3 md:flex-row md:w-auto md:items-center">
                 {roundFilter === "test" && (
-                  <button className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700">
-                    <FaListUl className="w-5 h-5" />
-                    Danh sách bài thi
-                  </button>
+                  <div className="flex flex-col items-start gap-1">
+                    <button
+                      onClick={handleOpenTestModal}
+                      className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
+                    >
+                      <FaFilePen className="w-5 h-5" />
+                      {selectedTest ? "Thay đổi bài thi" : "Chọn bài thi"}
+                    </button>
+                    {selectedTest && (
+                      <span className="text-xs text-slate-500">
+                        Đang chọn:{" "}
+                        <span className="font-semibold text-slate-700">
+                          {selectedTest.name}
+                        </span>
+                      </span>
+                    )}
+                  </div>
                 )}
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-slate-600">Loại hồ sơ:</label>
@@ -491,6 +520,12 @@ const ExaminerApplyList = () => {
           )}
         </div>
       </div>
+      <TestListModal
+        isOpen={isTestModalOpen}
+        onClose={handleCloseTestModal}
+        onSelectTest={handleSelectTest}
+        selectedTestId={selectedTest?.id}
+      />
     </div>
   );
 };
