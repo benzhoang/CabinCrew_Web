@@ -10,7 +10,7 @@ const PendingCampaignDetail = ({ campaign }) => {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-4">
           <button
-            onClick={() => navigate("/senior-recruiter/campaigns")}
+            onClick={() => navigate("/airline-partner/campaigns")}
             className="p-2 transition-colors rounded-lg hover:bg-slate-100"
             title="Quay lại"
           >

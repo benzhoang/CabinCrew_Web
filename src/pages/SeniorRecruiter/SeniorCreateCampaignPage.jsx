@@ -21,16 +21,13 @@ const SeniorCreateCampaignPage = () => {
     requirements: "",
     jobDescription: "",
     jobRequirement: "",
-    batches: [
+    rounds: [
       {
-        name: "Đợt 1",
-        startTime: "",
-        endTime: "",
-        location: "",
-        method: "Trực tiếp",
-        owner: "",
-        target: "",
-        note: "",
+        roundName: "Đợt 1",
+        roundStartDate: "",
+        roundEndDate: "",
+        targetQuantity: "",
+        description: "",
       },
     ],
   });
@@ -42,10 +39,6 @@ const SeniorCreateCampaignPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const isRequestDataLocked = Boolean(campaignDetail);
-
-  const locations = ["Hà Nội", "TP.HCM", "Đà Nẵng", "Hải Phòng", "Cần Thơ"];
-
-  const recruitmentMethods = ["Trực tiếp", "Trực tuyến", "Hybrid"];
 
   useEffect(() => {
     let isMounted = true;
@@ -128,40 +121,37 @@ const SeniorCreateCampaignPage = () => {
     }
   };
 
-  const handleBatchChange = (index, field, value) => {
+  const handleRoundChange = (index, field, value) => {
     setFormData((prev) => ({
       ...prev,
-      batches: prev.batches.map((batch, i) =>
-        i === index ? { ...batch, [field]: value } : batch
+      rounds: prev.rounds.map((round, i) =>
+        i === index ? { ...round, [field]: value } : round
       ),
     }));
   };
 
-  const addBatch = () => {
-    if (formData.batches.length >= 3) return;
+  const addRound = () => {
+    if (formData.rounds.length >= 3) return;
     setFormData((prev) => ({
       ...prev,
-      batches: [
-        ...prev.batches,
+      rounds: [
+        ...prev.rounds,
         {
-          name: `Đợt ${prev.batches.length + 1}`,
-          startTime: "",
-          endTime: "",
-          location: "",
-          method: "Trực tiếp",
-          owner: "",
-          target: "",
-          note: "",
+          roundName: `Đợt ${prev.rounds.length + 1}`,
+          roundStartDate: "",
+          roundEndDate: "",
+          targetQuantity: "",
+          description: "",
         },
       ],
     }));
   };
 
-  const removeBatch = (index) => {
-    if (formData.batches.length > 1) {
+  const removeRound = (index) => {
+    if (formData.rounds.length > 1) {
       setFormData((prev) => ({
         ...prev,
-        batches: prev.batches.filter((_, i) => i !== index),
+        rounds: prev.rounds.filter((_, i) => i !== index),
       }));
     }
   };
@@ -185,36 +175,29 @@ const SeniorCreateCampaignPage = () => {
     if (!formData.description.trim()) {
       newErrors.description = "Mô tả nhu cầu là bắt buộc";
     }
-    if (!formData.requirements.trim()) {
-      newErrors.requirements = "Yêu cầu là bắt buộc";
-    }
 
-    formData.batches.forEach((batch, index) => {
-      if (!batch.startTime) {
-        newErrors[`batches.${index}.startTime`] =
+    formData.rounds.forEach((round, index) => {
+      if (!round.roundName || !round.roundName.trim()) {
+        newErrors[`rounds.${index}.roundName`] = "Tên đợt là bắt buộc";
+      }
+      if (!round.roundStartDate) {
+        newErrors[`rounds.${index}.roundStartDate`] =
           "Thời gian bắt đầu là bắt buộc";
       }
-      if (!batch.endTime) {
-        newErrors[`batches.${index}.endTime`] =
+      if (!round.roundEndDate) {
+        newErrors[`rounds.${index}.roundEndDate`] =
           "Thời gian kết thúc là bắt buộc";
       }
       if (
-        batch.startTime &&
-        batch.endTime &&
-        batch.startTime >= batch.endTime
+        round.roundStartDate &&
+        round.roundEndDate &&
+        round.roundStartDate >= round.roundEndDate
       ) {
-        newErrors[`batches.${index}.endTime`] =
+        newErrors[`rounds.${index}.roundEndDate`] =
           "Thời gian kết thúc phải sau thời gian bắt đầu";
       }
-      if (!batch.location.trim()) {
-        newErrors[`batches.${index}.location`] =
-          "Địa điểm đợt tuyển là bắt buộc";
-      }
-      if (!batch.owner.trim()) {
-        newErrors[`batches.${index}.owner`] = "Người phụ trách là bắt buộc";
-      }
-      if (!batch.target || parseInt(batch.target, 10) <= 0) {
-        newErrors[`batches.${index}.target`] =
+      if (!round.targetQuantity || parseInt(round.targetQuantity, 10) <= 0) {
+        newErrors[`rounds.${index}.targetQuantity`] =
           "Chỉ tiêu phải lớn hơn 0 cho mỗi đợt";
       }
     });
@@ -223,34 +206,35 @@ const SeniorCreateCampaignPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const mapBatchesToPayload = () => {
-    return formData.batches.map((batch, index) => ({
-      roundName: batch.name || `Round ${index + 1}`,
-      description: batch.note || "",
-      targetQuantity: parseInt(batch.target, 10) || 0,
-      roundStartDate: batch.startTime ? `${batch.startTime}T00:00:00Z` : null,
-      roundEndDate: batch.endTime ? `${batch.endTime}T23:59:59Z` : null,
-      location: batch.location,
-      method: batch.method,
-      owner: batch.owner,
+  const mapRoundsToPayload = () => {
+    return formData.rounds.map((round) => ({
+      roundName: round.roundName || "",
+      description: round.description || "",
+      targetQuantity: parseInt(round.targetQuantity, 10) || 0,
+      roundStartDate: round.roundStartDate
+        ? `${round.roundStartDate}T00:00:00Z`
+        : null,
+      roundEndDate: round.roundEndDate
+        ? `${round.roundEndDate}T23:59:59Z`
+        : null,
     }));
   };
 
-  const validateBatchTargets = () => {
+  const validateRoundTargets = () => {
     const campaignTarget = parseInt(formData.targetQuantity, 10) || 0;
     if (campaignTarget <= 0) {
       toast.error("Vui lòng nhập chỉ tiêu campaign hợp lệ.");
       return false;
     }
 
-    const batches = formData.batches;
-    if (batches.length === 0) {
+    const rounds = formData.rounds;
+    if (rounds.length === 0) {
       toast.error("Cần ít nhất một đợt tuyển.");
       return false;
     }
 
     // Round 1 must be 60-70% of campaign target
-    const firstTarget = parseInt(batches[0].target, 10) || 0;
+    const firstTarget = parseInt(rounds[0].targetQuantity, 10) || 0;
     if (
       firstTarget < campaignTarget * 0.6 ||
       firstTarget > campaignTarget * 0.7
@@ -265,9 +249,9 @@ const SeniorCreateCampaignPage = () => {
     let remaining = campaignTarget - firstTarget;
 
     // Middle rounds (excluding first and last if there are >=2 rounds)
-    if (batches.length > 2) {
-      for (let i = 1; i < batches.length - 1; i += 1) {
-        const roundTarget = parseInt(batches[i].target, 10) || 0;
+    if (rounds.length > 2) {
+      for (let i = 1; i < rounds.length - 1; i += 1) {
+        const roundTarget = parseInt(rounds[i].targetQuantity, 10) || 0;
         if (roundTarget < remaining * 0.6 || roundTarget > remaining * 0.7) {
           toast.error(
             `Đợt ${
@@ -281,8 +265,9 @@ const SeniorCreateCampaignPage = () => {
     }
 
     // Last round must be >=80% of remaining
-    if (batches.length > 1) {
-      const lastTarget = parseInt(batches[batches.length - 1].target, 10) || 0;
+    if (rounds.length > 1) {
+      const lastTarget =
+        parseInt(rounds[rounds.length - 1].targetQuantity, 10) || 0;
       if (lastTarget < remaining * 0.8) {
         toast.error(
           "Đợt cuối phải có chỉ tiêu tối thiểu 80% số lượng còn lại."
@@ -303,27 +288,14 @@ const SeniorCreateCampaignPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const incompleteBatchIndex = formData.batches.findIndex((batch, index) => {
-      if (!batch.startTime || !batch.endTime) return true;
-      if (!batch.location.trim()) return true;
-      if (index !== 0 && !batch.owner.trim()) return true;
-      if (!batch.target || parseInt(batch.target, 10) <= 0) return true;
-      return false;
-    });
-
-    if (incompleteBatchIndex !== -1) {
-      const batchName =
-        formData.batches[incompleteBatchIndex].name ||
-        `Đợt ${incompleteBatchIndex + 1}`;
-      toast.error(`Vui lòng nhập đầy đủ thông tin cho ${batchName}.`);
-      return;
-    }
-
+    // Validate form trước
     if (!validateForm()) {
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
 
-    if (!validateBatchTargets()) {
+    // Validate chỉ tiêu các đợt
+    if (!validateRoundTargets()) {
       return;
     }
 
@@ -335,15 +307,19 @@ const SeniorCreateCampaignPage = () => {
           ? `${formData.startDate}T00:00:00Z`
           : null,
         endDate: formData.endDate ? `${formData.endDate}T23:59:59Z` : null,
-        rounds: mapBatchesToPayload(),
+        rounds: mapRoundsToPayload(),
       };
 
       const response = await updateCampaignAndCreateRounds(campaignId, payload);
       console.log("Updating campaign:", payload);
+      console.log("API Response:", response);
 
       if (response.success) {
         toast.success(response.message || "Cập nhật campaign thành công!");
-        navigate("/senior-recruiter/campaigns");
+
+        setTimeout(() => {
+          navigate("/senior-recruiter/campaigns");
+        }, 2000);
       } else {
         toast.error(response.error || "Cập nhật campaign thất bại");
       }
@@ -590,10 +566,10 @@ const SeniorCreateCampaignPage = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={addBatch}
-                  disabled={formData.batches.length >= 3}
+                  onClick={addRound}
+                  disabled={formData.rounds.length >= 3}
                   className={`px-3 py-1 text-sm text-white rounded-md ${
-                    formData.batches.length >= 3
+                    formData.rounds.length >= 3
                       ? "bg-slate-300 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-700"
                   }`}
@@ -604,7 +580,7 @@ const SeniorCreateCampaignPage = () => {
 
               <div className="p-5">
                 <div className="space-y-4">
-                  {formData.batches.map((batch, index) => (
+                  {formData.rounds.map((round, index) => (
                     <div
                       key={index}
                       className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
@@ -612,12 +588,12 @@ const SeniorCreateCampaignPage = () => {
                       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-semibold text-slate-800">
-                            {batch.name}
+                            {round.roundName}
                           </span>
-                          {formData.batches.length > 1 && (
+                          {formData.rounds.length > 1 && (
                             <button
                               type="button"
-                              onClick={() => removeBatch(index)}
+                              onClick={() => removeRound(index)}
                               className="text-xs text-red-600 hover:text-red-800"
                             >
                               ✕ Xóa
@@ -630,28 +606,55 @@ const SeniorCreateCampaignPage = () => {
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div>
                             <label className="block mb-1 text-sm font-medium text-slate-700">
-                              Thời gian bắt đầu *
+                              Tên đợt *
                             </label>
                             <input
-                              type="date"
-                              value={batch.startTime}
+                              type="text"
+                              value={round.roundName}
                               onChange={(e) =>
-                                handleBatchChange(
+                                handleRoundChange(
                                   index,
-                                  "startTime",
+                                  "roundName",
                                   e.target.value
                                 )
                               }
                               className={`w-full px-2 py-1 text-xs border rounded ${
-                                errors[`batches.${index}.startTime`]
+                                errors[`rounds.${index}.roundName`]
+                                  ? "border-red-300"
+                                  : "border-slate-300"
+                              }`}
+                              placeholder="Round 1"
+                            />
+                            {errors[`rounds.${index}.roundName`] && (
+                              <p className="mt-1 text-xs text-red-600">
+                                {errors[`rounds.${index}.roundName`]}
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block mb-1 text-sm font-medium text-slate-700">
+                              Thời gian bắt đầu *
+                            </label>
+                            <input
+                              type="date"
+                              value={round.roundStartDate}
+                              onChange={(e) =>
+                                handleRoundChange(
+                                  index,
+                                  "roundStartDate",
+                                  e.target.value
+                                )
+                              }
+                              className={`w-full px-2 py-1 text-xs border rounded ${
+                                errors[`rounds.${index}.roundStartDate`]
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
                               min={todayString}
                             />
-                            {errors[`batches.${index}.startTime`] && (
+                            {errors[`rounds.${index}.roundStartDate`] && (
                               <p className="mt-1 text-xs text-red-600">
-                                {errors[`batches.${index}.startTime`]}
+                                {errors[`rounds.${index}.roundStartDate`]}
                               </p>
                             )}
                           </div>
@@ -661,114 +664,27 @@ const SeniorCreateCampaignPage = () => {
                             </label>
                             <input
                               type="date"
-                              value={batch.endTime}
+                              value={round.roundEndDate}
                               onChange={(e) =>
-                                handleBatchChange(
+                                handleRoundChange(
                                   index,
-                                  "endTime",
+                                  "roundEndDate",
                                   e.target.value
                                 )
                               }
                               className={`w-full px-2 py-1 text-xs border rounded ${
-                                errors[`batches.${index}.endTime`]
+                                errors[`rounds.${index}.roundEndDate`]
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              min={batch.startTime || todayString}
+                              min={round.roundStartDate || todayString}
                             />
-                            {errors[`batches.${index}.endTime`] && (
+                            {errors[`rounds.${index}.roundEndDate`] && (
                               <p className="mt-1 text-xs text-red-600">
-                                {errors[`batches.${index}.endTime`]}
+                                {errors[`rounds.${index}.roundEndDate`]}
                               </p>
                             )}
                           </div>
-
-                          <div>
-                            <label className="block mb-1 text-sm font-medium text-slate-700">
-                              Địa điểm *
-                            </label>
-                            <select
-                              value={batch.location}
-                              onChange={(e) =>
-                                handleBatchChange(
-                                  index,
-                                  "location",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-full px-2 py-1 text-xs border rounded ${
-                                errors[`batches.${index}.location`]
-                                  ? "border-red-300"
-                                  : "border-slate-300"
-                              }`}
-                            >
-                              <option value="">-- Chọn địa điểm --</option>
-                              {locations.map((location) => (
-                                <option key={location} value={location}>
-                                  {location}
-                                </option>
-                              ))}
-                            </select>
-                            {errors[`batches.${index}.location`] && (
-                              <p className="mt-1 text-xs text-red-600">
-                                {errors[`batches.${index}.location`]}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label className="block mb-1 text-sm font-medium text-slate-700">
-                              Hình thức
-                            </label>
-                            <select
-                              value={batch.method}
-                              onChange={(e) =>
-                                handleBatchChange(
-                                  index,
-                                  "method",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-2 py-1 text-xs border rounded border-slate-300"
-                            >
-                              {recruitmentMethods.map((method) => (
-                                <option key={method} value={method}>
-                                  {method}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Ẩn input phụ trách cho đợt 1 (index 0) */}
-                          {index !== 0 && (
-                            <div>
-                              <label className="block mb-1 text-sm font-medium text-slate-700">
-                                Phụ trách *
-                              </label>
-                              <input
-                                type="text"
-                                value={batch.owner}
-                                onChange={(e) =>
-                                  handleBatchChange(
-                                    index,
-                                    "owner",
-                                    e.target.value
-                                  )
-                                }
-                                className={`w-full px-2 py-1 text-xs border rounded ${
-                                  errors[`batches.${index}.owner`]
-                                    ? "border-red-300"
-                                    : "border-slate-300"
-                                }`}
-                                placeholder="Nguyễn Văn A"
-                              />
-                              {errors[`batches.${index}.owner`] && (
-                                <p className="mt-1 text-xs text-red-600">
-                                  {errors[`batches.${index}.owner`]}
-                                </p>
-                              )}
-                            </div>
-                          )}
 
                           <div>
                             <label className="block mb-1 text-sm font-medium text-slate-700">
@@ -776,41 +692,46 @@ const SeniorCreateCampaignPage = () => {
                             </label>
                             <input
                               type="number"
-                              value={batch.target}
+                              value={round.targetQuantity}
                               onChange={(e) =>
-                                handleBatchChange(
+                                handleRoundChange(
                                   index,
-                                  "target",
+                                  "targetQuantity",
                                   e.target.value
                                 )
                               }
                               min="0"
-                              step="10"
+                              step="1"
                               className={`w-full px-2 py-1 text-xs border rounded ${
-                                errors[`batches.${index}.target`]
+                                errors[`rounds.${index}.targetQuantity`]
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
+                              placeholder="Nhập chỉ tiêu..."
                             />
-                            {errors[`batches.${index}.target`] && (
+                            {errors[`rounds.${index}.targetQuantity`] && (
                               <p className="mt-1 text-xs text-red-600">
-                                {errors[`batches.${index}.target`]}
+                                {errors[`rounds.${index}.targetQuantity`]}
                               </p>
                             )}
                           </div>
 
-                          <div>
+                          <div className="sm:col-span-2">
                             <label className="block mb-1 text-sm font-medium text-slate-700">
-                              Ghi chú
+                              Mô tả
                             </label>
-                            <input
-                              type="text"
-                              value={batch.note}
+                            <textarea
+                              value={round.description}
                               onChange={(e) =>
-                                handleBatchChange(index, "note", e.target.value)
+                                handleRoundChange(
+                                  index,
+                                  "description",
+                                  e.target.value
+                                )
                               }
+                              rows="3"
                               className="w-full px-2 py-1 text-xs border rounded border-slate-300"
-                              placeholder="Phỏng vấn vòng 1"
+                              placeholder="Mô tả về đợt tuyển dụng này..."
                             />
                           </div>
                         </div>
@@ -833,14 +754,15 @@ const SeniorCreateCampaignPage = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Tổng đợt tuyển:</span>
                   <span className="font-medium text-slate-800">
-                    {formData.batches.length}
+                    {formData.rounds.length}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Chỉ tiêu các đợt:</span>
                   <span className="font-medium text-slate-800">
-                    {formData.batches.reduce(
-                      (sum, batch) => sum + (parseInt(batch.target, 10) || 0),
+                    {formData.rounds.reduce(
+                      (sum, round) =>
+                        sum + (parseInt(round.targetQuantity, 10) || 0),
                       0
                     )}{" "}
                     người
@@ -876,6 +798,7 @@ const SeniorCreateCampaignPage = () => {
                 </button>
                 <button
                   type="submit"
+                  onClick={handleSubmit}
                   disabled={isSubmitting}
                   className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
                     isSubmitting
