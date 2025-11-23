@@ -200,6 +200,9 @@ const SeniorCreateCampaignPage = () => {
         newErrors[`rounds.${index}.targetQuantity`] =
           "Chỉ tiêu phải lớn hơn 0 cho mỗi đợt";
       }
+      if (!round.description.trim()) {
+        newErrors[`rounds.${index}.description`] = "Mô tả đợt là bắt buộc";
+      }
     });
 
     setErrors(newErrors);
@@ -436,11 +439,6 @@ const SeniorCreateCampaignPage = () => {
                       placeholder="Nhập số lượng cần tuyển"
                       disabled={isRequestDataLocked}
                     />
-                    {errors.targetQuantity && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.targetQuantity}
-                      </p>
-                    )}
                   </div>
 
                   <div>
@@ -503,11 +501,6 @@ const SeniorCreateCampaignPage = () => {
                     placeholder="Mô tả chung về chiến dịch..."
                     disabled={isRequestDataLocked}
                   />
-                  {errors.description && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.description}
-                    </p>
-                  )}
                 </div>
 
                 <div className="mt-6">
@@ -525,11 +518,6 @@ const SeniorCreateCampaignPage = () => {
                       disabled={isRequestDataLocked}
                     />
                   </div>
-                  {errors.jobDescription && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.jobDescription}
-                    </p>
-                  )}
                 </div>
 
                 <div className="mt-4">
@@ -549,11 +537,6 @@ const SeniorCreateCampaignPage = () => {
                       disabled={isRequestDataLocked}
                     />
                   </div>
-                  {errors.jobRequirement && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.jobRequirement}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -733,6 +716,11 @@ const SeniorCreateCampaignPage = () => {
                               className="w-full px-2 py-1 text-xs border rounded border-slate-300"
                               placeholder="Mô tả về đợt tuyển dụng này..."
                             />
+                            {errors[`rounds.${index}.description`] && (
+                              <p className="mt-1 text-xs text-red-600">
+                                {errors[`rounds.${index}.description`]}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>

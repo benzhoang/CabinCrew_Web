@@ -221,3 +221,56 @@ body {
 .cloud-clickable:active {
   transform: scale(0.98);
 }
+
+/* CKEditor list styles - ensure bullets and numbers are visible */
+.ck-editor__editable ul,
+.ck-editor__editable ol {
+  padding-left: 2em !important;
+  margin: 1em 0 !important;
+}
+
+.ck-editor__editable ul li {
+  list-style-type: disc !important;
+  display: list-item !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.ck-editor__editable ol li {
+  list-style-type: decimal !important;
+  display: list-item !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+.ck-editor__editable li {
+  margin: 0.5em 0 !important;
+}
+
+/* Rendered HTML content list styles */
+.job-description-content ul,
+.job-description-content ol,
+.job-requirement-content ul,
+.job-requirement-content ol {
+  padding-left: 2em !important;
+  margin: 0.5em 0 !important;
+}
+
+.job-description-content ul li,
+.job-requirement-content ul li {
+  list-style-type: disc !important;
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+.job-description-content ol li,
+.job-requirement-content ol li {
+  list-style-type: decimal !important;
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+.job-description-content p,
+.job-requirement-content p {
+  margin: 0.5em 0 !important;
+}

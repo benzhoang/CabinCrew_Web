@@ -1,7 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { FaTasks } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import AddTaskModal from "./AddTaskModal";
+
+// Helper function to format date without time (from "DD/MM/YYYY HH:mm" to "DD/MM/YYYY")
+const formatDateOnly = (dateString) => {
+  if (!dateString) return "—";
+  // If dateString contains time, split and take only date part
+  const datePart = dateString.split(" ")[0];
+  return datePart;
+};
 
 const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
   const [openStats, setOpenStats] = useState(false);
@@ -39,23 +47,11 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini
             label="Thời gian bắt đầu"
-            value={
-              batch.startDate
-                ? new Date(batch.startDate).toLocaleDateString("vi-VN")
-                : batch.time
-                ? batch.time.split(" - ")[0]
-                : "—"
-            }
+            value={formatDateOnly(batch.startDate)}
           />
           <InfoMini
             label="Thời gian kết thúc"
-            value={
-              batch.endDate
-                ? new Date(batch.endDate).toLocaleDateString("vi-VN")
-                : batch.time
-                ? batch.time.split(" - ")[1]
-                : "—"
-            }
+            value={formatDateOnly(batch.endDate)}
           />
           <InfoMini label="Địa điểm" value={batch.location || "—"} />
           <InfoMini label="Hình thức" value={batch.method || "—"} />
@@ -164,42 +160,54 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
 
 const BatchManagement = ({ campaign, onCreateBatch }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentBatches] = useState(() => {
-    return Array.isArray(campaign?.batches) && campaign.batches.length
-      ? campaign.batches
-      : [
-          {
-            name: "Đợt 1",
-            startDate: "2024-10-01",
-            endDate: "2024-10-15",
-            time: "01/10/2024 - 15/10/2024",
-            location: "Hà Nội",
-            method: "Trực tiếp",
-            owner: "Nguyễn Thanh Tùng",
-            status: "ongoing",
-            current: 7,
-            target: 10,
-            totalApplicants: 125,
-            appliedCandidates: 89,
-            note: "Phỏng vấn vòng 1",
-          },
-          {
-            name: "Đợt 2",
-            startDate: "2024-11-01",
-            endDate: "2024-11-15",
-            time: "01/11/2024 - 15/11/2024",
-            location: "TP.HCM",
-            method: "Trực tiếp",
-            owner: "Trần Bảo Vy",
-            status: "upcoming",
-            current: 0,
-            target: 10,
-            totalApplicants: 0,
-            appliedCandidates: 0,
-            note: "Phỏng vấn vòng 2",
-          },
-        ];
-  });
+
+  // Map rounds from API to batch format
+  const mapRoundToBatch = (round) => {
+    const statusMap = {
+      Ongoing: "ongoing",
+      Completed: "completed",
+      Planned: "planned",
+      Upcoming: "upcoming",
+      Paused: "paused",
+      Cancelled: "cancelled",
+    };
+
+    return {
+      id: round.campaignRoundId,
+      name: round.roundName || `Round ${round.campaignRoundId}`,
+      startDate: round.startDate,
+      endDate: round.endDate,
+      time:
+        round.startDate && round.endDate
+          ? `${round.startDate} - ${round.endDate}`
+          : undefined,
+      location: round.location || "—",
+      method: round.method || "Trực tiếp",
+      owner: round.owner || "—",
+      status:
+        statusMap[round.status] || round.status?.toLowerCase() || "planned",
+      current: round.actualQuantiy || round.actualQuantity || 0,
+      target: round.targetQuantity || 0,
+      totalApplicants: round.totalApplicants || 0,
+      appliedCandidates: round.appliedCandidates || 0,
+      note: round.description || round.note || "",
+    };
+  };
+
+  const currentBatches = useMemo(() => {
+    // If campaign has rounds from API, use them
+    if (Array.isArray(campaign?.rounds) && campaign.rounds.length > 0) {
+      return campaign.rounds.map(mapRoundToBatch);
+    }
+
+    // Fallback to campaign.batches if exists
+    if (Array.isArray(campaign?.batches) && campaign.batches.length) {
+      return campaign.batches;
+    }
+
+    // Default empty array
+    return [];
+  }, [campaign]);
 
   const getStatus = (status) => {
     const map = {
@@ -237,33 +245,44 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
     }
   };
 
+  // Check if campaign status is pending
+  const isPending = campaign?.status?.toLowerCase() === "pending";
+
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
         <div className="text-sm text-slate-600">Kế hoạch các đợt tuyển</div>
-        <button
-          onClick={handleCreateBatch}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-all duration-200 transform rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:scale-105 active:scale-95"
-        >
-          <FaTasks className="w-4 h-4" />
-          Giao việc
-        </button>
+        {!isPending && (
+          <button
+            onClick={handleCreateBatch}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-all duration-200 transform rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:scale-105 active:scale-95"
+          >
+            <FaTasks className="w-4 h-4" />
+            Giao việc
+          </button>
+        )}
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {currentBatches.map((batch, index) => {
-          const statusCfg = getStatus(batch.status);
-          const progressPercent = percent(batch.current, batch.target);
-          return (
-            <BatchCard
-              key={index}
-              batch={batch}
-              statusCfg={statusCfg}
-              percent={progressPercent}
-              campaignId={campaign?.id || 1}
-            />
-          );
-        })}
-      </div>
+      {currentBatches.length === 0 ? (
+        <div className="py-8 text-center text-slate-500">
+          Chưa có đợt tuyển dụng nào
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {currentBatches.map((batch) => {
+            const statusCfg = getStatus(batch.status);
+            const progressPercent = percent(batch.current, batch.target);
+            return (
+              <BatchCard
+                key={batch.id || batch.name}
+                batch={batch}
+                statusCfg={statusCfg}
+                percent={progressPercent}
+                campaignId={campaign?.campaignId || campaign?.id || 1}
+              />
+            );
+          })}
+        </div>
+      )}
 
       {/* Assign Task Modal */}
       <AddTaskModal
