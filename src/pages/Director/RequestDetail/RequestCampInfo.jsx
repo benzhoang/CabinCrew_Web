@@ -175,88 +175,90 @@ const RequestCampInfo = () => {
                 </Section>
             </div>
 
-            {/* ACTION BUTTONS */}
-            <div className="mt-6 flex justify-end gap-4">
+            {/* ACTION BUTTONS - Chỉ hiển thị khi status là Pending */}
+            {(data.status === 'Pending' || data.status === 'pending_approval' || data.status?.toLowerCase() === 'pending') && (
+                <div className="mt-6 flex justify-end gap-4">
 
-                {/* NÚT TỪ CHỐI */}
-                <button
-                    onClick={() => setIsRejectModalOpen(true)}
-                    disabled={isRejecting || isApproving}
-                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
-                        font-medium shadow-md transform
-                        ${isRejecting || isApproving
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95'
-                        }`}
-                >
-                    {isRejecting ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang từ chối...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Từ chối
-                        </>
-                    )}
-                </button>
+                    {/* NÚT TỪ CHỐI */}
+                    <button
+                        onClick={() => setIsRejectModalOpen(true)}
+                        disabled={isRejecting || isApproving}
+                        className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+                            font-medium shadow-md transform
+                            ${isRejecting || isApproving
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                            }`}
+                    >
+                        {isRejecting ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang từ chối...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Từ chối
+                            </>
+                        )}
+                    </button>
 
-                {/* NÚT DUYỆT */}
-                <button
-                    onClick={async () => {
-                        if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
-                            setIsApproving(true)
-                            try {
-                                const result = await approveOrRejectCampaignRequest(data.id, 2)
-                                if (result.success) {
-                                    alert(result.message || 'Duyệt yêu cầu thành công')
-                                    // Reload dữ liệu để cập nhật trạng thái
-                                    const refreshResult = await getCampaignRequestById(data.id)
-                                    if (refreshResult.success) {
-                                        const apiData = refreshResult.data
-                                        setData({
-                                            ...data,
-                                            status: apiData.status || 'approved',
-                                            approvedAt: apiData.approvedAt || '',
-                                        })
+                    {/* NÚT DUYỆT */}
+                    <button
+                        onClick={async () => {
+                            if (window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) {
+                                setIsApproving(true)
+                                try {
+                                    const result = await approveOrRejectCampaignRequest(data.id, 2)
+                                    if (result.success) {
+                                        alert(result.message || 'Duyệt yêu cầu thành công')
+                                        // Reload dữ liệu để cập nhật trạng thái
+                                        const refreshResult = await getCampaignRequestById(data.id)
+                                        if (refreshResult.success) {
+                                            const apiData = refreshResult.data
+                                            setData({
+                                                ...data,
+                                                status: apiData.status || 'approved',
+                                                approvedAt: apiData.approvedAt || '',
+                                            })
+                                        }
+                                    } else {
+                                        alert(result.error || 'Không thể duyệt yêu cầu')
                                     }
-                                } else {
-                                    alert(result.error || 'Không thể duyệt yêu cầu')
+                                } catch (err) {
+                                    console.error('Error approving request:', err)
+                                    alert('Đã xảy ra lỗi khi duyệt yêu cầu')
+                                } finally {
+                                    setIsApproving(false)
                                 }
-                            } catch (err) {
-                                console.error('Error approving request:', err)
-                                alert('Đã xảy ra lỗi khi duyệt yêu cầu')
-                            } finally {
-                                setIsApproving(false)
                             }
-                        }
-                    }}
-                    disabled={isApproving || isRejecting}
-                    className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
-                        font-medium shadow-md transform
-                        ${isApproving || isRejecting
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
-                        }`}
-                >
-                    {isApproving ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang duyệt...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Duyệt
-                        </>
-                    )}
-                </button>
-            </div>
+                        }}
+                        disabled={isApproving || isRejecting}
+                        className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+                            font-medium shadow-md transform
+                            ${isApproving || isRejecting
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95'
+                            }`}
+                    >
+                        {isApproving ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                Đang duyệt...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Duyệt
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* MODAL TỪ CHỐI */}
             <RejectRequestModal

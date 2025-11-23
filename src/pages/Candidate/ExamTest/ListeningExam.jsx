@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { t, onLangChange } from '../../../i18n';
-import AudioPlayer, { mockQuestions } from './AudioPlayer';
+import { getExamQuestions } from '../../../service/api';
+import AudioPlayer from './AudioPlayer';
 
 const ListeningExam = ({ examInfo }) => {
     const navigate = useNavigate();
+    const { id: testIdFromUrl } = useParams(); // Lấy testId từ URL params
+    const [questions, setQuestions] = useState([]); // Danh sách câu hỏi từ API
+    const [examData, setExamData] = useState(null); // Thông tin đề thi từ API
+    const [isLoadingQuestions, setIsLoadingQuestions] = useState(true); // Loading state khi fetch questions
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
     const [timeRemaining, setTimeRemaining] = useState(examInfo?.duration ? examInfo.duration * 60 : 1800); // Chuyển phút sang giây
@@ -20,6 +26,109 @@ const ListeningExam = ({ examInfo }) => {
         const off = onLangChange(() => setLangVersion((v) => v + 1));
         return () => off();
     }, []);
+
+    // Fetch questions từ API
+    useEffect(() => {
+        const fetchExamQuestions = async () => {
+            setIsLoadingQuestions(true);
+            try {
+                // Lấy testId từ URL params (ưu tiên) hoặc từ examInfo
+                const testId = testIdFromUrl || examInfo?.examId;
+                // Lấy joinCode từ examInfo hoặc từ localStorage
+                let joinCode = examInfo?.examCode;
+
+                // Nếu không có joinCode trong examInfo, thử lấy từ localStorage
+                if (!joinCode && testId) {
+                    joinCode = localStorage.getItem(`examCode_${testId}`);
+                }
+
+                console.log('=== Fetch Exam Questions ===');
+                console.log('testIdFromUrl:', testIdFromUrl);
+                console.log('examInfo:', examInfo);
+                console.log('testId:', testId);
+                console.log('joinCode:', joinCode);
+
+                if (!testId) {
+                    console.error('Missing testId:', { testId });
+                    toast.error('Thiếu thông tin đề thi. Vui lòng thử lại.');
+                    navigate('/test');
+                    return;
+                }
+
+                if (!joinCode) {
+                    console.error('Missing joinCode:', { joinCode });
+                    toast.error('Thiếu mã đề thi. Vui lòng quay lại và nhập mã đề thi.');
+                    navigate('/test');
+                    return;
+                }
+
+                console.log('Calling getExamQuestions with:', { testId, joinCode });
+                const result = await getExamQuestions(testId, joinCode);
+                console.log('API Result:', result);
+
+                // Kiểm tra nếu có data (bất kể success flag)
+                // Một số API trả về success: false nhưng vẫn có data hợp lệ
+                if (result.data && result.data.questions && Array.isArray(result.data.questions) && result.data.questions.length > 0) {
+                    const data = result.data;
+                    console.log('API Data:', data);
+                    console.log('Questions count:', data.questions?.length || 0);
+
+                    // Lưu thông tin đề thi
+                    setExamData({
+                        testId: data.testId,
+                        testName: data.testName,
+                        testType: data.testType,
+                        maxScore: data.maxScore,
+                        durationInMinutes: data.durationInMinutes,
+                        audioFileURL: data.audioFileURL,
+                        totalQuestions: data.totalQuestions,
+                    });
+
+                    // Map questions từ API sang format hiện tại
+                    const mappedQuestions = (data.questions || []).map((q, index) => {
+                        // Map options từ API sang format hiện tại
+                        const mappedOptions = (q.options || []).map((opt, optIndex) => {
+                            const optionKey = String.fromCharCode(65 + optIndex); // A, B, C, D
+                            return `${optionKey}. ${opt.optionContent}`;
+                        });
+
+                        return {
+                            id: q.questionId,
+                            question: q.questionContent,
+                            options: mappedOptions,
+                            score: q.score,
+                            orderNumber: q.orderNumber,
+                        };
+                    });
+
+                    // Sắp xếp theo orderNumber
+                    mappedQuestions.sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
+
+                    console.log('Mapped Questions:', mappedQuestions);
+                    setQuestions(mappedQuestions);
+
+                    // Cập nhật thời gian từ API
+                    if (data.durationInMinutes) {
+                        setTimeRemaining(data.durationInMinutes * 60);
+                    }
+
+                    toast.success(`Đã tải ${mappedQuestions.length} câu hỏi thành công`);
+                } else {
+                    console.error('API Error:', result.error);
+                    toast.error(result.error || 'Không thể tải câu hỏi đề thi');
+                    navigate('/test');
+                }
+            } catch (error) {
+                console.error('Error fetching exam questions:', error);
+                toast.error('Đã xảy ra lỗi khi tải câu hỏi đề thi');
+                navigate('/test');
+            } finally {
+                setIsLoadingQuestions(false);
+            }
+        };
+
+        fetchExamQuestions();
+    }, [testIdFromUrl, examInfo, navigate]);
 
     // Timer countdown
     useEffect(() => {
@@ -44,8 +153,8 @@ const ListeningExam = ({ examInfo }) => {
 
     // Calculate progress percentage - chỉ tính các câu đã được trả lời
     const answeredCount = Object.keys(answers).length;
-    const unansweredCount = mockQuestions.length - answeredCount;
-    const progress = (answeredCount / mockQuestions.length) * 100;
+    const unansweredCount = questions.length - answeredCount;
+    const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
     // Toggle đánh dấu câu hỏi
     const toggleMarkQuestion = (questionId) => {
@@ -83,7 +192,7 @@ const ListeningExam = ({ examInfo }) => {
 
     // Handle next/previous question
     const handleNext = () => {
-        if (currentQuestionIndex < mockQuestions.length - 1) {
+        if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         }
     };
@@ -97,21 +206,16 @@ const ListeningExam = ({ examInfo }) => {
     const openSubmitModal = () => setIsSubmitModalOpen(true);
     const closeSubmitModal = () => setIsSubmitModalOpen(false);
     const handleConfirmSubmit = () => {
-        // Tính điểm
-        let score = 0;
-        let correctAnswers = 0;
-        let wrongAnswers = 0;
+        // Tính điểm (không có correctAnswer từ API, chỉ đếm số câu đã trả lời)
+        let answeredQuestions = 0;
         let unansweredQuestions = 0;
 
-        mockQuestions.forEach((question) => {
+        questions.forEach((question) => {
             const userAnswer = answers[question.id];
             if (userAnswer === undefined) {
                 unansweredQuestions++;
-            } else if (userAnswer === question.correctAnswer) {
-                score++;
-                correctAnswers++;
             } else {
-                wrongAnswers++;
+                answeredQuestions++;
             }
         });
 
@@ -128,20 +232,41 @@ const ListeningExam = ({ examInfo }) => {
         navigate('/exam-result', {
             state: {
                 examType: 'Listening',
-                score,
-                totalQuestions: mockQuestions.length,
-                correctAnswers,
-                wrongAnswers,
+                totalQuestions: questions.length,
+                answeredQuestions,
                 unansweredQuestions,
                 answers,
-                questions: mockQuestions,
+                questions: questions,
                 timeSpent,
-                examInfo
+                examInfo: examData || examInfo
             }
         });
     };
 
-    const currentQuestion = mockQuestions[currentQuestionIndex];
+    // Loading state
+    if (isLoadingQuestions) {
+        return (
+            <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">{t('loading') || 'Đang tải câu hỏi...'}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Nếu không có câu hỏi
+    if (questions.length === 0) {
+        return (
+            <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-600">{t('no_questions') || 'Không có câu hỏi nào'}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
     const currentAnswer = answers[currentQuestion.id];
 
     return (
@@ -155,7 +280,7 @@ const ListeningExam = ({ examInfo }) => {
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-xl font-bold text-gray-800">
-                                        {t('listening_test') || 'Bài thi nghe'} - {t('question') || 'Câu hỏi'} {currentQuestionIndex + 1} / {mockQuestions.length}
+                                        {t('listening_test') || 'Bài thi nghe'} - {t('question') || 'Câu hỏi'} {currentQuestionIndex + 1} / {questions.length}
                                     </h2>
                                     <div className="flex items-center gap-3">
                                         <button
@@ -184,14 +309,17 @@ const ListeningExam = ({ examInfo }) => {
                             </div>
 
                             {/* Audio Player - Sử dụng component riêng */}
-                            <AudioPlayer
-                                questionId={currentQuestion.id}
-                                allQuestions={mockQuestions}
-                                maxPlays={3}
-                                onPlayCountChange={handlePlayCountChange}
-                                isPlaying={isAudioPlaying}
-                                onPlayingChange={setIsAudioPlaying}
-                            />
+                            {examData?.audioFileURL && (
+                                <AudioPlayer
+                                    questionId={currentQuestion.id}
+                                    allQuestions={questions}
+                                    maxPlays={3}
+                                    onPlayCountChange={handlePlayCountChange}
+                                    isPlaying={isAudioPlaying}
+                                    onPlayingChange={setIsAudioPlaying}
+                                    audioUrl={examData.audioFileURL}
+                                />
+                            )}
 
                             {/* Các lựa chọn */}
                             <div className="mb-8">
@@ -237,7 +365,7 @@ const ListeningExam = ({ examInfo }) => {
                                 </button>
                                 <button
                                     onClick={handleNext}
-                                    disabled={currentQuestionIndex === mockQuestions.length - 1}
+                                    disabled={currentQuestionIndex === questions.length - 1}
                                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {t('next') || 'Câu sau'}
@@ -272,7 +400,7 @@ const ListeningExam = ({ examInfo }) => {
                                     ></div>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1 text-center">
-                                    {answeredCount} / {mockQuestions.length} {t('questions') || 'câu hỏi'} {t('answered') || 'đã trả lời'}
+                                    {answeredCount} / {questions.length} {t('questions') || 'câu hỏi'} {t('answered') || 'đã trả lời'}
                                 </p>
                             </div>
 
@@ -282,7 +410,7 @@ const ListeningExam = ({ examInfo }) => {
                                     {t('question_list') || 'Danh sách câu hỏi'}
                                 </h3>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {mockQuestions.map((question, index) => {
+                                    {questions.map((question, index) => {
                                         const isCurrent = index === currentQuestionIndex;
                                         const isAnswered = answers[question.id];
                                         const isMarked = markedQuestions.has(question.id);

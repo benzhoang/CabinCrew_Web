@@ -477,6 +477,9 @@ const dictionaries = {
         unsubmitted_recordings: 'Chưa nộp ghi âm',
         speaking_exam_result_title: 'Kết quả kiểm tra nói',
         speaking_exam_result_subtitle: 'Xem kết quả kiểm tra nói của bạn',
+        max_score: 'Điểm tối đa',
+        recording_submitted: 'Ghi âm đã được nộp',
+        unrecorded_questions: 'Số câu hỏi chưa ghi âm',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -961,6 +964,9 @@ const dictionaries = {
         unsubmitted_recordings: 'Unsubmitted Recordings',
         speaking_exam_result_title: 'Speaking Exam Result',
         speaking_exam_result_subtitle: 'View your speaking exam result',
+        max_score: 'Max Score',
+        recording_submitted: 'Recording submitted',
+        unrecorded_questions: 'Unrecorded questions',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',
@@ -1010,5 +1016,3 @@ export function t(key) {
 })();
 
 export default { t, getLang, setLang, onLangChange };
-
-

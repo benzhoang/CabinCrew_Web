@@ -24,19 +24,19 @@ const RecruitmentStages = () => {
             try {
                 setLoading(true);
                 const result = await getOngoingCampaign();
-                
+
                 if (result.success && result.data) {
                     // Map dữ liệu từ API vào format của component
                     const campaignData = result.data;
-                    
+
                     // Xác định currentStage dựa trên rounds
                     const rounds = campaignData.rounds || [];
-                    
+
                     // Map rounds thành stages với thông tin completed
                     const mappedStages = rounds.map((round, index) => {
-                        const isCompleted = round.status === 'Completed' || 
-                                          round.status === 'Passed' || 
-                                          round.status === 'Finished';
+                        const isCompleted = round.status === 'Completed' ||
+                            round.status === 'Passed' ||
+                            round.status === 'Finished';
                         return {
                             id: round.roundId || index + 1,
                             name: round.roundName || `Giai đoạn ${index + 1}`,
@@ -46,26 +46,26 @@ const RecruitmentStages = () => {
                             status: round.status
                         };
                     });
-                    
+
                     // Tính currentStage: số rounds đã hoàn thành + 1 (hoặc rounds.length nếu tất cả đã hoàn thành)
                     const completedCount = mappedStages.filter(stage => stage.completed).length;
                     let currentStageIndex = completedCount + 1;
-                    
+
                     // Nếu tất cả rounds đã hoàn thành, currentStage là rounds.length
                     if (currentStageIndex > rounds.length) {
                         currentStageIndex = rounds.length;
                     }
-                    
+
                     // Đảm bảo currentStage ít nhất là 1
                     if (currentStageIndex < 1) {
                         currentStageIndex = 1;
                     }
-                    
+
                     // Map status từ roundStatus
                     let status = 'pending';
                     let statusText = 'Đang xem xét';
                     let statusTextEn = 'Under Review';
-                    
+
                     if (campaignData.roundStatus) {
                         const roundStatus = campaignData.roundStatus.toLowerCase();
                         if (roundStatus.includes('completed') || roundStatus.includes('passed') || roundStatus.includes('finished')) {
@@ -78,7 +78,7 @@ const RecruitmentStages = () => {
                             statusTextEn = 'Rejected';
                         }
                     }
-                    
+
                     const mappedData = {
                         id: campaignData.campaignRoundId || 1,
                         position: campaignData.campaignName || 'Chiến dịch tuyển dụng',
@@ -95,7 +95,7 @@ const RecruitmentStages = () => {
                         currentStage: currentStageIndex || 1,
                         stages: mappedStages
                     };
-                    
+
                     setRecruitmentStages([mappedData]);
                     setError(null);
                 } else {
@@ -110,7 +110,7 @@ const RecruitmentStages = () => {
                 setLoading(false);
             }
         };
-        
+
         fetchOngoingCampaign();
     }, [langTick]);
 
@@ -265,7 +265,7 @@ const RecruitmentStages = () => {
                                         <div
                                             className="h-full bg-blue-500 transition-all duration-500"
                                             style={{
-                                                width: application.stages.length > 0 
+                                                width: application.stages.length > 0
                                                     ? `${(application.stages.filter(s => s.completed).length / application.stages.length) * 100}%`
                                                     : '0%'
                                             }}
@@ -315,18 +315,18 @@ const RecruitmentStages = () => {
                                             }
                                         </p>
                                         {/* Nút Kiểm tra tiếng Anh - chỉ hiển thị khi đang ở giai đoạn này và có stage tương ứng */}
-                                        {application.currentStage > 0 && application.currentStage <= application.stages.length && 
-                                         application.stages[application.currentStage - 1] && 
-                                         !application.stages[application.currentStage - 1].completed && 
-                                         (application.stages[application.currentStage - 1].name?.toLowerCase().includes('tiếng anh') || 
-                                          application.stages[application.currentStage - 1].name?.toLowerCase().includes('english')) && (
-                                            <button
-                                                onClick={() => navigate('/test')}
-                                                className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
-                                            >
-                                                {t('take_english_test') || 'Kiểm tra tiếng Anh'}
-                                            </button>
-                                        )}
+                                        {application.currentStage > 0 && application.currentStage <= application.stages.length &&
+                                            application.stages[application.currentStage - 1] &&
+                                            !application.stages[application.currentStage - 1].completed &&
+                                            (application.stages[application.currentStage - 1].name?.toLowerCase().includes('tiếng anh') ||
+                                                application.stages[application.currentStage - 1].name?.toLowerCase().includes('english')) && (
+                                                <button
+                                                    onClick={() => navigate(`/test/${application.id}`)}
+                                                    className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
+                                                >
+                                                    {t('take_english_test') || 'Kiểm tra tiếng Anh'}
+                                                </button>
+                                            )}
                                     </div>
                                 </div>
                             </div>
