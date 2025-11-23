@@ -344,7 +344,7 @@ const Apply = () => {
                                                     <div className="px-4 pb-4 pt-0 flex items-center justify-end">
                                                         {b.status === 'ongoing' && (
                                                             <button
-                                                                onClick={() => navigate('/application-form', { state: { campaign: campaign, batch: b } })}
+                                                                onClick={() => navigate(`/application-form/${b.campaignRoundId}`, { state: { campaign: campaign, batch: b } })}
                                                                 className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
                                                             >
                                                                 Ứng tuyển ngay

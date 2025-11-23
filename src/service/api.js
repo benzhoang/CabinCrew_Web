@@ -919,6 +919,51 @@ export const getTests = async (page = 1, pageSize = 10) => {
   }
 };
 
+// API lấy danh sách tests được gán cho user hiện tại (tự động lấy userId từ token)
+export const getMyTests = async () => {
+  try {
+    const response = await api.get("/tests/my-tests");
+
+    console.log('Raw API Response getMyTests:', response.data);
+    console.log('Response status:', response.status);
+    console.log('Response data.code:', response.data?.code);
+    console.log('Response data.data:', response.data?.data);
+
+    // Kiểm tra nếu có data trong response (dù code có thể !== 0)
+    const hasData = response.data.data && (
+      (response.data.data.tests && Array.isArray(response.data.data.tests) && response.data.data.tests.length > 0) ||
+      (Array.isArray(response.data.data) && response.data.data.length > 0)
+    );
+
+    // Nếu có data, coi như success (một số API trả về code !== 0 nhưng vẫn có data hợp lệ)
+    if (response.data.code === 0 || hasData) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message: response.data.message,
+        rawResponse: response.data,
+      };
+    } else {
+      // API trả về code !== 0 và không có data
+      console.warn('API returned code !== 0 and no data:', response.data.code);
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy danh sách đề thi",
+        data: response.data.data || null,
+        rawResponse: response.data,
+      };
+    }
+  } catch (error) {
+    console.error('API Error getMyTests:', error);
+    console.error('Error response:', error.response?.data);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message || "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API xóa test theo ID
 export const deleteTest = async (testId) => {
   try {
@@ -1707,6 +1752,86 @@ export const getOngoingCampaign = async () => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy câu hỏi đề thi cho Cabin Crew và Candidate để làm bài
+// Yêu cầu: testId và joinCode (10 ký tự)
+export const getExamQuestions = async (testId, joinCode) => {
+  try {
+    // Kiểm tra testId và joinCode hợp lệ
+    if (!testId) {
+      return {
+        success: false,
+        error: 'Test ID không được để trống',
+      };
+    }
+
+    // Convert testId sang number nếu là string
+    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    if (isNaN(testIdNum) || testIdNum <= 0) {
+      return {
+        success: false,
+        error: 'Test ID không hợp lệ',
+      };
+    }
+
+    if (!joinCode || joinCode.length !== 10) {
+      return {
+        success: false,
+        error: 'Join Code phải có đúng 10 ký tự',
+      };
+    }
+
+    console.log('Calling API with:', { testId: testIdNum, joinCode });
+
+    const response = await api.get('/test-questions/exam', {
+      params: {
+        testId: testIdNum,
+        joinCode: joinCode,
+      },
+    });
+
+    const responseData = response.data;
+    console.log('API Response:', responseData);
+
+    // Kiểm tra nếu có data trong response (bất kể code là gì, miễn là có data)
+    // Một số API trả về code khác 0 nhưng vẫn có data hợp lệ
+    if (responseData.data && responseData.data.questions) {
+      console.log('API Success - Questions count:', responseData.data.questions?.length || 0);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || 'Lấy câu hỏi thành công',
+      };
+    }
+    // Nếu không có data, kiểm tra code === 0 (success) theo format API chuẩn
+    else if (responseData.code === 0 && responseData.data) {
+      console.log('API Success - Questions count:', responseData.data.questions?.length || 0);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    } else {
+      console.error('API Error - code:', responseData.code, 'message:', responseData.message);
+      return {
+        success: false,
+        error: responseData.message || 'Không thể lấy câu hỏi đề thi',
+      };
+    }
+  } catch (error) {
+    console.error('API Error getExamQuestions:', error);
+    console.error('Error response:', error.response?.data);
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        error.message ||
+        'Không thể lấy câu hỏi đề thi',
       status: error.response?.status,
     };
   }

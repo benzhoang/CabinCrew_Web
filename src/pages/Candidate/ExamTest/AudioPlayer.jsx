@@ -1,57 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { t } from '../../../i18n';
 
-// Mock data - Listening test với câu hỏi tiếng Anh
-export const mockQuestions = [
-    {
-        id: 1,
-        question: 'What should you do when a passenger asks for assistance?',
-        options: [
-            'A. Ignore the request and continue with your duties',
-            'B. Respond politely and provide the necessary help',
-            'C. Ask another crew member to handle it',
-            'D. Direct them to find the information themselves'
-        ],
-        correctAnswer: 'B'
-    },
-    {
-        id: 2,
-        question: 'How should you address passengers during the flight?',
-        options: [
-            'A. Use their first names only',
-            'B. Use formal titles and be respectful',
-            'C. Use casual language to be friendly',
-            'D. Avoid speaking to passengers directly'
-        ],
-        correctAnswer: 'B'
-    },
-    {
-        id: 3,
-        question: 'What is the most important quality for a cabin crew member?',
-        options: [
-            'A. Physical appearance',
-            'B. Excellent communication and customer service skills',
-            'C. Ability to speak multiple languages',
-            'D. Years of flying experience'
-        ],
-        correctAnswer: 'B'
-    }
-];
-
 /**
  * AudioPlayer Component
  * Quản lý việc phát audio cho các câu hỏi
- * Phát file audio từ URL Cloudinary
+ * Phát file audio từ URL được truyền vào
  */
-const AudioPlayer = ({ questionId, allQuestions = [], maxPlays = 3, onPlayCountChange, isPlaying: externalIsPlaying, onPlayingChange }) => {
+const AudioPlayer = ({ questionId, allQuestions = [], maxPlays = 3, onPlayCountChange, isPlaying: externalIsPlaying, onPlayingChange, audioUrl }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playCount, setPlayCount] = useState(0);
     const audioRef = useRef(null);
     const isPlayingRef = useRef(false);
     const allQuestionsRef = useRef(null);
-
-    // URL audio từ Cloudinary
-    const audioUrl = "https://res.cloudinary.com/dxhaku7lp/raw/upload/v1762772878/audio-tests/audio-tests/01-01 - Học TA giao tiếp chỉ trong 30 ngày_20251110110757.mp3";
 
     // Sử dụng trạng thái từ component cha nếu có
     const playingState = externalIsPlaying !== undefined ? externalIsPlaying : isPlaying;

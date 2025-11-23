@@ -83,6 +83,7 @@ import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequ
 import CreateTestPage from "./pages/Examiner/CreateTestPage";
 import ExamTask from "./pages/Examiner/ExamTask";
 import ExaminerCabinCrewEvaluationPage from "./pages/Examiner/ExaminerDetail/ExaminerCabinCrewEvaluationPage";
+import DirectorApplyList from "./pages/Director/DirectorApplyList";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -157,7 +158,7 @@ function App() {
         />
         <Route path="/apply/:id" element={<Apply />} />
         <Route path="/apply" element={<Apply />} />
-        <Route path="/application-form" element={<ApplicationForm />} />
+        <Route path="/application-form/:id" element={<ApplicationForm />} />
         <Route
           path="/recruitment-history"
           element={
@@ -179,7 +180,7 @@ function App() {
           }
         />
         <Route
-          path="/test"
+          path="/test/:id"
           element={
             <>
               <Navbar />
@@ -189,7 +190,7 @@ function App() {
           }
         />
         <Route
-          path="/exam"
+          path="/exam/:id"
           element={
             <>
               <ExamPage />
@@ -746,6 +747,17 @@ function App() {
                 <div className="space-y-2">
                   <RequestCampInfo />
                 </div>
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/director/applications/:id"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <DirectorSidebar />
+              <main className="flex-1 overflow-auto">
+                <DirectorApplyList />
               </main>
             </div>
           }
