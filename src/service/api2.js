@@ -919,4 +919,121 @@ export const getInterviewCriteriasPromotion = async () => {
   }
 };
 
+// API lấy tất cả users của một role cụ thể - GET /api/v1/roles/{id}/users
+export const getUsersByRole = async (roleId) => {
+  try {
+    const response = await api2.get(`/roles/${roleId}/users`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message:
+          response.data.message || "Lấy danh sách users theo role thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data.message || "Lấy danh sách users theo role thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy danh sách users theo role thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API gán recruiters và examiners cho campaign - POST /api/v1/campaign-assignments/assign
+// (Senior Recruiter only)
+export const assignCampaignUsers = async (assignmentData) => {
+  try {
+    const response = await api2.post(
+      "/campaign-assignments/assign",
+      assignmentData
+    );
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message:
+          response.data.message ||
+          "Gán recruiters và examiners cho campaign thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data.message ||
+          "Gán recruiters và examiners cho campaign thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Gán recruiters và examiners cho campaign thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API hủy assignment cho một user - PUT /api/v1/campaign-assignments/{assignmentId}/cancel
+// (Senior Recruiter/Manager only)
+export const cancelCampaignAssignment = async (assignmentId) => {
+  try {
+    const response = await api2.put(
+      `/campaign-assignments/${assignmentId}/cancel`
+    );
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Kiểm tra code === 0 (success) theo format API
+    const isSuccess =
+      response.data.code === 0 ||
+      (isHttpSuccess && response.data.code === undefined);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data.data || null,
+        message: response.data.message || "Hủy assignment cho user thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Hủy assignment cho user thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Hủy assignment cho user thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;

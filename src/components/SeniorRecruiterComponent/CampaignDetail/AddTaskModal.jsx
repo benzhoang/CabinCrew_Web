@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getUsersByRole } from "../../../service/api2";
 
 // CSS animations for pop-up effect
 const popupStyles = `
@@ -38,44 +39,19 @@ if (
   document.head.appendChild(styleSheet);
 }
 
-const recruiterOptions = [
-  {
-    id: 1,
-    name: "Nguyễn Văn An",
-    position: "Giám đốc Nhân sự",
-    department: "HR",
-  },
-  {
-    id: 2,
-    name: "Trần Thị Bình",
-    position: "Trưởng phòng Tuyển dụng",
-    department: "HR",
-  },
-  {
-    id: 3,
-    name: "Lê Văn Cường",
-    position: "Giám đốc Vận hành",
-    department: "Operations",
-  },
-  {
-    id: 4,
-    name: "Phạm Thị Dung",
-    position: "Trưởng phòng Cabin Crew",
-    department: "Cabin Crew",
-  },
-  {
-    id: 5,
-    name: "Hoàng Văn Em",
-    position: "Giám đốc Tài chính",
-    department: "Finance",
-  },
-  {
-    id: 6,
-    name: "Vũ Thị Phương",
-    position: "Trưởng phòng Đào tạo",
-    department: "Training",
-  },
-];
+// Helper function to map API user data to component format
+const mapUserData = (users) => {
+  if (!users || !Array.isArray(users)) return [];
+  return users.map((user) => ({
+    id: user.userId || user.id,
+    name:
+      user.fullName ||
+      user.name ||
+      `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+    position: user.position || user.roleName || "N/A",
+    department: user.department || user.departmentName || "N/A",
+  }));
+};
 
 const roundConfig = [
   {
@@ -119,8 +95,43 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [recruiterOptions, setRecruiterOptions] = useState([]);
+  const [examinerOptions, setExaminerOptions] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
-  //const campaignTitle = campaign?.name || "Campaign nào";
+  // Load users by role when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const loadUsers = async () => {
+        setLoadingUsers(true);
+        try {
+          // Load recruiters (roleId = 4) for screening round
+          const recruiterResult = await getUsersByRole(4);
+          if (recruiterResult.success && recruiterResult.data) {
+            const users = Array.isArray(recruiterResult.data)
+              ? recruiterResult.data
+              : recruiterResult.data.items || [];
+            setRecruiterOptions(mapUserData(users));
+          }
+
+          // Load examiners (roleId = 5) for other rounds
+          const examinerResult = await getUsersByRole(5);
+          if (examinerResult.success && examinerResult.data) {
+            const users = Array.isArray(examinerResult.data)
+              ? examinerResult.data
+              : examinerResult.data.items || [];
+            setExaminerOptions(mapUserData(users));
+          }
+        } catch (error) {
+          console.error("Error loading users:", error);
+        } finally {
+          setLoadingUsers(false);
+        }
+      };
+
+      loadUsers();
+    }
+  }, [isOpen]);
 
   const clearError = (field) => {
     if (errors[field]) {
@@ -129,8 +140,14 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   };
 
   const handleSingleSelection = (roundKey, recruiter) => {
-    setAssignments((prev) => ({ ...prev, [roundKey]: recruiter }));
-    setOpenDropdown(null);
+    setAssignments((prev) => {
+      // Nếu đã chọn rồi thì hủy chọn, nếu chưa chọn thì chọn
+      if (prev[roundKey]?.id === recruiter.id) {
+        return { ...prev, [roundKey]: null };
+      } else {
+        return { ...prev, [roundKey]: recruiter };
+      }
+    });
     clearError(roundKey);
   };
 
@@ -226,6 +243,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
 
     const selectLabel = getSelectLabel(roundKey);
 
+    // Get the appropriate user list based on round type
+    // Screening uses recruiters (roleId = 4), others use examiners (roleId = 5)
+    const userOptions =
+      roundKey === "screening" ? recruiterOptions : examinerOptions;
+
     return (
       <div className="relative">
         <button
@@ -233,11 +255,14 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
           onClick={() =>
             setOpenDropdown((prev) => (prev === roundKey ? null : roundKey))
           }
-          className="flex items-center justify-between w-full px-4 py-3 transition-colors bg-white border rounded-lg border-slate-200 hover:border-slate-300"
+          disabled={loadingUsers}
+          className="flex items-center justify-between w-full px-4 py-3 transition-colors bg-white border rounded-lg border-slate-200 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <div className="text-left">
             <p className="text-sm font-medium text-slate-800">
-              {isMulti
+              {loadingUsers
+                ? "Đang tải..."
+                : isMulti
                 ? assignments[roundKey].length > 0
                   ? `${assignments[roundKey].length} người đã chọn`
                   : selectLabel
@@ -264,56 +289,63 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
           </svg>
         </button>
 
-        {isOpen && (
+        {isOpen && !loadingUsers && (
           <div className="absolute z-10 w-full mt-2 overflow-y-auto bg-white border shadow-xl border-slate-200 rounded-xl max-h-64">
-            {recruiterOptions.map((recruiter) => {
-              const isSelected = isMulti
-                ? assignments[roundKey].some((item) => item.id === recruiter.id)
-                : assignments[roundKey]?.id === recruiter.id;
+            {userOptions.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-center text-slate-500">
+                Không có dữ liệu
+              </div>
+            ) : (
+              userOptions.map((user) => {
+                const isSelected = isMulti
+                  ? assignments[roundKey].some((item) => item.id === user.id)
+                  : assignments[roundKey]?.id === user.id;
 
-              return (
-                <button
-                  key={recruiter.id}
-                  type="button"
-                  onClick={() =>
-                    isMulti
-                      ? toggleInterviewRecruiter(recruiter)
-                      : handleSingleSelection(roundKey, recruiter)
-                  }
-                  className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 ${
-                    isSelected ? "bg-slate-50" : ""
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">
-                      {recruiter.name}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {recruiter.position} · {recruiter.department}
-                    </p>
-                  </div>
-                  {isMulti ? (
-                    <span
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                        isSelected
-                          ? "bg-blue-600 border-blue-600 text-white"
-                          : "border-slate-300 text-transparent"
-                      }`}
-                    >
-                      ✓
-                    </span>
-                  ) : (
-                    <span
-                      className={`w-4 h-4 border rounded ${
-                        isSelected
-                          ? "bg-blue-600 border-blue-600"
-                          : "border-slate-300"
-                      }`}
-                    ></span>
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() =>
+                      isMulti
+                        ? toggleInterviewRecruiter(user)
+                        : handleSingleSelection(roundKey, user)
+                    }
+                    className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 ${
+                      isSelected ? "bg-slate-50" : ""
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">
+                        {user.name}
+                      </p>
+                    </div>
+                    {isMulti ? (
+                      <span
+                        className={`w-5 h-5 rounded border flex items-center justify-center ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600 text-white"
+                            : "border-slate-300 text-transparent"
+                        }`}
+                      >
+                        {isSelected && "✓"}
+                      </span>
+                    ) : (
+                      <span
+                        className={`w-4 h-4 border rounded-full flex items-center justify-center ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="w-2 h-2 bg-white rounded-full"></span>
+                        )}
+                      </span>
+                    )}
+                  </button>
+                );
+              })
+            )}
           </div>
         )}
       </div>

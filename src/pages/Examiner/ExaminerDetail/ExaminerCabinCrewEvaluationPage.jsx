@@ -335,7 +335,12 @@ const ExaminerCabinCrewEvaluationPage = () => {
               </h2>
 
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[45%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[40%]" />
+                  </colgroup>
                   <thead>
                     <tr className="border-b border-slate-300">
                       <th className="px-4 py-3 text-sm font-semibold text-left text-slate-700">
@@ -417,7 +422,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
           ))
         ) : (
           <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
-            <p className="text-slate-500 text-center">
+            <p className="text-center text-slate-500">
               Không có dữ liệu tiêu chí đánh giá
             </p>
           </div>
