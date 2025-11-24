@@ -480,6 +480,7 @@ const dictionaries = {
         max_score: 'Điểm tối đa',
         recording_submitted: 'Ghi âm đã được nộp',
         unrecorded_questions: 'Số câu hỏi chưa ghi âm',
+        including_unanswered: 'Bao gồm',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Lịch hẹn phỏng vấn thăng bậc',
@@ -967,6 +968,7 @@ const dictionaries = {
         max_score: 'Max Score',
         recording_submitted: 'Recording submitted',
         unrecorded_questions: 'Unrecorded questions',
+        including_unanswered: 'Including unanswered',
 
         // Cabin Crew - Interview Appointments
         interview_appointments_title: 'Promotion interview appointments',

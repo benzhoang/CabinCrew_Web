@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { t, onLangChange } from '../../../i18n';
-import { getExamQuestions } from '../../../service/api';
+import { getExamQuestions, submitMultipleChoiceTest } from '../../../service/api';
 import AudioPlayer from './AudioPlayer';
 
 const ListeningExam = ({ examInfo }) => {
     const navigate = useNavigate();
     const { id: testIdFromUrl } = useParams(); // Lấy testId từ URL params
     const [questions, setQuestions] = useState([]); // Danh sách câu hỏi từ API
+    const [originalQuestions, setOriginalQuestions] = useState([]); // Lưu dữ liệu câu hỏi gốc từ API (có optionId)
     const [examData, setExamData] = useState(null); // Thông tin đề thi từ API
     const [isLoadingQuestions, setIsLoadingQuestions] = useState(true); // Loading state khi fetch questions
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
+    const [answerOptionIds, setAnswerOptionIds] = useState({}); // Lưu optionId tương ứng từng câu trả lời
     const [timeRemaining, setTimeRemaining] = useState(examInfo?.duration ? examInfo.duration * 60 : 1800); // Chuyển phút sang giây
     const [langVersion, setLangVersion] = useState(0);
     const [playCounts, setPlayCounts] = useState({}); // Đếm số lần phát audio cho mỗi câu hỏi
@@ -84,8 +86,13 @@ const ListeningExam = ({ examInfo }) => {
                         totalQuestions: data.totalQuestions,
                     });
 
+                    // Lưu dữ liệu câu hỏi gốc từ API (có optionId) và sắp xếp theo orderNumber
+                    const sortedOriginalQuestions = [...(data.questions || [])].sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
+                    setOriginalQuestions(sortedOriginalQuestions);
+                    console.log('Original Questions (with optionId):', sortedOriginalQuestions);
+
                     // Map questions từ API sang format hiện tại
-                    const mappedQuestions = (data.questions || []).map((q, index) => {
+                    const mappedQuestions = sortedOriginalQuestions.map((q, index) => {
                         // Map options từ API sang format hiện tại
                         const mappedOptions = (q.options || []).map((opt, optIndex) => {
                             const optionKey = String.fromCharCode(65 + optIndex); // A, B, C, D
@@ -100,9 +107,6 @@ const ListeningExam = ({ examInfo }) => {
                             orderNumber: q.orderNumber,
                         };
                     });
-
-                    // Sắp xếp theo orderNumber
-                    mappedQuestions.sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
 
                     console.log('Mapped Questions:', mappedQuestions);
                     setQuestions(mappedQuestions);
@@ -170,11 +174,26 @@ const ListeningExam = ({ examInfo }) => {
     };
 
     // Handle answer selection
-    const handleAnswerSelect = (questionId, answer) => {
-        setAnswers({
-            ...answers,
-            [questionId]: answer
-        });
+    const handleAnswerSelect = (questionId, answerKey) => {
+        setAnswers(prev => ({
+            ...prev,
+            [questionId]: answerKey
+        }));
+
+        // Lấy optionId tương ứng để gửi lên server
+        const originalQuestion = originalQuestions.find(q => q.questionId === questionId);
+        if (originalQuestion && Array.isArray(originalQuestion.options)) {
+            const optionIndex = answerKey.charCodeAt(0) - 65; // A=0
+            if (optionIndex >= 0 && optionIndex < originalQuestion.options.length) {
+                const selectedOption = originalQuestion.options[optionIndex];
+                if (selectedOption?.optionId) {
+                    setAnswerOptionIds(prev => ({
+                        ...prev,
+                        [questionId]: selectedOption.optionId
+                    }));
+                }
+            }
+        }
     };
 
     // Callback để cập nhật playCount từ AudioPlayer
@@ -205,42 +224,120 @@ const ListeningExam = ({ examInfo }) => {
 
     const openSubmitModal = () => setIsSubmitModalOpen(true);
     const closeSubmitModal = () => setIsSubmitModalOpen(false);
-    const handleConfirmSubmit = () => {
-        // Tính điểm (không có correctAnswer từ API, chỉ đếm số câu đã trả lời)
-        let answeredQuestions = 0;
-        let unansweredQuestions = 0;
 
-        questions.forEach((question) => {
-            const userAnswer = answers[question.id];
-            if (userAnswer === undefined) {
-                unansweredQuestions++;
-            } else {
-                answeredQuestions++;
-            }
-        });
-
-        // Tính thời gian làm bài
-        const endTime = Date.now();
-        const timeSpentMs = endTime - startTime;
-        const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
-        const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
-        const timeSpent = `${timeSpentMinutes}:${String(timeSpentSeconds).padStart(2, '0')}`;
-
+    const handleConfirmSubmit = async () => {
         setIsSubmitModalOpen(false);
 
-        // Chuyển đến trang kết quả với dữ liệu
-        navigate('/exam-result', {
-            state: {
-                examType: 'Listening',
-                totalQuestions: questions.length,
-                answeredQuestions,
-                unansweredQuestions,
-                answers,
-                questions: questions,
-                timeSpent,
-                examInfo: examData || examInfo
+        try {
+            // Validate examData
+            if (!examData || !examData.testId) {
+                toast.error('Thiếu thông tin đề thi. Vui lòng thử lại.');
+                return;
             }
-        });
+
+            // Validate originalQuestions
+            if (!originalQuestions || originalQuestions.length === 0) {
+                toast.error('Không tìm thấy dữ liệu câu hỏi. Vui lòng tải lại trang.');
+                return;
+            }
+
+            // Chuyển đổi thời gian sang ISO 8601 format
+            const startTimeISO = new Date(startTime).toISOString();
+            const endTimeISO = new Date().toISOString();
+
+            // Map answers từ format UI (questionId -> "A"/"B"/"C"/"D") sang format API (questionId -> selectedOptionId)
+            const apiAnswers = Object.entries(answerOptionIds).map(([questionId, optionId]) => ({
+                questionId: Number(questionId),
+                selectedOptionId: Number(optionId)
+            })).filter(answer => !isNaN(answer.questionId) && !isNaN(answer.selectedOptionId));
+
+            // Log payload để debug
+            const payload = {
+                testId: Number(examData.testId),
+                startTime: startTimeISO,
+                endTime: endTimeISO,
+                answers: apiAnswers
+            };
+
+            console.log('=== Submit Test Payload ===');
+            console.log(JSON.stringify(payload, null, 2));
+            console.log(`Số câu đã trả lời: ${apiAnswers.length}/${questions.length}`);
+
+            // Hiển thị thông báo đang submit
+            toast.info('Đang nộp bài thi...', { autoClose: 2000 });
+
+            // Gọi API submit
+            const result = await submitMultipleChoiceTest(
+                examData.testId,
+                startTimeISO,
+                endTimeISO,
+                apiAnswers
+            );
+
+            // Xử lý kết quả
+            if (result.success && result.data) {
+                const sessionData = result.data;
+
+                console.log('Submit thành công:', sessionData);
+
+                // Tính thời gian làm bài
+                const timeSpentMs = Date.now() - startTime;
+                const minutes = Math.floor(timeSpentMs / 60000);
+                const seconds = Math.floor((timeSpentMs % 60000) / 1000);
+                const timeSpent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+
+                toast.success('Nộp bài thi thành công!');
+
+                // Tính toán các giá trị cho trang kết quả
+                const totalQuestions = sessionData.totalQuestions || questions.length;
+                const correctAnswers = sessionData.correctAnswers || 0;
+                const answeredCount = apiAnswers.length;
+                const unansweredQuestions = totalQuestions - answeredCount;
+                const wrongAnswers = answeredCount - correctAnswers;
+
+                // Navigate đến trang kết quả
+                navigate('/exam-result', {
+                    state: {
+                        examType: 'Listening',
+                        testSessionId: sessionData.testSessionId,
+                        score: sessionData.totalScore || 0,
+                        maxScore: sessionData.maxScore || examData.maxScore,
+                        totalScore: sessionData.totalScore || 0,
+                        correctAnswers: correctAnswers,
+                        wrongAnswers: wrongAnswers,
+                        unansweredQuestions: unansweredQuestions,
+                        totalQuestions: totalQuestions,
+                        submittedAnswers: sessionData.submittedAnswers || [],
+                        answers: answers,
+                        questions: questions,
+                        timeSpent: timeSpent,
+                        examInfo: examData,
+                        sessionData: sessionData
+                    }
+                });
+            } else {
+                // Xử lý lỗi
+                console.error('Submit thất bại:', result);
+
+                let errorMessage = 'Không thể nộp bài thi. Vui lòng thử lại.';
+                if (result.error) {
+                    errorMessage = result.error;
+                } else if (result.errorData) {
+                    errorMessage = result.errorData.message || result.errorData.errorMessage || errorMessage;
+                }
+
+                toast.error(errorMessage);
+            }
+        } catch (error) {
+            console.error('Lỗi khi submit bài thi:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                response: error.response?.data
+            });
+
+            toast.error('Đã xảy ra lỗi khi nộp bài thi. Vui lòng thử lại.');
+        }
     };
 
     // Loading state
