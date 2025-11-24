@@ -96,6 +96,10 @@ const PendingCampaignDetail = ({ campaign }) => {
                 campaign?.campaignType === "Promotion") && (
                 <Info label="Vị trí" value={"Chief Flight Attendant"} />
               )}
+              {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
+                campaign?.campaignType === "Recruitment") && (
+                <Info label="Vị trí" value={"Flight Attendant"} />
+              )}
               <Info
                 label="Số lượng tuyển"
                 value={`${
@@ -120,7 +124,7 @@ const PendingCampaignDetail = ({ campaign }) => {
                 </h3>
                 <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                   <div
-                    className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
+                    className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
                     dangerouslySetInnerHTML={{
                       __html: campaign.jobDescription || "N/A",
                     }}
@@ -137,7 +141,7 @@ const PendingCampaignDetail = ({ campaign }) => {
                 </h3>
                 <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                   <div
-                    className="job-requirement-content text-sm prose-sm prose text-slate-700 max-w-none"
+                    className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
                     dangerouslySetInnerHTML={{
                       __html: campaign.jobRequirement || "N/A",
                     }}

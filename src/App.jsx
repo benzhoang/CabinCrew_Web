@@ -33,9 +33,7 @@ import Screening from "./pages/Recruiter/Screening";
 import FinalReview from "./pages/Recruiter/FinalReview";
 import CandidateApplyDetail from "./pages/Recruiter/CandidateApplyDetail";
 import Tasks from "./pages/Recruiter/Tasks";
-import CampaignPage from "./pages/AirlinePartner/CampaignPage";
 import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
-import CampaignDetailPage from "./pages/AirlinePartner/CampaignDetailPage";
 import CandidateDetailPage from "./pages/AirlinePartner/CandidateDetailPage";
 import BatchDetailPage from "./pages/AirlinePartner/BatchDetailPage";
 import CabinCrewHomePage from "./pages/CabinCrew/CabinCrewHomePage";
@@ -84,6 +82,8 @@ import CreateTestPage from "./pages/Examiner/CreateTestPage";
 import ExamTask from "./pages/Examiner/ExamTask";
 import ExaminerCabinCrewEvaluationPage from "./pages/Examiner/ExaminerDetail/ExaminerCabinCrewEvaluationPage";
 import DirectorApplyList from "./pages/Director/DirectorApplyList";
+import AirlineCampaignDetailPage from "./pages/AirlinePartner/AirlineCampaignDetailPage";
+import AirlineCampaignPage from "./pages/AirlinePartner/AirlineCampaignPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -368,7 +368,7 @@ function App() {
           path="/airline-partner/campaigns"
           element={
             <AirlinePartnerLayout>
-              <CampaignPage />
+              <AirlineCampaignPage />
             </AirlinePartnerLayout>
           }
         />
@@ -376,7 +376,7 @@ function App() {
           path="/airline-partner/campaigns/:id"
           element={
             <AirlinePartnerLayout>
-              <CampaignDetailPage />
+              <AirlineCampaignDetailPage />
             </AirlinePartnerLayout>
           }
         />

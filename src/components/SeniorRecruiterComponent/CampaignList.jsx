@@ -156,6 +156,12 @@ const CampaignCard = ({ campaign }) => {
                 <span>Chief Flight Attendant</span>
               </div>
             )}
+            {campaign.campaignType === "recruitment" && (
+              <div className="mt-2">
+                <span className="text-gray-500">Vị trí:</span>{" "}
+                <span>Flight Attendant</span>
+              </div>
+            )}
           </div>
         </div>
 

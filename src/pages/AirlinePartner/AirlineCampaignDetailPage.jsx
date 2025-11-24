@@ -2,41 +2,16 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCampaignDetail } from "../../service/api2";
 import Loading from "../../components/Loading";
-import Approvers from "../../components/SeniorRecruiterComponent/CampaignDetail/Approvers";
-import DetailInfo from "../../components/SeniorRecruiterComponent/CampaignDetail/DetailInfo";
-import PendingCampaignDetail from "../../components/SeniorRecruiterComponent/CampaignDetail/PendingCampaignDetail";
+import BatchInfo from "../../components/AirlinePartnerComponent/CampaignDetail/BatchInfo";
+import CampaignInfo from "../../components/AirlinePartnerComponent/CampaignDetail/CampaignInfo";
+import PendingCampaignDetail from "../../components/AirlinePartnerComponent/CampaignDetail/PendingCampaignDetail";
 
-//import ApprovalLog from "../../components/SeniorRecruiterComponent/CampaignDetail/ApprovalLog";
-//import Followers from "../../components/SeniorRecruiterComponent/CampaignDetail/Followers";
-
-const CampaignDetail = () => {
+const AirlineCampaignDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [campaignData, setCampaignData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // const timeline = useMemo(
-  //   () => [
-  //     { time: "15:24", text: "Request created", by: "Đặng Bích Thu Thủy" },
-  //     {
-  //       time: "17:51",
-  //       text: "Tony Quok approved the request",
-  //       by: "Tony Quok",
-  //     },
-  //     {
-  //       time: "18:08",
-  //       text: "Hoàng Nhật Trường approved the request",
-  //       by: "Hoàng Nhật Trường",
-  //     },
-  //     {
-  //       time: "19:30",
-  //       text: "Lương Thị Phúc approved the request",
-  //       by: "Lương Thị Phúc",
-  //     },
-  //   ],
-  //   []
-  // );
 
   // Fetch campaign detail from API
   useEffect(() => {
@@ -93,10 +68,10 @@ const CampaignDetail = () => {
     return <PendingCampaignDetail campaign={campaignData} />;
   }
 
-  const goBack = () => navigate("/senior-recruiter/campaigns");
+  const goBack = () => navigate("/airline-partner/campaigns");
 
   return (
-    <div className="p-6">
+    <div className="w-full h-full">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-slate-800">
@@ -114,19 +89,12 @@ const CampaignDetail = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <DetailInfo campaign={campaignData} />
-        </div>
-
-        <div className="space-y-6">
-          <Approvers reviewedBy={campaignData?.reviewedBy} />
-          {/* <Followers /> */}
-          {/* <ApprovalLog timeline={timeline} /> */}
-        </div>
+      <div className="space-y-5">
+        <CampaignInfo campaign={campaignData} />
+        <BatchInfo campaign={campaignData} />
       </div>
     </div>
   );
 };
 
-export default CampaignDetail;
+export default AirlineCampaignDetailPage;

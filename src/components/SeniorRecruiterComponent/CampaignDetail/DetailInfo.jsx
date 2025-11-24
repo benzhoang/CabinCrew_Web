@@ -32,6 +32,10 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               campaign?.campaignType === "Promotion") && (
               <Info label="Vị trí" value={"Chief Flight Attendant"} />
             )}
+            {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
+              campaign?.campaignType === "Recruitment") && (
+              <Info label="Vị trí" value={"Flight Attendant"} />
+            )}
             <Info
               label="Số lượng tuyển"
               value={`${

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getUsersByRole } from "../../../service/api2";
+import { getUsersByRole, assignCampaignUsers } from "../../../service/api2";
+import { toast } from "react-toastify";
 
 // CSS animations for pop-up effect
 const popupStyles = `
@@ -59,24 +60,28 @@ const roundConfig = [
     title: "Vòng sàng lọc",
     description: "Kiểm tra CV, kinh nghiệm và chứng chỉ cần thiết.",
     maxSelect: 1,
+    taskType: 1, // Recruitment
   },
   {
     key: "appearance",
     title: "Vòng ngoại hình",
     description: "Đánh giá tiêu chuẩn ngoại hình và tác phong.",
     maxSelect: 1,
+    taskType: 2, // Examination
   },
   {
     key: "assessment",
     title: "Vòng kiểm tra",
     description: "Tổ chức bài kiểm tra kỹ năng chuyên môn.",
     maxSelect: 1,
+    taskType: 2, // Examination
   },
   {
     key: "interview",
     title: "Vòng phỏng vấn",
     description: "Phỏng vấn chuyên sâu với hội đồng 3 người.",
     maxSelect: 3,
+    taskType: 2, // Examination
   },
 ];
 
@@ -98,6 +103,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const [recruiterOptions, setRecruiterOptions] = useState([]);
   const [examinerOptions, setExaminerOptions] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [taskDescriptions, setTaskDescriptions] = useState({
+    screening: "",
+    appearance: "",
+    assessment: "",
+    interview: "",
+  });
 
   // Load users by role when modal opens
   useEffect(() => {
@@ -149,6 +160,8 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       }
     });
     clearError(roundKey);
+    // Đóng dropdown sau khi chọn
+    setOpenDropdown(null);
   };
 
   const toggleInterviewRecruiter = (recruiter) => {
@@ -169,6 +182,15 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       return { ...prev, interview: updatedInterview };
     });
     clearError("interview");
+    // Đóng dropdown sau khi chọn
+    setOpenDropdown(null);
+  };
+
+  const handleDescriptionChange = (roundKey, value) => {
+    setTaskDescriptions((prev) => ({
+      ...prev,
+      [roundKey]: value,
+    }));
   };
 
   const validateForm = () => {
@@ -195,6 +217,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
     setAssignments(getDefaultAssignments());
     setErrors({});
     setOpenDropdown(null);
+    setTaskDescriptions({
+      screening: "",
+      appearance: "",
+      assessment: "",
+      interview: "",
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -207,27 +235,85 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Lấy campaignId từ campaign prop (có thể là id hoặc campaignId)
+      const campaignIdRaw = campaign?.id || campaign?.campaignId;
+      const campaignId = campaignIdRaw ? Number(campaignIdRaw) : null;
 
-      const selectedApprovers = [
-        assignments.screening,
-        assignments.appearance,
-        assignments.assessment,
-        ...assignments.interview,
-      ].filter(Boolean);
+      if (!campaignId || isNaN(campaignId)) {
+        alert("Không tìm thấy ID chiến dịch hợp lệ");
+        setIsSubmitting(false);
+        return;
+      }
 
-      onSubmit({
-        campaignId: campaign?.id,
-        assignments,
-        approvers: selectedApprovers,
-        submittedAt: new Date().toISOString(),
+      // Tạo assignments array theo format API
+      const assignmentsArray = [];
+
+      // Xử lý từng round
+      roundConfig.forEach((round) => {
+        const roundKey = round.key;
+        const taskType = round.taskType;
+        const assignment = assignments[roundKey];
+        const description = taskDescriptions[roundKey] || "";
+
+        if (round.maxSelect === 1) {
+          // Single select (screening, appearance, assessment)
+          if (assignment) {
+            assignmentsArray.push({
+              userId: assignment.id,
+              taskType: taskType,
+              taskDescription: description,
+            });
+          }
+        } else {
+          // Multi select (interview)
+          if (Array.isArray(assignment) && assignment.length > 0) {
+            assignment.forEach((user) => {
+              assignmentsArray.push({
+                userId: user.id,
+                taskType: taskType,
+                taskDescription: description,
+              });
+            });
+          }
+        }
       });
 
-      resetForm();
-      onClose();
+      // Gọi API assignCampaignUsers
+      console.log("Data gửi đi:", {
+        campaignId: campaignId,
+        assignments: assignmentsArray,
+      });
+
+      const result = await assignCampaignUsers({
+        campaignId: campaignId,
+        assignments: assignmentsArray,
+      });
+
+      console.log("API Response:", result);
+
+      if (result.success) {
+        // Gọi callback onSubmit nếu có (để parent component có thể xử lý)
+        if (onSubmit) {
+          onSubmit({
+            campaignId: campaignId,
+            assignments: assignmentsArray,
+            message: result.message,
+          });
+        }
+
+        resetForm();
+        onClose();
+        toast.success(result.message || "Giao việc thành công!");
+      } else {
+        toast.error(result.error || "Có lỗi xảy ra khi giao việc");
+      }
     } catch (error) {
       console.error("Error submitting approval:", error);
-      alert("Có lỗi xảy ra khi giao việc");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Có lỗi xảy ra khi giao việc"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -482,6 +568,27 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       {renderSelectedChips(round.key)}
                     </>
                   )}
+
+                  {/* Hiển thị input mô tả task khi đã chọn recruiter */}
+                  {((round.maxSelect === 1 && assignments[round.key]) ||
+                    (round.maxSelect > 1 &&
+                      assignments[round.key].length > 0)) && (
+                    <div className="mt-4">
+                      <label className="block mb-2 text-sm font-medium text-slate-700">
+                        Mô tả nhiệm vụ
+                      </label>
+                      <textarea
+                        value={taskDescriptions[round.key]}
+                        onChange={(e) =>
+                          handleDescriptionChange(round.key, e.target.value)
+                        }
+                        placeholder="Nhập mô tả chi tiết cho nhiệm vụ này..."
+                        rows={3}
+                        className="w-full px-4 py-3 text-sm border rounded-lg resize-none border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+
                   {errors[round.key] && (
                     <p className="mt-3 text-sm text-red-600">
                       {errors[round.key]}
