@@ -396,7 +396,7 @@ const SeniorCreateCampaignPage = () => {
                       ? campaignDetail.partnerName
                       : isLoadingDetail
                       ? "Đang tải..."
-                      : "Chưa có thông tin đối tác"}
+                      : "N/A"}
                   </div>
                 </div>
                 <div className="text-xs text-right text-slate-500">
@@ -408,7 +408,7 @@ const SeniorCreateCampaignPage = () => {
                         )
                       : isLoadingDetail
                       ? "Đang tải..."
-                      : "Chưa xác định"}
+                      : "N/A"}
                   </div>
                   <div>
                     Mã số:{" "}

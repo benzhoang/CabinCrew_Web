@@ -2,16 +2,9 @@ import React, { useState, useMemo } from "react";
 import { FaTasks } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import AddTaskModal from "./AddTaskModal";
+import { formatDateOnly } from "../../../config/formatDate";
 
-// Helper function to format date without time (from "DD/MM/YYYY HH:mm" to "DD/MM/YYYY")
-const formatDateOnly = (dateString) => {
-  if (!dateString) return "—";
-  // If dateString contains time, split and take only date part
-  const datePart = dateString.split(" ")[0];
-  return datePart;
-};
-
-const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
+const BatchCard = ({ batch, statusCfg, percent }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
@@ -24,13 +17,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
       return;
     }
 
-    navigate("/recruiter/applications", {
-      state: {
-        campaignId,
-        batchName: batch.name,
-        batch: batch,
-      },
-    });
+    navigate("/recruiter/applications");
   };
 
   return (
