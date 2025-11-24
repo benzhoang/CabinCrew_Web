@@ -1757,6 +1757,316 @@ export const getOngoingCampaign = async () => {
   }
 };
 
+// API submit multiple-choice test answers (Listening và Practical tests)
+// Format theo API documentation:
+// POST /api/v1/test-sessions/submit-multiple-choice
+// Body: { testId: number, startTime: string (ISO 8601), endTime: string (ISO 8601), answers: [{ questionId: number, selectedOptionId: number }] }
+export const submitMultipleChoiceTest = async (testId, startTime, endTime, answers) => {
+  try {
+    // Validate và convert testId
+    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    if (isNaN(testIdNum) || testIdNum <= 0) {
+      return {
+        success: false,
+        error: 'Test ID không hợp lệ',
+      };
+    }
+
+    // Validate answers array
+    if (!Array.isArray(answers)) {
+      return {
+        success: false,
+        error: 'Danh sách câu trả lời phải là một mảng',
+      };
+    }
+
+    // Validate và normalize từng answer
+    const validatedAnswers = [];
+    for (let i = 0; i < answers.length; i++) {
+      const answer = answers[i];
+
+      if (!answer || typeof answer !== 'object') {
+        console.warn(`Answer at index ${i} is invalid, skipping`);
+        continue;
+      }
+
+      // Convert và validate questionId
+      const questionId = typeof answer.questionId === 'string'
+        ? parseInt(answer.questionId, 10)
+        : Number(answer.questionId);
+
+      if (isNaN(questionId) || questionId <= 0) {
+        console.warn(`Invalid questionId at index ${i}: ${answer.questionId}, skipping`);
+        continue;
+      }
+
+      // Convert và validate selectedOptionId
+      const selectedOptionId = typeof answer.selectedOptionId === 'string'
+        ? parseInt(answer.selectedOptionId, 10)
+        : Number(answer.selectedOptionId);
+
+      if (isNaN(selectedOptionId) || selectedOptionId <= 0) {
+        console.warn(`Invalid selectedOptionId at index ${i}: ${answer.selectedOptionId}, skipping`);
+        continue;
+      }
+
+      validatedAnswers.push({
+        questionId: questionId,
+        selectedOptionId: selectedOptionId
+      });
+    }
+
+    // Tạo payload theo đúng format API
+    const payload = {
+      testId: testIdNum,
+      startTime: startTime, // ISO 8601 format string
+      endTime: endTime, // ISO 8601 format string
+      answers: validatedAnswers // Array of { questionId: number, selectedOptionId: number }
+    };
+
+    console.log('=== API Request ===');
+    console.log('Endpoint: POST /test-sessions/submit-multiple-choice');
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+
+    // Gọi API
+    const response = await api.post('/test-sessions/submit-multiple-choice', payload);
+
+    console.log('=== API Response ===');
+    console.log('Status:', response.status);
+    console.log('Data:', JSON.stringify(response.data, null, 2));
+
+    const responseData = response.data;
+
+    // Kiểm tra response theo format API: { code: 0, message: string, data: {...} }
+    if (responseData && responseData.code === 0 && responseData.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || 'Nộp bài thi thành công',
+      };
+    } else {
+      // Response không thành công
+      return {
+        success: false,
+        error: responseData?.message || responseData?.errorMessage || 'Không thể nộp bài thi',
+        errorData: responseData,
+      };
+    }
+  } catch (error) {
+    console.error('=== API Error ===');
+    console.error('Error:', error);
+    console.error('Message:', error.message);
+    console.error('Response:', error.response?.data);
+    console.error('Status:', error.response?.status);
+
+    const errorData = error.response?.data;
+
+    // Xử lý các loại lỗi khác nhau
+    if (error.response) {
+      // Server trả về response nhưng có lỗi
+      return {
+        success: false,
+        error: errorData?.message ||
+          errorData?.errorMessage ||
+          errorData?.title ||
+          `Lỗi server (${error.response.status})`,
+        status: error.response.status,
+        errorData: errorData,
+      };
+    } else if (error.request) {
+      // Request được gửi nhưng không nhận được response (network error)
+      return {
+        success: false,
+        error: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+      };
+    } else {
+      // Lỗi khác
+      return {
+        success: false,
+        error: error.message || 'Đã xảy ra lỗi khi nộp bài thi',
+      };
+    }
+  }
+};
+
+// API submit speaking test answers with audio recordings
+// Endpoint: POST /api/v1/test-sessions/submit-speaking (multipart/form-data)
+export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }) => {
+  try {
+    const testIdNum =
+      typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+
+    if (isNaN(testIdNum) || testIdNum <= 0) {
+      return {
+        success: false,
+        error: 'Test ID không hợp lệ',
+      };
+    }
+
+    if (!startTime || !endTime) {
+      return {
+        success: false,
+        error: 'Thiếu thông tin thời gian bắt đầu hoặc kết thúc bài thi',
+      };
+    }
+
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return {
+        success: false,
+        error: 'Không có dữ liệu ghi âm để nộp bài thi nói',
+      };
+    }
+
+    const guessExtension = (mimeType = '') => {
+      const lower = mimeType.toLowerCase();
+      if (lower.includes('mp3') || lower.includes('mpeg')) return 'mp3';
+      if (lower.includes('wav')) return 'wav';
+      if (lower.includes('ogg')) return 'ogg';
+      return 'webm';
+    };
+
+    const normalizedAnswers = answers.reduce((acc, answer, index) => {
+      if (!answer) {
+        return acc;
+      }
+
+      const questionIdNum =
+        typeof answer.questionId === 'string'
+          ? parseInt(answer.questionId, 10)
+          : Number(answer.questionId);
+
+      if (isNaN(questionIdNum) || questionIdNum <= 0) {
+        console.warn(
+          `submitSpeakingExam: questionId không hợp lệ tại vị trí ${index}`,
+          answer.questionId
+        );
+        return acc;
+      }
+
+      let file = null;
+
+      if (answer.file instanceof File) {
+        file = answer.file;
+      } else if (answer.blob instanceof Blob) {
+        const mimeType = answer.blob.type || 'audio/webm';
+        const extension = guessExtension(mimeType);
+        const fileName =
+          answer.fileName ||
+          `speaking_question_${questionIdNum}_${Date.now()}_${index}.${extension}`;
+        file = new File([answer.blob], fileName, { type: mimeType });
+      }
+
+      if (!(file instanceof File)) {
+        console.warn(
+          `submitSpeakingExam: không tìm thấy file hợp lệ cho questionId ${questionIdNum}`
+        );
+        return acc;
+      }
+
+      acc.push({
+        questionId: questionIdNum,
+        file,
+      });
+      return acc;
+    }, []);
+
+    if (normalizedAnswers.length === 0) {
+      return {
+        success: false,
+        error: 'Không có ghi âm hợp lệ để nộp bài thi nói',
+      };
+    }
+
+    const formData = new FormData();
+    formData.append('testId', testIdNum);
+    formData.append('startTime', startTime);
+    formData.append('endTime', endTime);
+    formData.append(
+      'questionIds',
+      normalizedAnswers.map((item) => item.questionId).join(',')
+    );
+
+    normalizedAnswers.forEach((item) => {
+      formData.append('audioFiles', item.file);
+    });
+
+    console.log('=== API Request ===');
+    console.log('Endpoint: POST /test-sessions/submit-speaking');
+    console.log('FormData fields:', {
+      testId: testIdNum,
+      startTime,
+      endTime,
+      questionIds: normalizedAnswers.map((item) => item.questionId),
+      fileCount: normalizedAnswers.length,
+    });
+
+    const response = await api.post(
+      '/test-sessions/submit-speaking',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    console.log('=== API Response ===');
+    console.log('Status:', response.status);
+    console.log('Data:', JSON.stringify(response.data, null, 2));
+
+    const responseData = response.data;
+
+    if (responseData && responseData.code === 0 && responseData.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || 'Nộp bài thi nói thành công',
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        'Không thể nộp bài thi nói',
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error('=== API Error (Speaking) ===');
+    console.error('Error:', error);
+    console.error('Message:', error.message);
+    console.error('Response:', error.response?.data);
+    console.error('Status:', error.response?.status);
+
+    const errorData = error.response?.data;
+
+    if (error.response) {
+      return {
+        success: false,
+        error:
+          errorData?.message ||
+          errorData?.errorMessage ||
+          errorData?.title ||
+          `Lỗi server (${error.response.status})`,
+        status: error.response.status,
+        errorData: errorData,
+      };
+    } else if (error.request) {
+      return {
+        success: false,
+        error:
+          'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+      };
+    }
+
+    return {
+      success: false,
+      error: error.message || 'Đã xảy ra lỗi khi nộp bài thi nói',
+    };
+  }
+};
+
 // API lấy câu hỏi đề thi cho Cabin Crew và Candidate để làm bài
 // Yêu cầu: testId và joinCode (10 ký tự)
 export const getExamQuestions = async (testId, joinCode) => {

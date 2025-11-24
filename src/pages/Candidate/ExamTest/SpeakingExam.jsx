@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { t, onLangChange } from '../../../i18n';
-import { getExamQuestions } from '../../../service/api';
+import { getExamQuestions, submitSpeakingExam } from '../../../service/api';
 import AudioRecorder from './AudioRecorder';
 
 const SpeakingExam = ({ examInfo }) => {
@@ -18,6 +18,7 @@ const SpeakingExam = ({ examInfo }) => {
     const [markedQuestions, setMarkedQuestions] = useState(new Set());
     const [startTime] = useState(Date.now());
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // re-render on language change
     useEffect(() => {
@@ -199,34 +200,135 @@ const SpeakingExam = ({ examInfo }) => {
         }
     };
 
-    const openSubmitModal = () => setIsSubmitModalOpen(true);
+    const openSubmitModal = () => {
+        if (isSubmitting) {
+            return;
+        }
+        setIsSubmitModalOpen(true);
+    };
     const closeSubmitModal = () => setIsSubmitModalOpen(false);
 
-    const handleConfirmSubmit = () => {
-        const endTime = Date.now();
-        const timeSpentMs = endTime - startTime;
-        const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
-        const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
-        const timeSpent = `${timeSpentMinutes}:${String(timeSpentSeconds).padStart(2, '0')}`;
-
-        const recordedCount = Object.keys(recordings).length;
-        const unansweredCount = questions.length - recordedCount;
+    const handleConfirmSubmit = async () => {
+        if (isSubmitting) {
+            return;
+        }
 
         setIsSubmitModalOpen(false);
 
-        navigate('/exam-result', {
-            state: {
-                examType: 'Speaking',
-                score: 0, // Speaking test không có điểm tự động
-                totalQuestions: questions.length,
-                recordedCount,
-                unansweredCount,
-                recordings,
-                questions: questions,
-                timeSpent,
-                examInfo: examData || examInfo
+        try {
+            const resolveTestId = () => {
+                const candidates = [
+                    examData?.testId,
+                    examInfo?.examId,
+                    testIdFromUrl,
+                ];
+
+                for (const value of candidates) {
+                    if (value === undefined || value === null) continue;
+                    const parsed = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+                    if (!isNaN(parsed) && parsed > 0) {
+                        return parsed;
+                    }
+                }
+
+                return null;
+            };
+
+            const resolvedTestId = resolveTestId();
+
+            if (!resolvedTestId) {
+                toast.error('Thiếu thông tin đề thi. Vui lòng thử lại.');
+                return;
             }
-        });
+
+            if (!questions || questions.length === 0) {
+                toast.error('Không tìm thấy câu hỏi. Vui lòng tải lại trang.');
+                return;
+            }
+
+            const orderedRecordings = questions
+                .map((question) => {
+                    const recording = recordings[question.id];
+                    if (!recording || !(recording.blob instanceof Blob)) {
+                        return null;
+                    }
+
+                    return {
+                        questionId: question.id,
+                        recording,
+                    };
+                })
+                .filter(Boolean);
+
+            if (orderedRecordings.length === 0) {
+                toast.error('Bạn chưa ghi âm câu trả lời nào.');
+                return;
+            }
+
+            const startTimeISO = new Date(startTime).toISOString();
+            const endTimeISO = new Date().toISOString();
+
+            const apiAnswers = orderedRecordings.map((item, index) => ({
+                questionId: Number(item.questionId),
+                blob: item.recording.blob,
+                fileName: `speaking_${resolvedTestId}_${item.questionId}_${item.recording.timestamp || Date.now()}_${index}.mp3`,
+            }));
+
+            toast.info('Đang nộp bài thi nói...', { autoClose: 2000 });
+            setIsSubmitting(true);
+
+            const result = await submitSpeakingExam({
+                testId: resolvedTestId,
+                startTime: startTimeISO,
+                endTime: endTimeISO,
+                answers: apiAnswers,
+            });
+
+            if (result.success && result.data) {
+                const sessionData = result.data;
+                const timeSpentMs = Date.now() - startTime;
+                const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
+                const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
+                const timeSpent = `${timeSpentMinutes}:${String(timeSpentSeconds).padStart(2, '0')}`;
+                const recordedCountForSubmit = apiAnswers.length;
+                const unansweredCount = questions.length - recordedCountForSubmit;
+
+                toast.success(result.message || 'Nộp bài thi nói thành công');
+
+                navigate('/exam-result', {
+                    state: {
+                        examType: 'Speaking',
+                        testSessionId: sessionData.testSessionId,
+                        score: sessionData.totalScore || 0,
+                        totalScore: sessionData.totalScore || 0,
+                        maxScore: sessionData.maxScore || examData?.maxScore,
+                        totalQuestions: sessionData.totalQuestions || questions.length,
+                        recordedCount: recordedCountForSubmit,
+                        unansweredCount,
+                        recordings,
+                        submittedAnswers: sessionData.submittedAnswers || [],
+                        questions: questions,
+                        timeSpent,
+                        examInfo: examData || examInfo,
+                        sessionData,
+                    }
+                });
+            } else {
+                let errorMessage = 'Không thể nộp bài thi nói. Vui lòng thử lại.';
+                if (result.error) {
+                    errorMessage = result.error;
+                } else if (result.errorData) {
+                    errorMessage = result.errorData.message || result.errorData.errorMessage || errorMessage;
+                }
+
+                toast.error(errorMessage);
+            }
+        } catch (error) {
+            console.error('Lỗi khi nộp bài thi nói:', error);
+            toast.error('Đã xảy ra lỗi khi nộp bài thi nói. Vui lòng thử lại.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     // Loading state
@@ -427,9 +529,10 @@ const SpeakingExam = ({ examInfo }) => {
                             {/* Nút nộp bài */}
                             <button
                                 onClick={openSubmitModal}
-                                className="w-full mt-6 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                                disabled={isSubmitting}
+                                className="w-full mt-6 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {t('submit_exam') || 'Nộp bài'}
+                                {isSubmitting ? (t('submitting_exam') || 'Đang nộp...') : (t('submit_exam') || 'Nộp bài')}
                             </button>
                         </div>
                     </div>
@@ -472,9 +575,10 @@ const SpeakingExam = ({ examInfo }) => {
                             </button>
                             <button
                                 onClick={handleConfirmSubmit}
-                                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                                disabled={isSubmitting}
+                                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {t('submit_exam') || 'Nộp bài'}
+                                {isSubmitting ? (t('submitting_exam') || 'Đang nộp...') : (t('submit_exam') || 'Nộp bài')}
                             </button>
                         </div>
                     </div>
