@@ -424,7 +424,9 @@ const PromotionStagesPage = () => {
                         if (isPracticalStage && !currentStageData?.completed) {
                           return (
                             <button
-                              onClick={() => navigate("/cabin-crew/tests")}
+                              onClick={() =>
+                                navigate(`/cabin-crew/tests/${application.id}`)
+                              }
                               className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium shadow-md"
                             >
                               <svg
