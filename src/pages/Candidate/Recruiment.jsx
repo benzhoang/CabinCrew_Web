@@ -81,6 +81,14 @@ const Recruiment = () => {
     const [campaigns, setCampaigns] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 10,
+        totalRecords: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
+    })
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -88,51 +96,88 @@ const Recruiment = () => {
         return () => off()
     }, [])
 
-    const fetchCampaigns = useCallback(async () => {
+    const fetchCampaigns = useCallback(async (page = 1, searchTerm = '') => {
         setIsLoading(true)
         setError(null)
         try {
-            // Gọi API với filter status và campaignType
-            const response = await getCampaigns({
-                pageSize: 100,
-                status: 'Ongoing',
-                campaignType: 'Recruitment'
-            })
+            // Kiểm tra token trước khi gọi API
+            const token = localStorage.getItem('token')
+            if (!token) {
+                setError('Vui lòng đăng nhập để xem danh sách chiến dịch')
+                setCampaigns([])
+                setIsLoading(false)
+                return
+            }
+
+            // Chuẩn bị params theo format API yêu cầu:
+            // campaignType: integer (1: Recruitment, 2: Promotion)
+            // campaignStatus: integer (0: Draft, 1: Pending, 2: Approved, 3: Rejected, 4: Cancelled, 5: Ongoing, 6: Upcoming, 7: Ended)
+            const params = {
+                page: page,
+                pageSize: pagination.pageSize,
+                campaignType: 1, // 1 = Recruitment
+                campaignStatus: 5, // 5 = Ongoing
+            }
+
+            // Thêm searchTerm nếu có
+            if (searchTerm && searchTerm.trim()) {
+                params.searchTerm = searchTerm.trim()
+            }
+
+            // Gọi API với params đúng format
+            const response = await getCampaigns(params)
+
+            // Xử lý response theo cấu trúc: {code: 0, message: "string", data: {items: [...], pagination: {...}}}
             if (response.success && Array.isArray(response.data)) {
-                // Filter trước khi transform để đảm bảo chỉ lấy campaign có status Ongoing và campaignType Recruitment
-                const filteredData = response.data.filter(campaign => {
-                    const status = (campaign.status || '').toString().trim()
-                    const campaignType = (campaign.campaignType || '').toString().trim()
-
-                    // Kiểm tra status là Ongoing (case-insensitive)
-                    const isOngoing = status.toLowerCase() === 'ongoing'
-
-                    // Kiểm tra campaignType là Recruitment (case-insensitive)
-                    const isRecruitment = campaignType.toLowerCase() === 'recruitment'
-
-                    return isOngoing && isRecruitment
-                })
-
-                // Transform sau khi filter
-                const normalized = filteredData
+                // Transform data
+                const normalized = response.data
                     .map(transformCampaign)
                     .filter(Boolean)
                 setCampaigns(normalized)
+
+                // Cập nhật pagination nếu có
+                if (response.pagination) {
+                    setPagination(prev => ({
+                        ...prev,
+                        currentPage: response.pagination.currentPage || page,
+                        totalRecords: response.pagination.totalRecords || 0,
+                        totalPages: response.pagination.totalPages || 0,
+                        hasNextPage: response.pagination.hasNextPage || false,
+                        hasPreviousPage: response.pagination.hasPreviousPage || false
+                    }))
+                }
             } else {
                 setCampaigns([])
-                setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                setError(response.error || response.message || 'Không thể lấy danh sách chiến dịch')
             }
         } catch (err) {
             setCampaigns([])
-            setError(err.message || 'Không thể lấy danh sách chiến dịch')
+            // Xử lý lỗi từ API response
+            const errorMessage = err.response?.data?.message ||
+                err.response?.data?.errorMessage ||
+                err.message ||
+                'Không thể lấy danh sách chiến dịch'
+            setError(errorMessage)
         } finally {
             setIsLoading(false)
         }
-    }, [])
+    }, [pagination.pageSize])
 
+    // Gọi API khi component mount
     useEffect(() => {
-        fetchCampaigns()
-    }, [fetchCampaigns])
+        fetchCampaigns(1, '')
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // Chỉ gọi một lần khi mount
+
+    // Debounce search để tránh gọi API quá nhiều
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchCampaigns(1, search)
+        }, 500) // Đợi 500ms sau khi user ngừng gõ
+
+        return () => clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search])
 
     const baseCampaigns = useMemo(
         () => (statusFilter === 'active' ? campaigns.filter(c => c.status === 'active') : campaigns),
@@ -141,18 +186,12 @@ const Recruiment = () => {
 
     const filtered = useMemo(() => {
         let data = baseCampaigns
-        if (airline !== 'all') data = data.filter(c => c.airline === airline)
-        if (search) {
-            const q = search.toLowerCase()
-            data = data.filter(c =>
-                (c.name || '').toLowerCase().includes(q) ||
-                (c.position || '').toLowerCase().includes(q) ||
-                (c.location || '').toLowerCase().includes(q) ||
-                (c.airline || '').toLowerCase().includes(q)
-            )
+        // Filter theo airline (search đã được xử lý ở API)
+        if (airline !== 'all') {
+            data = data.filter(c => c.airline === airline)
         }
         return data
-    }, [baseCampaigns, airline, search])
+    }, [baseCampaigns, airline])
 
     const airlines = useMemo(() => {
         const set = new Set(baseCampaigns.map(c => c.airline))
@@ -273,9 +312,32 @@ const Recruiment = () => {
                     ))}
                 </div>
 
-                {!isLoading && filtered.length === 0 && (
+                {!isLoading && filtered.length === 0 && !error && (
                     <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
                         Không có chiến dịch phù hợp.
+                    </div>
+                )}
+
+                {/* Phân trang */}
+                {!isLoading && filtered.length > 0 && pagination.totalPages > 1 && (
+                    <div className="mt-6 flex items-center justify-center gap-2">
+                        <button
+                            onClick={() => fetchCampaigns(pagination.currentPage - 1, search)}
+                            disabled={!pagination.hasPreviousPage}
+                            className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                        >
+                            Trước
+                        </button>
+                        <span className="px-4 py-2 text-slate-700">
+                            Trang {pagination.currentPage} / {pagination.totalPages}
+                        </span>
+                        <button
+                            onClick={() => fetchCampaigns(pagination.currentPage + 1, search)}
+                            disabled={!pagination.hasNextPage}
+                            className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                        >
+                            Sau
+                        </button>
                     </div>
                 )}
             </div>

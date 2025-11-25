@@ -3,16 +3,17 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 import { t, onLangChange } from '../../i18n'
+import { saveApplicationDraft, submitApplication } from '../../service/api'
 
 const ApplicationForm = () => {
     const navigate = useNavigate()
     const { state } = useLocation()
     const campaign = state?.campaign
+    const batch = state?.batch
 
     const [formData, setFormData] = useState({
         email: '',
         fullName: '',
-        nationality: '',
         dateOfBirth: '',
         gender: '',
         mobileNumber: '',
@@ -37,6 +38,10 @@ const ApplicationForm = () => {
     // Captcha state
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
+
+    // Loading state for save draft and submit
+    const [isSavingDraft, setIsSavingDraft] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Force re-render when language changes
     const [, forceUpdate] = useState({})
@@ -112,8 +117,85 @@ const ApplicationForm = () => {
         }))
     }
 
-    const handleSubmit = (e) => {
+    // Hàm lấy campaignRoundId từ batch hoặc tìm round Screening
+    const getCampaignRoundId = () => {
+        // Debug: Log để kiểm tra dữ liệu
+        console.log('Campaign data:', campaign)
+        console.log('Batch data:', batch)
+        console.log('Campaign rounds:', campaign?.rounds)
+        console.log('Campaign batches:', campaign?.batches)
+
+        // Ưu tiên 1: Tìm round có type là "Screening" trong rounds gốc từ API (có thể có roundType)
+        if (campaign?.rounds && Array.isArray(campaign.rounds)) {
+            const screeningRound = campaign.rounds.find(
+                r => {
+                    const roundType = (r.roundType || r.type || '').toLowerCase()
+                    return roundType === 'screening' || roundType === 'sàng lọc'
+                }
+            )
+            if (screeningRound?.campaignRoundId || screeningRound?.id) {
+                console.log('Found Screening round in rounds:', screeningRound)
+                return screeningRound.campaignRoundId || screeningRound.id
+            }
+        }
+
+        // Ưu tiên 2: Tìm round có type là "Screening" trong batches (đã map từ rounds)
+        if (campaign?.batches && Array.isArray(campaign.batches)) {
+            const screeningRound = campaign.batches.find(
+                b => {
+                    const roundType = (b.roundType || b.type || '').toLowerCase()
+                    return roundType === 'screening' || roundType === 'sàng lọc'
+                }
+            )
+            if (screeningRound?.campaignRoundId) {
+                console.log('Found Screening round in batches:', screeningRound)
+                return screeningRound.campaignRoundId
+            }
+        }
+
+        // Ưu tiên 3: Tìm round có tên chứa "Screening" hoặc "Sàng lọc" trong rounds gốc
+        if (campaign?.rounds && Array.isArray(campaign.rounds)) {
+            const screeningRound = campaign.rounds.find(
+                r => {
+                    const roundName = (r.roundName || r.name || '').toLowerCase()
+                    return roundName.includes('screening') || roundName.includes('sàng lọc')
+                }
+            )
+            if (screeningRound?.campaignRoundId || screeningRound?.id) {
+                return screeningRound.campaignRoundId || screeningRound.id
+            }
+        }
+
+        // Ưu tiên 4: Tìm round có tên chứa "Screening" hoặc "Sàng lọc" trong batches
+        if (campaign?.batches && Array.isArray(campaign.batches)) {
+            const screeningRound = campaign.batches.find(
+                b => {
+                    const roundName = (b.roundName || b.name || '').toLowerCase()
+                    return roundName.includes('screening') || roundName.includes('sàng lọc')
+                }
+            )
+            if (screeningRound?.campaignRoundId) {
+                return screeningRound.campaignRoundId
+            }
+        }
+
+        // Ưu tiên 5: Lấy từ batch nếu có (batch được truyền từ Apply.jsx)
+        if (batch?.campaignRoundId) {
+            return batch.campaignRoundId
+        }
+
+        // Fallback: lấy từ batch hoặc campaign (nếu không tìm thấy Screening)
+        const fallbackId = batch?.id ||
+            campaign?.campaignRoundId ||
+            campaign?.id
+        console.log('Using fallback campaignRoundId:', fallbackId)
+        return fallbackId
+    }
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
+
+        if (isSubmitting) return
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
@@ -122,23 +204,131 @@ const ApplicationForm = () => {
             return
         }
 
-        // Xử lý submit form ở đây
-        console.log('Form data:', formData)
-        console.log('Files:', files)
-        alert(t('application_form_submitted_successfully'))
-        navigate('/recruitment')
-    }
-
-    const handleSaveDraft = () => {
-        // Lưu form data vào localStorage (không lưu files)
-        const draftData = {
-            formData,
-            timestamp: new Date().toISOString(),
-            campaignId: campaign?.id
+        // Validate required fields
+        if (!formData.email || !formData.fullName || !formData.dateOfBirth ||
+            !formData.gender || !formData.mobileNumber || !formData.workingExperience ||
+            !formData.height || !formData.weight || !formData.englishCertificate ||
+            !formData.certificateExpireDate || !formData.basePreference ||
+            formData.termsAccepted !== 'yes') {
+            alert('Vui lòng điền đầy đủ thông tin bắt buộc')
+            return
         }
 
-        localStorage.setItem('applicationFormDraft', JSON.stringify(draftData))
-        alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
+        // Validate required files
+        if (!files.applicationForm || !files.profilePhoto || !files.educationDegree ||
+            !files.englishCertificate || !files.idCard) {
+            alert('Vui lòng upload đầy đủ các file bắt buộc')
+            return
+        }
+
+        // Validate campaignRoundId
+        const campaignRoundId = getCampaignRoundId()
+        console.log('Final campaignRoundId for submit:', campaignRoundId)
+        if (!campaignRoundId) {
+            alert('Không tìm thấy thông tin vòng tuyển dụng. Vui lòng quay lại và thử lại.')
+            return
+        }
+
+        setIsSubmitting(true)
+
+        try {
+            // Map workingExperience từ form sang format API
+            const experienceMap = {
+                'no-experience': 'No experience',
+                'less-than-1-year': 'Less than 1 year',
+                '1-2-years': '1-2 years',
+                '3-5-years': '3-5 years'
+            }
+
+            // Chuẩn bị dữ liệu để gửi API
+            const applicationData = {
+                experience: experienceMap[formData.workingExperience] || formData.workingExperience,
+                height: formData.height,
+                weight: formData.weight,
+                englishDegreeNumber: formData.englishCertificate,
+                endDate: formData.certificateExpireDate,
+                campaignRoundId: campaignRoundId,
+                applicationForm: files.applicationForm,
+                profilePhoto: files.profilePhoto,
+                educationDegree: files.educationDegree,
+                englishCertificate: files.englishCertificate,
+                passportOrID: files.idCard
+            }
+
+            // Gọi API nộp đơn
+            const result = await submitApplication(applicationData)
+
+            if (result.success) {
+                // Xóa bản nháp trong localStorage sau khi nộp thành công
+                localStorage.removeItem('applicationFormDraft')
+
+                alert(t('application_form_submitted_successfully') || result.message || 'Nộp đơn thành công!')
+                navigate('/recruitment')
+            } else {
+                alert(result.error || 'Nộp đơn thất bại. Vui lòng thử lại.')
+            }
+        } catch (error) {
+            console.error('Error submitting application:', error)
+            alert('Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleSaveDraft = async () => {
+        if (isSavingDraft) return
+
+        setIsSavingDraft(true)
+
+        try {
+            // Map workingExperience từ form sang format API
+            const experienceMap = {
+                'no-experience': 'No experience',
+                'less-than-1-year': 'Less than 1 year',
+                '1-2-years': '1-2 years',
+                '3-5-years': '3-5 years'
+            }
+
+            // Lấy campaignRoundId
+            const campaignRoundId = getCampaignRoundId()
+
+            // Chuẩn bị dữ liệu để gửi API
+            const draftData = {
+                experience: experienceMap[formData.workingExperience] || formData.workingExperience || '',
+                height: formData.height || '',
+                weight: formData.weight || '',
+                englishDegreeNumber: formData.englishCertificate || '',
+                endDate: formData.certificateExpireDate || '',
+                campaignRoundId: campaignRoundId || '',
+                applicationForm: files.applicationForm || null,
+                profilePhoto: files.profilePhoto || null,
+                educationDegree: files.educationDegree || null,
+                englishCertificate: files.englishCertificate || null,
+                passportOrID: files.idCard || null
+            }
+
+            // Gọi API lưu bản nháp
+            const result = await saveApplicationDraft(draftData)
+
+            if (result.success) {
+                // Lưu vào localStorage để backup (không lưu files)
+                const localDraftData = {
+                    formData,
+                    timestamp: new Date().toISOString(),
+                    campaignId: campaign?.id
+                }
+                localStorage.setItem('applicationFormDraft', JSON.stringify(localDraftData))
+
+                alert(t('application_form_draft_saved') || result.message || 'Đã lưu bản nháp thành công!')
+            } else {
+                alert(result.error || 'Lưu bản nháp thất bại. Vui lòng thử lại.')
+            }
+        } catch (error) {
+            console.error('Error saving draft:', error)
+            alert('Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.')
+        } finally {
+            setIsSavingDraft(false)
+        }
     }
 
     if (!campaign) {
@@ -371,43 +561,20 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">3. {t('application_form_your_nationality')}</label>
-                                <select
-                                    name="nationality"
-                                    value={formData.nationality}
-                                    onChange={handleInputChange}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                >
-                                    <option value="">{t('application_form_select_nationality')}</option>
-                                    <option value="vietnamese">{t('application_form_vietnamese')}</option>
-                                    <option value="american">{t('application_form_american')}</option>
-                                    <option value="british">{t('application_form_british')}</option>
-                                    <option value="french">{t('application_form_french')}</option>
-                                    <option value="german">{t('application_form_german')}</option>
-                                    <option value="japanese">{t('application_form_japanese')}</option>
-                                    <option value="korean">{t('application_form_korean')}</option>
-                                    <option value="chinese">{t('application_form_chinese')}</option>
-                                    <option value="thai">{t('application_form_thai')}</option>
-                                    <option value="singaporean">{t('application_form_singaporean')}</option>
-                                    <option value="other">{t('application_form_other')}</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">4. {t('application_form_date_of_birth')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">3. {t('application_form_date_of_birth')}</label>
                                 <input
                                     type="date"
                                     name="dateOfBirth"
                                     value={formData.dateOfBirth}
                                     onChange={handleInputChange}
+                                    max="2003-12-31"
                                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">5. {t('application_form_gender')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">4. {t('application_form_gender')}</label>
                                 <div className="flex gap-4">
                                     <label className="flex items-center">
                                         <input
@@ -437,7 +604,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_mobile_number')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">5. {t('application_form_mobile_number')}</label>
                                 <input
                                     type="tel"
                                     name="mobileNumber"
@@ -449,7 +616,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_working_experience')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_working_experience')}</label>
                                 <div className="space-y-2">
                                     <label className="flex items-center">
                                         <input
@@ -503,7 +670,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_height_weight')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_height_weight')}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-slate-600 mb-1">{t('application_form_height')}</label>
@@ -534,7 +701,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_english_certificate_info')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_english_certificate_info')}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-slate-600 mb-1">{t('application_form_certificate_number')}</label>
@@ -563,7 +730,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">10. {t('application_form_base_preference')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_base_preference')}</label>
                                 <div className="space-y-2">
                                     <label className="flex items-center">
                                         <input
@@ -605,7 +772,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">11. {t('application_form_terms_conditions')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">10. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
                                     {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
                                     {t('application_form_for_recruitment')}
@@ -669,15 +836,17 @@ const ApplicationForm = () => {
                                 <button
                                     type="button"
                                     onClick={handleSaveDraft}
-                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                    disabled={isSavingDraft}
+                                    className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
                                 >
-                                    {t('application_form_save_draft') || 'Lưu bản nháp'}
+                                    {isSavingDraft ? 'Đang lưu...' : (t('application_form_save_draft') || 'Lưu bản nháp')}
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md text-lg"
+                                    disabled={isSubmitting}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
                                 >
-                                    {t('application_form_finish')}
+                                    {isSubmitting ? 'Đang nộp đơn...' : (t('application_form_finish') || 'Nộp đơn')}
                                 </button>
                             </div>
                         </form>

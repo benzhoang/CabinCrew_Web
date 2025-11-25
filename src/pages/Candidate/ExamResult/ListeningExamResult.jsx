@@ -12,7 +12,7 @@ const ListeningExamResult = () => {
     const [isAppealSubmitted, setIsAppealSubmitted] = useState(false);
 
     // Lấy dữ liệu từ location state
-    const { score, totalQuestions, correctAnswers, wrongAnswers, unansweredQuestions, answers, questions, timeSpent } = location.state || {};
+    const { score, totalQuestions, correctAnswers, wrongAnswers, unansweredQuestions, answers, questions, timeSpent, submittedAnswers } = location.state || {};
 
     // re-render on language change
     useEffect(() => {
@@ -22,10 +22,11 @@ const ListeningExamResult = () => {
 
     // Nếu không có dữ liệu, chuyển về trang test
     useEffect(() => {
-        if (!score && score !== 0) {
+        // Kiểm tra cả score và totalQuestions để xác định có dữ liệu hay không
+        if ((score === undefined || score === null) && (!totalQuestions || totalQuestions === 0)) {
             navigate('/test');
         }
-    }, [navigate, score]);
+    }, [navigate, score, totalQuestions]);
 
     // Tính lại wrongAnswers để bao gồm cả câu chưa trả lời (tính là sai)
     const totalWrongAnswers = (wrongAnswers || 0) + (unansweredQuestions || 0);
@@ -154,8 +155,16 @@ const ListeningExamResult = () => {
                         <div className="space-y-4">
                             {questions.map((question, index) => {
                                 const userAnswer = answers[question.id];
-                                const isCorrect = userAnswer === question.correctAnswer;
-                                const isAnswered = userAnswer !== undefined;
+                                // Tìm submittedAnswer từ API response nếu có
+                                const submittedAnswer = submittedAnswers?.find(sa => sa.questionId === question.id);
+                                // Sử dụng isCorrect từ API nếu có, nếu không thì fallback về cách cũ
+                                const isCorrect = submittedAnswer ? submittedAnswer.isCorrect : (userAnswer === question.correctAnswer);
+                                const isAnswered = userAnswer !== undefined || submittedAnswer !== undefined;
+                                // Xác định đáp án đúng: nếu có submittedAnswer và isCorrect = true, thì đáp án đã chọn là đúng
+                                // Nếu không có submittedAnswer, sử dụng question.correctAnswer
+                                const correctAnswerKey = submittedAnswer && isCorrect
+                                    ? userAnswer // Nếu đúng, đáp án đã chọn là đáp án đúng
+                                    : (question.correctAnswer || null);
 
                                 return (
                                     <div
@@ -174,7 +183,8 @@ const ListeningExamResult = () => {
                                                     {question.options.map((option, optIndex) => {
                                                         const optionKey = String.fromCharCode(65 + optIndex);
                                                         const isUserAnswer = userAnswer === optionKey;
-                                                        const isCorrectAnswer = question.correctAnswer === optionKey;
+                                                        // Xác định đáp án đúng
+                                                        const isCorrectAnswer = correctAnswerKey === optionKey;
 
                                                         return (
                                                             <div
@@ -275,4 +285,3 @@ const ListeningExamResult = () => {
 };
 
 export default ListeningExamResult;
-

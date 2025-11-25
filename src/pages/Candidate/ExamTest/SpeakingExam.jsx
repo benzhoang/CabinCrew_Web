@@ -284,8 +284,8 @@ const SpeakingExam = ({ examInfo }) => {
                 answers: apiAnswers,
             });
 
-            if (result.success && result.data) {
-                const sessionData = result.data;
+            if (result.success) {
+                const sessionData = result.data || {};
                 const timeSpentMs = Date.now() - startTime;
                 const timeSpentMinutes = Math.floor(timeSpentMs / 60000);
                 const timeSpentSeconds = Math.floor((timeSpentMs % 60000) / 1000);
