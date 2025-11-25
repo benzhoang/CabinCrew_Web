@@ -2147,4 +2147,212 @@ export const getExamQuestions = async (testId, joinCode) => {
   }
 };
 
+// API lưu bản nháp đơn ứng tuyển
+export const saveApplicationDraft = async (draftData) => {
+  try {
+    // Tạo FormData để gửi dữ liệu và files
+    const formData = new FormData();
+
+    // Thêm các trường text/string
+    if (draftData.experience) {
+      formData.append("Experience", draftData.experience);
+    }
+    if (draftData.height !== undefined && draftData.height !== '') {
+      formData.append("Height", parseInt(draftData.height));
+    }
+    if (draftData.weight !== undefined && draftData.weight !== '') {
+      formData.append("Weight", parseInt(draftData.weight));
+    }
+    if (draftData.englishDegreeNumber) {
+      formData.append("EnglishDegreeNumber", draftData.englishDegreeNumber);
+    }
+    if (draftData.endDate) {
+      formData.append("EndDate", draftData.endDate);
+    }
+    if (draftData.campaignRoundId) {
+      formData.append("CampaignRoundId", parseInt(draftData.campaignRoundId));
+    }
+
+    // Thêm các file nếu có
+    if (draftData.applicationForm) {
+      formData.append("ApplicationForm", draftData.applicationForm);
+    }
+    if (draftData.profilePhoto) {
+      formData.append("ProfilePhoto", draftData.profilePhoto);
+    }
+    if (draftData.educationDegree) {
+      formData.append("EducationDegree", draftData.educationDegree);
+    }
+    if (draftData.englishCertificate) {
+      formData.append("EnglishCertificate", draftData.englishCertificate);
+    }
+    if (draftData.passportOrID) {
+      formData.append("PassportOrID", draftData.passportOrID);
+    }
+
+    // Lấy token từ localStorage
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    // Không set Content-Type thủ công - axios sẽ tự động set với boundary phù hợp cho FormData
+
+    // Gọi API POST
+    const response = await axios.post(
+      `${API_BASE_URL}/applications/draft`,
+      formData,
+      {
+        headers,
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+      // Kiểm tra code === 0 (success) theo format API
+      if (responseData.code === 0 || isHttpSuccess) {
+        return {
+          success: true,
+          data: responseData.data || responseData,
+          message: responseData.message || "Lưu bản nháp thành công",
+        };
+      } else {
+        return {
+          success: false,
+          error: responseData.message || "Lưu bản nháp thất bại",
+        };
+      }
+    } else {
+      return {
+        success: false,
+        error: "Lưu bản nháp thất bại",
+      };
+    }
+  } catch (error) {
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Lưu bản nháp thất bại";
+
+    return {
+      success: false,
+      error: errorMessage,
+      errorCode: errorData?.errorCode,
+      errorType: errorData?.error,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API nộp đơn ứng tuyển
+export const submitApplication = async (applicationData) => {
+  try {
+    // Tạo FormData để gửi dữ liệu và files
+    const formData = new FormData();
+
+    // Thêm các trường text/string (required)
+    if (applicationData.experience) {
+      formData.append("Experience", applicationData.experience);
+    }
+    if (applicationData.height !== undefined && applicationData.height !== '') {
+      formData.append("Height", parseInt(applicationData.height));
+    }
+    if (applicationData.weight !== undefined && applicationData.weight !== '') {
+      formData.append("Weight", parseInt(applicationData.weight));
+    }
+    if (applicationData.englishDegreeNumber) {
+      formData.append("EnglishDegreeNumber", applicationData.englishDegreeNumber);
+    }
+    if (applicationData.endDate) {
+      formData.append("EndDate", applicationData.endDate);
+    }
+    if (applicationData.campaignRoundId) {
+      formData.append("CampaignRoundId", parseInt(applicationData.campaignRoundId));
+    }
+
+    // Thêm các file (required)
+    if (applicationData.applicationForm) {
+      formData.append("ApplicationForm", applicationData.applicationForm);
+    }
+    if (applicationData.profilePhoto) {
+      formData.append("ProfilePhoto", applicationData.profilePhoto);
+    }
+    if (applicationData.educationDegree) {
+      formData.append("EducationDegree", applicationData.educationDegree);
+    }
+    if (applicationData.englishCertificate) {
+      formData.append("EnglishCertificate", applicationData.englishCertificate);
+    }
+    if (applicationData.passportOrID) {
+      formData.append("PassportOrID", applicationData.passportOrID);
+    }
+
+    // Lấy token từ localStorage
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    // Không set Content-Type thủ công - axios sẽ tự động set với boundary phù hợp cho FormData
+
+    // Gọi API POST
+    const response = await axios.post(
+      `${API_BASE_URL}/applications/submit`,
+      formData,
+      {
+        headers,
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+      // Kiểm tra code === 0 (success) theo format API
+      if (responseData.code === 0 || isHttpSuccess) {
+        return {
+          success: true,
+          data: responseData.data || responseData,
+          message: responseData.message || "Nộp đơn thành công",
+        };
+      } else {
+        return {
+          success: false,
+          error: responseData.message || "Nộp đơn thất bại",
+        };
+      }
+    } else {
+      return {
+        success: false,
+        error: "Nộp đơn thất bại",
+      };
+    }
+  } catch (error) {
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Nộp đơn thất bại";
+
+    return {
+      success: false,
+      error: errorMessage,
+      errorCode: errorData?.errorCode,
+      errorType: errorData?.error,
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api;

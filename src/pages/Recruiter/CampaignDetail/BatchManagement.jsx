@@ -157,18 +157,16 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                     </button>
 
                     {/* Post-Recruitment Review Button */}
-                    {!isUpcoming && batch.appliedCandidates > 0 && (
-                        <button
-                            onClick={handleFinalReview}
-                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
-                            title="Xét hậu kiểm ứng viên"
-                        >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Xét hậu kiểm
-                        </button>
-                    )}
+                    <button
+                        onClick={handleFinalReview}
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
+                        title="Xét hậu kiểm ứng viên"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Xét hậu kiểm
+                    </button>
                 </div>
             </div>
         </div>
