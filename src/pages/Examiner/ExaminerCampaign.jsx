@@ -326,6 +326,26 @@ const ExaminerCampaign = () => {
                           {getStatusBadge(campaign.status)}
                         </div>
                       </div>
+                      {campaign.type?.toLowerCase() === "promotion" && (
+                        <div>
+                          <span className="text-sm text-slate-600">
+                            Vị trí:
+                          </span>{" "}
+                          <p className="font-medium text-slate-800">
+                            Chief Flight Attendant
+                          </p>
+                        </div>
+                      )}
+                      {campaign.type?.toLowerCase() === "recruitment" && (
+                        <div>
+                          <span className="text-sm text-slate-600">
+                            Vị trí:
+                          </span>{" "}
+                          <p className="font-medium text-slate-800">
+                            Flight Attendant
+                          </p>
+                        </div>
+                      )}
                       <div>
                         <span className="text-sm text-slate-600">
                           Thời gian bắt đầu:

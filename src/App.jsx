@@ -499,7 +499,7 @@ function App() {
           }
         />
         <Route
-          path="/cabin-crew/tests"
+          path="/cabin-crew/tests/:id"
           element={
             <CabinCrewLayout>
               <TestListPage />
@@ -507,7 +507,7 @@ function App() {
           }
         />
         <Route
-          path="/cabin-crew/tests/:id"
+          path="/cabin-crew/exams/:id"
           element={
             <>
               <TestPage />
