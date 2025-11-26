@@ -400,106 +400,163 @@ export const updateCampaignRequest = async (requestId, campaignRequestData) => {
 // API lấy danh sách campaigns - GET /api/v1/campaigns
 export const getCampaignList = async (params = {}) => {
   try {
-    const allowedParams = {
-      searchTerm: params.searchTerm,
-      sortColumn: params.sortColumn,
-      sortOrder: params.sortOrder,
-      status: params.status,
-      partnerId: params.partnerId,
-      page: params.page,
-      pageSize: params.pageSize,
+    const { fetchAll, ...requestParams } = params;
+
+    const mapPagination = (paginationPayload) => {
+      if (!paginationPayload) return undefined;
+      return {
+        currentPage: paginationPayload.currentPage || 1,
+        pageSize: paginationPayload.pageSize || 0,
+        totalRecords: paginationPayload.totalRecords || 0,
+        totalPages: paginationPayload.totalPages || 0,
+        hasNextPage: Boolean(paginationPayload.hasNextPage),
+        hasPreviousPage: Boolean(paginationPayload.hasPreviousPage),
+      };
     };
 
-    const sanitizedParams = Object.fromEntries(
-      Object.entries(allowedParams).filter(
-        ([, value]) => value !== undefined && value !== null && value !== ""
-      )
-    );
+    const normalizeResponse = (responseData) => {
+      if (responseData?.code === 0 && responseData?.data) {
+        const payload = responseData.data;
+        if (Array.isArray(payload)) {
+          return {
+            success: true,
+            data: { items: payload, pagination: undefined },
+            message: responseData.message,
+          };
+        }
 
-    const response = await api2.get("/campaigns", {
-      params: sanitizedParams,
-    });
+        if (payload.items || typeof payload === "object") {
+          return {
+            success: true,
+            data: {
+              items: payload.items || (Array.isArray(payload) ? payload : []),
+              pagination: mapPagination(payload.pagination || payload),
+            },
+            message: responseData.message,
+          };
+        }
+      }
 
-    // Log response để debug
-    console.log("Campaign List API Response:", response.data);
+      if (Array.isArray(responseData)) {
+        return {
+          success: true,
+          data: { items: responseData, pagination: undefined },
+          message: "Success",
+        };
+      }
 
-    // Kiểm tra nhiều trường hợp response structure
-    const responseData = response.data;
-
-    // Trường hợp 1: response.data.code === 0 và có response.data.data
-    if (responseData.code === 0 && responseData.data) {
-      const data = responseData.data;
-      // Nếu data là array trực tiếp
-      if (Array.isArray(data)) {
+      if (responseData?.items && Array.isArray(responseData.items)) {
         return {
           success: true,
           data: {
-            items: data,
-            pagination: undefined,
+            items: responseData.items,
+            pagination: mapPagination(responseData.pagination),
           },
-          message: responseData.message,
+          message: responseData.message || "Success",
         };
       }
-      // Nếu data có items hoặc là object với các trường pagination
-      if (data.items || (data && typeof data === "object")) {
-        return {
-          success: true,
-          data: {
-            items: data.items || (Array.isArray(data) ? data : []),
-            pagination: data.pagination
-              ? {
-                  currentPage: data.pagination.currentPage || 1,
-                  pageSize: data.pagination.pageSize || 0,
-                  totalRecords: data.pagination.totalRecords || 0,
-                  totalPages: data.pagination.totalPages || 0,
-                  hasNextPage: data.pagination.hasNextPage || false,
-                  hasPreviousPage: data.pagination.hasPreviousPage || false,
-                }
-              : data.currentPage
-              ? {
-                  currentPage: data.currentPage || 1,
-                  pageSize: data.pageSize || 0,
-                  totalRecords: data.totalRecords || 0,
-                  totalPages: data.totalPages || 0,
-                  hasNextPage: data.hasNextPage || false,
-                  hasPreviousPage: data.hasPreviousPage || false,
-                }
-              : undefined,
-          },
-          message: responseData.message,
-        };
-      }
+
+      return {
+        success: false,
+        error: responseData?.message || "Lấy danh sách campaigns thất bại",
+        rawResponse: responseData,
+      };
+    };
+
+    const sanitizeParams = (inputParams = {}) => {
+      const allowedParams = {
+        searchTerm: inputParams.searchTerm,
+        sortColumn: inputParams.sortColumn,
+        sortOrder: inputParams.sortOrder,
+        status: inputParams.status,
+        campaignType: inputParams.campaignType,
+        campaignStatus: inputParams.campaignStatus,
+        partnerId: inputParams.partnerId,
+        page: inputParams.page,
+        pageSize: inputParams.pageSize,
+      };
+
+      return Object.fromEntries(
+        Object.entries(allowedParams).filter(
+          ([, value]) => value !== undefined && value !== null && value !== ""
+        )
+      );
+    };
+
+    const fetchPage = async (overrides = {}) => {
+      const sanitizedParams = sanitizeParams({
+        ...requestParams,
+        ...overrides,
+      });
+
+      const response = await api2.get("/campaigns", {
+        params: sanitizedParams,
+      });
+
+      // Log response để debug
+      console.log("Campaign List API Response:", response.data);
+
+      return normalizeResponse(response.data);
+    };
+
+    const initialResult = await fetchPage();
+
+    if (!initialResult.success || !fetchAll) {
+      return initialResult;
     }
 
-    // Trường hợp 2: response.data là array trực tiếp (không có code và data wrapper)
-    if (Array.isArray(responseData)) {
+    let pagination = initialResult.data?.pagination;
+    let allItems = [...(initialResult.data?.items || [])];
+
+    if (!pagination || !pagination.hasNextPage) {
       return {
-        success: true,
+        ...initialResult,
         data: {
-          items: responseData,
-          pagination: undefined,
+          ...initialResult.data,
+          items: allItems,
         },
-        message: "Success",
       };
     }
 
-    // Trường hợp 3: response.data có items trực tiếp
-    if (responseData.items && Array.isArray(responseData.items)) {
-      return {
-        success: true,
-        data: {
-          items: responseData.items,
-          pagination: responseData.pagination || undefined,
-        },
-        message: responseData.message || "Success",
-      };
+    let currentPage = pagination.currentPage ?? requestParams.page ?? 1;
+    // Nếu API không trả pageSize, fallback về pageSize request hoặc mặc định 10
+    const effectivePageSize =
+      pagination.pageSize || requestParams.pageSize || 10;
+
+    while (pagination?.hasNextPage) {
+      currentPage = (pagination.currentPage ?? currentPage) + 1;
+
+      const pageResult = await fetchPage({
+        page: currentPage,
+        pageSize: effectivePageSize,
+      });
+
+      if (!pageResult.success) {
+        return pageResult;
+      }
+
+      allItems = allItems.concat(pageResult.data?.items || []);
+      pagination = pageResult.data?.pagination || pagination;
+
+      if (!pagination?.hasNextPage) {
+        break;
+      }
+
+      if (
+        pagination?.totalPages &&
+        currentPage >= Number(pagination.totalPages)
+      ) {
+        break;
+      }
     }
 
-    // Nếu không match bất kỳ trường hợp nào
     return {
-      success: false,
-      error: responseData.message || "Lấy danh sách campaigns thất bại",
-      rawResponse: responseData,
+      success: true,
+      data: {
+        items: allItems,
+        pagination,
+      },
+      message: initialResult.message,
     };
   } catch (error) {
     console.error("Campaign List API Error:", error);
@@ -509,6 +566,38 @@ export const getCampaignList = async (params = {}) => {
         error.response?.data?.message ||
         error.message ||
         "Lấy danh sách campaigns thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy chiến dịch đang ứng tuyển của user
+export const getOngoingCampaign = async () => {
+  try {
+    const response = await api2.get("/users/ongoing-campaign");
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
       status: error.response?.status,
     };
   }
@@ -1210,35 +1299,162 @@ export const getExamQuestions = async (testId, joinCode) => {
   }
 };
 
-// API lấy chiến dịch đang ứng tuyển của user
-export const getOngoingCampaign = async () => {
+// API submit multiple-choice test answers (Listening và Practical tests)
+// Format theo API documentation:
+// POST /api/v1/test-sessions/submit-multiple-choice
+// Body: { testId: number, startTime: string (ISO 8601), endTime: string (ISO 8601), answers: [{ questionId: number, selectedOptionId: number }] }
+export const submitMultipleChoiceTest = async (
+  testId,
+  startTime,
+  endTime,
+  answers
+) => {
   try {
-    const response = await api2.get("/users/ongoing-campaign");
-    const responseData = response.data;
-
-    if (responseData?.code === 0 && responseData?.data) {
+    // Validate và convert testId
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
+    if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
-        success: true,
-        data: responseData.data,
-        message: responseData.message,
+        success: false,
+        error: "Test ID không hợp lệ",
       };
     }
 
-    return {
-      success: false,
-      error:
-        responseData?.message ||
-        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+    // Validate answers array
+    if (!Array.isArray(answers)) {
+      return {
+        success: false,
+        error: "Danh sách câu trả lời phải là một mảng",
+      };
+    }
+
+    // Validate và normalize từng answer
+    const validatedAnswers = [];
+    for (let i = 0; i < answers.length; i++) {
+      const answer = answers[i];
+
+      if (!answer || typeof answer !== "object") {
+        console.warn(`Answer at index ${i} is invalid, skipping`);
+        continue;
+      }
+
+      // Convert và validate questionId
+      const questionId =
+        typeof answer.questionId === "string"
+          ? parseInt(answer.questionId, 10)
+          : Number(answer.questionId);
+
+      if (isNaN(questionId) || questionId <= 0) {
+        console.warn(
+          `Invalid questionId at index ${i}: ${answer.questionId}, skipping`
+        );
+        continue;
+      }
+
+      // Convert và validate selectedOptionId
+      const selectedOptionId =
+        typeof answer.selectedOptionId === "string"
+          ? parseInt(answer.selectedOptionId, 10)
+          : Number(answer.selectedOptionId);
+
+      if (isNaN(selectedOptionId) || selectedOptionId <= 0) {
+        console.warn(
+          `Invalid selectedOptionId at index ${i}: ${answer.selectedOptionId}, skipping`
+        );
+        continue;
+      }
+
+      validatedAnswers.push({
+        questionId: questionId,
+        selectedOptionId: selectedOptionId,
+      });
+    }
+
+    // Tạo payload theo đúng format API
+    const payload = {
+      testId: testIdNum,
+      startTime: startTime, // ISO 8601 format string
+      endTime: endTime, // ISO 8601 format string
+      answers: validatedAnswers, // Array of { questionId: number, selectedOptionId: number }
     };
+
+    console.log("=== API Request ===");
+    console.log("Endpoint: POST /test-sessions/submit-multiple-choice");
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
+    // Gọi API
+    const response = await api2.post(
+      "/test-sessions/submit-multiple-choice",
+      payload
+    );
+
+    console.log("=== API Response ===");
+    console.log("Status:", response.status);
+    console.log("Data:", JSON.stringify(response.data, null, 2));
+
+    const responseData = response.data;
+    const responseCode = Number(responseData?.code);
+    const isSuccessCode = responseCode === 0 || responseCode === 2;
+    const hasSuccessfulStatus =
+      responseData?.data && responseData.data.status === true;
+
+    // Kiểm tra response theo format API: { code: 0 | 2, message: string, data: {...} }
+    if (
+      responseData &&
+      responseData.data &&
+      (isSuccessCode || hasSuccessfulStatus)
+    ) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Nộp bài thi thành công",
+      };
+    } else {
+      // Response không thành công
+      return {
+        success: false,
+        error:
+          responseData?.message ||
+          responseData?.errorMessage ||
+          "Không thể nộp bài thi",
+        errorData: responseData,
+      };
+    }
   } catch (error) {
-    return {
-      success: false,
-      error:
-        error.response?.data?.message ||
-        error.message ||
-        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
-      status: error.response?.status,
-    };
+    console.error("=== API Error ===");
+    console.error("Error:", error);
+    console.error("Message:", error.message);
+    console.error("Response:", error.response?.data);
+    console.error("Status:", error.response?.status);
+
+    const errorData = error.response?.data;
+
+    // Xử lý các loại lỗi khác nhau
+    if (error.response) {
+      // Server trả về response nhưng có lỗi
+      return {
+        success: false,
+        error:
+          errorData?.message ||
+          errorData?.errorMessage ||
+          errorData?.title ||
+          `Lỗi server (${error.response.status})`,
+        status: error.response.status,
+        errorData: errorData,
+      };
+    } else if (error.request) {
+      // Request được gửi nhưng không nhận được response (network error)
+      return {
+        success: false,
+        error: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+      };
+    } else {
+      // Lỗi khác
+      return {
+        success: false,
+        error: error.message || "Đã xảy ra lỗi khi nộp bài thi",
+      };
+    }
   }
 };
 

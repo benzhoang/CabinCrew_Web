@@ -526,7 +526,7 @@ function App() {
           }
         />
         <Route
-          path="/cabin-crew/test-result"
+          path="/cabin-crew/test-result/:id"
           element={
             <CabinCrewLayout>
               <TestResultPage />

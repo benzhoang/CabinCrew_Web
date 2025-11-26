@@ -47,28 +47,7 @@ const PromotionStagesPage = () => {
             };
           });
 
-          const extraStages = [
-            {
-              id: mappedRounds.length + 1,
-              name: "Interview",
-              //   nameEn: "Interview",
-              completed: false,
-              date: null,
-              status: "upcoming",
-              isAdditional: true,
-            },
-            {
-              id: mappedRounds.length + 2,
-              name: "Final",
-              //   nameEn: "Final",
-              completed: false,
-              date: null,
-              status: "upcoming",
-              isAdditional: true,
-            },
-          ];
-
-          const mappedStages = [...mappedRounds, ...extraStages];
+          const mappedStages = [...mappedRounds];
 
           const completedCount = mappedStages.filter(
             (stage) => stage.completed
@@ -186,10 +165,10 @@ const PromotionStagesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 bg-gray-50">
+      <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
             {t("promotion_stages")}
           </h1>
           <p className="text-gray-600">
@@ -202,7 +181,7 @@ const PromotionStagesPage = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Tiến trình nâng bậc
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="mt-1 text-sm text-gray-600">
               Theo dõi tiến trình nâng bậc của bạn
             </p>
           </div>
@@ -210,9 +189,9 @@ const PromotionStagesPage = () => {
             {loading && <Loading message="Đang tải dữ liệu..." />}
 
             {error && !loading && (
-              <div className="text-center py-12">
+              <div className="py-12 text-center">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="w-12 h-12 mx-auto text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -239,7 +218,7 @@ const PromotionStagesPage = () => {
                   className="mb-8 last:mb-0"
                 >
                   <div className="mb-4">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {application.campaignName || application.position}
                       </h3>
@@ -251,7 +230,7 @@ const PromotionStagesPage = () => {
                         {getStatusText(application)}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                    <div className="flex flex-wrap gap-4 mb-2 text-sm text-gray-600">
                       {application.roundName && (
                         <div className="flex items-center gap-1">
                           <svg
@@ -292,7 +271,7 @@ const PromotionStagesPage = () => {
                       )}
                     </div>
                     {application.description && (
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="mb-3 text-sm text-gray-500">
                         {application.description}
                       </p>
                     )}
@@ -344,7 +323,7 @@ const PromotionStagesPage = () => {
                   <div className="relative">
                     <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
                       <div
-                        className="h-full bg-blue-500 transition-all duration-500"
+                        className="h-full transition-all duration-500 bg-blue-500"
                         style={{
                           width:
                             application.stages.length > 0
@@ -384,7 +363,7 @@ const PromotionStagesPage = () => {
                               {stage.name}
                             </p>
                             {stage.date && (
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="mt-1 text-xs text-gray-500">
                                 {new Date(stage.date).toLocaleDateString()}
                               </p>
                             )}
@@ -394,7 +373,7 @@ const PromotionStagesPage = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                  <div className="p-3 mt-4 rounded-lg bg-yellow-50">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-yellow-800">
                         <strong>Trạng thái hiện tại:</strong>{" "}
@@ -427,21 +406,8 @@ const PromotionStagesPage = () => {
                               onClick={() =>
                                 navigate(`/cabin-crew/tests/${application.id}`)
                               }
-                              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium shadow-md"
+                              className="inline-flex items-center px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
-                              <svg
-                                className="w-5 h-5 mr-2"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
                               Tham gia kiểm tra
                             </button>
                           );
@@ -456,9 +422,9 @@ const PromotionStagesPage = () => {
         </div>
 
         {!loading && !error && promotionStages.length === 0 && (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="w-12 h-12 mx-auto text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -477,7 +443,7 @@ const PromotionStagesPage = () => {
               Bạn chưa có đơn nâng bậc nào để theo dõi tiến trình
             </p>
             <div className="mt-6">
-              <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700">
                 Khám phá cơ hội
               </button>
             </div>
