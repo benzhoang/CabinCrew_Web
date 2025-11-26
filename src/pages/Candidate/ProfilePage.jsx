@@ -2,53 +2,94 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import PostVerificationModal from '../../components/PostVerificationModal'
+import { getUserApplication } from '../../service/api'
+import ProfileFormActions from './ProfileFormActions'
 
 const ProfilePage = () => {
     const navigate = useNavigate()
-
-    // Force re-render when language changes
     const [, forceUpdate] = useState({})
+    const decodeJwt = (token) => {
+        if (!token) {
+            return null;
+        }
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return null;
+            }
+            const payload = parts[1]
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+            const decoded = atob(paddedPayload);
+            return JSON.parse(decoded);
+        } catch (error) {
+            console.error('Lỗi khi decode JWT:', error);
+            return null;
+        }
+    };
+
+    const getUserId = () => {
+        const userData = JSON.parse(localStorage.getItem('user') || 'null');
+        if (userData) {
+            const userId = userData.userId || userData.userID || userData.id ||
+                userData.user?.userId || userData.user?.id ||
+                userData.data?.userId || userData.data?.id;
+            if (userId) {
+                return userId;
+            }
+        }
+        const token = localStorage.getItem('token') || userData?.accessToken;
+        if (token) {
+            const decoded = decodeJwt(token);
+            if (decoded) {
+                return decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                    decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier'] ||
+                    decoded.sub ||
+                    decoded.userId ||
+                    decoded.id;
+            }
+        }
+        return null;
+    };
 
     const [formData, setFormData] = useState({
-        email: 'lan.nguyen@email.com',
-        fullName: 'Nguyễn Thị Lan',
-        nationality: 'vietnamese',
-        dateOfBirth: '1995-03-15',
-        gender: 'female',
-        mobileNumber: '+84 912 345 678',
-        workingExperience: '1-2-years',
-        height: '165',
-        weight: '53',
-        englishCertificate: 'TOEIC 650',
-        certificateExpireDate: '2025-12-31',
-        basePreference: 'flexible',
-        termsAccepted: 'yes',
+        email: '',
+        fullName: '',
+        nationality: '',
+        dateOfBirth: '',
+        gender: '',
+        mobileNumber: '',
+        workingExperience: '',
+        height: '',
+        weight: '',
+        englishCertificate: '',
+        certificateExpireDate: '',
+        campaignRoundId: '',
+        basePreference: '',
+        termsAccepted: '',
         captcha: ''
     })
 
     const [files, setFiles] = useState({
-        applicationForm: { name: 'VJC-PD-FRM-12_Application_Form.pdf' },
-        profilePhoto: { name: 'Profile_Photo_4x6.jpg' },
-        educationDegree: { name: 'Bachelor_Degree_Certificate.pdf' },
-        englishCertificate: { name: 'TOEIC_Certificate_650.pdf' },
-        idCard: { name: 'ID_Card_Front_Back.pdf' }
+        applicationForm: null,
+        profilePhoto: null,
+        educationDegree: null,
+        englishCertificate: null,
+        idCard: null
     })
 
-    // Captcha state
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
-
-    // Edit mode state
     const [isEditing, setIsEditing] = useState(false)
     const [originalFormData, setOriginalFormData] = useState(null)
-
-    // Post verification modal state
     const [showPostVerificationModal, setShowPostVerificationModal] = useState(false)
+    const [applicationStatus, setApplicationStatus] = useState('') // 'pending', 'accepted', 'rejected', 'final'
+    const [submissionDate, setSubmissionDate] = useState('')
+    const [applicationId, setApplicationId] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    // Application status - giả lập trạng thái đơn ứng tuyển
-    const [applicationStatus, setApplicationStatus] = useState('final') // 'pending', 'accepted', 'rejected', 'final'
-
-    // Generate random captcha code
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         let result = ''
@@ -58,24 +99,253 @@ const ProfilePage = () => {
         return result
     }
 
-    // Initialize captcha on component mount
     useEffect(() => {
         setCaptchaCode(generateCaptcha())
     }, [])
 
-    // Load draft data on component mount
     useEffect(() => {
-        const savedDraft = localStorage.getItem('applicationFormDraft')
-        if (savedDraft) {
+        const loadApplicationData = async () => {
+            setIsLoading(true)
+            setError(null)
             try {
-                const draftData = JSON.parse(savedDraft)
-                setFormData(draftData.formData)
-            } catch (error) {
-                console.error('Error loading draft:', error)
+                const userId = getUserId()
+                if (!userId) {
+                    setError('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.')
+                    setIsLoading(false)
+                    return
+                }
+                const result = await getUserApplication(userId)
+                if (result.success && result.data) {
+                    const appData = result.data
+                    console.log('Application data from API:', appData)
+                    // Helper function to format date to YYYY-MM-DD
+                    const formatDateForInput = (dateString) => {
+                        if (!dateString) {
+                            console.warn('formatDateForInput: dateString is empty')
+                            return ''
+                        }
+                        console.log('formatDateForInput - Input:', dateString, 'Type:', typeof dateString)
+                        // If it's already in YYYY-MM-DD format, return as is
+                        if (typeof dateString === 'string') {
+                            // Check if it's YYYY-MM-DD format
+                            const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/)
+                            if (ymdMatch) {
+                                const result = dateString.split('T')[0] // Remove time part if exists
+                                console.log('formatDateForInput - Already YYYY-MM-DD:', result)
+                                return result
+                            }
+                            // Try parsing as Date
+                            try {
+                                const date = new Date(dateString)
+                                if (!isNaN(date.getTime())) {
+                                    // Get local date parts to avoid timezone issues
+                                    const year = date.getFullYear()
+                                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                                    const day = String(date.getDate()).padStart(2, '0')
+                                    const result = `${year}-${month}-${day}`
+                                    console.log('formatDateForInput - Parsed:', result)
+                                    return result
+                                } else {
+                                    console.warn('formatDateForInput - Invalid date:', dateString)
+                                }
+                            } catch (e) {
+                                console.error('formatDateForInput - Error parsing date:', dateString, e)
+                            }
+                        }
+                        console.warn('formatDateForInput - Could not format:', dateString)
+                        return ''
+                    }
+                    // Helper function to format date for display
+                    const formatDateForDisplay = (dateString) => {
+                        if (!dateString) {
+                            console.warn('formatDateForDisplay: dateString is empty')
+                            return ''
+                        }
+                        console.log('formatDateForDisplay - Input:', dateString, 'Type:', typeof dateString)
+                        try {
+                            const date = new Date(dateString)
+                            if (!isNaN(date.getTime())) {
+                                const result = date.toLocaleDateString('vi-VN', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })
+                                console.log('formatDateForDisplay - Formatted:', result)
+                                return result
+                            } else {
+                                console.warn('formatDateForDisplay - Invalid date:', dateString)
+                                // Try to return as is if it's a valid string
+                                if (typeof dateString === 'string' && dateString.trim()) {
+                                    return dateString
+                                }
+                            }
+                        } catch (e) {
+                            console.error('formatDateForDisplay - Error formatting date:', dateString, e)
+                            // Return as is if it's a valid string
+                            if (typeof dateString === 'string' && dateString.trim()) {
+                                return dateString
+                            }
+                        }
+                        console.warn('formatDateForDisplay - Could not format:', dateString)
+                        return ''
+                    }
+                    // Store application metadata
+                    if (appData.applicationId) {
+                        setApplicationId(appData.applicationId)
+                    }
+                    if (appData.submissionDate) {
+                        const formattedSubmissionDate = formatDateForDisplay(appData.submissionDate)
+                        // Only set if we got a valid formatted date (not empty and not "Invalid Date")
+                        if (formattedSubmissionDate && formattedSubmissionDate !== 'Invalid Date' && formattedSubmissionDate.trim()) {
+                            setSubmissionDate(formattedSubmissionDate)
+                        } else {
+                            // Try to use raw value if formatting failed
+                            console.warn('Could not format submissionDate, using raw value:', appData.submissionDate)
+                            setSubmissionDate(appData.submissionDate)
+                        }
+                    }
+                    // Set application status
+                    if (appData.status) {
+                        setApplicationStatus(appData.status.toLowerCase())
+                    }
+                    // Format endDate to YYYY-MM-DD for date input
+                    console.log('=== Processing endDate ===')
+                    console.log('Raw endDate from API:', appData.endDate)
+                    console.log('endDate type:', typeof appData.endDate)
+                    console.log('endDate value:', JSON.stringify(appData.endDate))
+                    let formattedEndDate = ''
+                    if (appData.endDate) {
+                        formattedEndDate = formatDateForInput(appData.endDate)
+                        console.log('Formatted endDate:', formattedEndDate)
+                        // If formatDateForInput returned empty, try alternative methods
+                        if (!formattedEndDate) {
+                            console.log('formatDateForInput returned empty, trying alternative methods...')
+                            // Try direct string manipulation if it's already close to YYYY-MM-DD
+                            const dateStr = String(appData.endDate).trim()
+                            if (dateStr.length >= 10) {
+                                // Try to extract YYYY-MM-DD from various formats
+                                const patterns = [
+                                    /(\d{4})-(\d{2})-(\d{2})/,  // YYYY-MM-DD
+                                    /(\d{4})\/(\d{2})\/(\d{2})/, // YYYY/MM/DD
+                                    /(\d{2})\/(\d{2})\/(\d{4})/, // DD/MM/YYYY
+                                ]
+                                for (const pattern of patterns) {
+                                    const match = dateStr.match(pattern)
+                                    if (match) {
+                                        if (pattern === patterns[2]) {
+                                            // DD/MM/YYYY -> YYYY-MM-DD
+                                            formattedEndDate = `${match[3]}-${match[2]}-${match[1]}`
+                                        } else {
+                                            // YYYY-MM-DD or YYYY/MM/DD
+                                            formattedEndDate = `${match[1]}-${match[2]}-${match[3]}`
+                                        }
+                                        console.log('Alternative format worked:', formattedEndDate)
+                                        break
+                                    }
+                                }
+                            }
+                            // Last resort: try new Date again with different approach
+                            if (!formattedEndDate) {
+                                try {
+                                    const date = new Date(appData.endDate)
+                                    if (!isNaN(date.getTime())) {
+                                        const year = date.getUTCFullYear()
+                                        const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+                                        const day = String(date.getUTCDate()).padStart(2, '0')
+                                        formattedEndDate = `${year}-${month}-${day}`
+                                        console.log('UTC date format worked:', formattedEndDate)
+                                    }
+                                } catch (e) {
+                                    console.error('All date formatting methods failed:', e)
+                                }
+                            }
+                        }
+                    } else {
+                        console.warn('endDate is null, undefined, or empty')
+                    }
+                    console.log('Final formattedEndDate:', formattedEndDate)
+                    // Map API response to form data
+                    const newFormData = {
+                        workingExperience: appData.experience || '',
+                        height: appData.height?.toString() || '',
+                        weight: appData.weight?.toString() || '',
+                        englishCertificate: appData.englishDegreeNumber || '',
+                        certificateExpireDate: formattedEndDate,
+                        campaignRoundId: appData.campaignRoundId?.toString() || '',
+                    }
+                    console.log('New form data to set:', newFormData)
+                    setFormData(prev => ({
+                        ...prev,
+                        ...newFormData
+                    }))
+                    // Debug: Log form data to verify after state update
+                    setTimeout(() => {
+                        console.log('Form data after state update (check in next render):', {
+                            certificateExpireDate: formattedEndDate,
+                            workingExperience: appData.experience,
+                            height: appData.height,
+                            weight: appData.weight,
+                            englishCertificate: appData.englishDegreeNumber
+                        })
+                    }, 100)
+                    // Map documents to files
+                    if (appData.documents && Array.isArray(appData.documents)) {
+                        const filesMap = {}
+                        appData.documents.forEach(doc => {
+                            // Map document type to file field
+                            const type = doc.type?.toLowerCase() || ''
+                            if (type.includes('application') || type.includes('form')) {
+                                filesMap.applicationForm = { name: doc.documentURL?.split('/').pop() || 'Application Form', url: doc.documentURL }
+                            } else if (type.includes('profile') || type.includes('photo')) {
+                                filesMap.profilePhoto = { name: doc.documentURL?.split('/').pop() || 'Profile Photo', url: doc.documentURL }
+                            } else if (type.includes('education') || type.includes('degree')) {
+                                filesMap.educationDegree = { name: doc.documentURL?.split('/').pop() || 'Education Degree', url: doc.documentURL }
+                            } else if (type.includes('english') || type.includes('certificate')) {
+                                filesMap.englishCertificate = { name: doc.documentURL?.split('/').pop() || 'English Certificate', url: doc.documentURL }
+                            } else if (type.includes('id') || type.includes('passport') || type.includes('card')) {
+                                filesMap.idCard = { name: doc.documentURL?.split('/').pop() || 'ID Card', url: doc.documentURL }
+                            }
+                        })
+                        setFiles(prev => ({ ...prev, ...filesMap }))
+                    }
+                    // Load user profile data if available
+                    const userData = JSON.parse(localStorage.getItem('user') || 'null')
+                    if (userData) {
+                        setFormData(prev => {
+                            // Preserve certificateExpireDate from API, don't override it
+                            const updated = {
+                                ...prev,
+                                email: userData.email || '',
+                                fullName: userData.fullName || userData.name || '',
+                                nationality: userData.nationality || '',
+                                dateOfBirth: userData.dateOfBirth || '',
+                                gender: userData.gender || '',
+                                mobileNumber: userData.mobileNumber || userData.phoneNumber || '',
+                            }
+                            // Keep certificateExpireDate from API if it was set
+                            if (prev.certificateExpireDate) {
+                                updated.certificateExpireDate = prev.certificateExpireDate
+                            }
+                            console.log('User data merged, certificateExpireDate preserved:', updated.certificateExpireDate)
+                            return updated
+                        })
+                    }
+                } else {
+                    setError(result.error || 'Không thể tải thông tin đơn ứng tuyển')
+                }
+            } catch (err) {
+                console.error('Error loading application data:', err)
+                setError('Đã xảy ra lỗi khi tải thông tin đơn ứng tuyển')
+            } finally {
+                setIsLoading(false)
             }
         }
+        loadApplicationData()
     }, [])
-
+    // Debug: Log formData.certificateExpireDate whenever it changes
+    useEffect(() => {
+        console.log('formData.certificateExpireDate changed:', formData.certificateExpireDate)
+    }, [formData.certificateExpireDate])
     // Listen for language changes and force re-render
     useEffect(() => {
         const unsubscribe = onLangChange(() => {
@@ -83,13 +353,11 @@ const ProfilePage = () => {
         })
         return unsubscribe
     }, [])
-
     // Refresh captcha function
     const refreshCaptcha = () => {
         setCaptchaCode(generateCaptcha())
         setCaptchaInput('')
     }
-
     const handleInputChange = (e) => {
         const { name, value } = e.target
         if (name === 'captcha') {
@@ -101,7 +369,6 @@ const ProfilePage = () => {
             }))
         }
     }
-
     const handleFileChange = (e) => {
         const { name, files: fileList } = e.target
         setFiles(prev => ({
@@ -109,70 +376,6 @@ const ProfilePage = () => {
             [name]: fileList[0] || null
         }))
     }
-
-    const handleUpdate = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
-        }
-
-        // Xử lý cập nhật form ở đây
-        console.log('Updated form data:', formData)
-        console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
-    }
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
-        }
-
-        // Xử lý nộp đơn ở đây
-        console.log('Submitted form data:', formData)
-        console.log('Submitted files:', files)
-        alert('Đã nộp đơn ứng tuyển thành công!')
-    }
-
-    const handleEditClick = () => {
-        setOriginalFormData({ ...formData })
-        setIsEditing(true)
-    }
-
-    const handleSaveClick = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
-        }
-
-        // Xử lý lưu thông tin
-        console.log('Updated form data:', formData)
-        console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
-        setIsEditing(false)
-        setOriginalFormData(null)
-    }
-
-    const handleCancelClick = () => {
-        if (originalFormData) {
-            setFormData(originalFormData)
-        }
-        setIsEditing(false)
-        setOriginalFormData(null)
-    }
-
     const handleSaveDraft = () => {
         // Lưu form data vào localStorage (không lưu files)
         const draftData = {
@@ -180,20 +383,46 @@ const ProfilePage = () => {
             timestamp: new Date().toISOString(),
             campaignId: null
         }
-
         localStorage.setItem('applicationFormDraft', JSON.stringify(draftData))
         alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
     }
-
     const handlePostVerificationSubmit = (verificationData) => {
         // Xử lý nộp hậu kiểm
         console.log('Post verification data:', verificationData)
         alert('Đã nộp hậu kiểm thành công! Chúng tôi sẽ xem xét và phản hồi trong thời gian sớm nhất.')
     }
-
     // Kiểm tra xem có hiển thị nút "Nộp hậu kiểm" không
     const shouldShowPostVerificationButton = applicationStatus === 'final'
-
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600">Đang tải thông tin hồ sơ...</p>
+                </div>
+            </div>
+        )
+    }
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center max-w-md">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        <p className="font-bold">Lỗi</p>
+                        <p>{error}</p>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
+        )
+    }
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
@@ -201,14 +430,16 @@ const ProfilePage = () => {
                     <div className="flex items-center gap-4">
                         <h1 className="text-3xl font-bold text-slate-800">Hồ sơ</h1>
                         {/* Thanh hiển thị kết quả cuối cùng - nhỏ gọn bên cạnh title */}
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg px-3 py-1 text-white">
-                            <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-sm font-medium">Kết quả cuối cùng</span>
+                        {applicationStatus === 'final' && (
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg px-3 py-1 text-white">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="text-sm font-medium">Kết quả cuối cùng</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                     <div className="flex gap-3">
                         {shouldShowPostVerificationButton && (
@@ -221,13 +452,44 @@ const ProfilePage = () => {
                         )}
                     </div>
                 </div>
-
+                {/* Application Information Card */}
+                {(applicationStatus || submissionDate || applicationId) && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {applicationId && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Mã đơn ứng tuyển</label>
+                                    <p className="text-sm font-semibold text-slate-800">#{applicationId}</p>
+                                </div>
+                            )}
+                            {applicationStatus && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Trạng thái</label>
+                                    <p className="text-sm font-semibold text-slate-800 capitalize">
+                                        {applicationStatus === 'pending' && 'Đang chờ'}
+                                        {applicationStatus === 'accepted' && 'Đã chấp nhận'}
+                                        {applicationStatus === 'rejected' && 'Đã từ chối'}
+                                        {applicationStatus === 'final' && 'Kết quả cuối cùng'}
+                                        {!['pending', 'accepted', 'rejected', 'final'].includes(applicationStatus) && applicationStatus}
+                                    </p>
+                                </div>
+                            )}
+                            {submissionDate && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Ngày nộp đơn</label>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {submissionDate}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column - Document Uploads */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
-
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -249,7 +511,14 @@ const ProfilePage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.applicationForm ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.applicationForm.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.applicationForm instanceof File ? files.applicationForm.name : (files.applicationForm.name || files.applicationForm.file?.name || 'Application Form')}
+                                                            {files.applicationForm.url && !(files.applicationForm instanceof File) && (
+                                                                <a href={files.applicationForm.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -258,7 +527,6 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         {t('application_form_profile_photo')} *
@@ -280,7 +548,14 @@ const ProfilePage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.profilePhoto ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.profilePhoto.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.profilePhoto instanceof File ? files.profilePhoto.name : (files.profilePhoto.name || files.profilePhoto.file?.name || 'Profile Photo')}
+                                                            {files.profilePhoto.url && !(files.profilePhoto instanceof File) && (
+                                                                <a href={files.profilePhoto.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select_image')}</span>
                                                     )}
@@ -289,7 +564,6 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         {t('application_form_education_degree')} *
@@ -311,7 +585,14 @@ const ProfilePage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.educationDegree ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.educationDegree.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.educationDegree instanceof File ? files.educationDegree.name : (files.educationDegree.name || files.educationDegree.file?.name || 'Education Degree')}
+                                                            {files.educationDegree.url && !(files.educationDegree instanceof File) && (
+                                                                <a href={files.educationDegree.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -320,7 +601,6 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         {t('application_form_english_certificate')} *
@@ -342,7 +622,14 @@ const ProfilePage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.englishCertificate ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.englishCertificate.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.englishCertificate instanceof File ? files.englishCertificate.name : (files.englishCertificate.name || files.englishCertificate.file?.name || 'English Certificate')}
+                                                            {files.englishCertificate.url && !(files.englishCertificate instanceof File) && (
+                                                                <a href={files.englishCertificate.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -351,7 +638,6 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">
                                         {t('application_form_id_card')} *
@@ -373,7 +659,14 @@ const ProfilePage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.idCard ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.idCard.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'ID Card')}
+                                                            {files.idCard.url && !(files.idCard instanceof File) && (
+                                                                <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -385,12 +678,23 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM DETAILS</h2>
-
-                        <form onSubmit={handleUpdate} className="space-y-6">
+                        <ProfileFormActions
+                            formData={formData}
+                            files={files}
+                            applicationId={applicationId}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            originalFormData={originalFormData}
+                            setOriginalFormData={setOriginalFormData}
+                            setFormData={setFormData}
+                            captchaCode={captchaCode}
+                            captchaInput={captchaInput}
+                            handleInputChange={handleInputChange}
+                            refreshCaptcha={refreshCaptcha}
+                        >
                             {/* Personal Information */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Personal Information</h3>
@@ -407,7 +711,6 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
                                         <input
@@ -420,7 +723,6 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">3. Nationality:</label>
                                         <select
@@ -445,7 +747,6 @@ const ProfilePage = () => {
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">4. Date of Birth:</label>
                                         <input
@@ -458,7 +759,6 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">5. Gender:</label>
                                         <div className="flex gap-4">
@@ -490,7 +790,6 @@ const ProfilePage = () => {
                                             </label>
                                         </div>
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">6. Mobile number:</label>
                                         <input
@@ -503,7 +802,6 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
                                         <div className="space-y-2">
@@ -561,7 +859,6 @@ const ProfilePage = () => {
                                             </label>
                                         </div>
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">
@@ -595,7 +892,6 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* English Certificate */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English Certificate</h3>
@@ -627,7 +923,6 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* Base Preference */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Base Preference</h3>
@@ -715,78 +1010,10 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Captcha */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Captcha Verification</label>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
-                                        {captchaCode}
-                                    </div>
-                                    <div className="flex-1">
-                                        <input
-                                            type="text"
-                                            name="captcha"
-                                            value={captchaInput}
-                                            onChange={handleInputChange}
-                                            placeholder="Enter captcha code"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={refreshCaptcha}
-                                    className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
-                                >
-                                    Try new code
-                                </button>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-4">
-                                {!isEditing ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleEditClick}
-                                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Cập nhật thông tin
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSubmit}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Nộp đơn
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelClick}
-                                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Hủy
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSaveClick}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Lưu
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </form>
+                        </ProfileFormActions>
                     </div>
                 </div>
             </div>
-
             {/* Post Verification Modal */}
             <PostVerificationModal
                 isOpen={showPostVerificationModal}

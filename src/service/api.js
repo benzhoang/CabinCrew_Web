@@ -1757,6 +1757,46 @@ export const getOngoingCampaign = async () => {
   }
 };
 
+export const getAppearanceResult = async (activityId) => {
+  if (!activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để truy xuất kết quả ngoại hình",
+    };
+  }
+
+  try {
+    const response = await api.get(`/appearance-results/${activityId}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy kết quả kiểm tra ngoại hình",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy kết quả kiểm tra ngoại hình",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API submit multiple-choice test answers (Listening và Practical tests)
 // Format theo API documentation:
 // POST /api/v1/test-sessions/submit-multiple-choice
@@ -2350,6 +2390,211 @@ export const submitApplication = async (applicationData) => {
       error: errorMessage,
       errorCode: errorData?.errorCode,
       errorType: errorData?.error,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật hồ sơ ứng tuyển theo ID
+export const updateApplication = async (applicationId, updateData = {}) => {
+  if (!applicationId) {
+    return {
+      success: false,
+      error: "Thiếu mã hồ sơ để cập nhật",
+    };
+  }
+
+  try {
+    const formData = new FormData();
+
+    const appendIfValue = (key, value) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value);
+      }
+    };
+
+    appendIfValue("Experience", updateData.experience);
+    if (updateData.height !== undefined && updateData.height !== "") {
+      formData.append("Height", parseInt(updateData.height, 10));
+    }
+    if (updateData.weight !== undefined && updateData.weight !== "") {
+      formData.append("Weight", parseInt(updateData.weight, 10));
+    }
+    appendIfValue("EnglishDegreeNumber", updateData.englishDegreeNumber);
+    appendIfValue("EndDate", updateData.endDate);
+    if (updateData.campaignRoundId) {
+      formData.append("CampaignRoundId", parseInt(updateData.campaignRoundId, 10));
+    }
+
+    const appendFileIfValid = (fieldName, file) => {
+      if (file instanceof File || file instanceof Blob) {
+        formData.append(fieldName, file);
+      }
+    };
+
+    appendFileIfValid("ApplicationForm", updateData.applicationForm);
+    appendFileIfValid("ProfilePhoto", updateData.profilePhoto);
+    appendFileIfValid("EducationDegree", updateData.educationDegree);
+    appendFileIfValid("EnglishCertificate", updateData.englishCertificate);
+    appendFileIfValid("PassportOrID", updateData.passportOrID);
+
+    const headers = {};
+    const token = localStorage.getItem("token");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.put(
+      `${API_BASE_URL}/applications/${applicationId}`,
+      formData,
+      {
+        headers,
+        timeout: 60000,
+      }
+    );
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const responseData = response.data || {};
+
+    const isBusinessSuccess =
+      responseData.code === 0 ||
+      responseData.code === 4 ||
+      responseData.errorCode === 0 ||
+      responseData.status === "success";
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Cập nhật hồ sơ thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.errorMessage ||
+        responseData.message ||
+        "Cập nhật hồ sơ thất bại",
+      errors: responseData.errors,
+      status: httpStatus,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Cập nhật hồ sơ thất bại";
+
+    return {
+      success: false,
+      error: errorMessage,
+      errors: errorData?.errors,
+      errorCode: errorData?.errorCode,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API nộp hồ sơ ứng tuyển đã tồn tại
+export const submitExistingApplication = async (applicationId, campaignRoundId) => {
+  if (!applicationId) {
+    return {
+      success: false,
+      error: "Thiếu mã hồ sơ để nộp đơn",
+    };
+  }
+
+  try {
+    const config = {};
+    if (campaignRoundId) {
+      config.params = { campaignRoundId };
+    }
+
+    const response = await api.put(
+      `/applications/${applicationId}/submit`,
+      {},
+      config
+    );
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const responseData = response.data || {};
+
+    const isBusinessSuccess =
+      responseData.code === 0 ||
+      responseData.code === 4 ||
+      responseData.errorCode === 0 ||
+      responseData.status?.toLowerCase() === "success";
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Nộp hồ sơ thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.errorMessage ||
+        responseData.message ||
+        "Nộp hồ sơ thất bại",
+      errors: responseData.errors,
+      status: httpStatus,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Nộp hồ sơ thất bại";
+
+    return {
+      success: false,
+      error: errorMessage,
+      errors: errorData?.errors,
+      errorCode: errorData?.errorCode,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy thông tin đơn ứng tuyển của user theo ID
+export const getUserApplication = async (userId) => {
+  try {
+    const response = await api.get(`/users/${userId}/application`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy thông tin đơn ứng tuyển",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin đơn ứng tuyển",
       status: error.response?.status,
     };
   }

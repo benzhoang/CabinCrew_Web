@@ -72,6 +72,7 @@ import ScoreListPage from "./pages/Examiner/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
+import AppearanceResultPage from "./pages/Candidate/AppearanceResultPage";
 import TestResultPage from "./pages/CabinCrew/TestResultPage";
 import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 import TestingPage from "./pages/Examiner/TestingPage";
@@ -175,6 +176,16 @@ function App() {
             <>
               <Navbar />
               <RecruitmentStages />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/appearance-result/:activityId"
+          element={
+            <>
+              <Navbar />
+              <AppearanceResultPage />
               <Footer />
             </>
           }
