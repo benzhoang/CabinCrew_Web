@@ -35,6 +35,15 @@ const ApplicationForm = () => {
         idCard: null
     })
 
+    // Dùng key để reset input file khi xóa
+    const [fileInputKeys, setFileInputKeys] = useState({
+        applicationForm: 0,
+        profilePhoto: 0,
+        educationDegree: 0,
+        englishCertificate: 0,
+        idCard: 0
+    })
+
     // Captcha state
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
@@ -114,6 +123,17 @@ const ApplicationForm = () => {
         setFiles(prev => ({
             ...prev,
             [name]: fileList[0] || null
+        }))
+    }
+
+    const handleClearFile = (fieldName) => {
+        setFiles(prev => ({
+            ...prev,
+            [fieldName]: null
+        }))
+        setFileInputKeys(prev => ({
+            ...prev,
+            [fieldName]: prev[fieldName] + 1
         }))
     }
 
@@ -320,6 +340,7 @@ const ApplicationForm = () => {
                 localStorage.setItem('applicationFormDraft', JSON.stringify(localDraftData))
 
                 alert(t('application_form_draft_saved') || result.message || 'Đã lưu bản nháp thành công!')
+                navigate('/profile')
             } else {
                 alert(result.error || 'Lưu bản nháp thất bại. Vui lòng thử lại.')
             }
@@ -380,14 +401,28 @@ const ApplicationForm = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_application_form_file')} *
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                        <span>{t('application_form_application_form_file')} *</span>
+                                        {files.applicationForm && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleClearFile('applicationForm')}
+                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </label>
                                     <div className="relative">
                                         <input
+                                            key={fileInputKeys.applicationForm}
                                             type="file"
                                             name="applicationForm"
                                             onChange={handleFileChange}
+                                            accept=".pdf"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             required
                                         />
@@ -403,17 +438,33 @@ const ApplicationForm = () => {
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                    Vui lòng tải lên mẫu đơn ứng tuyển ở định dạng <span className="font-semibold">PDF (.pdf)</span>.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_profile_photo')} *
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                        <span>{t('application_form_profile_photo')} *</span>
+                                        {files.profilePhoto && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleClearFile('profilePhoto')}
+                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </label>
                                     <div className="relative">
                                         <input
+                                            key={fileInputKeys.profilePhoto}
                                             type="file"
                                             name="profilePhoto"
                                             onChange={handleFileChange}
@@ -439,15 +490,28 @@ const ApplicationForm = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_education_degree')} *
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                        <span>{t('application_form_education_degree')} *</span>
+                                        {files.educationDegree && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleClearFile('educationDegree')}
+                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </label>
                                     <div className="relative">
                                         <input
+                                            key={fileInputKeys.educationDegree}
                                             type="file"
                                             name="educationDegree"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             required
                                         />
@@ -463,21 +527,37 @@ const ApplicationForm = () => {
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                    Ưu tiên file scan/bản chụp được lưu dưới dạng <span className="font-semibold">PDF (.pdf)</span>.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_english_certificate')} *
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                        <span>{t('application_form_english_certificate')} *</span>
+                                        {files.englishCertificate && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleClearFile('englishCertificate')}
+                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </label>
                                     <div className="relative">
                                         <input
+                                            key={fileInputKeys.englishCertificate}
                                             type="file"
                                             name="englishCertificate"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             required
                                         />
@@ -493,21 +573,37 @@ const ApplicationForm = () => {
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
                                                 </p>
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                    Vui lòng tải lên chứng chỉ tiếng Anh ở định dạng <span className="font-semibold">PDF (.pdf)</span>.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_id_card')} *
+                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                        <span>{t('application_form_id_card')} *</span>
+                                        {files.idCard && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleClearFile('idCard')}
+                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </label>
                                     <div className="relative">
                                         <input
+                                            key={fileInputKeys.idCard}
                                             type="file"
                                             name="idCard"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             required
                                         />
@@ -522,6 +618,9 @@ const ApplicationForm = () => {
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
+                                                </p>
+                                                <p className="mt-1 text-xs text-slate-500">
+                                                    Vui lòng tải lên hộ chiếu/CCCD còn hiệu lực ở định dạng <span className="font-semibold">PDF (.pdf)</span>.
                                                 </p>
                                             </div>
                                         </div>
@@ -730,49 +829,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_base_preference')}</label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="flexible"
-                                            checked={formData.basePreference === 'flexible'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_flexible_base')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="cam-ranh"
-                                            checked={formData.basePreference === 'cam-ranh'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_cam_ranh')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="basePreference"
-                                            value="da-nang"
-                                            checked={formData.basePreference === 'da-nang'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_da_nang')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">10. {t('application_form_terms_conditions')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
                                     {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
                                     {t('application_form_for_recruitment')}

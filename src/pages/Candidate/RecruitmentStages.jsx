@@ -3,6 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../../i18n';
 import { getOngoingCampaign } from '../../service/api';
 
+const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
+const interviewKeywords = ['interview', 'phỏng vấn'];
+
+const matchesStageKeywords = (stage, keywords) => {
+    const name = (stage?.name || '').toLowerCase();
+    const nameEn = (stage?.nameEn || '').toLowerCase();
+    return keywords.some(keyword => name.includes(keyword) || nameEn.includes(keyword));
+};
+
+const isStageReached = (stage, index, currentStage) => {
+    if (!stage) return false;
+    if (stage.completed) return true;
+    return index + 1 <= currentStage;
+};
+
 const RecruitmentStages = () => {
     const navigate = useNavigate();
 
@@ -38,6 +53,7 @@ const RecruitmentStages = () => {
                             round.status === 'Passed' ||
                             round.status === 'Finished';
                         return {
+                            activityId: round.activityId || '',
                             id: round.roundId || index + 1,
                             name: round.roundName || `Giai đoạn ${index + 1}`,
                             nameEn: round.roundName || `Stage ${index + 1}`,
@@ -290,6 +306,24 @@ const RecruitmentStages = () => {
                                                         <p className="text-xs text-gray-500 mt-1">
                                                             {new Date(stage.date).toLocaleDateString()}
                                                         </p>
+                                                    )}
+                                                    {isStageReached(stage, index, application.currentStage) && matchesStageKeywords(stage, appearanceKeywords) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate(`/appearance-result/${stage.activityId || stage.roundId || ''}`)}
+                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                        >
+                                                            Xem kết quả
+                                                        </button>
+                                                    )}
+                                                    {isStageReached(stage, index, application.currentStage) && matchesStageKeywords(stage, interviewKeywords) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate(`/interview-result/${stage.activityId || stage.roundId || ''}`)}
+                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                        >
+                                                            Xem kết quả
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>

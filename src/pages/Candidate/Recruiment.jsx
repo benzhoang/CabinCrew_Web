@@ -100,15 +100,6 @@ const Recruiment = () => {
         setIsLoading(true)
         setError(null)
         try {
-            // Kiểm tra token trước khi gọi API
-            const token = localStorage.getItem('token')
-            if (!token) {
-                setError('Vui lòng đăng nhập để xem danh sách chiến dịch')
-                setCampaigns([])
-                setIsLoading(false)
-                return
-            }
-
             // Chuẩn bị params theo format API yêu cầu:
             // campaignType: integer (1: Recruitment, 2: Promotion)
             // campaignStatus: integer (0: Draft, 1: Pending, 2: Approved, 3: Rejected, 4: Cancelled, 5: Ongoing, 6: Upcoming, 7: Ended)
