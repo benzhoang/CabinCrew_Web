@@ -83,27 +83,47 @@ const TestListPage = () => {
 
     setIsLoading({ ...isLoading, [testId]: true });
 
-    // Simulate API call - validate exam password
-    setTimeout(() => {
-      // TODO: Replace with actual API call
-      // const response = await validateExamPassword(testId, password);
+    // Find selected test
+    const selectedTest = tests.find((test) => test.testId === testId);
 
-      // Simulate successful validation
-      toast.success(
-        t("exam_login_success") ||
-          "Đăng nhập thành công. Chuyển đến trang làm bài..."
-      );
+    if (!selectedTest) {
+      toast.error("Không tìm thấy đề thi");
+      setIsLoading({ ...isLoading, [testId]: false });
+      return;
+    }
+
+    setTimeout(() => {
       setIsLoading({ ...isLoading, [testId]: false });
 
-      // Navigate to exam page
+      // Navigate to exam page với thông tin exam
       setTimeout(() => {
-        navigate(`/cabin-crew/exams/${testId}`);
+        // Lưu examCode vào localStorage để có thể lấy lại nếu state bị mất
+        if (selectedTest.joinCode || selectedTest.code) {
+          localStorage.setItem(
+            `examCode_${selectedTest.testId}`,
+            selectedTest.joinCode || selectedTest.code
+          );
+        }
+
+        navigate(`/cabin-crew/exams/${selectedTest.testId}`, {
+          state: {
+            examType: selectedTest.testType,
+            examId: selectedTest.testId,
+            examName: selectedTest.testName,
+            examCode: selectedTest.joinCode || selectedTest.code || "",
+            duration: selectedTest.durationInMinutes,
+            totalQuestions: selectedTest.totalQuestions || 0,
+            roundId: selectedTest.roundId,
+            roundType: selectedTest.roundType,
+            maxScore: selectedTest.maxScore,
+          },
+        });
       }, 1500);
     }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen px-4 py-12 bg-blue-100 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -111,7 +131,7 @@ const TestListPage = () => {
           <div className="mb-4">
             <button
               onClick={() => navigate("/cabin-crew/promotion-stages")}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg
                 className="w-5 h-5 mr-2"
@@ -146,7 +166,7 @@ const TestListPage = () => {
         {isLoadingTests ? (
           <Loading message="Đang tải danh sách..." />
         ) : tests.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <p className="text-gray-600">
               {t("no_tests_available") || "Không có đề thi nào"}
             </p>
@@ -156,7 +176,7 @@ const TestListPage = () => {
             {tests.map((test) => (
               <div
                 key={test.testId}
-                className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-xl"
+                className="overflow-hidden transition-all duration-200 bg-white border border-gray-200 shadow-lg rounded-xl hover:shadow-xl"
               >
                 {/* Exam Info */}
                 <div className="p-6">
@@ -167,7 +187,7 @@ const TestListPage = () => {
                           {test.testName}
                         </h3>
                       </div>
-                      <p className="text-sm text-gray-600 mb-4">
+                      <p className="mb-4 text-sm text-gray-600">
                         Đề thi Practical - Round {test.roundId}
                       </p>
                       <div className="flex items-center gap-6 text-sm text-gray-700">
@@ -185,7 +205,7 @@ const TestListPage = () => {
                     </div>
                     <button
                       onClick={() => toggleDropdown(test.testId)}
-                      className="ml-4 px-6 py-3 bg-blue-800 text-white rounded-lg hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium whitespace-nowrap"
+                      className="px-6 py-3 ml-4 font-medium text-white transition-all duration-200 bg-blue-800 rounded-lg hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
                     >
                       {expandedExamId === test.testId
                         ? t("close") || "Đóng"
@@ -196,18 +216,18 @@ const TestListPage = () => {
 
                 {/* Password Dropdown */}
                 {expandedExamId === test.testId && (
-                  <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <div className="flex items-end gap-4">
                       <div className="flex-1">
                         <label
                           htmlFor={`password-${test.testId}`}
-                          className="block text-sm font-medium text-gray-700 mb-2"
+                          className="block mb-2 text-sm font-medium text-gray-700"
                         >
                           {t("exam_password_label") || "Mật khẩu đề thi"}
                         </label>
                         <input
                           id={`password-${test.testId}`}
-                          type="password"
+                          type="text"
                           value={passwords[test.testId] || ""}
                           onChange={(e) =>
                             handlePasswordChange(test.testId, e.target.value)
@@ -217,7 +237,7 @@ const TestListPage = () => {
                               handleSubmit(test.testId);
                             }
                           }}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-sm bg-white text-gray-900 placeholder-gray-500"
+                          className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder={
                             t("exam_password_placeholder") ||
                             "Nhập mật khẩu đề thi"
@@ -228,11 +248,11 @@ const TestListPage = () => {
                       <button
                         onClick={() => handleSubmit(test.testId)}
                         disabled={isLoading[test.testId]}
-                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium whitespace-nowrap"
+                        className="px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                       >
                         {isLoading[test.testId] ? (
                           <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            <div className="w-4 h-4 mr-2 border-b-2 border-white rounded-full animate-spin"></div>
                             {t("loading") || "Đang xử lý..."}
                           </div>
                         ) : (

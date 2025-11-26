@@ -8,24 +8,14 @@ import { formatDate, convertDateFormat } from "../../config/formatDate.js";
 const mapStatus = (status) => {
   const statusMap = {
     Draft: "draft",
-    Active: "active",
     Pending: "pending",
-    Completed: "completed",
+    Approved: "approved",
     Rejected: "rejected",
+    Ongoing: "ongoing",
+    Ended: "ended",
   };
   return statusMap[status] || status.toLowerCase();
 };
-
-// Helper function to map component status to API status
-// const mapStatusToAPI = (status) => {
-//   const statusMap = {
-//     draft: "Draft",
-//     active: "Active",
-//     pending: "Pending",
-//     completed: "Completed",
-//   };
-//   return statusMap[status] || status.charAt(0).toUpperCase() + status.slice(1);
-// };
 
 // Helper function to map API campaignType to component campaignType
 const mapCampaignType = (campaignType) => {
@@ -39,9 +29,9 @@ const mapCampaignType = (campaignType) => {
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
     switch (status) {
-      case "active":
+      case "ongoing":
         return {
-          className: "bg-blue-100 text-blue-700 border-blue-200",
+          className: "bg-cyan-100 text-cyan-700 border-cyan-200",
           text: "Đang diễn ra",
         };
       case "pending":
@@ -49,7 +39,7 @@ const StatusBadge = ({ status }) => {
           className: "bg-yellow-100 text-yellow-700 border-yellow-200",
           text: "Đang chờ duyệt",
         };
-      case "completed":
+      case "ended":
         return {
           className: "bg-green-100 text-green-700 border-green-200",
           text: "Đã hoàn thành",
@@ -183,9 +173,7 @@ const CampaignCard = ({ campaign }) => {
             <button
               className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               onClick={() =>
-                navigate(`/senior-recruiter/campaigns/${campaign.id}`, {
-                  state: { campaign: campaign },
-                })
+                navigate(`/senior-recruiter/campaigns/${campaign.id}`)
               }
             >
               Xem chi tiết
@@ -227,6 +215,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         // Có thể API không hỗ trợ status filter hoặc format không đúng
         const params = {
           searchTerm: search || undefined,
+          fetchAll: true,
         };
 
         const result = await getCampaignList(params);
@@ -300,6 +289,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                 try {
                   const params = {
                     searchTerm: search || undefined,
+                    fetchAll: true,
                   };
                   const result = await getCampaignList(params);
                   if (result.success && result.data) {
@@ -393,10 +383,10 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("active")}
+            onClick={() => setSelectedStatus("ongoing")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "active"
-                ? "bg-blue-600 text-white border-blue-600"
+              selectedStatus === "ongoing"
+                ? "bg-cyan-600 text-white border-cyan-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -404,9 +394,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("completed")}
+            onClick={() => setSelectedStatus("ended")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "completed"
+              selectedStatus === "ended"
                 ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
