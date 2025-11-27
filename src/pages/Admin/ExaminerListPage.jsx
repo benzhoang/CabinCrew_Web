@@ -7,7 +7,7 @@ import AccountTable from "../../components/AdminComponent/AccountTable";
 const ExaminerListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [totalItems, setTotalItems] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);

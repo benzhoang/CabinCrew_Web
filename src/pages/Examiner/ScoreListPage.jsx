@@ -87,7 +87,7 @@ const defaultCandidates = [
 
 const RoundBadge = ({ value }) => {
   return (
-    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
+    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 rounded-md bg-green-50">
       {value}
     </span>
   );
@@ -143,29 +143,29 @@ const ScoreListPage = () => {
   return (
     <div className="w-full h-full p-6">
       <div className="mb-6">
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex items-center justify-between">
+        <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">
+            <h1 className="text-2xl font-extrabold md:text-3xl">
               Danh sách điểm của ứng viên
             </h1>
-            <p className="text-white/90 mt-1 text-sm">
+            <p className="mt-1 text-sm text-white/90">
               Xem và phản hồi phúc khảo điểm của ứng viên
             </p>
           </div>
           <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+            onClick={() => navigate("/examiner/exam-campaigns")}
+            className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
             aria-label="Quay lại"
             title="Quay lại"
           >
             Quay lại
           </button>
         </div>
-        <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="p-6 mt-4 bg-white border border-gray-200 shadow-sm rounded-2xl">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
             Thông tin bài kiểm tra
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
+          <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="text-gray-500">Mã đề:</p>
               <p className="mt-1 font-semibold text-gray-900">
@@ -193,7 +193,7 @@ const ScoreListPage = () => {
           </div>
         </div>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -204,11 +204,11 @@ const ScoreListPage = () => {
               {/* Notification Icon */}
               <button
                 onClick={() => setShowNotificationModal(true)}
-                className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="relative p-2 transition-colors rounded-lg hover:bg-gray-100"
                 aria-label="Thông báo"
               >
                 <FaBell className="w-5 h-5 text-gray-600" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute w-2 h-2 bg-red-500 rounded-full top-1 right-1"></span>
               </button>
               {/* Search Bar */}
               <div className="relative w-72">
@@ -217,9 +217,9 @@ const ScoreListPage = () => {
                   placeholder="Tìm theo tên, email, SĐT..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
+                  className="w-full pl-3 text-sm border border-gray-300 rounded-lg h-9 pr-9 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
                 />
-                <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <FaSearch className="absolute text-gray-500 -translate-y-1/2 right-3 top-1/2" />
               </div>
             </div>
           </div>
@@ -227,9 +227,9 @@ const ScoreListPage = () => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border-collapse">
+          <table className="min-w-full border-collapse table-auto">
             <thead>
-              <tr className="bg-gray-50 text-left text-sm text-gray-600 border-b border-gray-200">
+              <tr className="text-sm text-left text-gray-600 border-b border-gray-200 bg-gray-50">
                 <th className="px-5 py-3 font-semibold">ẢNH 4X6</th>
                 <th className="px-5 py-3 font-semibold">ỨNG VIÊN</th>
                 <th className="px-5 py-3 font-semibold">LIÊN HỆ</th>
@@ -247,15 +247,15 @@ const ScoreListPage = () => {
                   }
                 >
                   <td className="px-5 py-4">
-                    <div className="w-16 h-20 bg-gray-200 rounded overflow-hidden flex items-center justify-center">
+                    <div className="flex items-center justify-center w-16 h-20 overflow-hidden bg-gray-200 rounded">
                       {candidate.photo ? (
                         <img
                           src={candidate.photo}
                           alt={candidate.name}
-                          className="w-full h-full object-cover"
+                          className="object-cover w-full h-full"
                         />
                       ) : (
-                        <span className="text-gray-400 text-xs">No Photo</span>
+                        <span className="text-xs text-gray-400">No Photo</span>
                       )}
                     </div>
                   </td>
@@ -264,7 +264,7 @@ const ScoreListPage = () => {
                       <p className="text-sm font-medium text-gray-900">
                         {candidate.name}
                       </p>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="mt-1 text-xs text-gray-600">
                         {candidate.education}
                       </p>
                     </div>
@@ -272,7 +272,7 @@ const ScoreListPage = () => {
                   <td className="px-5 py-4">
                     <div>
                       <p className="text-sm text-gray-700">{candidate.email}</p>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="mt-1 text-xs text-gray-600">
                         {candidate.phone}
                       </p>
                     </div>

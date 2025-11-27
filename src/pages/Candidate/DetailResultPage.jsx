@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getAppearanceResult, getScoringCriterias } from '../../service/api'
+import { getInterviewCriterias, getInterviewResultDetail } from '../../service/api'
 
 const formatDateTime = (value) => {
     if (!value) return '—'
@@ -39,18 +39,18 @@ const getStatusBadge = (flag) => {
     return 'bg-gray-100 text-gray-700'
 }
 
-const AppearanceResultPage = () => {
-    const { activityId } = useParams()
+const DetailResultPage = () => {
+    const { id } = useParams()
     const navigate = useNavigate()
 
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [result, setResult] = useState(null)
-    const [scoringCriterias, setScoringCriterias] = useState([])
+    const [criteriaMap, setCriteriaMap] = useState({})
 
     const fetchResult = useCallback(async () => {
-        if (!activityId) {
-            setError('Không tìm thấy mã hoạt động để tra cứu kết quả.')
+        if (!id) {
+            setError('Không tìm thấy ID để tra cứu chi tiết phiếu chấm điểm.')
             setLoading(false)
             return
         }
@@ -58,99 +58,69 @@ const AppearanceResultPage = () => {
         setLoading(true)
         setError(null)
         try {
-            const [resultResponse] = await Promise.all([
-                getAppearanceResult(activityId),
-                getScoringCriterias().then(response => {
-                    if (response.success && Array.isArray(response.data)) {
-                        setScoringCriterias(response.data)
-                    }
-                    return response
-                })
-            ])
+            const response = await getInterviewResultDetail(id)
 
-            if (resultResponse.success) {
-                setResult(resultResponse.data)
+            if (response.success) {
+                setResult(response.data)
                 setError(null)
             } else {
-                setError(resultResponse.error || 'Không thể tải kết quả kiểm tra ngoại hình.')
+                setError(response.error || 'Không thể tải chi tiết phiếu chấm điểm.')
                 setResult(null)
             }
         } catch (err) {
-            console.error('Load appearance result error:', err)
+            console.error('Load interview result detail error:', err)
             setError('Đã xảy ra lỗi khi tải dữ liệu.')
             setResult(null)
         } finally {
             setLoading(false)
         }
-    }, [activityId])
+    }, [id])
+
+    const fetchCriterias = useCallback(async () => {
+        try {
+            const response = await getInterviewCriterias()
+            if (response.success) {
+                const dataArray = Array.isArray(response.data) ? response.data : []
+                const map = {}
+
+                dataArray.forEach((group) => {
+                    const items = Array.isArray(group?.items) ? group.items : []
+                    items.forEach((item) => {
+                        const key = item?.interviewCriteriaItemId
+                        if (key !== undefined && key !== null) {
+                            map[String(key)] = item?.criteria || item?.title || '—'
+                        }
+                    })
+                })
+
+                setCriteriaMap(map)
+            } else {
+                console.warn('Load interview criterias failed:', response.error)
+            }
+        } catch (err) {
+            console.error('Load interview criterias error:', err)
+        }
+    }, [])
 
     useEffect(() => {
         fetchResult()
     }, [fetchResult])
 
-    const criteriaList = useMemo(() => {
-        if (Array.isArray(result?.appearanceResults)) {
-            return result.appearanceResults
-        }
-        if (Array.isArray(result?.criteriaResults)) {
-            return result.criteriaResults
-        }
-        if (Array.isArray(result?.appearanceCriteriaResults)) {
-            return result.appearanceCriteriaResults
-        }
-        if (Array.isArray(result?.criteria)) {
-            return result.criteria
-        }
-        return []
-    }, [result])
+    useEffect(() => {
+        fetchCriterias()
+    }, [fetchCriterias])
 
-    // Tạo map từ scoringCriteriaItemId sang tên tiêu chí
-    const criteriaNameMap = useMemo(() => {
-        const map = {}
-        if (Array.isArray(scoringCriterias)) {
-            scoringCriterias.forEach(category => {
-                if (Array.isArray(category.items)) {
-                    category.items.forEach(item => {
-                        if (item.scoringCriteriaItemId) {
-                            // Ưu tiên text (tiếng Việt), nếu không có thì dùng englishText
-                            map[item.scoringCriteriaItemId] = item.text || item.englishText || ''
-                        }
-                    })
-                }
-            })
-        }
-        return map
-    }, [scoringCriterias])
-
-    // Hàm lấy tên tiêu chí từ map
-    const getCriteriaName = useCallback((criteria) => {
-        // Thử các trường có thể chứa ID
-        const itemId = criteria.scoringCriteriaItemId ||
-            criteria.criteriaId ||
-            criteria.id ||
-            criteria.scoringCriteriaItem?.scoringCriteriaItemId
-
-        if (itemId && criteriaNameMap[itemId]) {
-            return criteriaNameMap[itemId]
-        }
-
-        // Nếu không tìm thấy trong map, thử các trường tên trực tiếp
-        return criteria.name ||
-            criteria.criteriaName ||
-            criteria.scoringCriteriaItemName ||
-            criteria.scoringCriteriaItem?.text ||
-            criteria.scoringCriteriaItem?.englishText ||
-            ''
-    }, [criteriaNameMap])
-
-    const summaryItems = useMemo(() => ([
+    const summaryItems = [
         { label: 'Mã đánh giá', value: result?.evaluationId ?? '—' },
         { label: 'Thí sinh', value: result?.candidate || '—' },
         { label: 'Giám khảo', value: result?.examiner || '—' },
         { label: 'Vòng tuyển', value: result?.roundName || '—' },
         { label: 'Ngày đánh giá', value: formatDateTime(result?.evaluatedDate) },
-        { label: 'Kết quả tổng', value: getPassLabel(result?.isPassed) }
-    ]), [result])
+        { label: 'Điểm tổng', value: result?.finalScore !== undefined && result?.finalScore !== null ? result.finalScore : '—' },
+        { label: 'Kết quả', value: getPassLabel(result?.isPassed) }
+    ]
+
+    const interviewResults = Array.isArray(result?.interviewResults) ? result.interviewResults : []
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
@@ -171,7 +141,7 @@ const AppearanceResultPage = () => {
                     {loading && (
                         <div className="text-center py-16">
                             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600">Đang tải kết quả...</p>
+                            <p className="mt-4 text-gray-600">Đang tải chi tiết phiếu chấm điểm...</p>
                         </div>
                     )}
 
@@ -201,6 +171,9 @@ const AppearanceResultPage = () => {
                                     {result?.roundName && (
                                         <span className="text-sm text-gray-500">Vòng: {result.roundName}</span>
                                     )}
+                                    {result?.finalScore !== undefined && result?.finalScore !== null && (
+                                        <span className="text-sm font-medium text-gray-700">Điểm: {result.finalScore}</span>
+                                    )}
                                 </div>
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {summaryItems.map((item) => (
@@ -212,15 +185,20 @@ const AppearanceResultPage = () => {
                                 </dl>
                             </section>
 
-                            {criteriaList.length > 0 && (
+                            {result?.comment && (
                                 <section>
                                     <div className="mb-6">
                                         <h3 className="text-sm font-semibold text-gray-700 mb-1">Nhận xét chung</h3>
                                         <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                                            {result?.comment || result?.generalComment || result?.note || result?.notes || '—'}
+                                            {result.comment}
                                         </p>
                                     </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí</h2>
+                                </section>
+                            )}
+
+                            {interviewResults.length > 0 && (
+                                <section>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí đánh giá</h2>
                                     <div className="overflow-hidden border border-gray-200 rounded-lg">
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
@@ -229,31 +207,46 @@ const AppearanceResultPage = () => {
                                                         Tiêu chí
                                                     </th>
                                                     <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Kết quả
+                                                        Điểm
+                                                    </th>
+                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                        Nhận xét
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
-                                                {criteriaList.map((criteria, index) => {
-                                                    const criteriaName = getCriteriaName(criteria)
-                                                    const isPassed = criteria.isPassed ?? criteria.result ?? criteria.score
-                                                    return (
-                                                        <tr key={criteria.id || criteria.criteriaId || index}>
-                                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                                {criteriaName || `Tiêu chí ${index + 1}`}
-                                                            </td>
-                                                            <td className={`px-4 py-3 text-sm ${getResultColorClass(isPassed)}`}>
-                                                                {getPassLabel(isPassed)}
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
+                                                {interviewResults.map((item, index) => (
+                                                    <tr key={item.interviewCriteriaItemId || index}>
+                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                            {criteriaMap[String(item?.interviewCriteriaItemId)] ??
+                                                                item?.criteria ??
+                                                                item?.interviewCriteriaItemId ??
+                                                                '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                            {item.score !== undefined && item.score !== null ? item.score : '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                            {item.comment || '—'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
                                             </tbody>
                                         </table>
                                     </div>
                                 </section>
                             )}
 
+                            {interviewResults.length === 0 && (
+                                <section>
+                                    <div className="text-center py-8">
+                                        <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <p className="mt-2 text-sm font-medium text-gray-900">Chưa có chi tiết tiêu chí đánh giá</p>
+                                    </div>
+                                </section>
+                            )}
                         </div>
                     )}
                 </div>
@@ -262,4 +255,5 @@ const AppearanceResultPage = () => {
     )
 }
 
-export default AppearanceResultPage
+export default DetailResultPage
+

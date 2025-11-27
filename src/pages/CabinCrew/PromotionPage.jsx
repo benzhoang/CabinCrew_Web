@@ -361,9 +361,7 @@ const PromotionPage = () => {
                   <div className="flex items-center gap-3 mt-5">
                     <button
                       onClick={() =>
-                        navigate("/cabin-crew/promotion/apply", {
-                          state: { campaign: c },
-                        })
+                        navigate(`/cabin-crew/promotion/apply/${c.id}`)
                       }
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                     >

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { toast } from "react-toastify";
 import AppealModal from "../../components/CabinCrewComponent/AppealModal";
 
 const TestResultPage = () => {
+  const { id: campaignId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [, setLangVersion] = useState(0);
@@ -94,7 +95,7 @@ const TestResultPage = () => {
   const resultStatus = getResultStatus();
 
   const handleBackToTest = () => {
-    navigate("/cabin-crew/tests");
+    navigate(`/cabin-crew/tests/${campaignId}`);
   };
 
   const openAppealModal = () => {
@@ -119,9 +120,9 @@ const TestResultPage = () => {
   // Nếu đang loading, hiển thị loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="text-gray-600">{t("loading") || "Đang tải..."}</p>
         </div>
       </div>
@@ -131,9 +132,9 @@ const TestResultPage = () => {
   // Nếu không có dữ liệu, hiển thị thông báo
   if (!location.state || score === undefined) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4 text-gray-600">
             {t("no_test_data") ||
               "Không có dữ liệu bài thi. Đang chuyển hướng..."}
           </p>
@@ -143,11 +144,11 @@ const TestResultPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+    <div className="min-h-screen px-4 py-8 bg-gray-100">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold text-gray-800">
             {t("exam_result_title") || "Kết quả bài thi"}
           </h1>
           <p className="text-gray-600">
@@ -158,7 +159,7 @@ const TestResultPage = () => {
         </div>
 
         {/* Kết quả chính */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+        <div className="p-8 mb-6 bg-white shadow-lg rounded-xl">
           <div className="text-center">
             {/* Điểm số lớn */}
             <div
@@ -176,7 +177,7 @@ const TestResultPage = () => {
               </div>
             </div>
             {typeof totalScore === "number" && typeof maxScore === "number" && (
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="mb-4 text-sm text-gray-500">
                 {t("total_score") || "Tổng điểm"}: {totalScore}/{maxScore}
               </p>
             )}
@@ -190,27 +191,27 @@ const TestResultPage = () => {
 
             {/* Thống kê */}
             <div className="grid grid-cols-3 gap-4 mt-8">
-              <div className="bg-green-50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-green-50">
                 <div className="text-2xl font-bold text-green-600">
                   {correctAnswers || 0}
                 </div>
-                <div className="text-sm text-green-700 mt-1">
+                <div className="mt-1 text-sm text-green-700">
                   {t("correct_answers") || "Câu đúng"}
                 </div>
               </div>
-              <div className="bg-red-50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-red-50">
                 <div className="text-2xl font-bold text-red-600">
                   {wrongAnswers || 0}
                 </div>
-                <div className="text-sm text-red-700 mt-1">
+                <div className="mt-1 text-sm text-red-700">
                   {t("wrong_answers") || "Câu sai"}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="p-4 rounded-lg bg-gray-50">
                 <div className="text-2xl font-bold text-gray-600">
                   {unansweredQuestions || 0}
                 </div>
-                <div className="text-sm text-gray-700 mt-1">
+                <div className="mt-1 text-sm text-gray-700">
                   {t("unanswered_questions") || "Chưa trả lời"}
                 </div>
               </div>
@@ -227,8 +228,8 @@ const TestResultPage = () => {
 
         {/* Chi tiết từng câu hỏi */}
         {questions && answers && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">
+          <div className="p-8 bg-white shadow-lg rounded-xl">
+            <h2 className="mb-6 text-xl font-bold text-gray-800">
               {t("detailed_results") || "Chi tiết kết quả"}
             </h2>
             <div className="space-y-4">
@@ -276,7 +277,7 @@ const TestResultPage = () => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-800 mb-2">
+                        <div className="mb-2 font-semibold text-gray-800">
                           {t("question") || "Câu hỏi"} {index + 1}:{" "}
                           {question.question}
                         </div>
@@ -295,7 +296,7 @@ const TestResultPage = () => {
                                 key={option.key}
                                 className={`${baseClasses}${stateClasses}`}
                               >
-                                <span className="font-medium mr-2">
+                                <span className="mr-2 font-medium">
                                   {option.key}.
                                 </span>
                                 <span className="text-gray-700">
@@ -321,15 +322,15 @@ const TestResultPage = () => {
                       </div>
                       <div className="ml-4">
                         {isCorrect ? (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
+                          <span className="px-3 py-1 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
                             ✓ {t("correct") || "Đúng"}
                           </span>
                         ) : isAnswered ? (
-                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-semibold">
+                          <span className="px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
                             ✗ {t("incorrect") || "Sai"}
                           </span>
                         ) : (
-                          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-semibold">
+                          <span className="px-3 py-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
                             {t("not_answered") || "Chưa trả lời"}
                           </span>
                         )}
@@ -343,17 +344,17 @@ const TestResultPage = () => {
         )}
 
         {/* Nút quay lại và phúc khảo */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="flex justify-center gap-4 mt-8">
           <button
             onClick={handleBackToTest}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            className="px-8 py-3 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             {t("back_to_test_list") || "Quay lại danh sách bài thi"}
           </button>
           {!isAppealSubmitted && (
             <button
               onClick={openAppealModal}
-              className="px-8 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold flex items-center gap-2"
+              className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"
             >
               <svg
                 className="w-5 h-5"
@@ -372,7 +373,7 @@ const TestResultPage = () => {
             </button>
           )}
           {isAppealSubmitted && (
-            <div className="px-8 py-3 bg-green-100 text-green-700 rounded-lg font-semibold flex items-center gap-2 border border-green-300">
+            <div className="flex items-center gap-2 px-8 py-3 font-semibold text-green-700 bg-green-100 border border-green-300 rounded-lg">
               <svg
                 className="w-5 h-5"
                 fill="none"

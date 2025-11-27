@@ -359,7 +359,7 @@ export const uploadProfileImage = async (file) => {
   try {
     // Tạo FormData để gửi file
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     // Tạo axios instance riêng cho upload file (cần Content-Type: multipart/form-data)
     const token = localStorage.getItem("token");
@@ -461,13 +461,17 @@ export const getCampaignRequestById = async (id) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy chi tiết campaign request",
+        error:
+          response.data.message || "Không thể lấy chi tiết campaign request",
       };
     }
   } catch (error) {
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể lấy chi tiết campaign request",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy chi tiết campaign request",
       status: error.response?.status,
     };
   }
@@ -476,7 +480,11 @@ export const getCampaignRequestById = async (id) => {
 // API duyệt hoặc từ chối campaign request
 // status: 2 = Approved, 3 = Rejected
 // rejectReason: bắt buộc khi status = 3
-export const approveOrRejectCampaignRequest = async (id, status, rejectReason = null) => {
+export const approveOrRejectCampaignRequest = async (
+  id,
+  status,
+  rejectReason = null
+) => {
   try {
     const payload = { status };
 
@@ -500,12 +508,25 @@ export const approveOrRejectCampaignRequest = async (id, status, rejectReason = 
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || responseData.errorMessage || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              (status === 2
+                ? "Duyệt yêu cầu thành công"
+                : "Từ chối yêu cầu thành công"),
           };
         } else {
-          let errorMessage = responseData.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu");
+          let errorMessage =
+            responseData.errorMessage ||
+            (status === 2
+              ? "Không thể duyệt yêu cầu"
+              : "Không thể từ chối yêu cầu");
 
-          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
             errorMessage = responseData.errors.join(". ");
           }
 
@@ -530,12 +551,21 @@ export const approveOrRejectCampaignRequest = async (id, status, rejectReason = 
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+            message:
+              responseData.message ||
+              (status === 2
+                ? "Duyệt yêu cầu thành công"
+                : "Từ chối yêu cầu thành công"),
           };
         } else {
           return {
             success: false,
-            error: responseData.message || responseData.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu"),
+            error:
+              responseData.message ||
+              responseData.errorMessage ||
+              (status === 2
+                ? "Không thể duyệt yêu cầu"
+                : "Không thể từ chối yêu cầu"),
           };
         }
       }
@@ -544,24 +574,39 @@ export const approveOrRejectCampaignRequest = async (id, status, rejectReason = 
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || (status === 2 ? "Duyệt yêu cầu thành công" : "Từ chối yêu cầu thành công"),
+        message:
+          responseData?.message ||
+          (status === 2
+            ? "Duyệt yêu cầu thành công"
+            : "Từ chối yêu cầu thành công"),
       };
     } else {
       return {
         success: false,
-        error: response.data?.message || response.data?.errorMessage || (status === 2 ? "Không thể duyệt yêu cầu" : "Không thể từ chối yêu cầu"),
+        error:
+          response.data?.message ||
+          response.data?.errorMessage ||
+          (status === 2
+            ? "Không thể duyệt yêu cầu"
+            : "Không thể từ chối yêu cầu"),
         status: httpStatus,
       };
     }
   } catch (error) {
     const errorData = error.response?.data;
-    let errorMessage = status === 2 ? "Đã xảy ra lỗi khi duyệt yêu cầu" : "Đã xảy ra lỗi khi từ chối yêu cầu";
+    let errorMessage =
+      status === 2
+        ? "Đã xảy ra lỗi khi duyệt yêu cầu"
+        : "Đã xảy ra lỗi khi từ chối yêu cầu";
 
     if (errorData) {
       if (errorData.errorMessage) {
         errorMessage = errorData.errorMessage;
-      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors.join('. ');
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
       } else if (errorData.message) {
         errorMessage = errorData.message;
       }
@@ -598,7 +643,10 @@ export const getCampaigns = async (params = {}) => {
         items = responseData.data;
       } else if (Array.isArray(responseData.data?.items)) {
         items = responseData.data.items;
-      } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
+      ) {
         items = responseData.data.data;
       }
 
@@ -654,7 +702,10 @@ export const getMyCampaigns = async () => {
         items = responseData.data;
       } else if (Array.isArray(responseData.data?.items)) {
         items = responseData.data.items;
-      } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
+      ) {
         items = responseData.data.data;
       }
 
@@ -710,7 +761,10 @@ export const getMyTasks = async () => {
         items = responseData.data;
       } else if (Array.isArray(responseData.data?.items)) {
         items = responseData.data.items;
-      } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
+      ) {
         items = responseData.data.data;
       }
 
@@ -760,7 +814,11 @@ export const getCampaignById = async (id) => {
     }
 
     // Một số API trả trực tiếp object campaign mà không bọc trong {code, data}
-    if (responseData && typeof responseData === "object" && !Array.isArray(responseData)) {
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      !Array.isArray(responseData)
+    ) {
       return {
         success: true,
         data: responseData.data || responseData,
@@ -812,12 +870,25 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || responseData.errorMessage || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              (status === 2
+                ? "Duyệt chiến dịch thành công"
+                : "Từ chối chiến dịch thành công"),
           };
         } else {
-          let errorMessage = responseData.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch");
+          let errorMessage =
+            responseData.errorMessage ||
+            (status === 2
+              ? "Không thể duyệt chiến dịch"
+              : "Không thể từ chối chiến dịch");
 
-          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
             errorMessage = responseData.errors.join(". ");
           }
 
@@ -837,13 +908,22 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+            message:
+              responseData.message ||
+              (status === 2
+                ? "Duyệt chiến dịch thành công"
+                : "Từ chối chiến dịch thành công"),
           };
         } else {
           // Có lỗi (code !== 0)
           return {
             success: false,
-            error: responseData.message || responseData.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch"),
+            error:
+              responseData.message ||
+              responseData.errorMessage ||
+              (status === 2
+                ? "Không thể duyệt chiến dịch"
+                : "Không thể từ chối chiến dịch"),
           };
         }
       }
@@ -852,24 +932,39 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || (status === 2 ? "Duyệt chiến dịch thành công" : "Từ chối chiến dịch thành công"),
+        message:
+          responseData?.message ||
+          (status === 2
+            ? "Duyệt chiến dịch thành công"
+            : "Từ chối chiến dịch thành công"),
       };
     } else {
       return {
         success: false,
-        error: response.data?.message || response.data?.errorMessage || (status === 2 ? "Không thể duyệt chiến dịch" : "Không thể từ chối chiến dịch"),
+        error:
+          response.data?.message ||
+          response.data?.errorMessage ||
+          (status === 2
+            ? "Không thể duyệt chiến dịch"
+            : "Không thể từ chối chiến dịch"),
         status: httpStatus,
       };
     }
   } catch (error) {
     const errorData = error.response?.data;
-    let errorMessage = status === 2 ? "Đã xảy ra lỗi khi duyệt chiến dịch" : "Đã xảy ra lỗi khi từ chối chiến dịch";
+    let errorMessage =
+      status === 2
+        ? "Đã xảy ra lỗi khi duyệt chiến dịch"
+        : "Đã xảy ra lỗi khi từ chối chiến dịch";
 
     if (errorData) {
       if (errorData.errorMessage) {
         errorMessage = errorData.errorMessage;
-      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors.join('. ');
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
       } else if (errorData.message) {
         errorMessage = errorData.message;
       }
@@ -891,11 +986,11 @@ export const getTests = async (page = 1, pageSize = 10) => {
     const response = await api.get("/tests", {
       params: {
         page: page,
-        pageSize: pageSize
-      }
+        pageSize: pageSize,
+      },
     });
 
-    console.log('Raw API Response:', response.data);
+    console.log("Raw API Response:", response.data);
 
     if (response.data.code === 0 && response.data.data) {
       return {
@@ -910,10 +1005,13 @@ export const getTests = async (page = 1, pageSize = 10) => {
       };
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể lấy danh sách đề thi",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách đề thi",
       status: error.response?.status,
     };
   }
@@ -924,16 +1022,18 @@ export const getMyTests = async () => {
   try {
     const response = await api.get("/tests/my-tests");
 
-    console.log('Raw API Response getMyTests:', response.data);
-    console.log('Response status:', response.status);
-    console.log('Response data.code:', response.data?.code);
-    console.log('Response data.data:', response.data?.data);
+    console.log("Raw API Response getMyTests:", response.data);
+    console.log("Response status:", response.status);
+    console.log("Response data.code:", response.data?.code);
+    console.log("Response data.data:", response.data?.data);
 
     // Kiểm tra nếu có data trong response (dù code có thể !== 0)
-    const hasData = response.data.data && (
-      (response.data.data.tests && Array.isArray(response.data.data.tests) && response.data.data.tests.length > 0) ||
-      (Array.isArray(response.data.data) && response.data.data.length > 0)
-    );
+    const hasData =
+      response.data.data &&
+      ((response.data.data.tests &&
+        Array.isArray(response.data.data.tests) &&
+        response.data.data.tests.length > 0) ||
+        (Array.isArray(response.data.data) && response.data.data.length > 0));
 
     // Nếu có data, coi như success (một số API trả về code !== 0 nhưng vẫn có data hợp lệ)
     if (response.data.code === 0 || hasData) {
@@ -945,7 +1045,7 @@ export const getMyTests = async () => {
       };
     } else {
       // API trả về code !== 0 và không có data
-      console.warn('API returned code !== 0 and no data:', response.data.code);
+      console.warn("API returned code !== 0 and no data:", response.data.code);
       return {
         success: false,
         error: response.data.message || "Không thể lấy danh sách đề thi",
@@ -954,11 +1054,14 @@ export const getMyTests = async () => {
       };
     }
   } catch (error) {
-    console.error('API Error getMyTests:', error);
-    console.error('Error response:', error.response?.data);
+    console.error("API Error getMyTests:", error);
+    console.error("Error response:", error.response?.data);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể lấy danh sách đề thi",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách đề thi",
       status: error.response?.status,
     };
   }
@@ -982,10 +1085,13 @@ export const deleteTest = async (testId) => {
       };
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể xóa đề thi",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể xóa đề thi",
       status: error.response?.status,
     };
   }
@@ -1009,10 +1115,13 @@ export const getTestById = async (testId) => {
       };
     }
   } catch (error) {
-    console.error('API Error:', error);
+    console.error("API Error:", error);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể lấy chi tiết đề thi",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy chi tiết đề thi",
       status: error.response?.status,
     };
   }
@@ -1029,10 +1138,17 @@ export const getTestQuestions = async (testId, options = {}) => {
       params.cacheBuster = Date.now() + Math.random();
     }
 
-    const response = await api.get(`/test-questions/test/${testId}`, { params });
+    const response = await api.get(`/test-questions/test/${testId}`, {
+      params,
+    });
     const responseData = response.data;
 
-    if (response.status >= 200 && response.status < 300 && responseData && responseData.data) {
+    if (
+      response.status >= 200 &&
+      response.status < 300 &&
+      responseData &&
+      responseData.data
+    ) {
       return {
         success: true,
         data: responseData.data,
@@ -1045,10 +1161,13 @@ export const getTestQuestions = async (testId, options = {}) => {
       };
     }
   } catch (error) {
-    console.error('API Error getTestQuestions:', error);
+    console.error("API Error getTestQuestions:", error);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || "Không thể lấy danh sách câu hỏi",
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách câu hỏi",
       status: error.response?.status,
     };
   }
@@ -1117,8 +1236,7 @@ export const updateTest = async (testId, testData) => {
         } else {
           // Có lỗi - xử lý errors array
           let errorMessage =
-            responseData.errorMessage ||
-            "Không thể cập nhật đề thi";
+            responseData.errorMessage || "Không thể cập nhật đề thi";
 
           // Nếu có errors array, kết hợp các lỗi
           if (
@@ -1159,7 +1277,9 @@ export const updateTest = async (testId, testData) => {
           return {
             success: false,
             error:
-              responseData.message || responseData.errorMessage || "Không thể cập nhật đề thi",
+              responseData.message ||
+              responseData.errorMessage ||
+              "Không thể cập nhật đề thi",
           };
         }
       }
@@ -1175,7 +1295,9 @@ export const updateTest = async (testId, testData) => {
       return {
         success: false,
         error:
-          response.data?.message || response.data?.errorMessage || "Không thể cập nhật đề thi",
+          response.data?.message ||
+          response.data?.errorMessage ||
+          "Không thể cập nhật đề thi",
         status: httpStatus,
       };
     }
@@ -1193,7 +1315,7 @@ export const updateTest = async (testId, testData) => {
       }
       // Nếu có errors array, kết hợp các lỗi
       else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors.join('. ');
+        errorMessage = errorData.errors.join(". ");
       }
       // Nếu có message
       else if (errorData.message) {
@@ -1333,7 +1455,8 @@ export const markAllNotificationsAsRead = async () => {
     if (response.data.code === 0) {
       return {
         success: true,
-        message: response.data.message || "Đánh dấu tất cả thông báo thành công",
+        message:
+          response.data.message || "Đánh dấu tất cả thông báo thành công",
       };
     }
 
@@ -1357,19 +1480,24 @@ export const markAllNotificationsAsRead = async () => {
 export const createBulkTestQuestions = async (testId, questionsData) => {
   try {
     // Kiểm tra testId hợp lệ
-    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
       return {
         success: false,
-        error: 'Test ID không hợp lệ. Vui lòng kiểm tra lại.',
+        error: "Test ID không hợp lệ. Vui lòng kiểm tra lại.",
       };
     }
 
     // Kiểm tra questionsData có hợp lệ không
-    if (!questionsData || !Array.isArray(questionsData) || questionsData.length === 0) {
+    if (
+      !questionsData ||
+      !Array.isArray(questionsData) ||
+      questionsData.length === 0
+    ) {
       return {
         success: false,
-        error: 'Danh sách câu hỏi không hợp lệ.',
+        error: "Danh sách câu hỏi không hợp lệ.",
       };
     }
 
@@ -1377,7 +1505,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
     if (questionsData.length > 50) {
       return {
         success: false,
-        error: 'Số lượng câu hỏi không được vượt quá 50.',
+        error: "Số lượng câu hỏi không được vượt quá 50.",
       };
     }
 
@@ -1387,7 +1515,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
       questions: questionsData,
     };
 
-    const response = await api.post('/test-questions/bulk', payload);
+    const response = await api.post("/test-questions/bulk", payload);
 
     // Kiểm tra HTTP status code
     const httpStatus = response.status;
@@ -1397,18 +1525,26 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
       const responseData = response.data;
 
       // Kiểm tra nếu có errorCode
-      if (responseData && typeof responseData.errorCode !== 'undefined') {
+      if (responseData && typeof responseData.errorCode !== "undefined") {
         if (responseData.errorCode === 0 || responseData.errorCode === null) {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || responseData.errorMessage || 'Tạo câu hỏi thành công',
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Tạo câu hỏi thành công",
           };
         } else {
-          let errorMessage = responseData.errorMessage || 'Không thể tạo câu hỏi';
+          let errorMessage =
+            responseData.errorMessage || "Không thể tạo câu hỏi";
 
-          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
-            errorMessage = responseData.errors.join('. ');
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
+            errorMessage = responseData.errors.join(". ");
           }
 
           return {
@@ -1421,17 +1557,20 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
       }
 
       // Kiểm tra nếu có field code
-      if (responseData && typeof responseData.code !== 'undefined') {
+      if (responseData && typeof responseData.code !== "undefined") {
         if (responseData.code === 0) {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || 'Tạo câu hỏi thành công',
+            message: responseData.message || "Tạo câu hỏi thành công",
           };
         } else {
           return {
             success: false,
-            error: responseData.message || responseData.errorMessage || 'Không thể tạo câu hỏi',
+            error:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Không thể tạo câu hỏi",
           };
         }
       }
@@ -1440,31 +1579,40 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || 'Tạo câu hỏi thành công',
+        message: responseData?.message || "Tạo câu hỏi thành công",
       };
     } else {
       return {
         success: false,
-        error: response.data?.message || response.data?.errorMessage || 'Không thể tạo câu hỏi',
+        error:
+          response.data?.message ||
+          response.data?.errorMessage ||
+          "Không thể tạo câu hỏi",
         status: httpStatus,
       };
     }
   } catch (error) {
-    console.error('Bulk Create Questions Error:', error);
+    console.error("Bulk Create Questions Error:", error);
     const errorData = error.response?.data;
-    let errorMessage = 'Đã xảy ra lỗi khi tạo câu hỏi';
+    let errorMessage = "Đã xảy ra lỗi khi tạo câu hỏi";
 
     if (errorData) {
       if (errorData.errorMessage) {
         errorMessage = errorData.errorMessage;
-      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors.join('. ');
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
       } else if (errorData.message) {
         errorMessage = errorData.message;
-      } else if (typeof errorData === 'string') {
+      } else if (typeof errorData === "string") {
         errorMessage = errorData;
       } else if (error.response?.status === 400) {
-        errorMessage = errorData.title || errorData || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+        errorMessage =
+          errorData.title ||
+          errorData ||
+          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
       }
     } else if (error.message) {
       errorMessage = error.message;
@@ -1486,16 +1634,17 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (!file) {
       return {
         success: false,
-        error: 'Vui lòng chọn file Excel để tải lên.',
+        error: "Vui lòng chọn file Excel để tải lên.",
       };
     }
 
     // Kiểm tra định dạng file
-    const isExcelFile = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    const isExcelFile =
+      file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
     if (!isExcelFile) {
       return {
         success: false,
-        error: 'Vui lòng chọn đúng định dạng Excel (.xlsx hoặc .xls).',
+        error: "Vui lòng chọn đúng định dạng Excel (.xlsx hoặc .xls).",
       };
     }
 
@@ -1504,27 +1653,28 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (file.size > maxSize) {
       return {
         success: false,
-        error: 'Kích thước file không được vượt quá 10 MB.',
+        error: "Kích thước file không được vượt quá 10 MB.",
       };
     }
 
     // Kiểm tra và chuyển đổi testId sang number
-    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
       return {
         success: false,
-        error: 'Test ID không hợp lệ. Vui lòng kiểm tra lại.',
+        error: "Test ID không hợp lệ. Vui lòng kiểm tra lại.",
       };
     }
 
     // Tạo FormData để gửi file
     // Backend yêu cầu field name là 'excelFile' chứ không phải 'file'
     const formData = new FormData();
-    formData.append('excelFile', file);
+    formData.append("excelFile", file);
     // Không gửi testId trong FormData, sẽ gửi như query parameter
 
     // Lấy token từ localStorage
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const headers = {};
     if (token) {
       headers.Authorization = `Bearer ${token}`;
@@ -1549,18 +1699,26 @@ export const importQuestionsFromExcel = async (testId, file) => {
       const responseData = response.data;
 
       // Kiểm tra nếu có errorCode
-      if (responseData && typeof responseData.errorCode !== 'undefined') {
+      if (responseData && typeof responseData.errorCode !== "undefined") {
         if (responseData.errorCode === 0 || responseData.errorCode === null) {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || responseData.errorMessage || 'Import câu hỏi thành công',
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Import câu hỏi thành công",
           };
         } else {
-          let errorMessage = responseData.errorMessage || 'Không thể import câu hỏi';
+          let errorMessage =
+            responseData.errorMessage || "Không thể import câu hỏi";
 
-          if (responseData.errors && Array.isArray(responseData.errors) && responseData.errors.length > 0) {
-            errorMessage = responseData.errors.join('. ');
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
+            errorMessage = responseData.errors.join(". ");
           }
 
           return {
@@ -1573,17 +1731,20 @@ export const importQuestionsFromExcel = async (testId, file) => {
       }
 
       // Kiểm tra nếu có field code
-      if (responseData && typeof responseData.code !== 'undefined') {
+      if (responseData && typeof responseData.code !== "undefined") {
         if (responseData.code === 0) {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || 'Import câu hỏi thành công',
+            message: responseData.message || "Import câu hỏi thành công",
           };
         } else {
           return {
             success: false,
-            error: responseData.message || responseData.errorMessage || 'Không thể import câu hỏi',
+            error:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Không thể import câu hỏi",
           };
         }
       }
@@ -1592,31 +1753,40 @@ export const importQuestionsFromExcel = async (testId, file) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || 'Import câu hỏi thành công',
+        message: responseData?.message || "Import câu hỏi thành công",
       };
     } else {
       return {
         success: false,
-        error: response.data?.message || response.data?.errorMessage || 'Không thể import câu hỏi',
+        error:
+          response.data?.message ||
+          response.data?.errorMessage ||
+          "Không thể import câu hỏi",
         status: httpStatus,
       };
     }
   } catch (error) {
-    console.error('Import Excel Error:', error);
+    console.error("Import Excel Error:", error);
     const errorData = error.response?.data;
-    let errorMessage = 'Đã xảy ra lỗi khi import câu hỏi';
+    let errorMessage = "Đã xảy ra lỗi khi import câu hỏi";
 
     if (errorData) {
       if (errorData.errorMessage) {
         errorMessage = errorData.errorMessage;
-      } else if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
-        errorMessage = errorData.errors.join('. ');
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
       } else if (errorData.message) {
         errorMessage = errorData.message;
-      } else if (typeof errorData === 'string') {
+      } else if (typeof errorData === "string") {
         errorMessage = errorData;
       } else if (error.response?.status === 400) {
-        errorMessage = errorData.title || errorData || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại file Excel.';
+        errorMessage =
+          errorData.title ||
+          errorData ||
+          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại file Excel.";
       }
     } else if (error.message) {
       errorMessage = error.message;
@@ -1646,7 +1816,11 @@ export const getCampaignRoundById = async (id) => {
     }
 
     // Một số API trả trực tiếp object mà không bọc trong {code, data}
-    if (responseData && typeof responseData === "object" && !Array.isArray(responseData)) {
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      !Array.isArray(responseData)
+    ) {
       return {
         success: true,
         data: responseData.data || responseData,
@@ -1673,7 +1847,9 @@ export const getCampaignRoundById = async (id) => {
 // API lấy danh sách participants (ứng viên) theo roundId
 export const getRoundParticipants = async (roundId, params = {}) => {
   try {
-    const response = await api.get(`/rounds/${roundId}/participants`, { params });
+    const response = await api.get(`/rounds/${roundId}/participants`, {
+      params,
+    });
     const responseData = response.data;
 
     if (responseData?.code === 0 && responseData?.data) {
@@ -1743,7 +1919,9 @@ export const getOngoingCampaign = async () => {
 
     return {
       success: false,
-      error: responseData?.message || "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+      error:
+        responseData?.message ||
+        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
     };
   } catch (error) {
     return {
@@ -1797,18 +1975,143 @@ export const getAppearanceResult = async (activityId) => {
   }
 };
 
+export const getScoringCriterias = async () => {
+  try {
+    const response = await api.get("/scoring-criterias");
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách tiêu chí đánh giá",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách tiêu chí đánh giá",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Interview Result Forms
+export const getInterviewResults = async (activityId) => {
+  if (!activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để truy xuất kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api.get("/interview-results", {
+      params: {
+        activityId: activityId,
+      },
+    });
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy chi tiết Interview Result theo ID
+export const getInterviewResultDetail = async (id) => {
+  if (!id) {
+    return {
+      success: false,
+      error: "Thiếu ID để truy xuất chi tiết kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api.get(`/interview-results/${id}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || null,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy chi tiết kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy chi tiết kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API submit multiple-choice test answers (Listening và Practical tests)
 // Format theo API documentation:
 // POST /api/v1/test-sessions/submit-multiple-choice
 // Body: { testId: number, startTime: string (ISO 8601), endTime: string (ISO 8601), answers: [{ questionId: number, selectedOptionId: number }] }
-export const submitMultipleChoiceTest = async (testId, startTime, endTime, answers) => {
+export const submitMultipleChoiceTest = async (
+  testId,
+  startTime,
+  endTime,
+  answers
+) => {
   try {
     // Validate và convert testId
-    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: 'Test ID không hợp lệ',
+        error: "Test ID không hợp lệ",
       };
     }
 
@@ -1816,7 +2119,7 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
     if (!Array.isArray(answers)) {
       return {
         success: false,
-        error: 'Danh sách câu trả lời phải là một mảng',
+        error: "Danh sách câu trả lời phải là một mảng",
       };
     }
 
@@ -1825,34 +2128,40 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
     for (let i = 0; i < answers.length; i++) {
       const answer = answers[i];
 
-      if (!answer || typeof answer !== 'object') {
+      if (!answer || typeof answer !== "object") {
         console.warn(`Answer at index ${i} is invalid, skipping`);
         continue;
       }
 
       // Convert và validate questionId
-      const questionId = typeof answer.questionId === 'string'
-        ? parseInt(answer.questionId, 10)
-        : Number(answer.questionId);
+      const questionId =
+        typeof answer.questionId === "string"
+          ? parseInt(answer.questionId, 10)
+          : Number(answer.questionId);
 
       if (isNaN(questionId) || questionId <= 0) {
-        console.warn(`Invalid questionId at index ${i}: ${answer.questionId}, skipping`);
+        console.warn(
+          `Invalid questionId at index ${i}: ${answer.questionId}, skipping`
+        );
         continue;
       }
 
       // Convert và validate selectedOptionId
-      const selectedOptionId = typeof answer.selectedOptionId === 'string'
-        ? parseInt(answer.selectedOptionId, 10)
-        : Number(answer.selectedOptionId);
+      const selectedOptionId =
+        typeof answer.selectedOptionId === "string"
+          ? parseInt(answer.selectedOptionId, 10)
+          : Number(answer.selectedOptionId);
 
       if (isNaN(selectedOptionId) || selectedOptionId <= 0) {
-        console.warn(`Invalid selectedOptionId at index ${i}: ${answer.selectedOptionId}, skipping`);
+        console.warn(
+          `Invalid selectedOptionId at index ${i}: ${answer.selectedOptionId}, skipping`
+        );
         continue;
       }
 
       validatedAnswers.push({
         questionId: questionId,
-        selectedOptionId: selectedOptionId
+        selectedOptionId: selectedOptionId,
       });
     }
 
@@ -1861,43 +2170,57 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
       testId: testIdNum,
       startTime: startTime, // ISO 8601 format string
       endTime: endTime, // ISO 8601 format string
-      answers: validatedAnswers // Array of { questionId: number, selectedOptionId: number }
+      answers: validatedAnswers, // Array of { questionId: number, selectedOptionId: number }
     };
 
-    console.log('=== API Request ===');
-    console.log('Endpoint: POST /test-sessions/submit-multiple-choice');
-    console.log('Payload:', JSON.stringify(payload, null, 2));
+    console.log("=== API Request ===");
+    console.log("Endpoint: POST /test-sessions/submit-multiple-choice");
+    console.log("Payload:", JSON.stringify(payload, null, 2));
 
     // Gọi API
-    const response = await api.post('/test-sessions/submit-multiple-choice', payload);
+    const response = await api.post(
+      "/test-sessions/submit-multiple-choice",
+      payload
+    );
 
-    console.log('=== API Response ===');
-    console.log('Status:', response.status);
-    console.log('Data:', JSON.stringify(response.data, null, 2));
+    console.log("=== API Response ===");
+    console.log("Status:", response.status);
+    console.log("Data:", JSON.stringify(response.data, null, 2));
 
     const responseData = response.data;
+    const responseCode = Number(responseData?.code);
+    const isSuccessCode = responseCode === 0 || responseCode === 2;
+    const hasSuccessfulStatus =
+      responseData?.data && responseData.data.status === true;
 
-    // Kiểm tra response theo format API: { code: 0, message: string, data: {...} }
-    if (responseData && responseData.code === 0 && responseData.data) {
+    // Kiểm tra response theo format API: { code: 0 | 2, message: string, data: {...} }
+    if (
+      responseData &&
+      responseData.data &&
+      (isSuccessCode || hasSuccessfulStatus)
+    ) {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || 'Nộp bài thi thành công',
+        message: responseData.message || "Nộp bài thi thành công",
       };
     } else {
       // Response không thành công
       return {
         success: false,
-        error: responseData?.message || responseData?.errorMessage || 'Không thể nộp bài thi',
+        error:
+          responseData?.message ||
+          responseData?.errorMessage ||
+          "Không thể nộp bài thi",
         errorData: responseData,
       };
     }
   } catch (error) {
-    console.error('=== API Error ===');
-    console.error('Error:', error);
-    console.error('Message:', error.message);
-    console.error('Response:', error.response?.data);
-    console.error('Status:', error.response?.status);
+    console.error("=== API Error ===");
+    console.error("Error:", error);
+    console.error("Message:", error.message);
+    console.error("Response:", error.response?.data);
+    console.error("Status:", error.response?.status);
 
     const errorData = error.response?.data;
 
@@ -1906,7 +2229,8 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
       // Server trả về response nhưng có lỗi
       return {
         success: false,
-        error: errorData?.message ||
+        error:
+          errorData?.message ||
           errorData?.errorMessage ||
           errorData?.title ||
           `Lỗi server (${error.response.status})`,
@@ -1917,13 +2241,13 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
       // Request được gửi nhưng không nhận được response (network error)
       return {
         success: false,
-        error: 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+        error: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
       };
     } else {
       // Lỗi khác
       return {
         success: false,
-        error: error.message || 'Đã xảy ra lỗi khi nộp bài thi',
+        error: error.message || "Đã xảy ra lỗi khi nộp bài thi",
       };
     }
   }
@@ -1931,38 +2255,43 @@ export const submitMultipleChoiceTest = async (testId, startTime, endTime, answe
 
 // API submit speaking test answers with audio recordings
 // Endpoint: POST /api/v1/test-sessions/submit-speaking (multipart/form-data)
-export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }) => {
+export const submitSpeakingExam = async ({
+  testId,
+  startTime,
+  endTime,
+  answers,
+}) => {
   try {
     const testIdNum =
-      typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
 
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: 'Test ID không hợp lệ',
+        error: "Test ID không hợp lệ",
       };
     }
 
     if (!startTime || !endTime) {
       return {
         success: false,
-        error: 'Thiếu thông tin thời gian bắt đầu hoặc kết thúc bài thi',
+        error: "Thiếu thông tin thời gian bắt đầu hoặc kết thúc bài thi",
       };
     }
 
     if (!Array.isArray(answers) || answers.length === 0) {
       return {
         success: false,
-        error: 'Không có dữ liệu ghi âm để nộp bài thi nói',
+        error: "Không có dữ liệu ghi âm để nộp bài thi nói",
       };
     }
 
-    const guessExtension = (mimeType = '') => {
+    const guessExtension = (mimeType = "") => {
       const lower = mimeType.toLowerCase();
-      if (lower.includes('mp3') || lower.includes('mpeg')) return 'mp3';
-      if (lower.includes('wav')) return 'wav';
-      if (lower.includes('ogg')) return 'ogg';
-      return 'webm';
+      if (lower.includes("mp3") || lower.includes("mpeg")) return "mp3";
+      if (lower.includes("wav")) return "wav";
+      if (lower.includes("ogg")) return "ogg";
+      return "webm";
     };
 
     const normalizedAnswers = answers.reduce((acc, answer, index) => {
@@ -1971,7 +2300,7 @@ export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }
       }
 
       const questionIdNum =
-        typeof answer.questionId === 'string'
+        typeof answer.questionId === "string"
           ? parseInt(answer.questionId, 10)
           : Number(answer.questionId);
 
@@ -1988,7 +2317,7 @@ export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }
       if (answer.file instanceof File) {
         file = answer.file;
       } else if (answer.blob instanceof Blob) {
-        const mimeType = answer.blob.type || 'audio/webm';
+        const mimeType = answer.blob.type || "audio/webm";
         const extension = guessExtension(mimeType);
         const fileName =
           answer.fileName ||
@@ -2013,26 +2342,26 @@ export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }
     if (normalizedAnswers.length === 0) {
       return {
         success: false,
-        error: 'Không có ghi âm hợp lệ để nộp bài thi nói',
+        error: "Không có ghi âm hợp lệ để nộp bài thi nói",
       };
     }
 
     const formData = new FormData();
-    formData.append('testId', testIdNum);
-    formData.append('startTime', startTime);
-    formData.append('endTime', endTime);
+    formData.append("testId", testIdNum);
+    formData.append("startTime", startTime);
+    formData.append("endTime", endTime);
     formData.append(
-      'questionIds',
-      normalizedAnswers.map((item) => item.questionId).join(',')
+      "questionIds",
+      normalizedAnswers.map((item) => item.questionId).join(",")
     );
 
     normalizedAnswers.forEach((item) => {
-      formData.append('audioFiles', item.file);
+      formData.append("audioFiles", item.file);
     });
 
-    console.log('=== API Request ===');
-    console.log('Endpoint: POST /test-sessions/submit-speaking');
-    console.log('FormData fields:', {
+    console.log("=== API Request ===");
+    console.log("Endpoint: POST /test-sessions/submit-speaking");
+    console.log("FormData fields:", {
       testId: testIdNum,
       startTime,
       endTime,
@@ -2041,47 +2370,59 @@ export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }
     });
 
     const response = await api.post(
-      '/test-sessions/submit-speaking',
+      "/test-sessions/submit-speaking",
       formData,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       }
     );
 
-    console.log('=== API Response ===');
-    console.log('Status:', response.status);
-    console.log('Data:', JSON.stringify(response.data, null, 2));
+    console.log("=== API Response ===");
+    console.log("Status:", response.status);
+    console.log("Data:", JSON.stringify(response.data, null, 2));
 
     const responseData = response.data;
+    const responseCode = Number(responseData?.code);
+    const isSuccessCode = responseCode === 0 || responseCode === 2;
+    const hasSuccessfulStatus =
+      responseData?.data && responseData.data.status === true;
 
-    if (responseData && responseData.code === 0 && responseData.data) {
+    // Kiểm tra response theo format API: { code: 0 | 2, message: string, data: {...} }
+    if (
+      responseData &&
+      responseData.data &&
+      (isSuccessCode || hasSuccessfulStatus)
+    ) {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || 'Nộp bài thi nói thành công',
+        message: responseData.message || "Nộp bài thi thành công",
+      };
+    } else {
+      // Response không thành công
+      return {
+        success: false,
+        error:
+          responseData?.message ||
+          responseData?.errorMessage ||
+          "Không thể nộp bài thi",
+        errorData: responseData,
       };
     }
-
-    return {
-      success: false,
-      error:
-        responseData?.message ||
-        responseData?.errorMessage ||
-        'Không thể nộp bài thi nói',
-      errorData: responseData,
-    };
   } catch (error) {
-    console.error('=== API Error (Speaking) ===');
-    console.error('Error:', error);
-    console.error('Message:', error.message);
-    console.error('Response:', error.response?.data);
-    console.error('Status:', error.response?.status);
+    console.error("=== API Error ===");
+    console.error("Error:", error);
+    console.error("Message:", error.message);
+    console.error("Response:", error.response?.data);
+    console.error("Status:", error.response?.status);
 
     const errorData = error.response?.data;
 
+    // Xử lý các loại lỗi khác nhau
     if (error.response) {
+      // Server trả về response nhưng có lỗi
       return {
         success: false,
         error:
@@ -2093,17 +2434,18 @@ export const submitSpeakingExam = async ({ testId, startTime, endTime, answers }
         errorData: errorData,
       };
     } else if (error.request) {
+      // Request được gửi nhưng không nhận được response (network error)
       return {
         success: false,
-        error:
-          'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.',
+        error: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+      };
+    } else {
+      // Lỗi khác
+      return {
+        success: false,
+        error: error.message || "Đã xảy ra lỗi khi nộp bài thi",
       };
     }
-
-    return {
-      success: false,
-      error: error.message || 'Đã xảy ra lỗi khi nộp bài thi nói',
-    };
   }
 };
 
@@ -2115,29 +2457,30 @@ export const getExamQuestions = async (testId, joinCode) => {
     if (!testId) {
       return {
         success: false,
-        error: 'Test ID không được để trống',
+        error: "Test ID không được để trống",
       };
     }
 
     // Convert testId sang number nếu là string
-    const testIdNum = typeof testId === 'string' ? parseInt(testId, 10) : Number(testId);
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: 'Test ID không hợp lệ',
+        error: "Test ID không hợp lệ",
       };
     }
 
     if (!joinCode || joinCode.length !== 10) {
       return {
         success: false,
-        error: 'Join Code phải có đúng 10 ký tự',
+        error: "Join Code phải có đúng 10 ký tự",
       };
     }
 
-    console.log('Calling API with:', { testId: testIdNum, joinCode });
+    console.log("Calling API with:", { testId: testIdNum, joinCode });
 
-    const response = await api.get('/test-questions/exam', {
+    const response = await api.get("/test-questions/exam", {
       params: {
         testId: testIdNum,
         joinCode: joinCode,
@@ -2145,43 +2488,52 @@ export const getExamQuestions = async (testId, joinCode) => {
     });
 
     const responseData = response.data;
-    console.log('API Response:', responseData);
+    console.log("API Response:", responseData);
 
     // Kiểm tra nếu có data trong response (bất kể code là gì, miễn là có data)
     // Một số API trả về code khác 0 nhưng vẫn có data hợp lệ
     if (responseData.data && responseData.data.questions) {
-      console.log('API Success - Questions count:', responseData.data.questions?.length || 0);
+      console.log(
+        "API Success - Questions count:",
+        responseData.data.questions?.length || 0
+      );
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || 'Lấy câu hỏi thành công',
+        message: responseData.message || "Lấy câu hỏi thành công",
       };
     }
     // Nếu không có data, kiểm tra code === 0 (success) theo format API chuẩn
     else if (responseData.code === 0 && responseData.data) {
-      console.log('API Success - Questions count:', responseData.data.questions?.length || 0);
+      console.log(
+        "API Success - Questions count:",
+        responseData.data.questions?.length || 0
+      );
       return {
         success: true,
         data: responseData.data,
         message: responseData.message,
       };
     } else {
-      console.error('API Error - code:', responseData.code, 'message:', responseData.message);
+      console.error(
+        "API Error - code:",
+        responseData.code,
+        "message:",
+        responseData.message
+      );
       return {
         success: false,
-        error: responseData.message || 'Không thể lấy câu hỏi đề thi',
+        error: responseData.message || "Không thể lấy câu hỏi đề thi",
       };
     }
   } catch (error) {
-    console.error('API Error getExamQuestions:', error);
-    console.error('Error response:', error.response?.data);
+    console.error("API Error getExamQuestions:", error);
+    console.error("Error response:", error.response?.data);
     const errorData = error.response?.data;
     return {
       success: false,
       error:
-        errorData?.message ||
-        error.message ||
-        'Không thể lấy câu hỏi đề thi',
+        errorData?.message || error.message || "Không thể lấy câu hỏi đề thi",
       status: error.response?.status,
     };
   }
@@ -2197,10 +2549,10 @@ export const saveApplicationDraft = async (draftData) => {
     if (draftData.experience) {
       formData.append("Experience", draftData.experience);
     }
-    if (draftData.height !== undefined && draftData.height !== '') {
+    if (draftData.height !== undefined && draftData.height !== "") {
       formData.append("Height", parseInt(draftData.height));
     }
-    if (draftData.weight !== undefined && draftData.weight !== '') {
+    if (draftData.weight !== undefined && draftData.weight !== "") {
       formData.append("Weight", parseInt(draftData.weight));
     }
     if (draftData.englishDegreeNumber) {
@@ -2301,20 +2653,26 @@ export const submitApplication = async (applicationData) => {
     if (applicationData.experience) {
       formData.append("Experience", applicationData.experience);
     }
-    if (applicationData.height !== undefined && applicationData.height !== '') {
+    if (applicationData.height !== undefined && applicationData.height !== "") {
       formData.append("Height", parseInt(applicationData.height));
     }
-    if (applicationData.weight !== undefined && applicationData.weight !== '') {
+    if (applicationData.weight !== undefined && applicationData.weight !== "") {
       formData.append("Weight", parseInt(applicationData.weight));
     }
     if (applicationData.englishDegreeNumber) {
-      formData.append("EnglishDegreeNumber", applicationData.englishDegreeNumber);
+      formData.append(
+        "EnglishDegreeNumber",
+        applicationData.englishDegreeNumber
+      );
     }
     if (applicationData.endDate) {
       formData.append("EndDate", applicationData.endDate);
     }
     if (applicationData.campaignRoundId) {
-      formData.append("CampaignRoundId", parseInt(applicationData.campaignRoundId));
+      formData.append(
+        "CampaignRoundId",
+        parseInt(applicationData.campaignRoundId)
+      );
     }
 
     // Thêm các file (required)
@@ -2423,7 +2781,10 @@ export const updateApplication = async (applicationId, updateData = {}) => {
     appendIfValue("EnglishDegreeNumber", updateData.englishDegreeNumber);
     appendIfValue("EndDate", updateData.endDate);
     if (updateData.campaignRoundId) {
-      formData.append("CampaignRoundId", parseInt(updateData.campaignRoundId, 10));
+      formData.append(
+        "CampaignRoundId",
+        parseInt(updateData.campaignRoundId, 10)
+      );
     }
 
     const appendFileIfValid = (fieldName, file) => {
@@ -2502,7 +2863,10 @@ export const updateApplication = async (applicationId, updateData = {}) => {
 };
 
 // API nộp hồ sơ ứng tuyển đã tồn tại
-export const submitExistingApplication = async (applicationId, campaignRoundId) => {
+export const submitExistingApplication = async (
+  applicationId,
+  campaignRoundId
+) => {
   if (!applicationId) {
     return {
       success: false,
