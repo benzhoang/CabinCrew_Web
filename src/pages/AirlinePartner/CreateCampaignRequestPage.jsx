@@ -137,7 +137,7 @@ const CreateCampaignRequestPage = () => {
 
   const handleConfirmCancel = () => {
     setShowCancelModal(false);
-    navigate(-1);
+    navigate("/airline-partner/requests");
   };
 
   return (
@@ -167,7 +167,7 @@ const CreateCampaignRequestPage = () => {
           </p>
         </div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/airline-partner/requests")}
           className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
           Quay lại

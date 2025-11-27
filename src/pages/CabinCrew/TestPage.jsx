@@ -8,7 +8,7 @@ import ModalVerifySubmit from "../../components/CabinCrewComponent/ModalVerifySu
 const TestPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: testIdFromParams } = useParams();
+  const { id: testIdFromParams, campaignId } = useParams();
   const resolvedTestId = testIdFromParams || location.state?.examId;
 
   const [questions, setQuestions] = useState([]);
@@ -41,13 +41,13 @@ const TestPage = () => {
 
       if (!testId) {
         toast.error("Thiếu thông tin đề thi. Vui lòng thử lại.");
-        navigate(-1);
+        navigate(`/cabin-crew/tests/${campaignId}`);
         return;
       }
 
       if (!joinCode) {
         toast.error("Thiếu mã đề thi. Vui lòng quay lại danh sách đề thi.");
-        navigate(-1);
+        navigate(`/cabin-crew/tests/${campaignId}`);
         return;
       }
 
@@ -112,7 +112,7 @@ const TestPage = () => {
     };
 
     fetchExamQuestions();
-  }, [resolvedTestId, location.state, navigate, testIdFromParams]);
+  }, [resolvedTestId, location.state, navigate, testIdFromParams, campaignId]);
 
   // Timer countdown
   useEffect(() => {
@@ -219,10 +219,8 @@ const TestPage = () => {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800">
-                    {examData?.testName
-                      ? `${examData.testName} - ${t("question") || "Câu hỏi"}`
-                      : t("question") || "Câu hỏi"}{" "}
-                    {currentQuestionIndex + 1} / {totalQuestions}
+                    {t("question") || "Câu hỏi"} {currentQuestionIndex + 1} /{" "}
+                    {totalQuestions}
                   </h2>
                   <div className="flex items-center gap-3">
                     <button
@@ -378,7 +376,7 @@ const TestPage = () => {
                       <button
                         key={question.id}
                         onClick={() => handleQuestionClick(index)}
-                        className={`w-full h-10 rounded-lg font-semibold text-sm transition-all ${
+                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${
                           isCurrent
                             ? "bg-blue-600 text-white ring-2 ring-blue-300"
                             : isAnswered

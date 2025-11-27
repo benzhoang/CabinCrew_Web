@@ -508,7 +508,7 @@ function App() {
           }
         />
         <Route
-          path="/cabin-crew/promotion/apply"
+          path="/cabin-crew/promotion/apply/:id"
           element={
             <CabinCrewLayout>
               <PromotionApplyPage />

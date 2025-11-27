@@ -8,7 +8,7 @@ const AirlinePartnerListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
   const [totalItems, setTotalItems] = useState(0);
   const [totalAirlinePartners, setTotalAirlinePartners] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);

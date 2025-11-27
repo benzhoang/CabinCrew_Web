@@ -40,7 +40,7 @@ const AccountTable = ({
   partnerId = null,
   isActive = null,
   page = 1,
-  pageSize = 10,
+  pageSize = 5,
   onDelete,
   onDataLoad,
   refreshKey = 0,

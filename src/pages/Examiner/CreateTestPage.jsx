@@ -65,7 +65,7 @@ const CreateTestPage = () => {
 
   const handleConfirmCancel = () => {
     setShowCancelModal(false);
-    navigate(-1);
+    navigate("/examiner/testing");
   };
 
   const handleSubmit = async (event) => {
@@ -184,7 +184,7 @@ const CreateTestPage = () => {
         </div>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/examiner/testing")}
           className="inline-flex items-center self-start gap-2 px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100"
         >
           Quay lại

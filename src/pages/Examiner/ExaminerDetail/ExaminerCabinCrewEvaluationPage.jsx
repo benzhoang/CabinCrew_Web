@@ -430,15 +430,6 @@ const ExaminerCabinCrewEvaluationPage = () => {
 
         {/* Total Score and Result */}
         <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-lg font-semibold text-slate-800">
-              TOTAL SCORE
-            </div>
-            <div className="text-2xl font-bold text-blue-600">
-              Total score (max 100) = {totalScore}
-            </div>
-          </div>
-
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
               Comments/Remarks
