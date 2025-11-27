@@ -73,6 +73,8 @@ import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
 import AppearanceResultPage from "./pages/Candidate/AppearanceResultPage";
+import InterviewResultPage from "./pages/Candidate/InterviewResultPage";
+import DetailResultPage from "./pages/Candidate/DetailResultPage";
 import TestResultPage from "./pages/CabinCrew/TestResultPage";
 import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 import TestingPage from "./pages/Examiner/TestingPage";
@@ -191,6 +193,26 @@ function App() {
           }
         />
         <Route
+          path="/interview-result/:activityId"
+          element={
+            <>
+              <Navbar />
+              <InterviewResultPage />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/detail-result/:id"
+          element={
+            <>
+              <Navbar />
+              <DetailResultPage />
+              <Footer />
+            </>
+          }
+        />
+        <Route
           path="/test/:id"
           element={
             <>
@@ -209,7 +231,7 @@ function App() {
           }
         />
         <Route
-          path="/exam-result"
+          path="/exam-result/:id"
           element={
             <>
               <Navbar />
@@ -623,7 +645,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/applications"
+          path="/examiner/applications/:id"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />

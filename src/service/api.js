@@ -1797,6 +1797,125 @@ export const getAppearanceResult = async (activityId) => {
   }
 };
 
+export const getScoringCriterias = async () => {
+  try {
+    const response = await api.get("/scoring-criterias");
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách tiêu chí đánh giá",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách tiêu chí đánh giá",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Interview Result Forms
+export const getInterviewResults = async (activityId) => {
+  if (!activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để truy xuất kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api.get("/interview-results", {
+      params: {
+        activityId: activityId,
+      },
+    });
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy chi tiết Interview Result theo ID
+export const getInterviewResultDetail = async (id) => {
+  if (!id) {
+    return {
+      success: false,
+      error: "Thiếu ID để truy xuất chi tiết kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api.get(`/interview-results/${id}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || null,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy chi tiết kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy chi tiết kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API submit multiple-choice test answers (Listening và Practical tests)
 // Format theo API documentation:
 // POST /api/v1/test-sessions/submit-multiple-choice

@@ -56,7 +56,6 @@ const ProfilePage = () => {
     const [formData, setFormData] = useState({
         email: '',
         fullName: '',
-        nationality: '',
         dateOfBirth: '',
         gender: '',
         mobileNumber: '',
@@ -66,7 +65,6 @@ const ProfilePage = () => {
         englishCertificate: '',
         certificateExpireDate: '',
         campaignRoundId: '',
-        basePreference: '',
         termsAccepted: '',
         captcha: ''
     })
@@ -295,15 +293,15 @@ const ProfilePage = () => {
                             // Map document type to file field
                             const type = doc.type?.toLowerCase() || ''
                             if (type.includes('application') || type.includes('form')) {
-                                filesMap.applicationForm = { name: doc.documentURL?.split('/').pop() || 'Application Form', url: doc.documentURL }
+                                filesMap.applicationForm = { name: doc.documentURL?.split('/').pop() || 'Form Job Application', url: doc.documentURL }
                             } else if (type.includes('profile') || type.includes('photo')) {
-                                filesMap.profilePhoto = { name: doc.documentURL?.split('/').pop() || 'Profile Photo', url: doc.documentURL }
+                                filesMap.profilePhoto = { name: doc.documentURL?.split('/').pop() || 'Ảnh 4x6', url: doc.documentURL }
                             } else if (type.includes('education') || type.includes('degree')) {
                                 filesMap.educationDegree = { name: doc.documentURL?.split('/').pop() || 'Education Degree', url: doc.documentURL }
                             } else if (type.includes('english') || type.includes('certificate')) {
                                 filesMap.englishCertificate = { name: doc.documentURL?.split('/').pop() || 'English Certificate', url: doc.documentURL }
                             } else if (type.includes('id') || type.includes('passport') || type.includes('card')) {
-                                filesMap.idCard = { name: doc.documentURL?.split('/').pop() || 'ID Card', url: doc.documentURL }
+                                filesMap.idCard = { name: doc.documentURL?.split('/').pop() || 'Valid Passport', url: doc.documentURL }
                             }
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
@@ -317,7 +315,6 @@ const ProfilePage = () => {
                                 ...prev,
                                 email: userData.email || '',
                                 fullName: userData.fullName || userData.name || '',
-                                nationality: userData.nationality || '',
                                 dateOfBirth: userData.dateOfBirth || '',
                                 gender: userData.gender || '',
                                 mobileNumber: userData.mobileNumber || userData.phoneNumber || '',
@@ -375,6 +372,17 @@ const ProfilePage = () => {
             ...prev,
             [name]: fileList[0] || null
         }))
+    }
+    const handleFileDelete = (fileName) => {
+        setFiles(prev => ({
+            ...prev,
+            [fileName]: null
+        }))
+        // Reset file input
+        const fileInput = document.querySelector(`input[name="${fileName}"]`)
+        if (fileInput) {
+            fileInput.value = ''
+        }
     }
     const handleSaveDraft = () => {
         // Lưu form data vào localStorage (không lưu files)
@@ -492,14 +500,30 @@ const ProfilePage = () => {
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_application_form_file')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Form Job Application *
+                                        </label>
+                                        {files.applicationForm && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('applicationForm')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="applicationForm"
                                             onChange={handleFileChange}
+                                            accept=".pdf"
                                             disabled={!isEditing}
                                             className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
@@ -512,7 +536,7 @@ const ProfilePage = () => {
                                                 <p className="text-sm text-slate-600">
                                                     {files.applicationForm ? (
                                                         <span className="text-green-600 font-medium">
-                                                            ✓ {files.applicationForm instanceof File ? files.applicationForm.name : (files.applicationForm.name || files.applicationForm.file?.name || 'Application Form')}
+                                                            ✓ {files.applicationForm instanceof File ? files.applicationForm.name : (files.applicationForm.name || files.applicationForm.file?.name || 'Form Job Application')}
                                                             {files.applicationForm.url && !(files.applicationForm instanceof File) && (
                                                                 <a href={files.applicationForm.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
                                                                     (Xem)
@@ -528,9 +552,23 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_profile_photo')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Ảnh 4x6 *
+                                        </label>
+                                        {files.profilePhoto && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('profilePhoto')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -549,7 +587,7 @@ const ProfilePage = () => {
                                                 <p className="text-sm text-slate-600">
                                                     {files.profilePhoto ? (
                                                         <span className="text-green-600 font-medium">
-                                                            ✓ {files.profilePhoto instanceof File ? files.profilePhoto.name : (files.profilePhoto.name || files.profilePhoto.file?.name || 'Profile Photo')}
+                                                            ✓ {files.profilePhoto instanceof File ? files.profilePhoto.name : (files.profilePhoto.name || files.profilePhoto.file?.name || 'Ảnh 4x6')}
                                                             {files.profilePhoto.url && !(files.profilePhoto instanceof File) && (
                                                                 <a href={files.profilePhoto.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
                                                                     (Xem)
@@ -565,15 +603,30 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_education_degree')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Education Degree *
+                                        </label>
+                                        {files.educationDegree && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('educationDegree')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="educationDegree"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             disabled={!isEditing}
                                             className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
@@ -602,15 +655,30 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_english_certificate')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            English Certificate *
+                                        </label>
+                                        {files.englishCertificate && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('englishCertificate')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="englishCertificate"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             disabled={!isEditing}
                                             className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
@@ -639,15 +707,30 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_id_card')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Valid Passport *
+                                        </label>
+                                        {files.idCard && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('idCard')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="idCard"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            accept=".pdf"
                                             disabled={!isEditing}
                                             className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                             required
@@ -660,7 +743,7 @@ const ProfilePage = () => {
                                                 <p className="text-sm text-slate-600">
                                                     {files.idCard ? (
                                                         <span className="text-green-600 font-medium">
-                                                            ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'ID Card')}
+                                                            ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'Valid Passport')}
                                                             {files.idCard.url && !(files.idCard instanceof File) && (
                                                                 <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
                                                                     (Xem)
@@ -724,31 +807,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Nationality:</label>
-                                        <select
-                                            name="nationality"
-                                            value={formData.nationality}
-                                            onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                            required
-                                        >
-                                            <option value="">Select Nationality</option>
-                                            <option value="vietnamese">Vietnamese</option>
-                                            <option value="american">American</option>
-                                            <option value="british">British</option>
-                                            <option value="french">French</option>
-                                            <option value="german">German</option>
-                                            <option value="japanese">Japanese</option>
-                                            <option value="korean">Korean</option>
-                                            <option value="chinese">Chinese</option>
-                                            <option value="thai">Thai</option>
-                                            <option value="singaporean">Singaporean</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Date of Birth:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Date of Birth:</label>
                                         <input
                                             type="date"
                                             name="dateOfBirth"
@@ -760,7 +819,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Gender:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Gender:</label>
                                         <div className="flex gap-4">
                                             <label className="flex items-center">
                                                 <input
@@ -791,7 +850,7 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Mobile number:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Mobile number:</label>
                                         <input
                                             type="tel"
                                             name="mobileNumber"
@@ -803,7 +862,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Working experience:</label>
                                         <div className="space-y-2">
                                             <label className="flex items-center">
                                                 <input
@@ -860,7 +919,7 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
@@ -923,55 +982,6 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Base Preference */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Base Preference</h3>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Base Preference:</label>
-                                    <div className="space-y-2">
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="flexible"
-                                                checked={formData.basePreference === 'flexible'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Flexible base
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="cam-ranh"
-                                                checked={formData.basePreference === 'cam-ranh'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Cam Ranh City (CXR)
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="da-nang"
-                                                checked={formData.basePreference === 'da-nang'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Da Nang City (DAD)
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* Terms and Conditions */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Terms and Conditions</h3>
