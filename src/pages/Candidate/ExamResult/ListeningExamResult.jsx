@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { t, onLangChange } from '../../../i18n';
 import { toast } from 'react-toastify';
 import AppealModal from '../../../components/AppealModal';
+import { getMyListeningSessions } from '../../../service/api';
 
 const ListeningExamResult = () => {
+    const { id: campaignId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const [langVersion, setLangVersion] = useState(0);
     const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
     const [isAppealSubmitted, setIsAppealSubmitted] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [sessionData, setSessionData] = useState(null);
 
-    // Lấy dữ liệu từ location state
-    const { score, totalQuestions, correctAnswers, wrongAnswers, unansweredQuestions, answers, questions, timeSpent, submittedAnswers } = location.state || {};
+    // Lấy dữ liệu từ location state (fallback)
+    const { score: stateScore, totalQuestions: stateTotalQuestions, correctAnswers: stateCorrectAnswers, wrongAnswers: stateWrongAnswers, unansweredQuestions: stateUnansweredQuestions, answers, questions, timeSpent, submittedAnswers, testSessionId } = location.state || {};
 
     // re-render on language change
     useEffect(() => {
@@ -20,19 +24,87 @@ const ListeningExamResult = () => {
         return () => off();
     }, []);
 
+    // Gọi API để lấy dữ liệu listening sessions
+    useEffect(() => {
+        const fetchListeningSessions = async () => {
+            try {
+                setLoading(true);
+                const response = await getMyListeningSessions();
+
+                if (response.success && response.data && response.data.length > 0) {
+                    // Tìm session tương ứng với testSessionId nếu có, nếu không thì lấy session mới nhất
+                    let selectedSession = null;
+                    if (testSessionId) {
+                        selectedSession = response.data.find(session => session.testSessionId === testSessionId);
+                    }
+
+                    // Nếu không tìm thấy session theo testSessionId, lấy session mới nhất
+                    if (!selectedSession) {
+                        selectedSession = response.data[0]; // Lấy session đầu tiên (mới nhất)
+                    }
+
+                    setSessionData(selectedSession);
+                } else {
+                    // Nếu không có dữ liệu từ API, sử dụng dữ liệu từ location.state
+                    if (!stateScore && !stateTotalQuestions) {
+                        toast.error(response.error || 'Không thể tải dữ liệu kết quả bài thi');
+                        navigate('/test');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching listening sessions:', error);
+                // Nếu lỗi, vẫn có thể sử dụng dữ liệu từ location.state
+                if (!stateScore && !stateTotalQuestions) {
+                    toast.error('Không thể tải dữ liệu kết quả bài thi');
+                    navigate('/test');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchListeningSessions();
+    }, [testSessionId, navigate, stateScore, stateTotalQuestions]);
+
     // Nếu không có dữ liệu, chuyển về trang test
     useEffect(() => {
-        // Kiểm tra cả score và totalQuestions để xác định có dữ liệu hay không
-        if ((score === undefined || score === null) && (!totalQuestions || totalQuestions === 0)) {
-            navigate('/test');
+        if (!loading) {
+            // Kiểm tra cả dữ liệu từ API và location state
+            const hasData = sessionData || (stateScore !== undefined && stateScore !== null) || (stateTotalQuestions && stateTotalQuestions > 0);
+            if (!hasData) {
+                navigate('/test');
+            }
         }
-    }, [navigate, score, totalQuestions]);
+    }, [loading, navigate, sessionData, stateScore, stateTotalQuestions]);
 
-    // Tính lại wrongAnswers để bao gồm cả câu chưa trả lời (tính là sai)
-    const totalWrongAnswers = (wrongAnswers || 0) + (unansweredQuestions || 0);
+    // Lấy dữ liệu từ API hoặc location.state
+    // Ưu tiên sử dụng questions.length làm totalQuestions (số câu hỏi thực tế trong đề)
+    const totalQuestions = questions ? questions.length : (sessionData ? sessionData.maxScore : stateTotalQuestions);
 
-    // Tính phần trăm
-    const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+    // Từ API: totalAnswers là số câu đúng, maxScore là tổng số câu hỏi
+    const score = sessionData ? sessionData.totalAnswers : stateScore;
+    const correctAnswers = sessionData ? sessionData.totalAnswers : stateCorrectAnswers;
+    const unansweredQuestions = stateUnansweredQuestions || 0;
+
+    // Tính số câu sai: tổng số câu - số câu đúng (bao gồm cả câu chưa trả lời vì chưa trả lời = sai)
+    // Đảm bảo: correctAnswers + totalWrongAnswers = totalQuestions
+    const totalWrongAnswers = (totalQuestions || 0) - (correctAnswers || 0);
+
+    // Tính số câu đã trả lời
+    const calculateAnsweredCount = () => {
+        if (questions && answers) {
+            // Đếm số câu có đáp án từ answers object
+            return questions.filter(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '').length;
+        }
+        // Fallback: tổng số câu - số câu chưa trả lời
+        return (totalQuestions || 0) - (unansweredQuestions || 0);
+    };
+    const answeredCount = calculateAnsweredCount();
+
+    // Tính phần trăm - sử dụng totalQuestions (số câu thực tế trong đề)
+    const percentage = totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
 
     // Xác định kết quả
     const getResultStatus = () => {
@@ -69,7 +141,7 @@ const ListeningExamResult = () => {
     const resultStatus = getResultStatus();
 
     const handleBackToTest = () => {
-        navigate('/test');
+        navigate(`/test/${campaignId}`);
     };
 
     const openAppealModal = () => {
@@ -88,6 +160,32 @@ const ListeningExamResult = () => {
         toast.success(t('appeal_submitted_success') || 'Yêu cầu phúc khảo đã được gửi thành công!');
     };
 
+    // Tính thời gian làm bài từ startTime và endTime
+    const calculateTimeSpent = () => {
+        if (sessionData && sessionData.startTime && sessionData.endTime) {
+            const start = new Date(sessionData.startTime);
+            const end = new Date(sessionData.endTime);
+            const diffMs = end - start;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            return `${diffMins} phút ${diffSecs} giây`;
+        }
+        return timeSpent || '';
+    };
+
+    const displayTimeSpent = calculateTimeSpent();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">{t('loading') || 'Đang tải...'}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4">
             <div className="max-w-4xl mx-auto">
@@ -104,10 +202,13 @@ const ListeningExamResult = () => {
                 {/* Kết quả chính */}
                 <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
                     <div className="text-center">
-                        {/* Điểm số lớn */}
+                        {/* Số câu đã trả lời */}
                         <div className={`mb-6 inline-block p-8 rounded-full ${resultStatus.bgColor}`}>
                             <div className={`text-6xl font-bold ${resultStatus.textColor} mb-2`}>
-                                {score}/{totalQuestions}
+                                {answeredCount}/{totalQuestions}
+                            </div>
+                            <div className={`text-lg ${resultStatus.textColorDark}`}>
+                                {t('answered_questions') || 'Câu đã trả lời'}
                             </div>
                         </div>
 
@@ -138,9 +239,24 @@ const ListeningExamResult = () => {
                         </div>
 
                         {/* Thời gian làm bài */}
-                        {timeSpent && (
+                        {displayTimeSpent && (
                             <div className="mt-6 text-sm text-gray-600">
-                                {t('time_spent') || 'Thời gian làm bài'}: {timeSpent}
+                                {t('time_spent') || 'Thời gian làm bài'}: {displayTimeSpent}
+                            </div>
+                        )}
+                        {/* Thông tin bài thi từ API */}
+                        {sessionData && (
+                            <div className="mt-4 text-sm text-gray-500">
+                                <p>{t('test_name') || 'Tên bài thi'}: {sessionData.testName}</p>
+                                {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
+                                    <p>{t('max_score') || 'Điểm tối đa'}: {sessionData.maxScore}</p>
+                                )}
+                                {sessionData.startTime && (
+                                    <p>{t('start_time') || 'Thời gian bắt đầu'}: {new Date(sessionData.startTime).toLocaleString('vi-VN')}</p>
+                                )}
+                                {sessionData.endTime && (
+                                    <p>{t('end_time') || 'Thời gian kết thúc'}: {new Date(sessionData.endTime).toLocaleString('vi-VN')}</p>
+                                )}
                             </div>
                         )}
                     </div>
@@ -157,9 +273,14 @@ const ListeningExamResult = () => {
                                 const userAnswer = answers[question.id];
                                 // Tìm submittedAnswer từ API response nếu có
                                 const submittedAnswer = submittedAnswers?.find(sa => sa.questionId === question.id);
-                                // Sử dụng isCorrect từ API nếu có, nếu không thì fallback về cách cũ
-                                const isCorrect = submittedAnswer ? submittedAnswer.isCorrect : (userAnswer === question.correctAnswer);
-                                const isAnswered = userAnswer !== undefined || submittedAnswer !== undefined;
+                                // Xác định câu đã trả lời hay chưa
+                                const isAnswered = userAnswer !== undefined && userAnswer !== null && userAnswer !== '' || submittedAnswer !== undefined;
+                                // Sử dụng isCorrect từ API nếu có, nếu không thì:
+                                // - Nếu chưa trả lời (isAnswered = false) => sai
+                                // - Nếu đã trả lời => so sánh với đáp án đúng
+                                const isCorrect = submittedAnswer
+                                    ? submittedAnswer.isCorrect
+                                    : (isAnswered && userAnswer === question.correctAnswer);
                                 // Xác định đáp án đúng: nếu có submittedAnswer và isCorrect = true, thì đáp án đã chọn là đúng
                                 // Nếu không có submittedAnswer, sử dụng question.correctAnswer
                                 const correctAnswerKey = submittedAnswer && isCorrect

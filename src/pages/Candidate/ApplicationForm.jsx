@@ -20,9 +20,6 @@ const ApplicationForm = () => {
         workingExperience: '',
         height: '',
         weight: '',
-        englishCertificate: '',
-        certificateExpireDate: '',
-        basePreference: '',
         termsAccepted: '',
         captcha: ''
     })
@@ -32,7 +29,8 @@ const ApplicationForm = () => {
         profilePhoto: null,
         educationDegree: null,
         englishCertificate: null,
-        idCard: null
+        idCard: null,
+        idCardBack: null
     })
 
     // Dùng key để reset input file khi xóa
@@ -41,7 +39,8 @@ const ApplicationForm = () => {
         profilePhoto: 0,
         educationDegree: 0,
         englishCertificate: 0,
-        idCard: 0
+        idCard: 0,
+        idCardBack: 0
     })
 
     // Captcha state
@@ -227,8 +226,7 @@ const ApplicationForm = () => {
         // Validate required fields
         if (!formData.email || !formData.fullName || !formData.dateOfBirth ||
             !formData.gender || !formData.mobileNumber || !formData.workingExperience ||
-            !formData.height || !formData.weight || !formData.englishCertificate ||
-            !formData.certificateExpireDate || !formData.basePreference ||
+            !formData.height || !formData.weight ||
             formData.termsAccepted !== 'yes') {
             alert('Vui lòng điền đầy đủ thông tin bắt buộc')
             return
@@ -236,7 +234,7 @@ const ApplicationForm = () => {
 
         // Validate required files
         if (!files.applicationForm || !files.profilePhoto || !files.educationDegree ||
-            !files.englishCertificate || !files.idCard) {
+            !files.englishCertificate || !files.idCard || !files.idCardBack) {
             alert('Vui lòng upload đầy đủ các file bắt buộc')
             return
         }
@@ -265,14 +263,13 @@ const ApplicationForm = () => {
                 experience: experienceMap[formData.workingExperience] || formData.workingExperience,
                 height: formData.height,
                 weight: formData.weight,
-                englishDegreeNumber: formData.englishCertificate,
-                endDate: formData.certificateExpireDate,
                 campaignRoundId: campaignRoundId,
                 applicationForm: files.applicationForm,
                 profilePhoto: files.profilePhoto,
                 educationDegree: files.educationDegree,
                 englishCertificate: files.englishCertificate,
-                passportOrID: files.idCard
+                passportOrID: files.idCard,
+                passportOrIDBack: files.idCardBack
             }
 
             // Gọi API nộp đơn
@@ -283,7 +280,7 @@ const ApplicationForm = () => {
                 localStorage.removeItem('applicationFormDraft')
 
                 alert(t('application_form_submitted_successfully') || result.message || 'Nộp đơn thành công!')
-                navigate('/recruitment')
+                navigate('/recruitment-stages')
             } else {
                 alert(result.error || 'Nộp đơn thất bại. Vui lòng thử lại.')
             }
@@ -317,14 +314,13 @@ const ApplicationForm = () => {
                 experience: experienceMap[formData.workingExperience] || formData.workingExperience || '',
                 height: formData.height || '',
                 weight: formData.weight || '',
-                englishDegreeNumber: formData.englishCertificate || '',
-                endDate: formData.certificateExpireDate || '',
                 campaignRoundId: campaignRoundId || '',
                 applicationForm: files.applicationForm || null,
                 profilePhoto: files.profilePhoto || null,
                 educationDegree: files.educationDegree || null,
                 englishCertificate: files.englishCertificate || null,
-                passportOrID: files.idCard || null
+                passportOrID: files.idCard || null,
+                passportOrIDBack: files.idCardBack || null
             }
 
             // Gọi API lưu bản nháp
@@ -380,20 +376,7 @@ const ApplicationForm = () => {
                     <div className="space-y-6">
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h1 className="text-2xl font-bold text-slate-800 mb-4">{campaign.name}</h1>
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_department')}:</span>
-                                    <span className="font-medium">Cabin Crew</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_application_period')}:</span>
-                                    <span className="font-medium">Open: 01 Oct 2025, Close: 01 Nov 2025</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">{t('application_form_required_document')}:</span>
-                                    <span className="font-medium">VJC-PD-FRM-12 Form Job Application</span>
-                                </div>
-                            </div>
+
                         </div>
 
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -557,7 +540,7 @@ const ApplicationForm = () => {
                                             type="file"
                                             name="englishCertificate"
                                             onChange={handleFileChange}
-                                            accept=".pdf"
+                                            accept=".jpg,.jpeg,image/jpeg"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             required
                                         />
@@ -574,54 +557,102 @@ const ApplicationForm = () => {
                                                     )}
                                                 </p>
                                                 <p className="mt-1 text-xs text-slate-500">
-                                                    Vui lòng tải lên chứng chỉ tiếng Anh ở định dạng <span className="font-semibold">PDF (.pdf)</span>.
+                                                    Vui lòng tải lên chứng chỉ tiếng Anh ở định dạng <span className="font-semibold">JPG (.jpg)</span>.
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
-                                        <span>{t('application_form_id_card')} *</span>
-                                        {files.idCard && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClearFile('idCard')}
-                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            key={fileInputKeys.idCard}
-                                            type="file"
-                                            name="idCard"
-                                            onChange={handleFileChange}
-                                            accept=".pdf"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            required
-                                        />
-                                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
-                                            <div className="text-center">
-                                                <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                                                </svg>
-                                                <p className="text-sm text-slate-600">
-                                                    {files.idCard ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.idCard.name}</span>
-                                                    ) : (
-                                                        <span>{t('application_form_click_to_select')}</span>
-                                                    )}
-                                                </p>
-                                                <p className="mt-1 text-xs text-slate-500">
-                                                    Vui lòng tải lên hộ chiếu/CCCD còn hiệu lực ở định dạng <span className="font-semibold">PDF (.pdf)</span>.
-                                                </p>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                            <span>{t('application_form_id_card')} - Mặt trước *</span>
+                                            {files.idCard && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleClearFile('idCard')}
+                                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                    title="Xóa file"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                key={fileInputKeys.idCard}
+                                                type="file"
+                                                name="idCard"
+                                                onChange={handleFileChange}
+                                                accept=".jpg,.jpeg,image/jpeg"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                required
+                                            />
+                                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                <div className="text-center">
+                                                    <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                    </svg>
+                                                    <p className="text-sm text-slate-600">
+                                                        {files.idCard ? (
+                                                            <span className="text-green-600 font-medium">✓ {files.idCard.name}</span>
+                                                        ) : (
+                                                            <span>{t('application_form_click_to_select')}</span>
+                                                        )}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        Vui lòng tải lên mặt trước hộ chiếu/CCCD còn hiệu lực dưới dạng <span className="font-semibold">JPG (.jpg)</span>.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                                            <span>{t('application_form_id_card')} - Mặt sau *</span>
+                                            {files.idCardBack && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleClearFile('idCardBack')}
+                                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
+                                                    title="Xóa file"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                key={fileInputKeys.idCardBack}
+                                                type="file"
+                                                name="idCardBack"
+                                                onChange={handleFileChange}
+                                                accept=".jpg,.jpeg,image/jpeg"
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                required
+                                            />
+                                            <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                <div className="text-center">
+                                                    <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                    </svg>
+                                                    <p className="text-sm text-slate-600">
+                                                        {files.idCardBack ? (
+                                                            <span className="text-green-600 font-medium">✓ {files.idCardBack.name}</span>
+                                                        ) : (
+                                                            <span>{t('application_form_click_to_select')}</span>
+                                                        )}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        Vui lòng tải lên mặt sau hộ chiếu/CCCD còn hiệu lực dưới dạng <span className="font-semibold">JPG (.jpg)</span>.
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -679,8 +710,8 @@ const ApplicationForm = () => {
                                         <input
                                             type="radio"
                                             name="gender"
-                                            value="male"
-                                            checked={formData.gender === 'male'}
+                                            value="1"
+                                            checked={formData.gender === '1'}
                                             onChange={handleInputChange}
                                             className="mr-2"
                                             required
@@ -691,8 +722,8 @@ const ApplicationForm = () => {
                                         <input
                                             type="radio"
                                             name="gender"
-                                            value="female"
-                                            checked={formData.gender === 'female'}
+                                            value="2"
+                                            checked={formData.gender === '2'}
                                             onChange={handleInputChange}
                                             className="mr-2"
                                             required
@@ -800,36 +831,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_english_certificate_info')}</label>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_certificate_number')}</label>
-                                        <input
-                                            type="text"
-                                            name="englishCertificate"
-                                            value={formData.englishCertificate}
-                                            onChange={handleInputChange}
-                                            placeholder="TOEIC 500"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-slate-600 mb-1">{t('application_form_expire_date')}</label>
-                                        <input
-                                            type="date"
-                                            name="certificateExpireDate"
-                                            value={formData.certificateExpireDate}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">9. {t('application_form_terms_conditions')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
                                     {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
                                     {t('application_form_for_recruitment')}

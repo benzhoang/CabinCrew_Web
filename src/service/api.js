@@ -131,6 +131,38 @@ export const getUserProfile = async (userId) => {
   }
 };
 
+// API lấy lịch sử ứng tuyển của người dùng
+export const getRecruitmentHistory = async () => {
+  try {
+    const response = await api.get("/users/history");
+    const responseData = response.data;
+
+    if (responseData.code === 0 && Array.isArray(responseData.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy lịch sử ứng tuyển",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy lịch sử ứng tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách thành phố
 export const getCities = async () => {
   try {
@@ -1062,6 +1094,84 @@ export const getMyTests = async () => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Listening test sessions của user hiện tại
+// Endpoint dự kiến: GET /test-sessions/my-listening-sessions
+export const getMyListeningSessions = async () => {
+  try {
+    const response = await api.get("/test-sessions/my-listening-sessions");
+    const responseData = response.data;
+
+    const hasData =
+      Array.isArray(responseData?.data) && responseData.data.length > 0;
+
+    if (responseData.code === 0 || hasData) {
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.message ||
+        responseData.errorMessage ||
+        "Không thể lấy lịch sử bài thi Listening",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy lịch sử bài thi Listening",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Speaking test sessions của user hiện tại
+// Endpoint dự kiến: GET /test-sessions/my-speaking-sessions
+export const getMySpeakingSessions = async () => {
+  try {
+    const response = await api.get("/test-sessions/my-speaking-sessions");
+    const responseData = response.data;
+
+    const hasData =
+      Array.isArray(responseData?.data) && responseData.data.length > 0;
+
+    if (responseData.code === 0 || hasData) {
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.message ||
+        responseData.errorMessage ||
+        "Không thể lấy lịch sử bài thi Speaking",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy lịch sử bài thi Speaking",
       status: error.response?.status,
     };
   }
@@ -2581,6 +2691,9 @@ export const saveApplicationDraft = async (draftData) => {
     if (draftData.passportOrID) {
       formData.append("PassportOrID", draftData.passportOrID);
     }
+    if (draftData.passportOrIDBack) {
+      formData.append("PassportOrIDBack", draftData.passportOrIDBack);
+    }
 
     // Lấy token từ localStorage
     const headers = {};
@@ -2691,6 +2804,9 @@ export const submitApplication = async (applicationData) => {
     if (applicationData.passportOrID) {
       formData.append("PassportOrID", applicationData.passportOrID);
     }
+    if (applicationData.passportOrIDBack) {
+      formData.append("PassportOrIDBack", applicationData.passportOrIDBack);
+    }
 
     // Lấy token từ localStorage
     const headers = {};
@@ -2798,6 +2914,7 @@ export const updateApplication = async (applicationId, updateData = {}) => {
     appendFileIfValid("EducationDegree", updateData.educationDegree);
     appendFileIfValid("EnglishCertificate", updateData.englishCertificate);
     appendFileIfValid("PassportOrID", updateData.passportOrID);
+    appendFileIfValid("PassportOrIDBack", updateData.passportOrIDBack);
 
     const headers = {};
     const token = localStorage.getItem("token");

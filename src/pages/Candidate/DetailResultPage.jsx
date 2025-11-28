@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getInterviewCriterias, getInterviewResultDetail } from '../../service/api'
 
@@ -47,6 +47,7 @@ const DetailResultPage = () => {
     const [error, setError] = useState(null)
     const [result, setResult] = useState(null)
     const [criteriaMap, setCriteriaMap] = useState({})
+    const [criteriaGroups, setCriteriaGroups] = useState([])
 
     const fetchResult = useCallback(async () => {
         if (!id) {
@@ -81,6 +82,7 @@ const DetailResultPage = () => {
             const response = await getInterviewCriterias()
             if (response.success) {
                 const dataArray = Array.isArray(response.data) ? response.data : []
+                setCriteriaGroups(dataArray)
                 const map = {}
 
                 dataArray.forEach((group) => {
@@ -88,7 +90,10 @@ const DetailResultPage = () => {
                     items.forEach((item) => {
                         const key = item?.interviewCriteriaItemId
                         if (key !== undefined && key !== null) {
-                            map[String(key)] = item?.criteria || item?.title || '—'
+                            map[String(key)] = {
+                                label: item?.criteria || item?.title || '—',
+                                description: item?.description || ''
+                            }
                         }
                     })
                 })
@@ -121,6 +126,39 @@ const DetailResultPage = () => {
     ]
 
     const interviewResults = Array.isArray(result?.interviewResults) ? result.interviewResults : []
+
+    const interviewResultMap = useMemo(() => {
+        const map = {}
+        interviewResults.forEach(item => {
+            const key = item?.interviewCriteriaItemId ?? item?.criteria
+            if (key !== undefined && key !== null) {
+                map[String(key)] = item
+            }
+        })
+        return map
+    }, [interviewResults])
+
+    const knownCriteriaKeys = useMemo(() => {
+        const keys = new Set()
+        criteriaGroups.forEach(group => {
+            const items = Array.isArray(group?.items) ? group.items : []
+            items.forEach(item => {
+                const key = item?.interviewCriteriaItemId ?? item?.criteria
+                if (key !== undefined && key !== null) {
+                    keys.add(String(key))
+                }
+            })
+        })
+        return keys
+    }, [criteriaGroups])
+
+    const unmatchedResults = useMemo(() => {
+        return interviewResults.filter(item => {
+            const key = item?.interviewCriteriaItemId ?? item?.criteria
+            if (key === undefined || key === null) return true
+            return !knownCriteriaKeys.has(String(key))
+        })
+    }, [interviewResults, knownCriteriaKeys])
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
@@ -196,29 +234,95 @@ const DetailResultPage = () => {
                                 </section>
                             )}
 
-                            {interviewResults.length > 0 && (
+                            {criteriaGroups.length > 0 && (
                                 <section>
                                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí đánh giá</h2>
+                                    <div className="space-y-6">
+                                        {criteriaGroups.map((group, groupIndex) => {
+                                            const items = Array.isArray(group?.items) ? group.items : []
+                                            return (
+                                                <div key={`${group?.title || 'group'}-${groupIndex}`} className="overflow-hidden border border-gray-200 rounded-lg">
+                                                    <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+                                                        <h3 className="text-lg font-semibold text-gray-800">
+                                                            {group?.title || `Nhóm ${groupIndex + 1}`}
+                                                        </h3>
+                                                        {group?.description && (
+                                                            <p className="text-sm text-gray-600 mt-1">{group.description}</p>
+                                                        )}
+                                                    </div>
+                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                    Tiêu chí
+                                                                </th>
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
+                                                                    Điểm
+                                                                </th>
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                    Nhận xét
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                            {items.length > 0 ? (
+                                                                items.map((criterion, itemIndex) => {
+                                                                    const key = criterion?.interviewCriteriaItemId ?? criterion?.criteria ?? `${groupIndex}-${itemIndex}`
+                                                                    const resultItem = interviewResultMap[String(key)] || {}
+                                                                    const mapInfo = criteriaMap[String(criterion?.interviewCriteriaItemId)] || {}
+                                                                    return (
+                                                                        <tr key={`${key}-${itemIndex}`}>
+                                                                            <td className="px-4 py-3 text-sm">
+                                                                                <div className="font-semibold text-gray-900">
+                                                                                    {mapInfo.label || criterion?.criteria || '—'}
+                                                                                </div>
+                                                                                {(criterion?.description || mapInfo.description) && (
+                                                                                    <p className="text-xs text-gray-500 mt-1">
+                                                                                        {criterion?.description || mapInfo.description}
+                                                                                    </p>
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                                                {resultItem.score !== undefined && resultItem.score !== null ? resultItem.score : '—'}
+                                                                            </td>
+                                                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                                                {resultItem.comment || '—'}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )
+                                                                })
+                                                            ) : (
+                                                                <tr>
+                                                                    <td colSpan="3" className="px-4 py-4 text-center text-sm text-gray-500">
+                                                                        Không có tiêu chí trong nhóm này.
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </section>
+                            )}
+
+                            {criteriaGroups.length === 0 && interviewResults.length > 0 && (
+                                <section>
                                     <div className="overflow-hidden border border-gray-200 rounded-lg">
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Tiêu chí
-                                                    </th>
-                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Điểm
-                                                    </th>
-                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Nhận xét
-                                                    </th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu chí</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhận xét</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
                                                 {interviewResults.map((item, index) => (
                                                     <tr key={item.interviewCriteriaItemId || index}>
                                                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                            {criteriaMap[String(item?.interviewCriteriaItemId)] ??
+                                                            {criteriaMap[String(item?.interviewCriteriaItemId)]?.label ??
                                                                 item?.criteria ??
                                                                 item?.interviewCriteriaItemId ??
                                                                 '—'}
@@ -237,7 +341,39 @@ const DetailResultPage = () => {
                                 </section>
                             )}
 
-                            {interviewResults.length === 0 && (
+                            {unmatchedResults.length > 0 && criteriaGroups.length > 0 && (
+                                <section>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tiêu chí khác</h3>
+                                    <div className="overflow-hidden border border-gray-200 rounded-lg">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu chí</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhận xét</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {unmatchedResults.map((item, index) => (
+                                                    <tr key={`unmatched-${index}`}>
+                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                                            {item?.criteria || item?.interviewCriteriaItemId || '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                            {item.score !== undefined && item.score !== null ? item.score : '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                            {item.comment || '—'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                            )}
+
+                            {criteriaGroups.length === 0 && interviewResults.length === 0 && (
                                 <section>
                                     <div className="text-center py-8">
                                         <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

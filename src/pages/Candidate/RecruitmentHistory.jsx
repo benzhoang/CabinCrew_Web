@@ -1,88 +1,254 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../../i18n';
+import { getRecruitmentHistory } from '../../service/api';
+
+const STATUS_LABELS = {
+    accepted: {
+        vi: 'Đã hoàn thành',
+        en: 'Completed'
+    },
+    rejected: {
+        vi: 'Không hoàn thành',
+        en: 'Rejected'
+    }
+};
+
+const COMPLETED_STAGE_STATUSES = ['completed', 'passed', 'done', 'approved', 'success'];
+const FAILED_STAGE_STATUSES = ['failed', 'rejected', 'cancelled', 'canceled'];
+const IN_PROGRESS_STAGE_STATUSES = ['in_progress', 'processing', 'pending', 'ongoing', 'current'];
+
+const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
+const interviewKeywords = ['interview', 'phỏng vấn'];
+const defaultStageTemplates = [
+    {
+        id: 'screening',
+        name: 'Sàng lọc hồ sơ',
+        nameEn: 'Screening',
+        aliases: ['screening', 'sang loc']
+    },
+    {
+        id: 'appearance',
+        name: 'Vòng ngoại hình',
+        nameEn: 'Appearance',
+        aliases: ['appearance', 'ngoai hinh', 'appearence']
+    },
+    {
+        id: 'english-listening',
+        name: 'Bài kiểm tra Nghe tiếng Anh',
+        nameEn: 'English Listening Test',
+        aliases: ['listening', 'english listening', 'listening test']
+    },
+    {
+        id: 'english-speaking',
+        name: 'Bài kiểm tra Nói tiếng Anh',
+        nameEn: 'English Speaking Test',
+        aliases: ['speaking', 'english speaking', 'speaking test']
+    },
+    {
+        id: 'interview',
+        name: 'Phỏng vấn',
+        nameEn: 'Interview',
+        aliases: ['interview', 'phong van']
+    },
+    {
+        id: 'final',
+        name: 'Vòng cuối',
+        nameEn: 'Final',
+        aliases: ['final', 'chung ket', 'final round']
+    },
+];
+
+const LINE_START_PERCENT = 5;
+const LINE_END_PERCENT = 95;
+const AXIS_SEGMENTS = 4;
+const TIMELINE_HEIGHT = 240;
+const BASELINE_Y = 110;
+const BRANCH_OFFSET = 70;
+
+const stageAxisPositionMap = {
+    'screening': 0,
+    'appearance': 1,
+    'english-listening': 2,
+    'english-speaking': 2,
+    'interview': 3,
+    'final': 4
+};
+
+const normalizeText = (text) => (text || '').toLowerCase().trim();
+
+const doesRoundMatchStage = (round, stageTemplate) => {
+    if (!round) return false;
+    const roundName = normalizeText(round.roundName || round.name);
+    const stageNames = [stageTemplate.name, stageTemplate.nameEn, ...(stageTemplate.aliases || [])]
+        .map(normalizeText);
+    return stageNames.some((name) => name && roundName.includes(name));
+};
+
+const matchesStageKeywords = (stage, keywords) => {
+    const name = (stage?.name || '').toLowerCase();
+    const nameEn = (stage?.nameEn || '').toLowerCase();
+    return keywords.some(keyword => name.includes(keyword) || nameEn.includes(keyword));
+};
+
+const isStageReached = (stage, index, currentStageIndex) => {
+    if (!stage || typeof index !== 'number') return false;
+    if (stage.completed) return true;
+    return index <= currentStageIndex;
+};
+
+const normalizeStatusKey = (status) => {
+    const normalized = (status || '').toLowerCase();
+    if (['passed', 'completed', 'accepted', 'success', 'approved'].includes(normalized)) {
+        return 'accepted';
+    }
+    if (FAILED_STAGE_STATUSES.includes(normalized)) {
+        return 'rejected';
+    }
+    return 'pending';
+};
+
+const normalizeRounds = (rounds = []) => {
+    // Map rounds vào các stage templates
+    const mappedStages = defaultStageTemplates.map((template, index) => {
+        const matchingRound = rounds.find((round) => doesRoundMatchStage(round, template));
+        const roundStatus = normalizeText(matchingRound?.status);
+        const isCompleted = COMPLETED_STAGE_STATUSES.some((status) => roundStatus.includes(status));
+        const isFailed = FAILED_STAGE_STATUSES.some((status) => roundStatus.includes(status));
+        const isInProgress = IN_PROGRESS_STAGE_STATUSES.some((status) => roundStatus.includes(status));
+
+        return {
+            activityId: matchingRound?.activityId || matchingRound?.roundId || '',
+            id: matchingRound?.roundId || matchingRound?.activityId || `${template.id}-${index}`,
+            templateId: template.id,
+            name: matchingRound?.roundName || template.name,
+            nameEn: matchingRound?.roundName || template.nameEn,
+            completed: Boolean(matchingRound) && isCompleted,
+            failed: Boolean(matchingRound) && isFailed,
+            inProgress: Boolean(matchingRound) && isInProgress,
+            date: matchingRound?.date || matchingRound?.completedAt || null,
+            status: matchingRound?.status || 'Pending'
+        };
+    });
+
+    return mappedStages;
+};
+
+const deriveCurrentStage = (stages) => {
+    if (!stages.length) {
+        return { currentStageId: null, currentStageIndex: 0 };
+    }
+
+    const failedIndex = stages.findIndex((stage) => stage.failed);
+    if (failedIndex !== -1) {
+        return {
+            currentStageId: stages[failedIndex].id,
+            currentStageIndex: failedIndex + 1
+        };
+    }
+
+    const inProgressIndex = stages.findIndex((stage) => stage.inProgress);
+    if (inProgressIndex !== -1) {
+        return {
+            currentStageId: stages[inProgressIndex].id,
+            currentStageIndex: inProgressIndex + 1
+        };
+    }
+
+    // Tính số stages đã hoàn thành
+    const completedCount = stages.filter(stage => stage.completed).length;
+    let currentStageIndex = completedCount + 1;
+
+    // Nếu tất cả đã hoàn thành, currentStage là tổng số stage
+    if (currentStageIndex > stages.length) {
+        currentStageIndex = stages.length;
+    }
+
+    // Đảm bảo currentStage ít nhất là 1
+    if (currentStageIndex < 1) {
+        currentStageIndex = 1;
+    }
+
+    const currentStageData = stages[currentStageIndex - 1];
+    return {
+        currentStageId: currentStageData?.id || stages[0]?.id,
+        currentStageIndex: currentStageIndex
+    };
+};
+
+const normalizeHistoryData = (data = []) => {
+    return data.map((item, index) => {
+        const stages = normalizeRounds(item.rounds || []);
+        const { currentStageId, currentStageIndex } = deriveCurrentStage(stages);
+        const statusKey = normalizeStatusKey(item.roundStatus);
+        const statusLabels = STATUS_LABELS[statusKey] || STATUS_LABELS.pending;
+
+        return {
+            id: item.campaignRoundId ?? item.roundId ?? index + 1,
+            position: item.campaignName || 'Chưa có tên chiến dịch',
+            company: item.airlinePartner || 'N/A',
+            appliedDate: item.participateDate,
+            status: statusKey,
+            statusText: statusLabels.vi,
+            statusTextEn: statusLabels.en,
+            location: item.location || item.airlinePartner || 'N/A',
+            description: item.description || '',
+            salary: item.salary,
+            stages,
+            currentStage: currentStageId,
+            currentStageIndex,
+            rawStatus: item.roundStatus
+        };
+    });
+};
 
 const RecruitmentHistory = () => {
     const navigate = useNavigate();
 
     // Tự động re-render khi đổi ngôn ngữ
     const [langTick, setLangTick] = useState(0);
+    const [recruitmentHistory, setRecruitmentHistory] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
     useEffect(() => {
         const off = onLangChange(() => setLangTick((v) => v + 1));
         return () => off();
     }, []);
 
-    // Mock data cho lịch sử tuyển dụng - bao gồm cả giai đoạn đã chấp thuận và không đạt yêu cầu
-    const recruitmentHistory = [
-        {
-            id: 1,
-            position: 'Tuyển dụng Tiếp viên Hàng không 2025',
-            company: 'Vietnam Airlines',
-            appliedDate: '2024-01-15',
-            status: 'pending',
-            statusText: 'Đang xem xét',
-            statusTextEn: 'Under Review',
-            location: 'Hà Nội, TP.HCM',
-            description: 'Cơ hội trở thành tiếp viên hàng không chuyên nghiệp.'
-        },
-        {
-            id: 2,
-            position: 'Ground Staff Intake',
-            company: 'Bamboo Airways',
-            appliedDate: '2023-12-20',
-            status: 'rejected',
-            statusText: 'Không đạt yêu cầu',
-            statusTextEn: 'Not Qualified',
-            location: 'Đà Nẵng',
-            description: 'Tuyển dụng nhân viên mặt đất phụ trách làm thủ tục.',
-            currentStage: 1, // Bị loại ở giai đoạn "Kiểm tra hồ sơ"
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-12-21' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: false, date: null },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: false, date: null },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-            ]
-        },
-        {
-            id: 3,
-            position: 'Pilot Cadet Program',
-            company: 'VietJet Air',
-            appliedDate: '2023-11-10',
-            status: 'accepted',
-            statusText: 'Đã được chấp nhận',
-            statusTextEn: 'Accepted',
-            location: 'TP.HCM',
-            description: 'Chương trình học viên phi công đã kết thúc.',
-            currentStage: 5, // Hoàn thành tất cả giai đoạn
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-11-12' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-11-15' },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-11-18' },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: true, date: '2023-11-22' },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: true, date: '2023-11-25' }
-            ]
-        },
-        {
-            id: 4,
-            position: 'Customer Service Expansion',
-            company: 'Pacific Airlines',
-            appliedDate: '2023-10-05',
-            status: 'rejected',
-            statusText: 'Không đạt yêu cầu',
-            statusTextEn: 'Not Qualified',
-            location: 'Hà Nội',
-            description: 'Mở rộng đội ngũ chăm sóc khách hàng tại sân bay Nội Bài.',
-            currentStage: 3, // Bị loại ở giai đoạn "Kiểm tra tiếng Anh"
-            stages: [
-                { id: 1, name: 'Kiểm tra hồ sơ', nameEn: 'Document Review', completed: true, date: '2023-10-07' },
-                { id: 2, name: 'Kiểm tra ngoại hình', nameEn: 'Physical Check', completed: true, date: '2023-10-10' },
-                { id: 3, name: 'Kiểm tra tiếng Anh', nameEn: 'English Test', completed: true, date: '2023-10-15' },
-                { id: 4, name: 'Phỏng vấn', nameEn: 'Interview', completed: false, date: null },
-                { id: 5, name: 'Kết quả cuối cùng', nameEn: 'Final Result', completed: false, date: null }
-            ]
-        }
-    ];
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchHistory = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await getRecruitmentHistory();
+                if (!isMounted) return;
+
+                if (response.success) {
+                    setRecruitmentHistory(normalizeHistoryData(response.data));
+                } else {
+                    setError(response.error || 'Không thể tải lịch sử ứng tuyển');
+                    setRecruitmentHistory([]);
+                }
+            } catch (err) {
+                if (!isMounted) return;
+                setError(err.message || 'Không thể tải lịch sử ứng tuyển');
+                setRecruitmentHistory([]);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchHistory();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -108,39 +274,43 @@ const RecruitmentHistory = () => {
         return lang === 'vi' ? stage.name : stage.nameEn;
     };
 
+    const isStageFailed = (stage) => {
+        return stage?.failed || false;
+    };
+
     // Hàm lấy màu sắc cho giai đoạn
-    const getStageColor = (stage, currentStage, status) => {
-        if (status === 'rejected' && stage.completed && stage.id === currentStage) {
-            // Giai đoạn bị loại - màu đỏ với icon X
+    const getStageColor = (stage, currentStage, stageIndex) => {
+        if (isStageFailed(stage)) {
             return 'bg-red-500 text-white';
-        } else if (stage.completed) {
-            return 'bg-green-500 text-white';
-        } else if (stage.id === currentStage && status !== 'rejected') {
-            return 'bg-blue-500 text-white';
-        } else {
-            return 'bg-gray-300 text-gray-600';
         }
+        if (stage.completed) {
+            return 'bg-green-500 text-white';
+        }
+        if (stageIndex + 1 === currentStage) {
+            return 'bg-yellow-500 text-white';
+        }
+        return 'bg-gray-300 text-gray-600';
     };
 
     // Hàm lấy icon cho giai đoạn
-    const getStageIcon = (stage, currentStage, status) => {
-        if (status === 'rejected' && stage.completed && stage.id === currentStage) {
-            // Icon X cho giai đoạn bị loại
+    const getStageIcon = (stage, currentStage, stageIndex) => {
+        if (isStageFailed(stage)) {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-10.95a1 1 0 10-1.414-1.414L10 7.758 7.879 5.636a1 1 0 00-1.414 1.414L8.586 9l-2.121 2.121a1 1 0 101.414 1.414L10 10.414l2.121 2.121a1 1 0 001.414-1.414L11.414 9l2.122-2.121z" clipRule="evenodd" />
                 </svg>
             );
-        } else if (stage.completed && status !== 'rejected') {
+        }
+        if (stage.completed) {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
             );
-        } else if (stage.id === currentStage && status !== 'rejected') {
+        } else if (stageIndex + 1 === currentStage) {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                 </svg>
             );
         } else {
@@ -152,27 +322,49 @@ const RecruitmentHistory = () => {
         }
     };
 
-    // Hàm xử lý khi nhấn nút "Xem chi tiết"
-    const handleViewDetails = (application) => {
-        // Tạo campaign object từ application data để truyền vào ApplicationForm
-        const campaignData = {
-            id: application.id,
-            title: application.position,
-            company: application.company,
-            location: application.location,
-            salary: application.salary,
-            description: application.description,
-            status: application.status,
-            appliedDate: application.appliedDate
-        };
+    const getProgressPercentage = (application) => {
+        if (AXIS_SEGMENTS === 0) return 0;
 
-        // Điều hướng đến ApplicationForm với state chứa campaign data
-        navigate('/application-form', {
-            state: {
-                campaign: campaignData,
-                isUpdate: true // Flag để biết đây là chế độ cập nhật
+        const completedPositions = application.stages
+            .filter(stage => stage.completed)
+            .map(stage => stageAxisPositionMap[stage.templateId])
+            .filter(pos => typeof pos === 'number');
+
+        const completedMax = completedPositions.length > 0 ? Math.max(...completedPositions) : 0;
+
+        let currentPosition = completedMax;
+        if (application.currentStageIndex > 0 && application.currentStageIndex <= application.stages.length) {
+            const currentStageData = application.stages[application.currentStageIndex - 1];
+            if (currentStageData) {
+                const axisPos = stageAxisPositionMap[currentStageData.templateId];
+                if (typeof axisPos === 'number') {
+                    currentPosition = axisPos;
+                }
             }
-        });
+        }
+
+        const furthest = Math.max(completedMax, currentPosition);
+        return (furthest / AXIS_SEGMENTS) * 100;
+    };
+
+    const getAxisPercent = (templateId) => {
+        const axisPos = stageAxisPositionMap[templateId];
+        if (typeof axisPos !== 'number') return LINE_START_PERCENT;
+        return LINE_START_PERCENT + ((LINE_END_PERCENT - LINE_START_PERCENT) * (axisPos / AXIS_SEGMENTS));
+    };
+
+    const getStagePositionStyle = (templateId) => {
+        const verticalOffset = templateId === 'english-listening'
+            ? -BRANCH_OFFSET
+            : templateId === 'english-speaking'
+                ? BRANCH_OFFSET
+                : 0;
+
+        return {
+            left: `${getAxisPercent(templateId)}%`,
+            top: `${BASELINE_Y + verticalOffset}px`,
+            transform: 'translate(-50%, -50%)'
+        };
     };
 
     return (
@@ -187,6 +379,18 @@ const RecruitmentHistory = () => {
                         {t('recruitment_history_subtitle')}
                     </p>
                 </div>
+
+                {error && (
+                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        {error}
+                    </div>
+                )}
+
+                {loading && (
+                    <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
+                        Đang tải dữ liệu lịch sử ứng tuyển...
+                    </div>
+                )}
 
                 {/* Statistics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -222,29 +426,13 @@ const RecruitmentHistory = () => {
 
                     <div className="bg-white rounded-lg shadow p-6">
                         <div className="flex items-center">
-                            <div className="p-2 bg-yellow-100 rounded-lg">
-                                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">{t('pending')}</p>
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {recruitmentHistory.filter(item => item.status === 'pending').length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center">
                             <div className="p-2 bg-red-100 rounded-lg">
                                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Không đạt yêu cầu</p>
+                                <p className="text-sm font-medium text-gray-600">Không hoàn thành</p>
                                 <p className="text-2xl font-semibold text-gray-900">
                                     {recruitmentHistory.filter(item => item.status === 'rejected').length}
                                 </p>
@@ -260,79 +448,64 @@ const RecruitmentHistory = () => {
                         <h2 className="text-lg font-semibold text-gray-900">{t('application_history')}</h2>
                     </div>
                     <div className="divide-y divide-gray-200">
-                        {recruitmentHistory.map((application) => (
-                            <div key={application.id} className="p-6 hover:bg-gray-50 transition-colors">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                {application.position}
-                                            </h3>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                                                {getStatusText(application)}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-600 mb-2">{application.company}</p>
-                                        <p className="text-sm text-gray-500 mb-3">{application.description}</p>
-                                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                            <div className="flex items-center gap-1">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                                {application.location}
+                        {recruitmentHistory.map((application) => {
+                            const appliedDateText = application.appliedDate
+                                ? new Date(application.appliedDate).toLocaleDateString()
+                                : '—';
+                            const hasStages = Array.isArray(application.stages) && application.stages.length > 0;
+
+                            return (
+                                <div key={application.id} className="p-6 hover:bg-gray-50 transition-colors">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    {application.position}
+                                                </h3>
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                                                    {getStatusText(application)}
+                                                </span>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                                {t('applied_on')}: {new Date(application.appliedDate).toLocaleDateString()}
+                                            <p className="text-sm text-gray-600 mb-2">{application.company}</p>
+                                            <p className="text-sm text-gray-500 mb-3">{application.description}</p>
+                                            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                                                <div className="flex items-center gap-1">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                    {application.location}
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    {t('applied_on')}: {appliedDateText}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="ml-4 flex flex-col gap-2">
-                                        <button
-                                            onClick={() => handleViewDetails(application)}
-                                            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                                        >
-                                            {t('view_details')}
-                                        </button>
-                                        {application.status === 'accepted' && (
-                                            <button className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                                                {t('accept_offer')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
 
-                                {/* Hiển thị timeline cho các giai đoạn đã chấp thuận và không đạt yêu cầu */}
-                                {(application.status === 'accepted' || application.status === 'rejected') && application.stages && (
-                                    <div className="mt-6 pt-6 border-t border-gray-200">
-                                        <h4 className="text-sm font-medium text-gray-900 mb-4">Tiến trình ứng tuyển</h4>
+                                    {/* Hiển thị timeline cho các giai đoạn */}
+                                    {hasStages && (
+                                        <div className="mt-6 pt-6 border-t border-gray-200">
+                                            <h4 className="text-sm font-medium text-gray-900 mb-4">Lịch sử ứng tuyển</h4>
 
-                                        {/* Progress Timeline */}
-                                        <div className="relative">
-                                            {/* Progress Line */}
-                                            <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
-                                                <div
-                                                    className="h-full bg-blue-500 transition-all duration-500"
-                                                    style={{
-                                                        width: `${(application.currentStage / application.stages.length) * 100}%`
-                                                    }}
-                                                ></div>
-                                            </div>
+                                            {/* Progress Timeline */}
+                                            <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                                                {(() => {
+                                                    const stageMap = {};
+                                                    const stageIndexMap = {};
+                                                    application.stages.forEach((stage, index) => {
+                                                        if (stage.templateId) {
+                                                            stageMap[stage.templateId] = stage;
+                                                            stageIndexMap[stage.templateId] = index;
+                                                        }
+                                                    });
 
-                                            {/* Stages */}
-                                            <div className="relative flex justify-between">
-                                                {application.stages.map((stage, index) => (
-                                                    <div key={stage.id} className="flex flex-col items-center">
-                                                        {/* Stage Circle */}
-                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage, application.status)}`}>
-                                                            {getStageIcon(stage, application.currentStage, application.status)}
-                                                        </div>
-
-                                                        {/* Stage Info */}
-                                                        <div className="mt-3 text-center max-w-24">
+                                                    const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final'];
+                                                    const renderStageInfo = (stage, stageIndex, stageReached, position) => (
+                                                        <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-28 text-center`}>
                                                             <p className="text-xs font-medium text-gray-900">
                                                                 {getStageName(stage)}
                                                             </p>
@@ -341,33 +514,93 @@ const RecruitmentHistory = () => {
                                                                     {new Date(stage.date).toLocaleDateString()}
                                                                 </p>
                                                             )}
+                                                            {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => navigate(`/appearance-result/${stage.activityId || stage.id || ''}`)}
+                                                                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                                >
+                                                                    Xem kết quả
+                                                                </button>
+                                                            )}
+                                                            {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => navigate(`/interview-result/${stage.activityId || stage.id || ''}`)}
+                                                                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                                >
+                                                                    Xem kết quả
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    );
+
+                                                    return (
+                                                        <>
+                                                            {/* Horizontal progress line */}
+                                                            <div
+                                                                className="absolute bg-gray-200"
+                                                                style={{
+                                                                    top: `${BASELINE_Y}px`,
+                                                                    left: `${LINE_START_PERCENT}%`,
+                                                                    width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
+                                                                    height: '2px'
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    className="h-full bg-blue-500 transition-all duration-500"
+                                                                    style={{ width: `${getProgressPercentage(application)}%` }}
+                                                                ></div>
+                                                            </div>
+
+                                                            {/* Vertical branch */}
+                                                            <div
+                                                                className="absolute bg-gray-200"
+                                                                style={{
+                                                                    left: `${getAxisPercent('english-listening')}%`,
+                                                                    top: `${BASELINE_Y - BRANCH_OFFSET}px`,
+                                                                    height: `${BRANCH_OFFSET * 2}px`,
+                                                                    width: '2px',
+                                                                    transform: 'translateX(-50%)'
+                                                                }}
+                                                            ></div>
+
+                                                            {/* Stage nodes */}
+                                                            {timelineStageIds.map((templateId) => {
+                                                                const stage = stageMap[templateId];
+                                                                if (!stage) return null;
+                                                                const stageIndex = stageIndexMap[templateId];
+                                                                const stageReached = isStageReached(stage, stageIndex, application.currentStageIndex);
+                                                                const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom';
+
+                                                                return (
+                                                                    <div
+                                                                        key={templateId}
+                                                                        className="absolute flex flex-col items-center"
+                                                                        style={getStagePositionStyle(templateId)}
+                                                                    >
+                                                                        {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
+                                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStageIndex, stageIndex ?? 0)}`}>
+                                                                            {getStageIcon(stage, application.currentStageIndex, stageIndex ?? 0)}
+                                                                        </div>
+                                                                        {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
-
-                                        {/* Current Status */}
-                                        <div className={`mt-4 p-3 rounded-lg ${application.status === 'rejected' ? 'bg-red-50' : 'bg-blue-50'}`}>
-                                            <p className={`text-sm ${application.status === 'rejected' ? 'text-red-800' : 'text-blue-800'}`}>
-                                                <strong>Trạng thái hiện tại:</strong> {
-                                                    application.status === 'rejected'
-                                                        ? `Không đạt ở ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                                        : application.stages.find(stage => stage.id === application.currentStage)?.completed
-                                                            ? `Hoàn thành ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                                            : `Đang trong giai đoạn ${getStageName(application.stages.find(stage => stage.id === application.currentStage))}`
-                                                }
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Empty State (if no applications) */}
-                {recruitmentHistory.length === 0 && (
+                {!loading && recruitmentHistory.length === 0 && (
                     <div className="text-center py-12">
                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

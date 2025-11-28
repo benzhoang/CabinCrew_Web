@@ -107,7 +107,8 @@ const ProfileFormActions = ({
                 profilePhoto: files.profilePhoto,
                 educationDegree: files.educationDegree,
                 englishCertificate: files.englishCertificate,
-                passportOrID: files.idCard
+                passportOrID: files.idCard,
+                passportOrIDBack: files.idCardBack
             }
             if (campaignRoundId) {
                 payload.campaignRoundId = campaignRoundId
@@ -177,14 +178,6 @@ const ProfileFormActions = ({
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg"
                         >
                             Cập nhật thông tin
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Đang nộp hồ sơ...' : 'Nộp đơn'}
                         </button>
                     </>
                 ) : (
