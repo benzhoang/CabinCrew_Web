@@ -821,6 +821,108 @@ export const resubmitCampaign = async (campaignId, campaignData) => {
   }
 };
 
+// API lấy thông tin đợt tuyển (campaign round) theo ID
+export const getCampaignRoundById = async (id) => {
+  try {
+    const response = await api2.get(`/campaign-rounds/${id}`);
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    // Một số API trả trực tiếp object mà không bọc trong {code, data}
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      !Array.isArray(responseData)
+    ) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Lấy thông tin đợt tuyển thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy thông tin đợt tuyển",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin đợt tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách participants (ứng viên) theo roundId
+export const getRoundParticipants = async (roundId, params = {}) => {
+  try {
+    const response = await api2.get(`/rounds/${roundId}/participants`, {
+      params,
+    });
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data.items || [],
+        pagination: {
+          currentPage: responseData.data.currentPage,
+          pageSize: responseData.data.pageSize,
+          totalRecords: responseData.data.totalRecords,
+          totalPages: responseData.data.totalPages,
+          hasNextPage: responseData.data.hasNextPage,
+          hasPreviousPage: responseData.data.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
+    }
+
+    // Một số API trả trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách ứng viên thành công",
+      };
+    }
+
+    // Nếu data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        pagination: responseData.pagination,
+        message: responseData.message || "Lấy danh sách ứng viên thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy danh sách ứng viên",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách ứng viên",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API tạo test mới với audio file upload - POST /api/v1/tests
 export const createTest = async (testData, audioFile) => {
   try {
@@ -1066,13 +1168,13 @@ export const assignCampaignUsers = async (assignmentData) => {
 
     // Map các error code sang message tiếng Việt
     const errorCodeMap = {
-      24: "Campaign không tồn tại",
-      26: "Campaign không ở trạng thái Approved",
-      10: "Không xác định được người giao việc",
-      14: "User không tồn tại",
-      27: "Campaign đã được giao việc rồi",
-      28: "User đang có campaign ongoing",
-      29: "User có campaign overlap thời gian",
+      24: "Campaign does not exist",
+      26: "Campaign is not in Approved status",
+      10: "Unable to determine the assigner",
+      14: "User does not exist",
+      27: "Campaign has already been assigned",
+      28: "User has an ongoing campaign",
+      29: "User has a campaign that overlaps in time",
     };
 
     if (responseCode && errorCodeMap[responseCode]) {
@@ -1093,13 +1195,13 @@ export const assignCampaignUsers = async (assignmentData) => {
 
     // Map các error code sang message tiếng Việt
     const errorCodeMap = {
-      24: "Campaign không tồn tại",
-      26: "Campaign không ở trạng thái Approved",
-      10: "Không xác định được người giao việc",
-      14: "User không tồn tại",
-      27: "Campaign đã được giao việc rồi",
-      28: "User đang có campaign ongoing",
-      29: "User có campaign overlap thời gian",
+      24: "Campaign does not exist",
+      26: "Campaign is not in Approved status",
+      10: "Unable to determine the assigner",
+      14: "User does not exist",
+      27: "Campaign has already been assigned",
+      28: "User has an ongoing campaign",
+      29: "User has a campaign that overlaps in time",
     };
 
     let finalErrorMessage = errorMessage;
@@ -1204,6 +1306,253 @@ export const getMyTests = async () => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách câu hỏi theo testId - GET /api/v1/test-questions/test/{testId}
+export const getTestQuestionsByTestId = async (testId, options = {}) => {
+  try {
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
+
+    if (!testIdNum || Number.isNaN(testIdNum) || testIdNum <= 0) {
+      return {
+        success: false,
+        error: "Test ID không hợp lệ",
+      };
+    }
+
+    const params = {};
+    if (options.forceRefresh) {
+      // cache buster để chắc chắn không dùng dữ liệu cũ
+      params.cacheBuster = `${Date.now()}-${Math.random()}`;
+    }
+
+    const response = await api2.get(`/test-questions/test/${testIdNum}`, {
+      params,
+    });
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy câu hỏi thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy danh sách câu hỏi",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error getTestQuestionsByTestId:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách câu hỏi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách bài test để gán cho round - GET /api/v1/tests/for-rounds
+export const getTestsForRounds = async (params = {}) => {
+  try {
+    let testTypeValue = params.testType;
+    if (typeof testTypeValue !== "undefined" && testTypeValue !== null) {
+      testTypeValue =
+        typeof testTypeValue === "string"
+          ? parseInt(testTypeValue, 10)
+          : Number(testTypeValue);
+
+      if (Number.isNaN(testTypeValue) || testTypeValue <= 0) {
+        return {
+          success: false,
+          error: "Loại bài thi không hợp lệ",
+        };
+      }
+    }
+
+    const allowedParams = {
+      testType: testTypeValue,
+    };
+
+    const sanitizedParams = Object.fromEntries(
+      Object.entries(allowedParams).filter(
+        ([, value]) => value !== undefined && value !== null && value !== ""
+      )
+    );
+
+    const response = await api2.get("/tests/for-rounds", {
+      params: sanitizedParams,
+    });
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy danh sách đề thi thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy danh sách đề thi",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error getTestsForRounds:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật testId cho round - PUT /api/v1/rounds/update-test-id
+export const updateRoundTestId = async (roundId, testId) => {
+  try {
+    const roundIdNum =
+      typeof roundId === "string" ? parseInt(roundId, 10) : Number(roundId);
+    const testIdNum =
+      typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
+
+    if (!roundIdNum || Number.isNaN(roundIdNum) || roundIdNum <= 0) {
+      return {
+        success: false,
+        error: "Round ID không hợp lệ",
+      };
+    }
+
+    if (!testIdNum || Number.isNaN(testIdNum) || testIdNum <= 0) {
+      return {
+        success: false,
+        error: "Test ID không hợp lệ",
+      };
+    }
+
+    const payload = {
+      roundId: roundIdNum,
+      testId: testIdNum,
+    };
+
+    const response = await api2.put("/rounds/update-test-id", payload);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      if (responseData?.code === 0 || responseData?.data) {
+        return {
+          success: true,
+          data: responseData?.data || null,
+          message:
+            responseData?.message || "Cập nhật bài thi cho round thành công",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể cập nhật bài thi cho round",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error updateRoundTestId:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể cập nhật bài thi cho round",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy test sessions theo loại bài test
+export const getTestSessionsByType = async (params = {}) => {
+  try {
+    const parsedTestType =
+      typeof params.testType === "string"
+        ? parseInt(params.testType, 10)
+        : Number(params.testType);
+
+    if (isNaN(parsedTestType) || parsedTestType <= 0) {
+      return {
+        success: false,
+        error: "Loại bài thi là bắt buộc",
+      };
+    }
+
+    const allowedParams = {
+      testType: parsedTestType,
+      userId: params.userId,
+      roundId: params.roundId,
+      searchTerm: params.searchTerm,
+      sortColumn: params.sortColumn,
+      sortOrder: params.sortOrder,
+      page: params.page,
+      pageSize: params.pageSize,
+    };
+
+    const sanitizedParams = Object.fromEntries(
+      Object.entries(allowedParams).filter(
+        ([, value]) => value !== undefined && value !== null && value !== ""
+      )
+    );
+
+    console.log("Endpoint: GET /test-sessions/by-type");
+    console.log("Query params:", sanitizedParams);
+
+    const response = await api2.get("/test-sessions/by-type", {
+      params: sanitizedParams,
+    });
+
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy test sessions thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy test sessions theo loại",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error getTestSessionsByType:", error);
+    console.error("Error response:", error.response?.data);
+
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy test sessions theo loại",
       status: error.response?.status,
     };
   }

@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCampaignById } from "../../../service/api";
 import ExaminerBatchManage from "./ExaminerBatchManage";
-
-const formatDate = (isoString) => {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return isoString;
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+import { formatDate } from "../../../config/formatDate";
 
 const Section = ({ title, children }) => (
   <div className="p-5 bg-white border border-gray-200 rounded-xl">
@@ -27,12 +18,13 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-const ExaminerCampDetail = ({ campaign, onCreateBatch }) => {
+const ExaminerCampDetail = ({ campaign }) => {
   const { id } = useParams();
   const { state } = useLocation();
   const [campaignData, setCampaignData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCampaignData = async () => {
@@ -306,7 +298,7 @@ const ExaminerCampDetail = ({ campaign, onCreateBatch }) => {
       return "";
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
-    return num.toLocaleString("vi-VN") + " người";
+    return num.toLocaleString("vi-VN");
   };
 
   // Lấy campaignType từ nhiều field name có thể
@@ -347,20 +339,52 @@ const ExaminerCampDetail = ({ campaign, onCreateBatch }) => {
   };
 
   return (
-    <div className="w-full h-full">
-      <div className="grid grid-cols-1 gap-5">
-        <Section title="Thông tin đề xuất">
-          <div className="space-y-4">
-            <div className="font-medium text-gray-900">
-              {data.campaignName || data.name || ""}
+    <div className="w-full h-full p-5">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="mb-2 text-2xl font-bold text-slate-800">
+            {data.campaignName || data.name || ""}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            {data.description || ""}
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/examiner/campaigns")}
+          className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+        >
+          Quay lại
+        </button>
+      </div>
+
+      {/* Main campaign info card - similar layout to Airline CampaignInfo */}
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="space-y-1">
+            <div className="text-sm text-slate-500">Thông tin đề xuất</div>
+            <div className="font-semibold text-slate-800">
+              {data.partnerName || "N/A"}
             </div>
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <InfoRow label="Mô tả" value={data.description || ""} />
-              <InfoRow
-                label="Loại chiến dịch"
-                value={formatCampaignType(getCampaignType())}
-              />
-              <InfoRow label="Trạng thái" value={data.status || ""} />
+          </div>
+          <div className="text-xs text-right text-slate-500">
+            <div>Ngày tạo: {formatDateFromAPI(data.createdAt) || "N/A"}</div>
+            <div>Mã số: {data.campaignId || "N/A"}</div>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <div className="space-y-6">
+            {/* Overview grid */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {(data?.campaignType?.toLowerCase() === "promotion" ||
+                data?.campaignType === "Promotion") && (
+                <InfoRow label="Vị trí" value="Chief Flight Attendant" />
+              )}
+              {(data?.campaignType?.toLowerCase() === "recruitment" ||
+                data?.campaignType === "Recruitment") && (
+                <InfoRow label="Vị trí" value="Flight Attendant" />
+              )}
               <InfoRow
                 label="Số lượng tuyển"
                 value={formatTargetQuantity(getTargetQuantity())}
@@ -374,58 +398,58 @@ const ExaminerCampDetail = ({ campaign, onCreateBatch }) => {
                 value={formatDateFromAPI(data.endDate) || ""}
               />
             </div>
-          </div>
 
-          {/* Job Description */}
-          {data.jobDescription && (
-            <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📋 Mô tả công việc / Job Description
-              </h3>
-              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <div
-                  className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: data.jobDescription || "N/A",
-                  }}
-                />
+            {/* Job Description */}
+            {data.jobDescription && (
+              <div className="mt-6">
+                <h3 className="mb-4 text-lg font-semibold text-slate-800">
+                  📋 Mô tả công việc / Job Description
+                </h3>
+                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+                  <div
+                    className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: data.jobDescription || "N/A",
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Job Requirements */}
-          {data.jobRequirement && (
-            <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📝 Yêu cầu công việc / Job Requirements
-              </h3>
-              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                <div
-                  className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: data.jobDescription || "N/A",
-                  }}
-                />
+            {/* Job Requirements */}
+            {data.jobRequirement && (
+              <div className="mt-6">
+                <h3 className="mb-4 text-lg font-semibold text-slate-800">
+                  📝 Yêu cầu công việc / Job Requirements
+                </h3>
+                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                  <div
+                    className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: data.jobRequirement || "N/A",
+                    }}
+                  />
+                </div>
               </div>
+            )}
+
+            {/* Batch Management Section */}
+            <div className="mt-6">
+              {(() => {
+                console.log("DetailInfo - Passing to ExaminerBatchManage:", {
+                  campaignId: data.campaignId || data.id,
+                  campaignName: data.campaignName || data.name,
+                  hasRounds: !!data.rounds,
+                  roundsCount: Array.isArray(data.rounds)
+                    ? data.rounds.length
+                    : 0,
+                  rounds: data.rounds,
+                });
+                return <ExaminerBatchManage campaign={data} />;
+              })()}
             </div>
-          )}
-          {/* Batch Management Section */}
-          <div className="mt-6">
-            {(() => {
-              // Log data being passed to DirectorBatchInfo
-              console.log("DetailInfo - Passing to ExaminerBatchManage:", {
-                campaignId: data.campaignId || data.id,
-                campaignName: data.campaignName || data.name,
-                hasRounds: !!data.rounds,
-                roundsCount: Array.isArray(data.rounds)
-                  ? data.rounds.length
-                  : 0,
-                rounds: data.rounds,
-              });
-              return <ExaminerBatchManage campaign={data} />;
-            })()}
           </div>
-        </Section>
+        </div>
       </div>
     </div>
   );

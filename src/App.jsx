@@ -61,14 +61,14 @@ import ExaminerCampaign from "./pages/Examiner/ExaminerCampaign";
 import ExaminerCampDetail from "./pages/Examiner/ExaminerDetail/ExaminerCampDetail";
 import AirlineRequestDetailPage from "./pages/AirlinePartner/AirlineRequestDetailPage";
 import SeniorRequestDetailPage from "./pages/SeniorRecruiter/SeniorRequestDetailPage";
-import ExaminerApplyList from "./pages/Examiner/ExaminerApplyList";
+import ExaminerApplyList from "./pages/Examiner/ExaminerDetail/ExaminerApplyList";
 import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/ExaminerCandidateEvaluation";
 import Test from "./pages/Candidate/Test";
 import ExamPage from "./pages/Candidate/ExamTest/ExamPage";
 import ExamResultPage from "./pages/Candidate/ExamResult/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
-import ScoreListPage from "./pages/Examiner/ScoreListPage";
+import ScoreListPage from "./pages/Examiner/ExaminerDetail/ScoreListPage";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
@@ -87,6 +87,7 @@ import ExaminerCabinCrewEvaluationPage from "./pages/Examiner/ExaminerDetail/Exa
 import DirectorApplyList from "./pages/Director/DirectorApplyList";
 import AirlineCampaignDetailPage from "./pages/AirlinePartner/AirlineCampaignDetailPage";
 import AirlineCampaignPage from "./pages/AirlinePartner/AirlineCampaignPage";
+import TestQuestionDetail from "./pages/Examiner/ExaminerDetail/TestQuestionDetail";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -645,7 +646,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/applications/:id"
+          path="/examiner/campaigns/:id/applications"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />
@@ -689,12 +690,23 @@ function App() {
           }
         />
         <Route
-          path="/examiner/exam-campaigns/:id/scores"
+          path="/examiner/campaigns/:id/score-list"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <ScoreListPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/campaigns/:id/test-question/:testId"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <TestQuestionDetail />
               </main>
             </div>
           }
