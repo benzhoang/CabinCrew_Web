@@ -27,7 +27,7 @@ const CreatePromotionRequestPage = () => {
     vietjet: "Vietjet Air",
     vietnamairlines: "Vietnam Airlines",
     bambooairways: "Bamboo Airways",
-    sunphuquoc: "SunPhuQuoc Airways",
+    sunphuquoc: "Sun PhuQuoc Airways",
   };
 
   const normalizedDisplayName =

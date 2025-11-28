@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaSearch, FaBell } from "react-icons/fa";
-import ComplaintScoreModal from "../../components/ExaminerComponent/ComplaintScoreModal";
-import TestModal from "../../components/ExaminerComponent/TestModal";
-import NotificationModal from "../../components/ExaminerComponent/NotificationModal";
+import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
+import TestModal from "../../../components/ExaminerComponent/TestModal";
+import NotificationModal from "../../../components/ExaminerComponent/NotificationModal";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -99,6 +99,7 @@ const ScoreListPage = () => {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const { id: campaignRoundId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const examInfo = location?.state?.examInfo || {};
@@ -153,7 +154,9 @@ const ScoreListPage = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate("/examiner/exam-campaigns")}
+            onClick={() =>
+              navigate(`/examiner/campaigns/${campaignRoundId}/applications`)
+            }
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
             aria-label="Quay lại"
             title="Quay lại"

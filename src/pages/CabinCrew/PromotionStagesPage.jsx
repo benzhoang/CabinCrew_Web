@@ -29,30 +29,102 @@ const PromotionStagesPage = () => {
           const campaignData = result.data;
           const rounds = campaignData.rounds || [];
 
-          const mappedRounds = rounds.map((round, index) => {
-            const status = round.status?.toLowerCase() || "";
-            const isCompleted =
-              status === "completed" ||
-              status === "passed" ||
-              status === "finished";
+          // Định nghĩa 5 stage cố định
+          const hardcodedStages = [
+            {
+              id: 1,
+              name: "Screening",
+              nameEn: "Screening",
+              keywords: ["screening", "sàng lọc"],
+            },
+            {
+              id: 2,
+              name: "Flight Hours Confirmation",
+              nameEn: "Flight Hours Confirmation",
+              keywords: ["flight hours", "giờ bay", "confirmation", "xác nhận"],
+            },
+            {
+              id: 3,
+              name: "Practical Test",
+              nameEn: "Practical Test",
+              keywords: ["practical", "thực hành", "test"],
+            },
+            {
+              id: 4,
+              name: "Interview",
+              nameEn: "Interview",
+              keywords: ["interview", "phỏng vấn"],
+            },
+            {
+              id: 5,
+              name: "Final",
+              nameEn: "Final",
+              keywords: ["final", "cuối cùng", "kết thúc"],
+            },
+          ];
 
-            return {
-              id: index + 1,
-              roundId: round.roundId || round.id,
-              name: round.roundName || `Giai đoạn ${index + 1}`,
-              //   nameEn: round.roundName || `Stage ${index + 1}`,
-              completed: isCompleted,
-              date: round.date || null,
-              status: round.status || "",
-            };
+          // Map rounds từ API vào các stage cố định
+          const mappedStages = hardcodedStages.map((hardcodedStage) => {
+            // Tìm round tương ứng từ API
+            const matchedRound = rounds.find((round) => {
+              const roundName = (round.roundName || "").toLowerCase();
+              return hardcodedStage.keywords.some((keyword) =>
+                roundName.includes(keyword.toLowerCase())
+              );
+            });
+
+            if (matchedRound) {
+              const status = matchedRound.status?.toLowerCase() || "";
+              const isCompleted =
+                status === "completed" ||
+                status === "passed" ||
+                status === "finished";
+              const isActive =
+                status === "in progress" ||
+                status === "ongoing" ||
+                status === "active";
+
+              return {
+                id: hardcodedStage.id,
+                roundId: matchedRound.roundId || matchedRound.id,
+                name: hardcodedStage.name,
+                nameEn: hardcodedStage.nameEn,
+                completed: isCompleted,
+                active: isActive,
+                date: matchedRound.date || null,
+                status: matchedRound.status || "",
+              };
+            } else {
+              // Stage chưa có trong API, hiển thị màu xám
+              return {
+                id: hardcodedStage.id,
+                roundId: null,
+                name: hardcodedStage.name,
+                nameEn: hardcodedStage.nameEn,
+                completed: false,
+                active: false,
+                date: null,
+                status: "pending",
+              };
+            }
           });
 
-          const mappedStages = [...mappedRounds];
-
+          // Xác định currentStage dựa trên stage đã hoàn thành hoặc đang active
           const completedCount = mappedStages.filter(
             (stage) => stage.completed
           ).length;
-          let currentStageIndex = completedCount + 1;
+
+          // Tìm stage đang active
+          const activeStageIndex = mappedStages.findIndex(
+            (stage) => stage.active && !stage.completed
+          );
+
+          let currentStageIndex;
+          if (activeStageIndex !== -1) {
+            currentStageIndex = activeStageIndex + 1;
+          } else {
+            currentStageIndex = completedCount + 1;
+          }
 
           if (currentStageIndex > mappedStages.length) {
             currentStageIndex = mappedStages.length;
@@ -147,7 +219,7 @@ const PromotionStagesPage = () => {
   const getStageColor = (stage, currentStage, stageIndex) => {
     if (stage.completed) {
       return "bg-green-500 text-white";
-    } else if (stageIndex + 1 === currentStage) {
+    } else if (stage.active || stageIndex + 1 === currentStage) {
       return "bg-yellow-500 text-white";
     } else {
       return "bg-gray-300 text-gray-600";
@@ -157,7 +229,7 @@ const PromotionStagesPage = () => {
   const getStageIcon = (stage, currentStage, stageIndex) => {
     if (stage.completed) {
       return <FaCheck className="w-4 h-4" />;
-    } else if (stageIndex + 1 === currentStage) {
+    } else if (stage.active || stageIndex + 1 === currentStage) {
       return <FaEllipsisH className="w-4 h-4" />;
     } else {
       return <FaClock className="w-4 h-4" />;

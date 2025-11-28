@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { FiLoader } from "react-icons/fi";
 import { getCampaignDetail } from "../../service/api2";
 import { formatDateOnly } from "../../config/formatDate";
+import Loading from "../../components/Loading.jsx";
 
 const getRoundTime = (start, end) => {
   const startLabel = formatDateOnly(start);
@@ -174,12 +174,7 @@ const PromotionApplyPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl px-4 py-8 mx-auto">
         {isLoading ? (
-          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
-            <div className="flex items-center justify-center gap-3">
-              <FiLoader className="w-6 h-6 text-indigo-600 animate-spin" />
-              <p className="text-gray-600">Đang tải thông tin chiến dịch...</p>
-            </div>
-          </div>
+          <Loading message="Đang tải thông tin..." />
         ) : error ? (
           <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
             <p className="mb-4 text-red-600">{error}</p>

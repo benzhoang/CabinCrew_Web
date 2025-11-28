@@ -107,7 +107,7 @@ const transformCampaign = (campaign) => {
 const PromotionPage = () => {
   const [search, setSearch] = useState("");
   const [airline, setAirline] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | active
+  const statusFilter = "all";
   const [, setLangVersion] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -223,18 +223,24 @@ const PromotionPage = () => {
     [statusFilter, campaigns]
   );
 
+  const airlineOptions = [
+    "all",
+    "Vietnam Airlines",
+    "Vietjet",
+    "Bamboo Airways",
+    "Sun PhuQuoc Airways",
+  ];
+
   const filtered = useMemo(() => {
     let data = baseCampaigns;
     if (airline !== "all") {
-      data = data.filter((c) => c.airline === airline);
+      const normalized = airline.toLowerCase();
+      data = data.filter((c) =>
+        (c.airline || "").toLowerCase().includes(normalized)
+      );
     }
     return data;
   }, [baseCampaigns, airline]);
-
-  const airlines = useMemo(() => {
-    const set = new Set(baseCampaigns.map((c) => c.airline));
-    return ["all", ...Array.from(set)];
-  }, [baseCampaigns]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -249,8 +255,8 @@ const PromotionPage = () => {
         </div>
 
         <div className="p-4 mb-6 bg-white border border-gray-200 shadow-sm rounded-xl md:p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
               <label className="block mb-2 text-sm font-medium text-slate-700">
                 Tìm kiếm
               </label>
@@ -269,26 +275,13 @@ const PromotionPage = () => {
               <select
                 value={airline}
                 onChange={(e) => setAirline(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-sm border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                {airlines.map((a) => (
+                {airlineOptions.map((a) => (
                   <option key={a} value={a}>
                     {a === "all" ? "Tất cả" : a}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-slate-700">
-                Trạng thái
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">Tất cả</option>
-                <option value="active">Đang diễn ra</option>
               </select>
             </div>
           </div>

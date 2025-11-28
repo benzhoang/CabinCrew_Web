@@ -166,7 +166,9 @@ const ModalVerifySubmit = ({
           onSubmitted();
         }
 
-        toast.success(t("submit_success") || "Nộp bài thành công!");
+        toast.success(
+          result.message || t("submit_success") || "Nộp bài thành công"
+        );
         onClose();
       } else {
         toast.error(
