@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { t, onLangChange } from '../../../i18n';
 import { toast } from 'react-toastify';
 import AppealModal from '../../../components/AppealModal';
+import { getMySpeakingSessions } from '../../../service/api';
 
 const SpeakingExamResult = () => {
+    const { id: campaignId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const [langVersion, setLangVersion] = useState(0);
     const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
     const [isAppealSubmitted, setIsAppealSubmitted] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [sessionData, setSessionData] = useState(null);
 
-    // Lấy dữ liệu từ location state
-    const { totalQuestions, unansweredCount, questions, timeSpent, recordedCount, recordings } = location.state || {};
+    // Lấy dữ liệu từ location state (fallback)
+    const { totalQuestions: stateTotalQuestions, unansweredCount: stateUnansweredCount, questions, timeSpent: stateTimeSpent, recordedCount: stateRecordedCount, recordings, testSessionId } = location.state || {};
 
     // re-render on language change
     useEffect(() => {
@@ -20,12 +24,92 @@ const SpeakingExamResult = () => {
         return () => off();
     }, []);
 
+    // Gọi API để lấy dữ liệu speaking sessions
+    useEffect(() => {
+        const fetchSpeakingSessions = async () => {
+            try {
+                setLoading(true);
+                const response = await getMySpeakingSessions();
+
+                if (response.success && response.data && response.data.length > 0) {
+                    // Tìm session tương ứng với testSessionId nếu có, nếu không thì lấy session mới nhất
+                    let selectedSession = null;
+                    if (testSessionId) {
+                        selectedSession = response.data.find(session => session.testSessionId === testSessionId);
+                    }
+
+                    // Nếu không tìm thấy session theo testSessionId, lấy session mới nhất
+                    if (!selectedSession) {
+                        selectedSession = response.data[0]; // Lấy session đầu tiên (mới nhất)
+                    }
+
+                    setSessionData(selectedSession);
+                } else {
+                    // Nếu không có dữ liệu từ API, sử dụng dữ liệu từ location.state
+                    if (!questions) {
+                        toast.error(response.error || 'Không thể tải dữ liệu kết quả bài thi');
+                        navigate('/test');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching speaking sessions:', error);
+                // Nếu lỗi, vẫn có thể sử dụng dữ liệu từ location.state
+                if (!questions) {
+                    toast.error('Không thể tải dữ liệu kết quả bài thi');
+                    navigate('/test');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSpeakingSessions();
+    }, [testSessionId, navigate, questions]);
+
     // Nếu không có dữ liệu, chuyển về trang test
     useEffect(() => {
-        if (!questions) {
-            navigate('/test');
+        if (!loading) {
+            // Kiểm tra cả dữ liệu từ API và location state
+            const hasData = sessionData || questions;
+            if (!hasData) {
+                navigate('/test');
+            }
         }
-    }, [navigate, questions]);
+    }, [loading, navigate, sessionData, questions]);
+
+    // Lấy dữ liệu từ API hoặc location.state
+    // Ưu tiên sử dụng questions.length làm totalQuestions (số câu hỏi thực tế trong đề)
+    const totalQuestions = questions ? questions.length : (sessionData ? sessionData.maxScore : stateTotalQuestions);
+
+    // Tính số câu đã nộp: nếu có recordings thì đếm số câu có recording, nếu không thì dùng từ API/state
+    const calculateRecordedCount = () => {
+        if (questions && recordings) {
+            // Đếm số câu hỏi có recording
+            return questions.filter(q => recordings[q.id]).length;
+        }
+        // Fallback về dữ liệu từ API hoặc state
+        return sessionData ? sessionData.totalAnswers : (stateRecordedCount || 0);
+    };
+
+    const recordedCount = calculateRecordedCount();
+
+    // Tính số câu chưa nộp = tổng số câu - số câu đã nộp
+    const unansweredCount = totalQuestions - recordedCount;
+
+    // Tính thời gian làm bài từ startTime và endTime
+    const calculateTimeSpent = () => {
+        if (sessionData && sessionData.startTime && sessionData.endTime) {
+            const start = new Date(sessionData.startTime);
+            const end = new Date(sessionData.endTime);
+            const diffMs = end - start;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            return `${diffMins} phút ${diffSecs} giây`;
+        }
+        return stateTimeSpent || '';
+    };
+
+    const timeSpent = calculateTimeSpent();
 
     // Format time as MM:SS
     const formatTime = (seconds) => {
@@ -35,7 +119,7 @@ const SpeakingExamResult = () => {
     };
 
     const handleBackToTest = () => {
-        navigate('/test');
+        navigate(`/test/${campaignId}`);
     };
 
     const openAppealModal = () => {
@@ -64,6 +148,17 @@ const SpeakingExamResult = () => {
         const timeStr = date.toTimeString().slice(0, 8).replace(/:/g, '');
         return `speaking_question_${questionId}_${dateStr}_${timeStr}.mp3`;
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">{t('loading') || 'Đang tải...'}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -110,6 +205,21 @@ const SpeakingExamResult = () => {
                         {timeSpent && (
                             <div className="mt-6 text-sm text-gray-600">
                                 {t('time_spent') || 'Thời gian làm bài'}: {timeSpent}
+                            </div>
+                        )}
+                        {/* Thông tin bài thi từ API */}
+                        {sessionData && (
+                            <div className="mt-4 text-sm text-gray-500">
+                                <p>{t('test_name') || 'Tên bài thi'}: {sessionData.testName}</p>
+                                {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
+                                    <p>{t('max_score') || 'Điểm tối đa'}: {sessionData.maxScore}</p>
+                                )}
+                                {sessionData.startTime && (
+                                    <p>{t('start_time') || 'Thời gian bắt đầu'}: {new Date(sessionData.startTime).toLocaleString('vi-VN')}</p>
+                                )}
+                                {sessionData.endTime && (
+                                    <p>{t('end_time') || 'Thời gian kết thúc'}: {new Date(sessionData.endTime).toLocaleString('vi-VN')}</p>
+                                )}
                             </div>
                         )}
                     </div>

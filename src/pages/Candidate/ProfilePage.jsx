@@ -74,7 +74,8 @@ const ProfilePage = () => {
         profilePhoto: null,
         educationDegree: null,
         englishCertificate: null,
-        idCard: null
+        idCard: null,
+        idCardBack: null
     })
 
     const [captchaCode, setCaptchaCode] = useState('')
@@ -292,16 +293,20 @@ const ProfilePage = () => {
                         appData.documents.forEach(doc => {
                             // Map document type to file field
                             const type = doc.type?.toLowerCase() || ''
+                            const name = doc.name?.toLowerCase() || doc.title?.toLowerCase() || ''
+                            const url = doc.documentURL
+                            const fileInfo = { name: url?.split('/').pop() || 'Document', url }
                             if (type.includes('application') || type.includes('form')) {
-                                filesMap.applicationForm = { name: doc.documentURL?.split('/').pop() || 'Form Job Application', url: doc.documentURL }
+                                filesMap.applicationForm = fileInfo
                             } else if (type.includes('profile') || type.includes('photo')) {
-                                filesMap.profilePhoto = { name: doc.documentURL?.split('/').pop() || 'Ảnh 4x6', url: doc.documentURL }
+                                filesMap.profilePhoto = fileInfo
                             } else if (type.includes('education') || type.includes('degree')) {
-                                filesMap.educationDegree = { name: doc.documentURL?.split('/').pop() || 'Education Degree', url: doc.documentURL }
+                                filesMap.educationDegree = fileInfo
                             } else if (type.includes('english') || type.includes('certificate')) {
-                                filesMap.englishCertificate = { name: doc.documentURL?.split('/').pop() || 'English Certificate', url: doc.documentURL }
-                            } else if (type.includes('id') || type.includes('passport') || type.includes('card')) {
-                                filesMap.idCard = { name: doc.documentURL?.split('/').pop() || 'Valid Passport', url: doc.documentURL }
+                                filesMap.englishCertificate = fileInfo
+                            } else if (type.includes('passport') || type.includes('id') || type.includes('card')) {
+                                const targetField = type.includes('back') || name.includes('back') ? 'idCardBack' : 'idCard'
+                                filesMap[targetField] = fileInfo
                             }
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
@@ -525,7 +530,11 @@ const ProfilePage = () => {
                                             onChange={handleFileChange}
                                             accept=".pdf"
                                             disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            className={
+                                                !isEditing
+                                                    ? 'hidden'
+                                                    : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                            }
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -576,7 +585,11 @@ const ProfilePage = () => {
                                             onChange={handleFileChange}
                                             accept="image/*"
                                             disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            className={
+                                                !isEditing
+                                                    ? 'hidden'
+                                                    : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                            }
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -628,7 +641,11 @@ const ProfilePage = () => {
                                             onChange={handleFileChange}
                                             accept=".pdf"
                                             disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            className={
+                                                !isEditing
+                                                    ? 'hidden'
+                                                    : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                            }
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -672,15 +689,19 @@ const ProfilePage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="englishCertificate"
                                             onChange={handleFileChange}
-                                            accept=".pdf"
+                                            accept=".jpg,.jpeg,image/jpeg"
                                             disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            className={
+                                                !isEditing
+                                                    ? 'hidden'
+                                                    : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                            }
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -707,53 +728,117 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-sm font-medium text-slate-700">
-                                            Valid Passport *
-                                        </label>
-                                        {files.idCard && isEditing && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleFileDelete('idCard')}
-                                                className="text-red-500 hover:text-red-700 transition-colors"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            name="idCard"
-                                            onChange={handleFileChange}
-                                            accept=".pdf"
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                            required
-                                        />
-                                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
-                                            <div className="text-center">
-                                                <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                                                </svg>
-                                                <p className="text-sm text-slate-600">
-                                                    {files.idCard ? (
-                                                        <span className="text-green-600 font-medium">
-                                                            ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'Valid Passport')}
-                                                            {files.idCard.url && !(files.idCard instanceof File) && (
-                                                                <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                    (Xem)
-                                                                </a>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-sm font-medium text-slate-700">
+                                                    Citizen identification card - Mặt trước *
+                                                </label>
+                                                {files.idCard && isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFileDelete('idCard')}
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                        title="Xóa file"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    name="idCard"
+                                                    onChange={handleFileChange}
+                                                    accept=".jpg,.jpeg,image/jpeg"
+                                                    disabled={!isEditing}
+                                                    className={
+                                                        !isEditing
+                                                            ? 'hidden'
+                                                            : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                                    }
+                                                    required
+                                                />
+                                                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                    <div className="text-center">
+                                                        <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                        </svg>
+                                                        <p className="text-sm text-slate-600">
+                                                            {files.idCard ? (
+                                                                <span className="text-green-600 font-medium">
+                                                                    ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'Citizen identification card - Mặt trước')}
+                                                                    {files.idCard.url && !(files.idCard instanceof File) && (
+                                                                        <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                            (Xem)
+                                                                        </a>
+                                                                    )}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{t('application_form_click_to_select')}</span>
                                                             )}
-                                                        </span>
-                                                    ) : (
-                                                        <span>{t('application_form_click_to_select')}</span>
-                                                    )}
-                                                </p>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-sm font-medium text-slate-700">
+                                                    Citizen identification card - Mặt sau *
+                                                </label>
+                                                {files.idCardBack && isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFileDelete('idCardBack')}
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                        title="Xóa file"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    name="idCardBack"
+                                                    onChange={handleFileChange}
+                                                    accept=".jpg,.jpeg,image/jpeg"
+                                                    disabled={!isEditing}
+                                                    className={
+                                                        !isEditing
+                                                            ? 'hidden'
+                                                            : 'absolute inset-0 w-full h-full opacity-0 cursor-pointer'
+                                                    }
+                                                    required
+                                                />
+                                                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                    <div className="text-center">
+                                                        <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                        </svg>
+                                                        <p className="text-sm text-slate-600">
+                                                            {files.idCardBack ? (
+                                                                <span className="text-green-600 font-medium">
+                                                                    ✓ {files.idCardBack instanceof File ? files.idCardBack.name : (files.idCardBack.name || files.idCardBack.file?.name || 'Citizen identification card - Mặt sau')}
+                                                                    {files.idCardBack.url && !(files.idCardBack instanceof File) && (
+                                                                        <a href={files.idCardBack.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                            (Xem)
+                                                                        </a>
+                                                                    )}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{t('application_form_click_to_select')}</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

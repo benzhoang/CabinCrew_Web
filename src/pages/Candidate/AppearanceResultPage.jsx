@@ -104,16 +104,19 @@ const AppearanceResultPage = () => {
         return []
     }, [result])
 
-    // Tạo map từ scoringCriteriaItemId sang tên tiêu chí
-    const criteriaNameMap = useMemo(() => {
+    // Map scoringCriteriaItemId -> useful metadata (VN/EN text + details)
+    const criteriaInfoMap = useMemo(() => {
         const map = {}
         if (Array.isArray(scoringCriterias)) {
             scoringCriterias.forEach(category => {
                 if (Array.isArray(category.items)) {
                     category.items.forEach(item => {
                         if (item.scoringCriteriaItemId) {
-                            // Ưu tiên text (tiếng Việt), nếu không có thì dùng englishText
-                            map[item.scoringCriteriaItemId] = item.text || item.englishText || ''
+                            map[item.scoringCriteriaItemId] = {
+                                name: item.text || item.englishText || '',
+                                englishText: item.englishText || '',
+                                details: Array.isArray(item.details) ? item.details : []
+                            }
                         }
                     })
                 }
@@ -122,26 +125,41 @@ const AppearanceResultPage = () => {
         return map
     }, [scoringCriterias])
 
-    // Hàm lấy tên tiêu chí từ map
-    const getCriteriaName = useCallback((criteria) => {
-        // Thử các trường có thể chứa ID
+    // Hàm lấy thông tin tiêu chí (VN/EN + chi tiết)
+    const getCriteriaInfo = useCallback((criteria) => {
         const itemId = criteria.scoringCriteriaItemId ||
             criteria.criteriaId ||
             criteria.id ||
             criteria.scoringCriteriaItem?.scoringCriteriaItemId
 
-        if (itemId && criteriaNameMap[itemId]) {
-            return criteriaNameMap[itemId]
-        }
-
-        // Nếu không tìm thấy trong map, thử các trường tên trực tiếp
-        return criteria.name ||
+        const mapInfo = itemId ? criteriaInfoMap[itemId] : null
+        const fallbackName = criteria.name ||
             criteria.criteriaName ||
             criteria.scoringCriteriaItemName ||
             criteria.scoringCriteriaItem?.text ||
             criteria.scoringCriteriaItem?.englishText ||
             ''
-    }, [criteriaNameMap])
+
+        const englishText = mapInfo?.englishText ||
+            criteria.englishText ||
+            criteria.criteriaEnglishName ||
+            criteria.scoringCriteriaItem?.englishText ||
+            ''
+
+        const detailList = mapInfo?.details?.length
+            ? mapInfo.details
+            : Array.isArray(criteria.details)
+                ? criteria.details
+                : Array.isArray(criteria.scoringCriteriaItem?.details)
+                    ? criteria.scoringCriteriaItem.details
+                    : []
+
+        return {
+            name: mapInfo?.name || fallbackName || '',
+            englishText,
+            details: detailList
+        }
+    }, [criteriaInfoMap])
 
     const summaryItems = useMemo(() => ([
         { label: 'Mã đánh giá', value: result?.evaluationId ?? '—' },
@@ -235,12 +253,30 @@ const AppearanceResultPage = () => {
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
                                                 {criteriaList.map((criteria, index) => {
-                                                    const criteriaName = getCriteriaName(criteria)
+                                                    const criteriaInfo = getCriteriaInfo(criteria)
+                                                    const criteriaName = criteriaInfo.name || `Tiêu chí ${index + 1}`
                                                     const isPassed = criteria.isPassed ?? criteria.result ?? criteria.score
                                                     return (
                                                         <tr key={criteria.id || criteria.criteriaId || index}>
-                                                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                                                {criteriaName || `Tiêu chí ${index + 1}`}
+                                                            <td className="px-4 py-3 text-sm">
+                                                                <div className="font-medium text-gray-900">
+                                                                    {criteriaName}
+                                                                </div>
+                                                                {criteriaInfo.englishText && (
+                                                                    <div className="text-xs text-gray-500 italic mt-1">
+                                                                        {criteriaInfo.englishText}
+                                                                    </div>
+                                                                )}
+                                                                {Array.isArray(criteriaInfo.details) && criteriaInfo.details.length > 0 && (
+                                                                    <ul className="mt-2 space-y-1">
+                                                                        {criteriaInfo.details.map((detail, detailIndex) => (
+                                                                            <li key={detail.detailText || detail.text || detailIndex} className="text-xs text-gray-600 flex gap-2">
+                                                                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                                                                                <span>{detail.detailText || detail.text || detail.description || detail}</span>
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                )}
                                                             </td>
                                                             <td className={`px-4 py-3 text-sm ${getResultColorClass(isPassed)}`}>
                                                                 {getPassLabel(isPassed)}

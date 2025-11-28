@@ -41,7 +41,7 @@ const dictionaries = {
     recruitment_stages: "Tiến trình tuyển dụng",
     recruitment_history_subtitle: "Xem lại tất cả các đơn ứng tuyển của bạn",
     total_applications: "Tổng đơn ứng tuyển",
-    accepted: "Đã chấp nhận",
+    accepted: "Hoàn thành",
     pending: "Đang chờ",
     interviews: "Phỏng vấn",
     application_history: "Lịch sử ứng tuyển",
@@ -402,13 +402,13 @@ const dictionaries = {
     application_form_remember_upload:
       "NHỚ TẢI LÊN CÁC TÀI LIỆU NÀY TRƯỚC KHI ỨNG TUYỂN",
     application_form_application_form_file:
-      "VJC-PD-FRM-12 Form Job Application (file đính kèm/attached file)",
+      "Form Job Application (file đính kèm/attached file)",
     application_form_profile_photo: "Ảnh chân dung 4x6 / Profile photo 4x6cm",
     application_form_education_degree:
       "Bằng tốt nghiệp (THPT trở lên)/Education degree (high school diploma or higher)",
     application_form_english_certificate:
       "Chứng chỉ tiếng Anh (bắt buộc)/English certificate (must have)",
-    application_form_id_card: "CCCD (2 mặt)/Valid Passport (For Expats)",
+    application_form_id_card: "CCCD",
     application_form_click_to_select: "Nhấn để chọn file hoặc kéo thả vào đây",
     application_form_click_to_select_image:
       "Nhấn để chọn ảnh hoặc kéo thả vào đây",
@@ -524,6 +524,11 @@ const dictionaries = {
     recording_submitted: "Ghi âm đã được nộp",
     unrecorded_questions: "Số câu hỏi chưa ghi âm",
     including_unanswered: "Bao gồm",
+    test_name: "Tên bài thi",
+    start_time: "Thời gian bắt đầu",
+    end_time: "Thời gian kết thúc",
+    submitted_recordings_list: "Danh sách ghi âm đã nộp",
+    answered_questions: "Câu đã trả lời",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Lịch hẹn phỏng vấn thăng bậc",
@@ -932,13 +937,13 @@ const dictionaries = {
     application_form_remember_upload:
       "REMEMBER TO UPLOAD THESE DOCUMENT BEFORE YOU APPLY",
     application_form_application_form_file:
-      "VJC-PD-FRM-12 Form Job Application (file đính kèm/attached file)",
+      "Form Job Application (file đính kèm/attached file)",
     application_form_profile_photo: "Ảnh chân dung 4x6 / Profile photo 4x6cm",
     application_form_education_degree:
       "Bằng tốt nghiệp (THPT trở lên)/Education degree (high school diploma or higher)",
     application_form_english_certificate:
       "Chứng chỉ tiếng Anh (bắt buộc)/English certificate (must have)",
-    application_form_id_card: "CCCD (2 mặt)/Valid Passport (For Expats)",
+    application_form_id_card: "CCCD",
     application_form_click_to_select:
       "Click to select file or drag and drop here",
     application_form_click_to_select_image:
@@ -1055,6 +1060,11 @@ const dictionaries = {
     recording_submitted: "Recording submitted",
     unrecorded_questions: "Unrecorded questions",
     including_unanswered: "Including unanswered",
+    test_name: "Test Name",
+    start_time: "Start Time",
+    end_time: "End Time",
+    submitted_recordings_list: "Submitted Recordings List",
+    answered_questions: "Answered Questions",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Promotion interview appointments",
@@ -1084,11 +1094,11 @@ export function setLang(nextLang) {
   listeners.forEach((fn) => {
     try {
       fn(lang);
-    } catch (_) {}
+    } catch (_) { }
   });
   try {
     window.dispatchEvent(new Event("langchange"));
-  } catch (_) {}
+  } catch (_) { }
 }
 
 export function onLangChange(callback) {

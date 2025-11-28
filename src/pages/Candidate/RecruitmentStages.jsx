@@ -5,6 +5,70 @@ import { getOngoingCampaign } from '../../service/api';
 
 const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
 const interviewKeywords = ['interview', 'phỏng vấn'];
+const defaultStageTemplates = [
+    {
+        id: 'screening',
+        name: 'Sàng lọc hồ sơ',
+        nameEn: 'Screening',
+        aliases: ['screening', 'sang loc']
+    },
+    {
+        id: 'appearance',
+        name: 'Vòng ngoại hình',
+        nameEn: 'Appearance',
+        aliases: ['appearance', 'ngoai hinh', 'appearence']
+    },
+    {
+        id: 'english-listening',
+        name: 'Bài kiểm tra Nghe tiếng Anh',
+        nameEn: 'English Listening Test',
+        aliases: ['listening', 'english listening', 'listening test']
+    },
+    {
+        id: 'english-speaking',
+        name: 'Bài kiểm tra Nói tiếng Anh',
+        nameEn: 'English Speaking Test',
+        aliases: ['speaking', 'english speaking', 'speaking test']
+    },
+    {
+        id: 'interview',
+        name: 'Phỏng vấn',
+        nameEn: 'Interview',
+        aliases: ['interview', 'phong van']
+    },
+    {
+        id: 'final',
+        name: 'Vòng cuối',
+        nameEn: 'Final',
+        aliases: ['final', 'chung ket', 'final round']
+    },
+];
+
+const LINE_START_PERCENT = 5;
+const LINE_END_PERCENT = 95;
+const AXIS_SEGMENTS = 4;
+const TIMELINE_HEIGHT = 240;
+const BASELINE_Y = 110;
+const BRANCH_OFFSET = 70;
+
+const stageAxisPositionMap = {
+    'screening': 0,
+    'appearance': 1,
+    'english-listening': 2,
+    'english-speaking': 2,
+    'interview': 3,
+    'final': 4
+};
+
+const normalizeText = (text) => (text || '').toLowerCase().trim();
+
+const doesRoundMatchStage = (round, stageTemplate) => {
+    if (!round) return false;
+    const roundName = normalizeText(round.roundName);
+    const stageNames = [stageTemplate.name, stageTemplate.nameEn, ...(stageTemplate.aliases || [])]
+        .map(normalizeText);
+    return stageNames.some((name) => name && roundName.includes(name));
+};
 
 const matchesStageKeywords = (stage, keywords) => {
     const name = (stage?.name || '').toLowerCase();
@@ -13,7 +77,7 @@ const matchesStageKeywords = (stage, keywords) => {
 };
 
 const isStageReached = (stage, index, currentStage) => {
-    if (!stage) return false;
+    if (!stage || typeof index !== 'number') return false;
     if (stage.completed) return true;
     return index + 1 <= currentStage;
 };
@@ -47,19 +111,21 @@ const RecruitmentStages = () => {
                     // Xác định currentStage dựa trên rounds
                     const rounds = campaignData.rounds || [];
 
-                    // Map rounds thành stages với thông tin completed
-                    const mappedStages = rounds.map((round, index) => {
-                        const isCompleted = round.status === 'Completed' ||
-                            round.status === 'Passed' ||
-                            round.status === 'Finished';
+                    // Map rounds thành stages với thông tin completed, đảm bảo luôn đủ 6 vòng
+                    const mappedStages = defaultStageTemplates.map((template, index) => {
+                        const matchingRound = rounds.find((round) => doesRoundMatchStage(round, template));
+                        const roundStatus = normalizeText(matchingRound?.status);
+                        const isCompleted = ['completed', 'passed', 'finished'].some((status) => roundStatus.includes(status));
+
                         return {
-                            activityId: round.activityId || '',
-                            id: round.roundId || index + 1,
-                            name: round.roundName || `Giai đoạn ${index + 1}`,
-                            nameEn: round.roundName || `Stage ${index + 1}`,
-                            completed: isCompleted,
-                            date: null, // API không trả về date, có thể thêm sau nếu cần
-                            status: round.status
+                            activityId: matchingRound?.activityId || '',
+                            id: matchingRound?.roundId || `${template.id}-${index}`,
+                            templateId: template.id,
+                            name: matchingRound?.roundName || template.name,
+                            nameEn: matchingRound?.roundName || template.nameEn,
+                            completed: Boolean(matchingRound) && isCompleted,
+                            date: matchingRound?.date || null,
+                            status: matchingRound?.status || 'Pending'
                         };
                     });
 
@@ -67,9 +133,9 @@ const RecruitmentStages = () => {
                     const completedCount = mappedStages.filter(stage => stage.completed).length;
                     let currentStageIndex = completedCount + 1;
 
-                    // Nếu tất cả rounds đã hoàn thành, currentStage là rounds.length
-                    if (currentStageIndex > rounds.length) {
-                        currentStageIndex = rounds.length;
+                    // Nếu tất cả rounds đã hoàn thành, currentStage là tổng số stage
+                    if (currentStageIndex > mappedStages.length) {
+                        currentStageIndex = mappedStages.length;
                     }
 
                     // Đảm bảo currentStage ít nhất là 1
@@ -154,19 +220,36 @@ const RecruitmentStages = () => {
         return lang === 'vi' ? stage.name : stage.nameEn;
     };
 
+    const isStageFailed = (stage) => {
+        const status = normalizeText(stage?.status);
+        return ['failed', 'fail', 'rejected', 'not passed', 'did not pass'].some(keyword =>
+            status.includes(keyword)
+        );
+    };
+
     // Hàm lấy màu sắc cho giai đoạn
     const getStageColor = (stage, currentStage, stageIndex) => {
+        if (isStageFailed(stage)) {
+            return 'bg-red-500 text-white';
+        }
         if (stage.completed) {
             return 'bg-green-500 text-white';
-        } else if (stageIndex + 1 === currentStage) {
-            return 'bg-yellow-500 text-white';
-        } else {
-            return 'bg-gray-300 text-gray-600';
         }
+        if (stageIndex + 1 === currentStage) {
+            return 'bg-yellow-500 text-white';
+        }
+        return 'bg-gray-300 text-gray-600';
     };
 
     // Hàm lấy icon cho giai đoạn
     const getStageIcon = (stage, currentStage, stageIndex) => {
+        if (isStageFailed(stage)) {
+            return (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-10.95a1 1 0 10-1.414-1.414L10 7.758 7.879 5.636a1 1 0 00-1.414 1.414L8.586 9l-2.121 2.121a1 1 0 101.414 1.414L10 10.414l2.121 2.121a1 1 0 001.414-1.414L11.414 9l2.122-2.121z" clipRule="evenodd" />
+                </svg>
+            );
+        }
         if (stage.completed) {
             return (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -186,6 +269,51 @@ const RecruitmentStages = () => {
                 </svg>
             );
         }
+    };
+
+    const getProgressPercentage = (application) => {
+        if (AXIS_SEGMENTS === 0) return 0;
+
+        const completedPositions = application.stages
+            .filter(stage => stage.completed)
+            .map(stage => stageAxisPositionMap[stage.templateId])
+            .filter(pos => typeof pos === 'number');
+
+        const completedMax = completedPositions.length > 0 ? Math.max(...completedPositions) : 0;
+
+        let currentPosition = completedMax;
+        if (application.currentStage > 0 && application.currentStage <= application.stages.length) {
+            const currentStageData = application.stages[application.currentStage - 1];
+            if (currentStageData) {
+                const axisPos = stageAxisPositionMap[currentStageData.templateId];
+                if (typeof axisPos === 'number') {
+                    currentPosition = axisPos;
+                }
+            }
+        }
+
+        const furthest = Math.max(completedMax, currentPosition);
+        return (furthest / AXIS_SEGMENTS) * 100;
+    };
+
+    const getAxisPercent = (templateId) => {
+        const axisPos = stageAxisPositionMap[templateId];
+        if (typeof axisPos !== 'number') return LINE_START_PERCENT;
+        return LINE_START_PERCENT + ((LINE_END_PERCENT - LINE_START_PERCENT) * (axisPos / AXIS_SEGMENTS));
+    };
+
+    const getStagePositionStyle = (templateId) => {
+        const verticalOffset = templateId === 'english-listening'
+            ? -BRANCH_OFFSET
+            : templateId === 'english-speaking'
+                ? BRANCH_OFFSET
+                : 0;
+
+        return {
+            left: `${getAxisPercent(templateId)}%`,
+            top: `${BASELINE_Y + verticalOffset}px`,
+            transform: 'translate(-50%, -50%)'
+        };
     };
 
     return (
@@ -275,60 +403,104 @@ const RecruitmentStages = () => {
                                 </div>
 
                                 {/* Progress Timeline */}
-                                <div className="relative">
-                                    {/* Progress Line */}
-                                    <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
-                                        <div
-                                            className="h-full bg-blue-500 transition-all duration-500"
-                                            style={{
-                                                width: application.stages.length > 0
-                                                    ? `${(application.stages.filter(s => s.completed).length / application.stages.length) * 100}%`
-                                                    : '0%'
-                                            }}
-                                        ></div>
-                                    </div>
+                                <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                                    {(() => {
+                                        const stageMap = {};
+                                        const stageIndexMap = {};
+                                        application.stages.forEach((stage, index) => {
+                                            if (stage.templateId) {
+                                                stageMap[stage.templateId] = stage;
+                                                stageIndexMap[stage.templateId] = index;
+                                            }
+                                        });
 
-                                    {/* Stages */}
-                                    <div className="relative flex justify-between">
-                                        {application.stages.map((stage, index) => (
-                                            <div key={stage.id || index} className="flex flex-col items-center">
-                                                {/* Stage Circle */}
-                                                <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage, index)}`}>
-                                                    {getStageIcon(stage, application.currentStage, index)}
-                                                </div>
-
-                                                {/* Stage Info */}
-                                                <div className="mt-3 text-center max-w-24">
-                                                    <p className="text-xs font-medium text-gray-900">
-                                                        {getStageName(stage)}
+                                        const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final'];
+                                        const renderStageInfo = (stage, stageIndex, stageReached, position) => (
+                                            <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-28 text-center`}>
+                                                <p className="text-xs font-medium text-gray-900">
+                                                    {getStageName(stage)}
+                                                </p>
+                                                {stage.date && (
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        {new Date(stage.date).toLocaleDateString()}
                                                     </p>
-                                                    {stage.date && (
-                                                        <p className="text-xs text-gray-500 mt-1">
-                                                            {new Date(stage.date).toLocaleDateString()}
-                                                        </p>
-                                                    )}
-                                                    {isStageReached(stage, index, application.currentStage) && matchesStageKeywords(stage, appearanceKeywords) && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => navigate(`/appearance-result/${stage.activityId || stage.roundId || ''}`)}
-                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
-                                                        >
-                                                            Xem kết quả
-                                                        </button>
-                                                    )}
-                                                    {isStageReached(stage, index, application.currentStage) && matchesStageKeywords(stage, interviewKeywords) && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => navigate(`/interview-result/${stage.activityId || stage.roundId || ''}`)}
-                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
-                                                        >
-                                                            Xem kết quả
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                )}
+                                                {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate(`/appearance-result/${stage.activityId || stage.roundId || ''}`)}
+                                                        className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        Xem kết quả
+                                                    </button>
+                                                )}
+                                                {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate(`/interview-result/${stage.activityId || stage.roundId || ''}`)}
+                                                        className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        Xem kết quả
+                                                    </button>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
+                                        );
+
+                                        return (
+                                            <>
+                                                {/* Horizontal progress line */}
+                                                <div
+                                                    className="absolute bg-gray-200"
+                                                    style={{
+                                                        top: `${BASELINE_Y}px`,
+                                                        left: `${LINE_START_PERCENT}%`,
+                                                        width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
+                                                        height: '2px'
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="h-full bg-blue-500 transition-all duration-500"
+                                                        style={{ width: `${getProgressPercentage(application)}%` }}
+                                                    ></div>
+                                                </div>
+
+                                                {/* Vertical branch */}
+                                                <div
+                                                    className="absolute bg-gray-200"
+                                                    style={{
+                                                        left: `${getAxisPercent('english-listening')}%`,
+                                                        top: `${BASELINE_Y - BRANCH_OFFSET}px`,
+                                                        height: `${BRANCH_OFFSET * 2}px`,
+                                                        width: '2px',
+                                                        transform: 'translateX(-50%)'
+                                                    }}
+                                                ></div>
+
+                                                {/* Stage nodes */}
+                                                {timelineStageIds.map((templateId) => {
+                                                    const stage = stageMap[templateId];
+                                                    if (!stage) return null;
+                                                    const stageIndex = stageIndexMap[templateId];
+                                                    const stageReached = isStageReached(stage, stageIndex, application.currentStage);
+                                                    const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom';
+
+                                                    return (
+                                                        <div
+                                                            key={templateId}
+                                                            className="absolute flex flex-col items-center"
+                                                            style={getStagePositionStyle(templateId)}
+                                                        >
+                                                            {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
+                                                            <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage, stageIndex ?? 0)}`}>
+                                                                {getStageIcon(stage, application.currentStage, stageIndex ?? 0)}
+                                                            </div>
+                                                            {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
 
                                 {/* Current Status */}
