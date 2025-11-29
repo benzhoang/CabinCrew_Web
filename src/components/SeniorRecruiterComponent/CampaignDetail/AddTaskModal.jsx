@@ -60,28 +60,28 @@ const roundConfig = [
     title: "Vòng sàng lọc",
     description: "Kiểm tra CV, kinh nghiệm và chứng chỉ cần thiết.",
     maxSelect: 1,
-    taskType: 1, // Recruitment
+    taskType: 1, // Screening
   },
   {
     key: "appearance",
     title: "Vòng ngoại hình",
     description: "Đánh giá tiêu chuẩn ngoại hình và tác phong.",
     maxSelect: 1,
-    taskType: 2, // Examination
+    taskType: 4, // Appearance
   },
   {
     key: "assessment",
     title: "Vòng kiểm tra",
     description: "Tổ chức bài kiểm tra kỹ năng chuyên môn.",
     maxSelect: 1,
-    taskType: 2, // Examination
+    taskType: 3, // Assessment
   },
   {
     key: "interview",
     title: "Vòng phỏng vấn",
     description: "Phỏng vấn chuyên sâu với hội đồng 3 người.",
     maxSelect: 3,
-    taskType: 2, // Examination
+    taskType: 2, // Interview
   },
 ];
 
