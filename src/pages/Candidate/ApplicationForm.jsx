@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 import { t, onLangChange } from '../../i18n'
-import { saveApplicationDraft, submitApplication } from '../../service/api'
+import { saveApplicationDraft, submitApplication, getUserProfile } from '../../service/api'
 
 const ApplicationForm = () => {
     const navigate = useNavigate()
@@ -54,6 +54,81 @@ const ApplicationForm = () => {
     // Force re-render when language changes
     const [, forceUpdate] = useState({})
 
+    // Hàm decode JWT token
+    const decodeJwt = (token) => {
+        if (!token) {
+            return null;
+        }
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return null;
+            }
+            const payload = parts[1]
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+            const decoded = atob(paddedPayload);
+            return JSON.parse(decoded);
+        } catch (error) {
+            console.error('Lỗi khi decode JWT:', error);
+            return null;
+        }
+    };
+
+    // Hàm lấy userId từ localStorage hoặc token
+    const getUserId = () => {
+        const userData = JSON.parse(localStorage.getItem('user') || 'null');
+        if (userData) {
+            const userId = userData.userId || userData.userID || userData.id ||
+                userData.user?.userId || userData.user?.id ||
+                userData.data?.userId || userData.data?.id;
+            if (userId) {
+                return userId;
+            }
+        }
+        const token = localStorage.getItem('token') || userData?.accessToken;
+        if (token) {
+            const decoded = decodeJwt(token);
+            if (decoded) {
+                return decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                    decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier'] ||
+                    decoded.sub ||
+                    decoded.userId ||
+                    decoded.id;
+            }
+        }
+        return null;
+    };
+
+    // Hàm format date sang YYYY-MM-DD cho input type="date"
+    const formatDateForInput = (dateString) => {
+        if (!dateString) {
+            return ''
+        }
+        // Nếu đã là format YYYY-MM-DD, trả về như cũ
+        if (typeof dateString === 'string') {
+            const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/)
+            if (ymdMatch) {
+                return dateString.split('T')[0] // Bỏ phần time nếu có
+            }
+            // Thử parse như Date object
+            try {
+                const date = new Date(dateString)
+                if (!isNaN(date.getTime())) {
+                    // Lấy local date parts để tránh timezone issues
+                    const year = date.getFullYear()
+                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                    const day = String(date.getDate()).padStart(2, '0')
+                    return `${year}-${month}-${day}`
+                }
+            } catch (e) {
+                console.error('Error parsing date:', dateString, e)
+            }
+        }
+        return ''
+    }
+
     // Generate random captcha code
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -69,20 +144,86 @@ const ApplicationForm = () => {
         setCaptchaCode(generateCaptcha())
     }, [])
 
+    // Load user profile data from API
+    useEffect(() => {
+        const loadUserProfile = async () => {
+            try {
+                const userId = getUserId()
+                if (!userId) {
+                    console.warn('Không tìm thấy userId, bỏ qua việc load profile')
+                    return
+                }
+
+                const result = await getUserProfile(userId)
+                if (result.success && result.data) {
+                    const userData = result.data
+                    console.log('User profile data from API:', userData)
+
+                    // Format dateOfBirth sang YYYY-MM-DD cho input type="date"
+                    const formattedDateOfBirth = userData.dateOfBirth
+                        ? formatDateForInput(userData.dateOfBirth)
+                        : ''
+
+                    console.log('Raw dateOfBirth from API:', userData.dateOfBirth)
+                    console.log('Formatted dateOfBirth:', formattedDateOfBirth)
+
+                    // Map dữ liệu từ API vào formData
+                    // Ưu tiên dữ liệu từ API nếu có
+                    setFormData(prev => ({
+                        ...prev,
+                        email: userData.email || prev.email,
+                        fullName: userData.fullName || prev.fullName,
+                        dateOfBirth: formattedDateOfBirth || prev.dateOfBirth || '',
+                        gender: userData.gender ? String(userData.gender) : prev.gender,
+                        mobileNumber: userData.phoneNumber || prev.mobileNumber
+                    }))
+                } else {
+                    console.warn('Không thể lấy thông tin người dùng:', result.error)
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error)
+            }
+        }
+
+        loadUserProfile()
+    }, [])
+
     // Load draft data on component mount
     useEffect(() => {
         const savedDraft = localStorage.getItem('applicationFormDraft')
         const locationState = state?.hasDraft && state?.draftData
 
         if (locationState) {
-            // Load từ state khi navigate từ ProfilePage
-            setFormData(state.draftData.formData)
+            // Load từ state khi navigate từ ProfilePage - merge với dữ liệu hiện có
+            // Chỉ merge các field có giá trị, không ghi đè dateOfBirth nếu draft không có
+            setFormData(prev => {
+                const draftFormData = state.draftData.formData || {}
+                return {
+                    ...prev,
+                    ...Object.fromEntries(
+                        Object.entries(draftFormData).filter(([key, value]) =>
+                            value !== '' && value !== null && value !== undefined
+                        )
+                    )
+                }
+            })
         } else if (savedDraft) {
             try {
                 const draftData = JSON.parse(savedDraft)
-                // Chỉ load nếu cùng campaign
+                // Chỉ load nếu cùng campaign - merge với dữ liệu hiện có
                 if (draftData.campaignId === campaign?.id) {
-                    setFormData(draftData.formData)
+                    setFormData(prev => {
+                        const draftFormData = draftData.formData || {}
+                        // Chỉ merge các field có giá trị, không ghi đè dateOfBirth nếu draft không có
+                        return {
+                            ...prev,
+                            ...Object.fromEntries(
+                                Object.entries(draftFormData).filter(([key, value]) =>
+                                    value !== '' && value !== null && value !== undefined
+                                )
+                            )
+                        }
+                    })
                     // Không hiển thị thông báo xác nhận, chỉ load dữ liệu
                 }
             } catch (error) {
