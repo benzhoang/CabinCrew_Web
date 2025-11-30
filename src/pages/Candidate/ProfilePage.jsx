@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import PostVerificationModal from '../../components/PostVerificationModal'
-import { getUserApplication } from '../../service/api'
+import { getUserApplication, getUserProfile } from '../../service/api'
 import ProfileFormActions from './ProfileFormActions'
 
 const ProfilePage = () => {
@@ -311,26 +311,83 @@ const ProfilePage = () => {
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
                     }
-                    // Load user profile data if available
-                    const userData = JSON.parse(localStorage.getItem('user') || 'null')
-                    if (userData) {
+                    // Load user profile data from API
+                    const userProfileResult = await getUserProfile(userId)
+                    if (userProfileResult.success && userProfileResult.data) {
+                        const userData = userProfileResult.data
+                        console.log('User profile data from API:', userData)
+                        
+                        // Helper function to format date to YYYY-MM-DD
+                        const formatDateForInput = (dateString) => {
+                            if (!dateString) {
+                                return ''
+                            }
+                            if (typeof dateString === 'string') {
+                                // Check if it's YYYY-MM-DD format
+                                const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/)
+                                if (ymdMatch) {
+                                    return dateString.split('T')[0] // Remove time part if exists
+                                }
+                                // Try parsing as Date
+                                try {
+                                    const date = new Date(dateString)
+                                    if (!isNaN(date.getTime())) {
+                                        const year = date.getFullYear()
+                                        const month = String(date.getMonth() + 1).padStart(2, '0')
+                                        const day = String(date.getDate()).padStart(2, '0')
+                                        return `${year}-${month}-${day}`
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing date:', dateString, e)
+                                }
+                            }
+                            return ''
+                        }
+                        
+                        // Map gender: API returns integer (1 = male, 0 or 2 = female), form needs "male" or "female"
+                        let genderValue = ''
+                        if (userData.gender !== undefined && userData.gender !== null) {
+                            // Assuming 1 = male, 0 or other = female (adjust based on your API)
+                            genderValue = userData.gender === 1 ? 'male' : 'female'
+                        }
+                        
                         setFormData(prev => {
                             // Preserve certificateExpireDate from API, don't override it
                             const updated = {
                                 ...prev,
-                                email: userData.email || '',
-                                fullName: userData.fullName || userData.name || '',
-                                dateOfBirth: userData.dateOfBirth || '',
-                                gender: userData.gender || '',
-                                mobileNumber: userData.mobileNumber || userData.phoneNumber || '',
+                                email: userData.email || prev.email || '',
+                                fullName: userData.fullName || prev.fullName || '',
+                                dateOfBirth: userData.dateOfBirth ? formatDateForInput(userData.dateOfBirth) : (prev.dateOfBirth || ''),
+                                gender: genderValue || prev.gender || '',
+                                mobileNumber: userData.phoneNumber || prev.mobileNumber || '',
                             }
                             // Keep certificateExpireDate from API if it was set
                             if (prev.certificateExpireDate) {
                                 updated.certificateExpireDate = prev.certificateExpireDate
                             }
-                            console.log('User data merged, certificateExpireDate preserved:', updated.certificateExpireDate)
+                            console.log('User profile data merged, certificateExpireDate preserved:', updated.certificateExpireDate)
                             return updated
                         })
+                    } else {
+                        console.warn('Could not load user profile from API, using localStorage as fallback')
+                        // Fallback to localStorage if API fails
+                        const userData = JSON.parse(localStorage.getItem('user') || 'null')
+                        if (userData) {
+                            setFormData(prev => {
+                                const updated = {
+                                    ...prev,
+                                    email: userData.email || prev.email || '',
+                                    fullName: userData.fullName || userData.name || prev.fullName || '',
+                                    dateOfBirth: userData.dateOfBirth || prev.dateOfBirth || '',
+                                    gender: userData.gender || prev.gender || '',
+                                    mobileNumber: userData.mobileNumber || userData.phoneNumber || prev.mobileNumber || '',
+                                }
+                                if (prev.certificateExpireDate) {
+                                    updated.certificateExpireDate = prev.certificateExpireDate
+                                }
+                                return updated
+                            })
+                        }
                     }
                 } else {
                     setError(result.error || 'Không thể tải thông tin đơn ứng tuyển')

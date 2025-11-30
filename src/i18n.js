@@ -529,6 +529,8 @@ const dictionaries = {
     end_time: "Thời gian kết thúc",
     submitted_recordings_list: "Danh sách ghi âm đã nộp",
     answered_questions: "Câu đã trả lời",
+    test_type: "Loại bài thi",
+    full_name: "Họ và tên",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Lịch hẹn phỏng vấn thăng bậc",
@@ -1065,6 +1067,8 @@ const dictionaries = {
     end_time: "End Time",
     submitted_recordings_list: "Submitted Recordings List",
     answered_questions: "Answered Questions",
+    test_type: "Test Type",
+    full_name: "Full Name",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Promotion interview appointments",

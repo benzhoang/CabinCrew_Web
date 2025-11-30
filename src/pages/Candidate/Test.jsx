@@ -180,9 +180,9 @@ const Test = () => {
     const toggleDropdown = (examId) => {
         const selectedExam = exams.find(exam => exam.id === examId);
         // Không cho mở dropdown nếu đã hoàn thành
-        // if (selectedExam?.hasCompleted) {
-        //     return;
-        // }
+        if (selectedExam?.hasCompleted) {
+            return;
+        }
 
         if (expandedExamId === examId) {
             setExpandedExamId(null);
@@ -347,6 +347,11 @@ const Test = () => {
                                                     }`}>
                                                     {exam.type}
                                                 </span>
+                                                {exam.hasCompleted && (
+                                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                                        {t('completed') || 'Đã hoàn thành'}
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="text-sm text-gray-600 mb-4">{exam.description}</p>
                                             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -366,25 +371,24 @@ const Test = () => {
                                         </div>
                                         <button
                                             onClick={() => toggleDropdown(exam.id)}
-                                            // disabled={exam.hasCompleted}
-                                            className={`ml-4 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium whitespace-nowrap bg-gradient-to-r from-blue-800 to-indigo-800 hover:from-blue-900 hover:to-indigo-900`}
+                                            disabled={exam.hasCompleted}
+                                            className={`ml-4 px-6 py-3 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 font-medium whitespace-nowrap ${exam.hasCompleted
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-gradient-to-r from-blue-800 to-indigo-800 hover:from-blue-900 hover:to-indigo-900'
+                                                }`}
                                         >
-                                            {/* {exam.hasCompleted
+                                            {exam.hasCompleted
                                                 ? (t('completed') || 'Đã hoàn thành')
                                                 : expandedExamId === exam.id
                                                     ? (t('close') || 'Đóng')
                                                     : (t('enter_exam') || 'Vào làm bài')
-                                            } */}
-                                            {expandedExamId === exam.id
-                                                ? (t('close') || 'Đóng')
-                                                : (t('enter_exam') || 'Vào làm bài')
                                             }
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Password Dropdown - Chỉ hiển thị khi chưa hoàn thành */}
-                                {expandedExamId === exam.id && (
+                                {expandedExamId === exam.id && !exam.hasCompleted && (
                                     <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
                                         {/* Cảnh báo chuẩn bị tai nghe */}
                                         <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">

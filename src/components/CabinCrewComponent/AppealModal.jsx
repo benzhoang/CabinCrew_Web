@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { t } from '../../i18n';
+import { createEnquiryRequest } from '../../service/api';
+import { toast } from 'react-toastify';
 
-const AppealModal = ({ isOpen, onClose, onConfirm }) => {
+const AppealModal = ({ isOpen, onClose, onConfirm, testSessionId }) => {
+    const navigate = useNavigate();
     const [appealReason, setAppealReason] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         // Validate lý do phúc khảo
         if (!appealReason.trim()) {
             setError(t('appeal_reason_required') || 'Vui lòng nhập lý do yêu cầu phúc khảo');
@@ -17,9 +22,51 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
             return;
         }
 
+        if (appealReason.trim().length > 250) {
+            setError(t('appeal_reason_max_length') || 'Lý do phúc khảo không được vượt quá 250 ký tự');
+            return;
+        }
+
+        // Validate testSessionId
+        if (!testSessionId) {
+            setError('Không tìm thấy thông tin bài thi. Vui lòng thử lại.');
+            return;
+        }
+
+        setIsLoading(true);
         setError('');
-        onConfirm(appealReason.trim());
-        setAppealReason(''); // Reset sau khi xác nhận
+
+        try {
+            const result = await createEnquiryRequest(testSessionId, appealReason.trim());
+
+            if (result.success) {
+                // Thành công - hiển thị thông báo và điều hướng
+                toast.success(
+                    result.message || t('appeal_submitted_success') || 'Yêu cầu phúc khảo đã được gửi thành công!'
+                );
+
+                // Gọi callback nếu có
+                if (onConfirm) {
+                    onConfirm(appealReason.trim());
+                }
+
+                // Reset form
+                setAppealReason('');
+                setIsLoading(false);
+                onClose();
+
+                // Điều hướng đến trang promotion-stages
+                navigate('/cabin-crew/promotion-stages');
+            } else {
+                // Lỗi từ API
+                setError(result.error || 'Không thể gửi yêu cầu phúc khảo. Vui lòng thử lại.');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            console.error('Error creating enquiry request:', err);
+            setError('Đã xảy ra lỗi khi gửi yêu cầu phúc khảo. Vui lòng thử lại.');
+            setIsLoading(false);
+        }
     };
 
     const handleClose = () => {
@@ -61,9 +108,8 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
                                     setError(''); // Clear error when user types
                                 }}
                                 rows={4}
-                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${
-                                    error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-                                }`}
+                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors ${error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
+                                    }`}
                                 placeholder={t('appeal_reason_placeholder') || 'Vui lòng nhập lý do yêu cầu phúc khảo (tối thiểu 10 ký tự)...'}
                             />
                             {error && (
@@ -91,9 +137,14 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors"
+                        disabled={isLoading}
+                        className={`px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                     >
-                        {t('confirm_appeal') || 'Xác nhận phúc khảo'}
+                        {isLoading
+                            ? (t('sending') || 'Đang gửi...')
+                            : (t('confirm_appeal') || 'Xác nhận phúc khảo')
+                        }
                     </button>
                 </div>
             </div>
@@ -102,4 +153,3 @@ const AppealModal = ({ isOpen, onClose, onConfirm }) => {
 };
 
 export default AppealModal;
-

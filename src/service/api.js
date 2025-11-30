@@ -1106,10 +1106,29 @@ export const getMyListeningSessions = async () => {
     const response = await api.get("/test-sessions/my-listening-sessions");
     const responseData = response.data;
 
+    // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
     const hasData =
-      Array.isArray(responseData?.data) && responseData.data.length > 0;
+      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (Array.isArray(responseData?.data) && responseData.data.length > 0);
 
     if (responseData.code === 0 || hasData) {
+      // Nếu có items trong data, trả về items và pagination
+      if (responseData.data?.items) {
+        return {
+          success: true,
+          data: responseData.data.items || [],
+          pagination: {
+            currentPage: responseData.data.currentPage,
+            pageSize: responseData.data.pageSize,
+            totalRecords: responseData.data.totalRecords,
+            totalPages: responseData.data.totalPages,
+            hasNextPage: responseData.data.hasNextPage,
+            hasPreviousPage: responseData.data.hasPreviousPage,
+          },
+          message: responseData.message,
+        };
+      }
+      // Nếu data là array trực tiếp
       return {
         success: true,
         data: responseData.data || [],
@@ -1145,10 +1164,29 @@ export const getMySpeakingSessions = async () => {
     const response = await api.get("/test-sessions/my-speaking-sessions");
     const responseData = response.data;
 
+    // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
     const hasData =
-      Array.isArray(responseData?.data) && responseData.data.length > 0;
+      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (Array.isArray(responseData?.data) && responseData.data.length > 0);
 
     if (responseData.code === 0 || hasData) {
+      // Nếu có items trong data, trả về items và pagination
+      if (responseData.data?.items) {
+        return {
+          success: true,
+          data: responseData.data.items || [],
+          pagination: {
+            currentPage: responseData.data.currentPage,
+            pageSize: responseData.data.pageSize,
+            totalRecords: responseData.data.totalRecords,
+            totalPages: responseData.data.totalPages,
+            hasNextPage: responseData.data.hasNextPage,
+            hasPreviousPage: responseData.data.hasPreviousPage,
+          },
+          message: responseData.message,
+        };
+      }
+      // Nếu data là array trực tiếp
       return {
         success: true,
         data: responseData.data || [],
@@ -1172,6 +1210,64 @@ export const getMySpeakingSessions = async () => {
         errorData?.errorMessage ||
         error.message ||
         "Không thể lấy lịch sử bài thi Speaking",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Practical test sessions của user hiện tại
+// Endpoint: GET /test-sessions/my-practical-sessions
+export const getMyPracticalSessions = async () => {
+  try {
+    const response = await api.get("/test-sessions/my-practical-sessions");
+    const responseData = response.data;
+
+    // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
+    const hasData =
+      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (Array.isArray(responseData?.data) && responseData.data.length > 0);
+
+    if (responseData.code === 0 || hasData) {
+      // Nếu có items trong data, trả về items và pagination
+      if (responseData.data?.items) {
+        return {
+          success: true,
+          data: responseData.data.items || [],
+          pagination: {
+            currentPage: responseData.data.currentPage,
+            pageSize: responseData.data.pageSize,
+            totalRecords: responseData.data.totalRecords,
+            totalPages: responseData.data.totalPages,
+            hasNextPage: responseData.data.hasNextPage,
+            hasPreviousPage: responseData.data.hasPreviousPage,
+          },
+          message: responseData.message,
+        };
+      }
+      // Nếu data là array trực tiếp
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.message ||
+        responseData.errorMessage ||
+        "Không thể lấy lịch sử bài thi Practical",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy lịch sử bài thi Practical",
       status: error.response?.status,
     };
   }
@@ -3076,6 +3172,146 @@ export const getUserApplication = async (userId) => {
         error.response?.data?.message ||
         error.message ||
         "Không thể lấy thông tin đơn ứng tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API tạo yêu cầu phúc khảo (enquiry request)
+export const createEnquiryRequest = async (testSessionId, reason) => {
+  try {
+    // Validate testSessionId
+    const testSessionIdNum =
+      typeof testSessionId === "string"
+        ? parseInt(testSessionId, 10)
+        : Number(testSessionId);
+    if (isNaN(testSessionIdNum) || testSessionIdNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    // Validate reason
+    if (!reason || !reason.trim()) {
+      return {
+        success: false,
+        error: "Lý do phúc khảo không được để trống",
+      };
+    }
+
+    if (reason.trim().length > 250) {
+      return {
+        success: false,
+        error: "Lý do phúc khảo không được vượt quá 250 ký tự",
+      };
+    }
+
+    // Tạo payload theo format API
+    const payload = {
+      testSessionId: testSessionIdNum,
+      reason: reason.trim(),
+      status: false, // Default false cho pending requests
+    };
+
+    const response = await api.post("/enquiry-requests", payload);
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== "undefined") {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Gửi yêu cầu phúc khảo thành công",
+          };
+        } else {
+          let errorMessage =
+            responseData.errorMessage || "Không thể gửi yêu cầu phúc khảo";
+
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
+            errorMessage = responseData.errors.join(". ");
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errors: responseData.errors || [],
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Kiểm tra nếu có field code
+      if (responseData && typeof responseData.code !== "undefined") {
+        if (responseData.code === 0) {
+          return {
+            success: true,
+            data: responseData.data,
+            message: responseData.message || "Gửi yêu cầu phúc khảo thành công",
+          };
+        } else {
+          return {
+            success: false,
+            error:
+              responseData.message ||
+              responseData.errorMessage ||
+              "Không thể gửi yêu cầu phúc khảo",
+          };
+        }
+      }
+
+      // HTTP status thành công nhưng không có code/errorCode => coi như thành công
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Gửi yêu cầu phúc khảo thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data?.message ||
+          response.data?.errorMessage ||
+          "Không thể gửi yêu cầu phúc khảo",
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    const errorData = error.response?.data;
+    let errorMessage = "Đã xảy ra lỗi khi gửi yêu cầu phúc khảo";
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
       status: error.response?.status,
     };
   }
