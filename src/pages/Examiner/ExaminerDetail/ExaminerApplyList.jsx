@@ -211,6 +211,24 @@ const ExaminerApplyList = () => {
     );
   }, [availableRounds, roundFilter]);
 
+  // Check if the active round is an English Listening or Speaking test
+  const isEnglishTestRound = useMemo(() => {
+    if (!activeRoundForTests) return false;
+    const roundName = activeRoundForTests.roundName || "";
+    const testType = activeRoundForTests.testType;
+    const nameLower = roundName.toLowerCase();
+
+    // Check by testType (1 = English Listening, 2 = English Speaking)
+    if (testType === 1 || testType === 2) return true;
+
+    // Check by roundName
+    if (nameLower.includes("listening") || nameLower.includes("speaking")) {
+      return true;
+    }
+
+    return false;
+  }, [activeRoundForTests]);
+
   const getApplicantStatusBadge = (status) => {
     const statusConfig = {
       pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
@@ -343,6 +361,36 @@ const ExaminerApplyList = () => {
     setIsTestModalOpen(false);
   };
 
+  // Helper function to map roundName to testType number
+  const getTestTypeFromRoundName = (roundName) => {
+    if (!roundName) return null;
+    const nameLower = roundName.toLowerCase();
+    if (nameLower.includes("listening")) {
+      return 1; // English Listening
+    }
+    if (nameLower.includes("speaking")) {
+      return 2; // English Speaking
+    }
+    return null;
+  };
+
+  // Get testType for the modal - use testType from round or map from roundName
+  const testTypeForModal = useMemo(() => {
+    if (!activeRoundForTests) return null;
+
+    // First try to get testType directly from round
+    if (activeRoundForTests.testType) {
+      return activeRoundForTests.testType;
+    }
+
+    // If not available, map from roundName
+    if (activeRoundForTests.roundName) {
+      return getTestTypeFromRoundName(activeRoundForTests.roundName);
+    }
+
+    return null;
+  }, [activeRoundForTests]);
+
   const handleViewScores = () => {
     const campaignId =
       campaignRoundData?.campaignId ||
@@ -354,10 +402,18 @@ const ExaminerApplyList = () => {
       return;
     }
 
+    // Get testType from activeRoundForTests or map from roundName
+    let testType = activeRoundForTests?.testType;
+    if (!testType && activeRoundForTests?.roundName) {
+      testType = getTestTypeFromRoundName(activeRoundForTests.roundName);
+    }
+
     navigate(`/examiner/campaigns/${campaignId}/score-list`, {
       state: {
         roundId: roundFilter,
         campaignRoundData,
+        testType,
+        roundName: activeRoundForTests?.roundName,
       },
     });
   };
@@ -389,8 +445,7 @@ const ExaminerApplyList = () => {
             </button>
             <div>
               <h1 className="text-2xl font-extrabold md:text-3xl">
-                Danh sách ứng viên -{" "}
-                {campaignRoundData?.roundName || "Đợt tuyển dụng"}
+                Danh sách ứng viên - {campaignRoundData?.roundName || "N/A"}
               </h1>
               <p className="mt-1 text-sm text-white/90">
                 Sàng lọc và đánh giá ứng viên tuyển dụng & thăng bậc
@@ -457,9 +512,11 @@ const ExaminerApplyList = () => {
                 Danh sách ứng viên ({filteredApplicants.length})
               </h3>
               <div className="flex flex-col w-full gap-3 md:flex-row md:w-auto md:items-center">
-                {["8", "9"].includes(String(roundFilter)) && (
+                {isEnglishTestRound && (
                   <div className="flex flex-col items-start gap-1">
-                    {campaignRoundData?.testId === null ? (
+                    {!activeRoundForTests?.testId ||
+                    activeRoundForTests?.testId === 0 ||
+                    activeRoundForTests?.testId === null ? (
                       <button
                         onClick={handleOpenTestModal}
                         className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -670,7 +727,7 @@ const ExaminerApplyList = () => {
         onClose={handleCloseTestModal}
         onSelectTest={handleSelectTest}
         selectedTestId={selectedTest?.id}
-        testType={activeRoundForTests?.testType}
+        testType={testTypeForModal}
       />
     </div>
   );

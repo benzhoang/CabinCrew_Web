@@ -1,19 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaSearch, FaBell } from "react-icons/fa";
+import { FaEye } from "react-icons/fa6";
 import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
 import TestModal from "../../../components/ExaminerComponent/TestModal";
 import NotificationModal from "../../../components/ExaminerComponent/NotificationModal";
-
-const formatDate = (isoString) => {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return isoString;
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+import { getTestSessionsByType } from "../../../service/api2";
 
 // Sample data
 const defaultCandidates = [
@@ -99,21 +91,92 @@ const ScoreListPage = () => {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [testSessions, setTestSessions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const { id: campaignRoundId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const examInfo = location?.state?.examInfo || {};
+  const { testType, roundName, roundId } = location?.state || {};
+
+  // Check if this is an English Speaking test
+  const isSpeakingTest = useMemo(() => {
+    if (testType === 2) return true;
+    if (roundName && roundName.toLowerCase().includes("speaking")) return true;
+    return false;
+  }, [testType, roundName]);
+
+  // Fetch test sessions by testType
+  useEffect(() => {
+    const fetchTestSessions = async () => {
+      if (!testType) {
+        setTestSessions([]);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await getTestSessionsByType({
+          testType,
+          roundId: roundId || undefined,
+        });
+
+        if (result.success && result.data) {
+          // Handle different response structures
+          let sessions = [];
+          if (Array.isArray(result.data)) {
+            sessions = result.data;
+          } else if (result.data.items && Array.isArray(result.data.items)) {
+            sessions = result.data.items;
+          } else if (result.data.data && Array.isArray(result.data.data)) {
+            sessions = result.data.data;
+          }
+
+          // Transform API data to match display format
+          const transformedSessions = sessions.map((session) => ({
+            id: session.testSessionId || session.id,
+            testSessionId: session.testSessionId,
+            userId: session.userId,
+            name: session.userFullName || session.name,
+            email: session.userEmail || session.email,
+            photo: session.imgURL || session.photo,
+            totalScore: session.totalScore || 0,
+            maxScore: session.maxScore || session["maxScore"] || 0,
+            testName: session.testName,
+            testType: session.testType,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            createdAt: session.createdAt || session.startTime,
+          }));
+
+          setTestSessions(transformedSessions);
+        } else {
+          setError(result.error || "Không thể lấy danh sách điểm");
+          setTestSessions([]);
+        }
+      } catch (err) {
+        console.error("Error fetching test sessions:", err);
+        setError(err.message || "Không thể lấy danh sách điểm");
+        setTestSessions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestSessions();
+  }, [testType, roundId]);
 
   const filteredCandidates = useMemo(() => {
-    if (!searchQuery.trim()) return defaultCandidates;
+    const candidates = testSessions.length > 0 ? testSessions : [];
+    if (!searchQuery.trim()) return candidates;
     const query = searchQuery.toLowerCase();
-    return defaultCandidates.filter(
+    return candidates.filter(
       (candidate) =>
-        candidate.name.toLowerCase().includes(query) ||
-        candidate.email.toLowerCase().includes(query) ||
-        candidate.phone.includes(query)
+        (candidate.name || "").toLowerCase().includes(query) ||
+        (candidate.email || "").toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, testSessions]);
 
   const handleNotificationClick = (notification) => {
     // Find candidate by candidateId and show complaint modal
@@ -165,34 +228,46 @@ const ScoreListPage = () => {
           </button>
         </div>
         <div className="p-6 mt-4 bg-white border border-gray-200 shadow-sm rounded-2xl">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">
-            Thông tin bài kiểm tra
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Thông tin bài kiểm tra
+            </h3>
+            <button
+              onClick={() => {
+                navigate(
+                  `/examiner/campaigns/${campaignRoundId}/test-question/${testSessions[0]?.testId}`
+                );
+              }}
+              className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
+            >
+              Xem chi tiết
+            </button>
+          </div>
           <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div>
+            {/* <div>
               <p className="text-gray-500">Mã đề:</p>
               <p className="mt-1 font-semibold text-gray-900">
                 {examInfo?.testCode || "—"}
               </p>
-            </div>
+            </div> */}
             <div>
               <p className="text-gray-500">Tên bài kiểm tra:</p>
               <p className="mt-1 font-semibold text-gray-900">
-                {examInfo?.testName || "—"}
+                {testSessions[0]?.testName || "—"}
               </p>
             </div>
             <div>
-              <p className="text-gray-500">Vòng:</p>
+              <p className="text-gray-500">Loại bài kiểm tra:</p>
               <p className="mt-1 font-semibold text-gray-900">
-                {examInfo?.roundName || "—"}
+                {roundName || testSessions[0]?.roundName || "—"}
               </p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-gray-500">Địa điểm:</p>
               <p className="mt-1 font-semibold text-gray-900">
                 {examInfo?.location || "—"}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -230,84 +305,111 @@ const ScoreListPage = () => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse table-auto">
-            <thead>
-              <tr className="text-sm text-left text-gray-600 border-b border-gray-200 bg-gray-50">
-                <th className="px-5 py-3 font-semibold">ẢNH 4X6</th>
-                <th className="px-5 py-3 font-semibold">ỨNG VIÊN</th>
-                <th className="px-5 py-3 font-semibold">LIÊN HỆ</th>
-                <th className="px-5 py-3 font-semibold">NGÀY ỨNG TUYỂN</th>
-                <th className="px-5 py-3 font-semibold">ĐIỂM</th>
-                <th className="px-5 py-3 font-semibold">VÒNG</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCandidates.map((candidate, idx) => (
-                <tr
-                  key={candidate.id}
-                  className={
-                    idx % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-gray-100"
-                  }
-                >
-                  <td className="px-5 py-4">
-                    <div className="flex items-center justify-center w-16 h-20 overflow-hidden bg-gray-200 rounded">
-                      {candidate.photo ? (
-                        <img
-                          src={candidate.photo}
-                          alt={candidate.name}
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <span className="text-xs text-gray-400">No Photo</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {candidate.name}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-600">
-                        {candidate.education}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div>
-                      <p className="text-sm text-gray-700">{candidate.email}</p>
-                      <p className="mt-1 text-xs text-gray-600">
-                        {candidate.phone}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
-                    {formatDate(candidate.appliedDate)}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                        candidate.score >= 85
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {candidate.score}/100
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <RoundBadge value={candidate.round} />
-                  </td>
+          {loading ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-500">Đang tải danh sách điểm...</p>
+            </div>
+          ) : error ? (
+            <div className="p-12 text-center">
+              <p className="text-red-500">{error}</p>
+            </div>
+          ) : (
+            <table className="min-w-full border-collapse table-auto">
+              <thead>
+                <tr className="text-sm text-left text-gray-600 border-b border-gray-200 bg-gray-50">
+                  <th className="px-5 py-3 font-semibold">ẢNH 4X6</th>
+                  <th className="px-5 py-3 font-semibold">ỨNG VIÊN</th>
+                  <th className="px-5 py-3 font-semibold">EMAIL</th>
+                  {!isSpeakingTest && (
+                    <th className="px-5 py-3 font-semibold">ĐIỂM</th>
+                  )}
+                  <th className="px-5 py-3 font-semibold">HÀNH ĐỘNG</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredCandidates.map((candidate, idx) => (
+                  <tr
+                    key={candidate.id || candidate.testSessionId}
+                    className={
+                      idx % 2 === 0
+                        ? "bg-white"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-center w-16 h-20 overflow-hidden bg-gray-200 rounded">
+                        {candidate.photo ? (
+                          <img
+                            src={candidate.photo}
+                            alt={candidate.name || "No name"}
+                            className="object-cover w-full h-full"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo";
+                            }}
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-400">
+                            No Photo
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {candidate.name || "—"}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          {candidate.email || "—"}
+                        </p>
+                      </div>
+                    </td>
+                    {!isSpeakingTest && (
+                      <td className="px-5 py-4">
+                        {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                              candidate.maxScore > 0 &&
+                              candidate.totalScore / candidate.maxScore >= 0.7
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {candidate.totalScore}/{candidate.maxScore}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">—</span>
+                        )}
+                      </td>
+                    )}
+                    <td className="px-5 py-4">
+                      <button
+                        className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
+                        title="Xem chi tiết"
+                        onClick={() => {
+                          console.log("Xem chi tiết", candidate);
+                        }}
+                      >
+                        <FaEye className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
-        {filteredCandidates.length === 0 && (
-          <div className="p-12 text-center">
-            <p className="text-gray-500">Không tìm thấy ứng viên nào</p>
-          </div>
-        )}
+          {!loading && !error && filteredCandidates.length === 0 && (
+            <div className="p-12 text-center">
+              <p className="text-gray-500">Không tìm thấy ứng viên nào</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modals */}
