@@ -59,6 +59,12 @@ const TestListPage = () => {
   };
 
   const toggleDropdown = (examId) => {
+    const selectedTest = tests.find((test) => test.testId === examId);
+    // Không cho mở dropdown nếu đã hoàn thành
+    if (selectedTest?.hasCompleted) {
+      return;
+    }
+
     if (expandedExamId === examId) {
       setExpandedExamId(null);
     } else {
@@ -186,6 +192,11 @@ const TestListPage = () => {
                         <h3 className="text-xl font-bold text-gray-800">
                           {test.testName}
                         </h3>
+                        {test.hasCompleted && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            {t("completed") || "Đã hoàn thành"}
+                          </span>
+                        )}
                       </div>
                       <p className="mb-4 text-sm text-gray-600">
                         Đề thi Practical - Round {test.roundId}
@@ -205,17 +216,23 @@ const TestListPage = () => {
                     </div>
                     <button
                       onClick={() => toggleDropdown(test.testId)}
-                      className="px-6 py-3 ml-4 font-medium text-white transition-all duration-200 bg-blue-800 rounded-lg hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
+                      disabled={test.hasCompleted}
+                      className={`px-6 py-3 ml-4 font-medium text-white transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap ${test.hasCompleted
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-800 hover:bg-blue-900"
+                        }`}
                     >
-                      {expandedExamId === test.testId
-                        ? t("close") || "Đóng"
-                        : t("enter_exam") || "Vào làm bài"}
+                      {test.hasCompleted
+                        ? t("completed") || "Đã hoàn thành"
+                        : expandedExamId === test.testId
+                          ? t("close") || "Đóng"
+                          : t("enter_exam") || "Vào làm bài"}
                     </button>
                   </div>
                 </div>
 
-                {/* Password Dropdown */}
-                {expandedExamId === test.testId && (
+                {/* Password Dropdown - Chỉ hiển thị khi chưa hoàn thành */}
+                {expandedExamId === test.testId && !test.hasCompleted && (
                   <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
                     <div className="flex items-end gap-4">
                       <div className="flex-1">

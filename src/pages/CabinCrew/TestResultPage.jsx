@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { toast } from "react-toastify";
 import AppealModal from "../../components/CabinCrewComponent/AppealModal";
+import { getMyPracticalSessions } from "../../service/api";
 
 const TestResultPage = () => {
   const { id: campaignId } = useParams();
@@ -12,6 +13,8 @@ const TestResultPage = () => {
   const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
   const [isAppealSubmitted, setIsAppealSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [apiData, setApiData] = useState(null);
+  const [error, setError] = useState(null);
 
   // Lấy dữ liệu từ location state
   const {
@@ -27,6 +30,7 @@ const TestResultPage = () => {
     examInfo,
     totalScore,
     maxScore,
+    testId: stateTestId,
   } = location.state || {};
 
   // re-render on language change
@@ -35,64 +39,116 @@ const TestResultPage = () => {
     return () => off();
   }, []);
 
-  // Nếu không có dữ liệu, chuyển về trang test
+  // Load dữ liệu từ API
   useEffect(() => {
-    // Kiểm tra sau một khoảng thời gian ngắn để đảm bảo component đã render
-    const timer = setTimeout(() => {
-      if (!location.state || score === undefined) {
-        navigate("/cabin-crew/tests");
-      } else {
-        setIsLoading(false);
+    const loadPracticalSessions = async () => {
+      try {
+        setIsLoading(true);
+        const result = await getMyPracticalSessions();
+
+        console.log("API Result:", result);
+
+        if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+          // Lấy session mới nhất hoặc session có testId phù hợp với campaignId
+          let selectedSession = result.data[0]; // Mặc định lấy session đầu tiên
+
+          // Nếu có campaignId trong URL params, tìm session phù hợp
+          if (campaignId) {
+            const matchingSession = result.data.find(
+              (session) => session.testId?.toString() === campaignId.toString()
+            );
+            if (matchingSession) {
+              selectedSession = matchingSession;
+            }
+          }
+
+          console.log("Selected Session:", selectedSession);
+
+          // Map dữ liệu từ API sang format của component
+          const mappedData = {
+            score: selectedSession.totalScore || 0,
+            totalQuestions: selectedSession.totalAnswers || 0,
+            totalScore: selectedSession.totalScore || 0,
+            maxScore: selectedSession.maxScore || 0,
+            userFullName: selectedSession.userFullName || "",
+            userEmail: selectedSession.userEmail || "",
+            imgURL: selectedSession.imgURL || "",
+            examInfo: {
+              testName: selectedSession.testName || "",
+              testType: selectedSession.testType || "",
+              testId: selectedSession.testId || 0,
+            },
+            startTime: selectedSession.startTime,
+            endTime: selectedSession.endTime,
+            status: selectedSession.status,
+            testSessionId: selectedSession.testSessionId,
+          };
+
+          console.log("Mapped Data:", mappedData);
+          setApiData(mappedData);
+          setIsLoading(false);
+        } else {
+          // Nếu có location.state, vẫn cho phép hiển thị
+          if (location.state && score !== undefined) {
+            setIsLoading(false);
+          } else {
+            // Không có dữ liệu từ API, chuyển về trang test
+            setError("Không tìm thấy kết quả bài thi");
+            setTimeout(() => {
+              navigate("/cabin-crew/tests");
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading practical sessions:", err);
+        // Nếu có location.state, vẫn cho phép hiển thị
+        if (location.state && score !== undefined) {
+          setIsLoading(false);
+        } else {
+          setError("Không thể tải kết quả bài thi");
+          setTimeout(() => {
+            navigate("/cabin-crew/tests");
+          }, 2000);
+        }
       }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [navigate, score, location.state]);
-
-  // Tính phần trăm với giá trị mặc định
-  const safeScore = score !== undefined ? score : 0;
-  const safeTotalQuestions = totalQuestions || 0;
-  const percentage =
-    safeTotalQuestions > 0
-      ? Math.round((safeScore / safeTotalQuestions) * 100)
-      : 0;
-
-  // Xác định kết quả
-  const getResultStatus = () => {
-    if (percentage >= 80)
-      return {
-        status: "excellent",
-        bgColor: "bg-green-100",
-        textColor: "text-green-600",
-        textColorDark: "text-green-700",
-        text: t("excellent") || "Xuất sắc",
-      };
-    if (percentage >= 60)
-      return {
-        status: "good",
-        bgColor: "bg-blue-100",
-        textColor: "text-blue-600",
-        textColorDark: "text-blue-700",
-        text: t("good") || "Tốt",
-      };
-    if (percentage >= 40)
-      return {
-        status: "average",
-        bgColor: "bg-yellow-100",
-        textColor: "text-yellow-600",
-        textColorDark: "text-yellow-700",
-        text: t("average") || "Trung bình",
-      };
-    return {
-      status: "poor",
-      bgColor: "bg-red-100",
-      textColor: "text-red-600",
-      textColorDark: "text-red-700",
-      text: t("poor") || "Cần cải thiện",
     };
-  };
 
-  const resultStatus = getResultStatus();
+    loadPracticalSessions();
+  }, [location.state, score, navigate, campaignId]);
+
+  // Debug: Log apiData khi nó thay đổi
+  useEffect(() => {
+    console.log("apiData updated:", apiData);
+  }, [apiData]);
+
+  // Ưu tiên dữ liệu từ location.state, nếu không có thì dùng từ API
+  const finalTotalScore = totalScore !== undefined ? totalScore : (apiData?.totalScore || 0);
+  const finalMaxScore = maxScore !== undefined ? maxScore : (apiData?.maxScore || 0);
+  const finalExamInfo = examInfo || apiData?.examInfo || {};
+  const finalUserFullName = apiData?.userFullName || "";
+  const finalUserEmail = apiData?.userEmail || "";
+  const finalImgURL = apiData?.imgURL || "";
+  const finalTestName = finalExamInfo?.testName || "";
+  const finalTestType = finalExamInfo?.testType || "";
+  const finalStartTime = apiData?.startTime || "";
+  const finalEndTime = apiData?.endTime || "";
+
+  const safeScore = score !== undefined ? score : (apiData?.score || 0);
+  const safeTotalQuestions = totalQuestions || (apiData?.totalQuestions || 0);
+
+  // Debug: Log các giá trị final
+  useEffect(() => {
+    console.log("Final values:", {
+      finalUserFullName,
+      finalUserEmail,
+      finalImgURL,
+      finalTestName,
+      finalTestType,
+      finalStartTime,
+      finalEndTime,
+      apiData
+    });
+  }, [finalUserFullName, finalUserEmail, finalImgURL, finalTestName, finalTestType, finalStartTime, finalEndTime, apiData]);
 
   const handleBackToTest = () => {
     navigate(`/cabin-crew/tests/${campaignId}`);
@@ -113,7 +169,7 @@ const TestResultPage = () => {
     setIsAppealModalOpen(false);
     toast.success(
       t("appeal_submitted_success") ||
-        "Yêu cầu phúc khảo đã được gửi thành công!"
+      "Yêu cầu phúc khảo đã được gửi thành công!"
     );
   };
 
@@ -129,14 +185,13 @@ const TestResultPage = () => {
     );
   }
 
-  // Nếu không có dữ liệu, hiển thị thông báo
-  if (!location.state || score === undefined) {
+  // Nếu không có dữ liệu từ cả location.state và API, hiển thị thông báo
+  if ((!location.state || score === undefined) && !apiData && !isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
-            {t("no_test_data") ||
-              "Không có dữ liệu bài thi. Đang chuyển hướng..."}
+            {error || t("no_test_data") || "Không có dữ liệu bài thi. Đang chuyển hướng..."}
           </p>
         </div>
       </div>
@@ -152,77 +207,162 @@ const TestResultPage = () => {
             {t("exam_result_title") || "Kết quả bài thi"}
           </h1>
           <p className="text-gray-600">
-            {examInfo?.testName ||
+            {finalExamInfo?.testName ||
               t("exam_result_subtitle") ||
               "Xem chi tiết kết quả bài thi của bạn"}
           </p>
         </div>
 
         {/* Kết quả chính */}
-        <div className="p-8 mb-6 bg-white shadow-lg rounded-xl">
-          <div className="text-center">
+        <div className="p-6 mb-6 bg-white shadow-lg rounded-xl">
+          <div className="space-y-6">
             {/* Điểm số lớn */}
-            <div
-              className={`mb-6 inline-block p-8 rounded-full ${resultStatus.bgColor}`}
-            >
-              <div
-                className={`text-6xl font-bold ${resultStatus.textColor} mb-2`}
-              >
-                {safeScore}/{safeTotalQuestions}
-              </div>
-              <div
-                className={`text-2xl font-semibold ${resultStatus.textColorDark}`}
-              >
-                {percentage}%
-              </div>
-            </div>
-            {typeof totalScore === "number" && typeof maxScore === "number" && (
-              <p className="mb-4 text-sm text-gray-500">
-                {t("total_score") || "Tổng điểm"}: {totalScore}/{maxScore}
-              </p>
-            )}
-
-            {/* Trạng thái */}
-            <div
-              className={`text-xl font-semibold ${resultStatus.textColor} mb-6`}
-            >
-              {resultStatus.text}
-            </div>
-
-            {/* Thống kê */}
-            <div className="grid grid-cols-3 gap-4 mt-8">
-              <div className="p-4 rounded-lg bg-green-50">
-                <div className="text-2xl font-bold text-green-600">
-                  {correctAnswers || 0}
-                </div>
-                <div className="mt-1 text-sm text-green-700">
-                  {t("correct_answers") || "Câu đúng"}
-                </div>
-              </div>
-              <div className="p-4 rounded-lg bg-red-50">
-                <div className="text-2xl font-bold text-red-600">
-                  {wrongAnswers || 0}
-                </div>
-                <div className="mt-1 text-sm text-red-700">
-                  {t("wrong_answers") || "Câu sai"}
-                </div>
-              </div>
-              <div className="p-4 rounded-lg bg-gray-50">
-                <div className="text-2xl font-bold text-gray-600">
-                  {unansweredQuestions || 0}
-                </div>
-                <div className="mt-1 text-sm text-gray-700">
-                  {t("unanswered_questions") || "Chưa trả lời"}
+            <div className="text-center">
+              <div className="inline-block p-6 rounded-full bg-red-100">
+                <div className="text-5xl font-bold text-red-600">
+                  {finalMaxScore > 0
+                    ? `${finalTotalScore}/${finalMaxScore}`
+                    : `${safeScore}/${safeTotalQuestions}`
+                  }
                 </div>
               </div>
             </div>
 
-            {/* Thời gian làm bài */}
-            {timeSpent && (
-              <div className="mt-6 text-sm text-gray-600">
-                {t("time_spent") || "Thời gian làm bài"}: {timeSpent}
-              </div>
-            )}
+            {/* Container chung cho tất cả thông tin */}
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* User Info Section */}
+              {(finalImgURL || finalUserFullName || finalUserEmail) && (
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="flex flex-col items-center mb-4">
+                    {finalImgURL && (
+                      <img
+                        src={finalImgURL}
+                        alt="User Avatar"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
+                        onError={(e) => {
+                          console.error("Image load error:", finalImgURL);
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {finalUserFullName && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("full_name") || "Họ và tên"}
+                        </label>
+                        <p className="text-base font-semibold text-gray-800">
+                          {finalUserFullName}
+                        </p>
+                      </div>
+                    )}
+
+                    {finalUserEmail && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("email") || "Email"}
+                        </label>
+                        <p className="text-base font-semibold text-gray-800">
+                          {finalUserEmail}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Test Info Section */}
+              {(finalTestName || finalTestType) && (
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {finalTestName && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("test_name") || "Tên bài thi"}
+                        </label>
+                        <p className="text-base font-semibold text-gray-800">
+                          {finalTestName}
+                        </p>
+                      </div>
+                    )}
+
+                    {finalTestType && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("test_type") || "Loại bài thi"}
+                        </label>
+                        <p className="text-base font-semibold text-gray-800">
+                          {finalTestType}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Time Info Section */}
+              {(finalStartTime || finalEndTime) && (
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {finalStartTime && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("start_time") || "Thời gian bắt đầu"}
+                        </label>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {new Date(finalStartTime).toLocaleString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    {finalEndTime && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("end_time") || "Thời gian kết thúc"}
+                        </label>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {new Date(finalEndTime).toLocaleString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    {finalStartTime && finalEndTime && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                          {t("time_spent") || "Thời gian làm bài"}
+                        </label>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {(() => {
+                            const start = new Date(finalStartTime);
+                            const end = new Date(finalEndTime);
+                            const diffMs = end - start;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+                            return `${diffMins}:${String(diffSecs).padStart(2, '0')}`;
+                          })()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -243,8 +383,8 @@ const TestResultPage = () => {
                   typeof submittedAnswer?.isCorrect === "boolean"
                     ? submittedAnswer.isCorrect
                     : question.correctAnswer
-                    ? userAnswer === question.correctAnswer
-                    : false;
+                      ? userAnswer === question.correctAnswer
+                      : false;
                 const isAnswered =
                   userAnswer !== undefined &&
                   userAnswer !== null &&
@@ -267,13 +407,12 @@ const TestResultPage = () => {
                 return (
                   <div
                     key={question.id}
-                    className={`border-2 rounded-lg p-4 ${
-                      isCorrect
-                        ? "border-green-200 bg-green-50"
-                        : isAnswered
+                    className={`border-2 rounded-lg p-4 ${isCorrect
+                      ? "border-green-200 bg-green-50"
+                      : isAnswered
                         ? "border-red-200 bg-red-50"
                         : "border-gray-200 bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -398,6 +537,7 @@ const TestResultPage = () => {
         isOpen={isAppealModalOpen}
         onClose={closeAppealModal}
         onConfirm={handleConfirmAppeal}
+        testSessionId={apiData?.testSessionId}
       />
     </div>
   );

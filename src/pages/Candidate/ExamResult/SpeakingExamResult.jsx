@@ -43,7 +43,17 @@ const SpeakingExamResult = () => {
                         selectedSession = response.data[0]; // Lấy session đầu tiên (mới nhất)
                     }
 
-                    setSessionData(selectedSession);
+                    // Map dữ liệu từ API sang format của component
+                    const mappedData = {
+                        ...selectedSession,
+                        userFullName: selectedSession.userFullName || "",
+                        userEmail: selectedSession.userEmail || "",
+                        imgURL: selectedSession.imgURL || "",
+                        startTime: selectedSession.startTime,
+                        endTime: selectedSession.endTime,
+                    };
+
+                    setSessionData(mappedData);
                 } else {
                     // Nếu không có dữ liệu từ API, sử dụng dữ liệu từ location.state
                     if (!questions) {
@@ -111,6 +121,13 @@ const SpeakingExamResult = () => {
 
     const timeSpent = calculateTimeSpent();
 
+    // Lấy các giá trị final từ sessionData
+    const finalUserFullName = sessionData?.userFullName || "";
+    const finalUserEmail = sessionData?.userEmail || "";
+    const finalImgURL = sessionData?.imgURL || "";
+    const finalStartTime = sessionData?.startTime || "";
+    const finalEndTime = sessionData?.endTime || "";
+
     // Format time as MM:SS
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -173,55 +190,174 @@ const SpeakingExamResult = () => {
                     </p>
                 </div>
 
-                {/* Thống kê */}
-                <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-                    <div className="text-center">
-                        <div className="mb-6 inline-block p-8 rounded-full bg-blue-100">
-                            <div className="text-6xl font-bold text-blue-600 mb-2">
-                                {recordedCount || 0}/{totalQuestions || 0}
-                            </div>
-                            <div className="text-lg text-blue-700">
-                                {t('submitted_recordings') || 'Câu đã nộp'}
-                            </div>
-                        </div>
-
-                        {/* Thống kê chi tiết */}
-                        <div className="grid grid-cols-2 gap-4 mt-8">
-                            <div className="bg-green-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-green-600">{recordedCount || 0}</div>
-                                <div className="text-sm text-green-700 mt-1">
-                                    {t('submitted_recordings') || 'Câu đã nộp file'}
-                                </div>
-                            </div>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <div className="text-2xl font-bold text-gray-600">{unansweredCount || 0}</div>
-                                <div className="text-sm text-gray-700 mt-1">
-                                    {t('unsubmitted_recordings') || 'Câu chưa nộp file'}
+                {/* Kết quả chính */}
+                <div className="p-6 mb-6 bg-white shadow-lg rounded-xl">
+                    <div className="space-y-6">
+                        {/* Điểm số lớn */}
+                        <div className="text-center">
+                            <div className="inline-block p-6 rounded-full bg-blue-100">
+                                <div className="text-5xl font-bold text-blue-600">
+                                    {recordedCount || 0}/{totalQuestions || 0}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Thời gian làm bài */}
-                        {timeSpent && (
-                            <div className="mt-6 text-sm text-gray-600">
-                                {t('time_spent') || 'Thời gian làm bài'}: {timeSpent}
+                        {/* Đường kẻ ngang */}
+                        <div className="border-t border-gray-200"></div>
+
+                        {/* Container chung cho tất cả thông tin */}
+                        <div className="max-w-3xl mx-auto space-y-6">
+                            {/* User Info Section */}
+                            {(finalImgURL || finalUserFullName || finalUserEmail) && (
+                                <div className="pt-6">
+                                    {finalImgURL && (
+                                        <div className="flex flex-col items-center mb-4">
+                                            <img
+                                                src={finalImgURL}
+                                                alt="User Avatar"
+                                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
+                                                onError={(e) => {
+                                                    console.error("Image load error:", finalImgURL);
+                                                    e.target.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-4">
+                                        {finalUserFullName && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("full_name") || "Họ và tên"}
+                                                </label>
+                                                <p className="text-base font-semibold text-gray-800">
+                                                    {finalUserFullName}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {finalUserEmail && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("email") || "Email"}
+                                                </label>
+                                                <p className="text-base font-semibold text-gray-800">
+                                                    {finalUserEmail}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Test Info Section */}
+                            {sessionData?.testName && (
+                                <div className="border-t border-gray-200 pt-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {sessionData.testName && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("test_name") || "Tên bài thi"}
+                                                </label>
+                                                <p className="text-base font-semibold text-gray-800">
+                                                    {sessionData.testName}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("max_score") || "Điểm tối đa"}
+                                                </label>
+                                                <p className="text-base font-semibold text-gray-800">
+                                                    {sessionData.maxScore}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Time Info Section */}
+                            {(finalStartTime || finalEndTime) && (
+                                <div className="border-t border-gray-200 pt-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {finalStartTime && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("start_time") || "Thời gian bắt đầu"}
+                                                </label>
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {new Date(finalStartTime).toLocaleString('vi-VN', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        second: '2-digit',
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {finalEndTime && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("end_time") || "Thời gian kết thúc"}
+                                                </label>
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {new Date(finalEndTime).toLocaleString('vi-VN', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        second: '2-digit',
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {finalStartTime && finalEndTime && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("time_spent") || "Thời gian làm bài"}
+                                                </label>
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {(() => {
+                                                        const start = new Date(finalStartTime);
+                                                        const end = new Date(finalEndTime);
+                                                        const diffMs = end - start;
+                                                        const diffMins = Math.floor(diffMs / 60000);
+                                                        const diffSecs = Math.floor((diffMs % 60000) / 1000);
+                                                        return `${diffMins}:${String(diffSecs).padStart(2, '0')}`;
+                                                    })()}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Thống kê chi tiết */}
+                            <div className="border-t border-gray-200 pt-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-green-50 rounded-lg p-4">
+                                        <div className="text-2xl font-bold text-green-600">{recordedCount || 0}</div>
+                                        <div className="text-sm text-green-700 mt-1">
+                                            {t('submitted_recordings') || 'Câu đã nộp file'}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <div className="text-2xl font-bold text-gray-600">{unansweredCount || 0}</div>
+                                        <div className="text-sm text-gray-700 mt-1">
+                                            {t('unsubmitted_recordings') || 'Câu chưa nộp file'}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                        {/* Thông tin bài thi từ API */}
-                        {sessionData && (
-                            <div className="mt-4 text-sm text-gray-500">
-                                <p>{t('test_name') || 'Tên bài thi'}: {sessionData.testName}</p>
-                                {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
-                                    <p>{t('max_score') || 'Điểm tối đa'}: {sessionData.maxScore}</p>
-                                )}
-                                {sessionData.startTime && (
-                                    <p>{t('start_time') || 'Thời gian bắt đầu'}: {new Date(sessionData.startTime).toLocaleString('vi-VN')}</p>
-                                )}
-                                {sessionData.endTime && (
-                                    <p>{t('end_time') || 'Thời gian kết thúc'}: {new Date(sessionData.endTime).toLocaleString('vi-VN')}</p>
-                                )}
-                            </div>
-                        )}
+                        </div>
                     </div>
                 </div>
 
@@ -337,6 +473,7 @@ const SpeakingExamResult = () => {
                 isOpen={isAppealModalOpen}
                 onClose={closeAppealModal}
                 onConfirm={handleConfirmAppeal}
+                testSessionId={sessionData?.testSessionId}
             />
         </div>
     );
