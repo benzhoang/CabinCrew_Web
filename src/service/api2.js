@@ -1311,6 +1311,36 @@ export const getMyTests = async () => {
   }
 };
 
+// API lấy chi tiết test theo ID
+export const getTestById = async (testId) => {
+  try {
+    const response = await api2.get(`/tests/${testId}`);
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy chi tiết đề thi",
+      };
+    }
+  } catch (error) {
+    console.error("API Error:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy chi tiết đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách câu hỏi theo testId - GET /api/v1/test-questions/test/{testId}
 export const getTestQuestionsByTestId = async (testId, options = {}) => {
   try {
@@ -1450,26 +1480,20 @@ export const updateRoundTestId = async (roundId, testId) => {
     };
 
     const response = await api2.put("/rounds/update-test-id", payload);
-    const responseData = response.data;
 
-    if (response.status >= 200 && response.status < 300) {
-      if (responseData?.code === 0 || responseData?.data) {
-        return {
-          success: true,
-          data: responseData?.data || null,
-          message:
-            responseData?.message || "Cập nhật bài thi cho round thành công",
-        };
-      }
+    // API trả về boolean true khi thành công (status 200)
+    if (response.status === 200 && response.data === true) {
+      return {
+        success: true,
+        data: true,
+        message: "Cập nhật bài thi cho round thành công",
+      };
     }
 
     return {
       success: false,
-      error:
-        responseData?.message ||
-        responseData?.errorMessage ||
-        "Không thể cập nhật bài thi cho round",
-      errorData: responseData,
+      error: "Không thể cập nhật bài thi cho round",
+      errorData: response.data,
     };
   } catch (error) {
     console.error("API Error updateRoundTestId:", error);

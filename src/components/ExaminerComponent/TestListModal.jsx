@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { getTestsForRounds } from "../../service/api2";
+import { getTestsForRounds, updateRoundTestId } from "../../service/api2";
+import { toast } from "react-toastify";
 
 const transformTestData = (item) => ({
   id: item.testId || item.id,
   name: item.testName || item.name || "Đề thi chưa có tên",
-
   totalQuestions: item.numberOfQuestions || item.totalQuestions || 0,
   status: item.status || "active",
   testType: item.testType || "Practical",
@@ -50,9 +50,12 @@ const TestListModal = ({
   onSelectTest,
   selectedTestId,
   testType,
+  roundId,
 }) => {
   const [tests, setTests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingTestId, setUpdatingTestId] = useState(null);
   const [error, setError] = useState(null);
 
   const normalizeResponseItems = (data) => {
@@ -81,11 +84,15 @@ const TestListModal = ({
         setTests(rawTests.map(transformTestData));
       } else {
         setTests([]);
-        setError(response.error || "Không thể lấy danh sách đề thi");
+        const message = response.error || "Không thể lấy danh sách đề thi";
+        setError(message);
+        toast.error(message);
       }
     } catch (err) {
       setTests([]);
-      setError(err.message || "Không thể lấy danh sách đề thi");
+      const message = err.message || "Không thể lấy danh sách đề thi";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +103,9 @@ const TestListModal = ({
       fetchTests();
     } else if (isOpen && !testType) {
       setTests([]);
-      setError("Vui lòng chọn vòng kiểm tra để xem danh sách đề thi");
+      const message = "Vui lòng chọn vòng kiểm tra để xem danh sách đề thi";
+      setError(message);
+      toast.error(message);
     }
   }, [isOpen, testType, fetchTests]);
 
@@ -164,10 +173,56 @@ const TestListModal = ({
                   </div>
                   {onSelectTest && (
                     <button
-                      onClick={() => onSelectTest(test)}
-                      className="px-4 py-2 text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
+                      onClick={async () => {
+                        if (!roundId) {
+                          const message = "Không tìm thấy roundId";
+                          setError(message);
+                          toast.error(message);
+                          return;
+                        }
+                        setIsUpdating(true);
+                        setUpdatingTestId(test.id);
+                        setError(null);
+                        try {
+                          const result = await updateRoundTestId(
+                            roundId,
+                            test.id
+                          );
+                          console.log("Result: ", result);
+                          if (result.success) {
+                            toast.success(
+                              "Cập nhật đề thi cho vòng kiểm tra thành công"
+                            );
+                            onSelectTest?.(test);
+                            onClose?.();
+                            // Reload lại trang danh sách sau khi cập nhật thành công
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 800);
+                          } else {
+                            const message =
+                              result.error ||
+                              "Không thể cập nhật bài thi cho round";
+                            setError(message);
+                            toast.error(message);
+                          }
+                        } catch (err) {
+                          const message =
+                            err.message ||
+                            "Không thể cập nhật bài thi cho round";
+                          setError(message);
+                          toast.error(message);
+                        } finally {
+                          setIsUpdating(false);
+                          setUpdatingTestId(null);
+                        }
+                      }}
+                      disabled={isUpdating && updatingTestId === test.id}
+                      className="px-4 py-2 text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Chọn đề này
+                      {isUpdating && updatingTestId === test.id
+                        ? "Đang cập nhật..."
+                        : "Chọn đề này"}
                     </button>
                   )}
                 </div>

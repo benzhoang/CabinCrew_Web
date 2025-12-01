@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { onLangChange } from "../../../i18n";
-import { FaFilePen } from "react-icons/fa6";
+import { FaRegEye, FaFilePen } from "react-icons/fa6";
 import TestListModal from "../../../components/ExaminerComponent/TestListModal";
 import {
   getCampaignRoundById,
   getRoundParticipants,
 } from "../../../service/api2";
 import { formatDate } from "../../../config/formatDate";
-import { FaFile } from "react-icons/fa";
 
 const ExaminerApplyList = () => {
   const [applicantSearchTerm, setApplicantSearchTerm] = useState("");
@@ -24,7 +23,8 @@ const ExaminerApplyList = () => {
   const navigate = useNavigate();
   const params = useParams();
 
-  const campaignRoundId = params.id;
+  const campaignRoundId = params.campaignRoundId;
+  const campaignId = params.id;
   const isViewingBatch = Boolean(campaignRoundId);
 
   useEffect(() => {
@@ -345,7 +345,7 @@ const ExaminerApplyList = () => {
   };
 
   const goBackToCampaigns = () => {
-    navigate(-1);
+    navigate(`/examiner/campaigns/${campaignId}`);
   };
 
   const handleOpenTestModal = () => {
@@ -392,11 +392,6 @@ const ExaminerApplyList = () => {
   }, [activeRoundForTests]);
 
   const handleViewScores = () => {
-    const campaignId =
-      campaignRoundData?.campaignId ||
-      campaignRoundData?.campaign?.campaignId ||
-      campaignRoundId;
-
     if (!campaignId) {
       console.warn("Không tìm thấy campaignId để xem bài thi");
       return;
@@ -408,14 +403,17 @@ const ExaminerApplyList = () => {
       testType = getTestTypeFromRoundName(activeRoundForTests.roundName);
     }
 
-    navigate(`/examiner/campaigns/${campaignId}/score-list`, {
-      state: {
-        roundId: roundFilter,
-        campaignRoundData,
-        testType,
-        roundName: activeRoundForTests?.roundName,
-      },
-    });
+    navigate(
+      `/examiner/campaigns/${campaignId}/score-list/${campaignRoundId}`,
+      {
+        state: {
+          roundId: roundFilter,
+          testType,
+          testId: activeRoundForTests?.testId,
+          roundName: activeRoundForTests?.roundName,
+        },
+      }
+    );
   };
 
   // Render applicant list view
@@ -529,17 +527,9 @@ const ExaminerApplyList = () => {
                         onClick={handleViewScores}
                         className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-green-600 rounded-lg shadow-sm hover:bg-green-700"
                       >
-                        <FaFile className="w-5 h-5" />
+                        <FaRegEye className="w-5 h-5" />
                         Xem bài thi
                       </button>
-                    )}
-                    {selectedTest && (
-                      <span className="text-xs text-slate-500">
-                        Đang chọn:{" "}
-                        <span className="font-semibold text-slate-700">
-                          {selectedTest.name}
-                        </span>
-                      </span>
                     )}
                   </div>
                 )}
@@ -728,6 +718,7 @@ const ExaminerApplyList = () => {
         onSelectTest={handleSelectTest}
         selectedTestId={selectedTest?.id}
         testType={testTypeForModal}
+        roundId={activeRoundForTests?.roundId}
       />
     </div>
   );

@@ -153,10 +153,7 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
     const statusMap = {
       Ongoing: "ongoing",
       Completed: "completed",
-      Planned: "planned",
       Upcoming: "upcoming",
-      Paused: "paused",
-      Cancelled: "cancelled",
     };
 
     return {
@@ -200,15 +197,9 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
     const map = {
       ongoing: { text: "Đang diễn ra", color: "bg-green-100 text-green-700" },
       completed: { text: "Hoàn thành", color: "bg-blue-100 text-blue-700" },
-      planned: {
-        text: "Đã lên kế hoạch",
-        color: "bg-slate-100 text-slate-700",
-      },
       upcoming: { text: "Sắp diễn ra", color: "bg-yellow-100 text-yellow-800" },
-      paused: { text: "Tạm dừng", color: "bg-orange-100 text-orange-700" },
-      cancelled: { text: "Hủy", color: "bg-red-100 text-red-700" },
     };
-    return map[status] || map.planned;
+    return map[status] || map.upcoming;
   };
 
   const percent = (current, target) => {

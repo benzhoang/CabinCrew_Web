@@ -5,7 +5,7 @@ import { FaEye } from "react-icons/fa6";
 import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
 import TestModal from "../../../components/ExaminerComponent/TestModal";
 import NotificationModal from "../../../components/ExaminerComponent/NotificationModal";
-import { getTestSessionsByType } from "../../../service/api2";
+import { getTestById, getTestSessionsByType } from "../../../service/api2";
 
 // Sample data
 const defaultCandidates = [
@@ -77,13 +77,13 @@ const defaultCandidates = [
   },
 ];
 
-const RoundBadge = ({ value }) => {
-  return (
-    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 rounded-md bg-green-50">
-      {value}
-    </span>
-  );
-};
+// const RoundBadge = ({ value }) => {
+//   return (
+//     <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 rounded-md bg-green-50">
+//       {value}
+//     </span>
+//   );
+// };
 
 const ScoreListPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,10 +94,12 @@ const ScoreListPage = () => {
   const [testSessions, setTestSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { id: campaignRoundId } = useParams();
+  const [testInfo, setTestInfo] = useState(null);
+  const [testInfoLoading, setTestInfoLoading] = useState(false);
+  const { id: campaignId, campaignRoundId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { testType, roundName, roundId } = location?.state || {};
+  const { testType, roundName, roundId, testId } = location?.state || {};
 
   // Check if this is an English Speaking test
   const isSpeakingTest = useMemo(() => {
@@ -178,6 +180,44 @@ const ScoreListPage = () => {
     );
   }, [searchQuery, testSessions]);
 
+  const derivedTestId = useMemo(() => {
+    if (testId) return testId;
+    if (testSessions[0]?.testId) return testSessions[0].testId;
+    if (testSessions[0]?.id) return testSessions[0].id;
+    return null;
+  }, [testId, testSessions]);
+
+  useEffect(() => {
+    if (!derivedTestId) return;
+
+    let isMounted = true;
+    const fetchTestInfo = async () => {
+      setTestInfoLoading(true);
+      try {
+        const response = await getTestById(derivedTestId);
+        if (!isMounted) return;
+
+        if (response.success && response.data) {
+          setTestInfo(response.data);
+        } else {
+          setTestInfo(null);
+        }
+      } catch {
+        if (!isMounted) return;
+        setTestInfo(null);
+      } finally {
+        if (isMounted) {
+          setTestInfoLoading(false);
+        }
+      }
+    };
+
+    fetchTestInfo();
+    return () => {
+      isMounted = false;
+    };
+  }, [derivedTestId]);
+
   const handleNotificationClick = (notification) => {
     // Find candidate by candidateId and show complaint modal
     const candidate = defaultCandidates.find(
@@ -218,7 +258,9 @@ const ScoreListPage = () => {
           </div>
           <button
             onClick={() =>
-              navigate(`/examiner/campaigns/${campaignRoundId}/applications`)
+              navigate(
+                `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`
+              )
             }
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
             aria-label="Quay lại"
@@ -232,43 +274,48 @@ const ScoreListPage = () => {
             <h3 className="text-lg font-semibold text-gray-900">
               Thông tin bài kiểm tra
             </h3>
-            <button
-              onClick={() => {
-                navigate(
-                  `/examiner/campaigns/${campaignRoundId}/test-question/${testSessions[0]?.testId}`
-                );
-              }}
-              className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
-            >
-              Xem chi tiết
-            </button>
+            {!testInfoLoading && derivedTestId && (
+              <button
+                onClick={() => {
+                  if (!derivedTestId) return;
+                  navigate(
+                    `/examiner/campaigns/${campaignId}/test-question/${derivedTestId}`
+                  );
+                }}
+                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
+              >
+                Xem chi tiết
+              </button>
+            )}
           </div>
-          <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            {/* <div>
-              <p className="text-gray-500">Mã đề:</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {examInfo?.testCode || "—"}
-              </p>
-            </div> */}
-            <div>
-              <p className="text-gray-500">Tên bài kiểm tra:</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {testSessions[0]?.testName || "—"}
+          {testInfoLoading ? (
+            <div className="py-4 text-center">
+              <p className="text-gray-500">
+                Đang tải thông tin bài kiểm tra...
               </p>
             </div>
-            <div>
-              <p className="text-gray-500">Loại bài kiểm tra:</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {roundName || testSessions[0]?.roundName || "—"}
-              </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <p className="text-gray-500">ID bài kiểm tra:</p>
+                <p className="mt-1 font-semibold text-gray-900">
+                  {testInfo?.testId || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Tên bài kiểm tra:</p>
+                <p className="mt-1 font-semibold text-gray-900">
+                  {testInfo?.testName || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Loại bài kiểm tra:</p>
+                <p className="mt-1 font-semibold text-gray-900">
+                  {testInfo?.testType || "N/A"}
+                </p>
+              </div>
             </div>
-            {/* <div>
-              <p className="text-gray-500">Địa điểm:</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {examInfo?.location || "—"}
-              </p>
-            </div> */}
-          </div>
+          )}
         </div>
       </div>
       <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
@@ -373,11 +420,12 @@ const ScoreListPage = () => {
                       <td className="px-5 py-4">
                         {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${candidate.maxScore > 0 &&
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                              candidate.maxScore > 0 &&
                               candidate.totalScore / candidate.maxScore >= 0.7
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                              }`}
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
                           >
                             {candidate.totalScore}/{candidate.maxScore}
                           </span>
@@ -391,9 +439,12 @@ const ScoreListPage = () => {
                         className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
                         title="Xem chi tiết"
                         onClick={() => {
-                          const testSessionId = candidate.testSessionId || candidate.id;
+                          const testSessionId =
+                            candidate.testSessionId || candidate.id;
                           if (testSessionId) {
-                            navigate(`/examiner/candidate/test-session/${testSessionId}`);
+                            navigate(
+                              `/examiner/candidate/test-session/${testSessionId}`
+                            );
                           } else {
                             console.error("Không tìm thấy testSessionId");
                           }

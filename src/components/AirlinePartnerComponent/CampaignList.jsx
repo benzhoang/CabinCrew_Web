@@ -187,6 +187,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
+
         // Không gửi status filter lên API, sẽ filter ở client-side
         // Có thể API không hỗ trợ status filter hoặc format không đúng
         const params = {
