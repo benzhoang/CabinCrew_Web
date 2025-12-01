@@ -211,6 +211,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
+
         // Không gửi status filter lên API, sẽ filter ở client-side
         // Có thể API không hỗ trợ status filter hoặc format không đúng
         const params = {
@@ -251,7 +252,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     };
 
     fetchCampaigns();
-  }, [selectedStatus, campaignTypeFilter, search]);
+  }, [campaignTypeFilter, search]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();

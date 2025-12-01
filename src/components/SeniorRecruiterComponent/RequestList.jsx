@@ -143,14 +143,6 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         setLoading(true);
         setError(null);
 
-        // Map selectedStatus to API status format
-        const statusMap = {
-          all: undefined,
-          approved: "Approved",
-          pending: "Pending",
-          rejected: "Rejected",
-        };
-
         // Map campaignTypeFilter to API format
         const requestTypeMap = {
           all: undefined,
@@ -160,9 +152,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
 
         const params = {
           page: 1,
-          pageSize: 100,
+          pageSize: 5,
           searchTerm: search || undefined,
-          status: statusMap[selectedStatus],
+          // Không gửi status filter lên API, sẽ filter ở client-side
+          status: undefined,
           requestType: requestTypeMap[campaignTypeFilter],
         };
 
@@ -181,7 +174,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     };
 
     fetchRequests();
-  }, [search, selectedStatus, campaignTypeFilter]);
+  }, [search, campaignTypeFilter]);
 
   const filtered = useMemo(() => {
     // If status filter is "all", show all requests (API already filtered by status if selected)

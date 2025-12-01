@@ -51,7 +51,9 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
     }
 
     const campaignRoundId = batch.id || batch.campaignRoundId;
-    navigate(`/examiner/campaigns/${campaignRoundId}/applications`);
+    navigate(
+      `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`
+    );
   };
 
   return (
