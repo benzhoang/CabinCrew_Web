@@ -88,6 +88,7 @@ import DirectorApplyList from "./pages/Director/DirectorApplyList";
 import AirlineCampaignDetailPage from "./pages/AirlinePartner/AirlineCampaignDetailPage";
 import AirlineCampaignPage from "./pages/AirlinePartner/AirlineCampaignPage";
 import TestQuestionDetail from "./pages/Examiner/ExaminerDetail/TestQuestionDetail";
+import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerTestSessionDetail";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -707,6 +708,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <TestQuestionDetail />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/candidate/test-session/:testSessionId"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerTestSessionDetail />
               </main>
             </div>
           }

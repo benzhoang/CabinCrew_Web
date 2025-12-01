@@ -373,12 +373,11 @@ const ScoreListPage = () => {
                       <td className="px-5 py-4">
                         {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                              candidate.maxScore > 0 &&
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${candidate.maxScore > 0 &&
                               candidate.totalScore / candidate.maxScore >= 0.7
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                              }`}
                           >
                             {candidate.totalScore}/{candidate.maxScore}
                           </span>
@@ -392,7 +391,12 @@ const ScoreListPage = () => {
                         className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
                         title="Xem chi tiết"
                         onClick={() => {
-                          console.log("Xem chi tiết", candidate);
+                          const testSessionId = candidate.testSessionId || candidate.id;
+                          if (testSessionId) {
+                            navigate(`/examiner/candidate/test-session/${testSessionId}`);
+                          } else {
+                            console.error("Không tìm thấy testSessionId");
+                          }
                         }}
                       >
                         <FaEye className="w-5 h-5" />
