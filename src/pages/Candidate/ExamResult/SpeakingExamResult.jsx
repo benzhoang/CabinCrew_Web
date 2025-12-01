@@ -193,59 +193,57 @@ const SpeakingExamResult = () => {
                 {/* Kết quả chính */}
                 <div className="p-6 mb-6 bg-white shadow-lg rounded-xl">
                     <div className="space-y-6">
-                        {/* Điểm số lớn */}
-                        <div className="text-center">
-                            <div className="inline-block p-6 rounded-full bg-blue-100">
-                                <div className="text-5xl font-bold text-blue-600">
-                                    {recordedCount || 0}/{totalQuestions || 0}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Đường kẻ ngang */}
-                        <div className="border-t border-gray-200"></div>
-
                         {/* Container chung cho tất cả thông tin */}
                         <div className="max-w-3xl mx-auto space-y-6">
                             {/* User Info Section */}
                             {(finalImgURL || finalUserFullName || finalUserEmail) && (
-                                <div className="pt-6">
-                                    {finalImgURL && (
-                                        <div className="flex flex-col items-center mb-4">
-                                            <img
-                                                src={finalImgURL}
-                                                alt="User Avatar"
-                                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
-                                                onError={(e) => {
-                                                    console.error("Image load error:", finalImgURL);
-                                                    e.target.style.display = 'none';
-                                                }}
-                                            />
+                                <div className="border-t border-gray-200 pt-6">
+                                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                                        <div className="flex flex-col items-center md:flex-row md:items-center md:gap-6">
+                                            {finalImgURL && (
+                                                <img
+                                                    src={finalImgURL}
+                                                    alt="User Avatar"
+                                                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4 md:mb-0"
+                                                    onError={(e) => {
+                                                        console.error("Image load error:", finalImgURL);
+                                                        e.target.style.display = 'none';
+                                                    }}
+                                                />
+                                            )}
+
+                                            <div className="space-y-4 text-center md:text-left">
+                                                {finalUserFullName && (
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                            {t("full_name") || "Họ và tên"}
+                                                        </label>
+                                                        <p className="text-base font-semibold text-gray-800">
+                                                            {finalUserFullName}
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {finalUserEmail && (
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                            {t("email") || "Email"}
+                                                        </label>
+                                                        <p className="text-base font-semibold text-gray-800">
+                                                            {finalUserEmail}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
 
-                                    <div className="space-y-4">
-                                        {finalUserFullName && (
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                    {t("full_name") || "Họ và tên"}
-                                                </label>
-                                                <p className="text-base font-semibold text-gray-800">
-                                                    {finalUserFullName}
-                                                </p>
+                                        <div className="flex justify-center md:justify-end w-full md:w-auto">
+                                            <div className="inline-block p-6 rounded-full bg-blue-100">
+                                                <div className="text-4xl font-bold text-blue-600">
+                                                    {recordedCount || 0}/{totalQuestions || 0}
+                                                </div>
                                             </div>
-                                        )}
-
-                                        {finalUserEmail && (
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                    {t("email") || "Email"}
-                                                </label>
-                                                <p className="text-base font-semibold text-gray-800">
-                                                    {finalUserEmail}
-                                                </p>
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             )}

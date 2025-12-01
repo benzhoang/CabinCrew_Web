@@ -2300,6 +2300,79 @@ export const getInterviewResultDetail = async (id) => {
   }
 };
 
+// API submit Interview Result
+// Body: { activityId: number, comment: string, type: number (1: Recruitment, 2: Promotion), choices: [{ score: number, comment: string, interviewCriteriaItemId: number }] }
+export const submitInterviewResult = async (payload) => {
+  if (!payload) {
+    return {
+      success: false,
+      error: "Thiếu dữ liệu để gửi kết quả phỏng vấn",
+    };
+  }
+
+  if (!payload.activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để gửi kết quả phỏng vấn",
+    };
+  }
+
+  if (payload.type === undefined || payload.type === null) {
+    return {
+      success: false,
+      error: "Thiếu type để gửi kết quả phỏng vấn (1: Recruitment, 2: Promotion)",
+    };
+  }
+
+  if (!Array.isArray(payload.choices)) {
+    return {
+      success: false,
+      error: "Thiếu choices (mảng các lựa chọn) để gửi kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api.post("/interview-results", {
+      activityId: Number(payload.activityId),
+      comment: payload.comment || "",
+      type: Number(payload.type),
+      choices: payload.choices.map((choice) => ({
+        score: Number(choice.score) || 0,
+        comment: choice.comment || "",
+        interviewCriteriaItemId: Number(choice.interviewCriteriaItemId) || 0,
+      })),
+    });
+
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || null,
+        message: responseData.message || "Gửi kết quả phỏng vấn thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể gửi kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể gửi kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API submit multiple-choice test answers (Listening và Practical tests)
 // Format theo API documentation:
 // POST /api/v1/test-sessions/submit-multiple-choice
@@ -3177,6 +3250,244 @@ export const getUserApplication = async (userId) => {
   }
 };
 
+// API lấy thông tin chi tiết bài làm theo testSessionId
+// GET /api/v1/test-sessions/{id}
+export const getTestSessionById = async (testSessionId) => {
+  try {
+    // Kiểm tra testSessionId hợp lệ
+    if (!testSessionId) {
+      return {
+        success: false,
+        error: "Test Session ID không được để trống",
+      };
+    }
+
+    // Convert testSessionId sang number nếu là string
+    const idNum =
+      typeof testSessionId === "string"
+        ? parseInt(testSessionId, 10)
+        : Number(testSessionId);
+    if (isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    console.log("Endpoint: GET /test-sessions/" + idNum);
+
+    const response = await api.get(`/test-sessions/${idNum}`);
+
+    const responseData = response.data;
+
+    console.log("Raw API Response:", response);
+    console.log("Response Data:", responseData);
+    console.log("Response Code:", responseData?.code);
+    console.log("Response Data.data:", responseData?.data);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      console.log("API Success - Data:", responseData.data);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy thông tin bài làm thành công",
+      };
+    }
+
+    // Nếu không có code hoặc code khác 0, nhưng vẫn có data, vẫn trả về success
+    if (responseData?.data) {
+      console.log("API Success (no code check) - Data:", responseData.data);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy thông tin bài làm thành công",
+      };
+    }
+
+    console.error("API Error - No data in response");
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy thông tin bài làm",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error getTestSessionById:", error);
+    console.error("Error response:", error.response?.data);
+
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy thông tin bài làm",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách câu trả lời chi tiết trong phiên kiểm tra
+export const getTestSessionAnswers = async (testSessionId) => {
+  try {
+    // Kiểm tra testSessionId hợp lệ
+    if (!testSessionId) {
+      return {
+        success: false,
+        error: "Test Session ID không được để trống",
+      };
+    }
+
+    // Convert testSessionId sang number nếu là string
+    const idNum =
+      typeof testSessionId === "string"
+        ? parseInt(testSessionId, 10)
+        : Number(testSessionId);
+    if (isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    console.log("Endpoint: GET /test-sessions/" + idNum + "/answers");
+
+    const response = await api.get(`/test-sessions/${idNum}/answers`);
+
+    const responseData = response.data;
+
+    console.log("Raw API Response getTestSessionAnswers:", response);
+    console.log("Response Data:", responseData);
+    console.log("Response Code:", responseData?.code);
+    console.log("Response Data.data:", responseData?.data);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      console.log("API Success - Answers Data:", responseData.data);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy danh sách câu trả lời thành công",
+      };
+    }
+
+    // Nếu không có code hoặc code khác 0, nhưng vẫn có data, vẫn trả về success
+    if (responseData?.data) {
+      console.log("API Success (no code check) - Answers Data:", responseData.data);
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy danh sách câu trả lời thành công",
+      };
+    }
+
+    console.error("API Error - No data in response");
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách câu trả lời",
+      errorData: responseData,
+    };
+  } catch (error) {
+    console.error("API Error getTestSessionAnswers:", error);
+    console.error("Error response:", error.response?.data);
+
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách câu trả lời",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API chấm điểm câu trả lời trong phiên kiểm tra (dùng cho Speaking / chấm tay)
+// Body dự kiến: { testSessionId: number, answerScores: { [answerId]: { criteriaScores: { [criteriaName]: number }, isCorrect: boolean } } }
+export const scoreTestSessionAnswers = async (payload) => {
+  try {
+    if (!payload || !payload.testSessionId || !payload.answerScores) {
+      return {
+        success: false,
+        error: "Thiếu dữ liệu testSessionId hoặc answerScores để chấm điểm",
+      };
+    }
+
+    const idNum =
+      typeof payload.testSessionId === "string"
+        ? parseInt(payload.testSessionId, 10)
+        : Number(payload.testSessionId);
+
+    if (isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    const requestBody = {
+      testSessionId: idNum,
+      answerScores: payload.answerScores,
+    };
+
+    // Endpoint backend: PUT /test-sessions/{testSessionId}/answers/score
+    const response = await api.put(
+      `/test-sessions/${idNum}/answers/score`,
+      requestBody
+    );
+    const responseData = response.data || {};
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    const businessCode = Number(responseData.code ?? responseData.errorCode);
+    const isBusinessSuccess =
+      businessCode === 0 ||
+      businessCode === 2 ||
+      responseData.status === true ||
+      responseData.status === "success";
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Chấm điểm bài thi thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.errorMessage ||
+        responseData.message ||
+        "Không thể chấm điểm bài thi",
+      errorCode: responseData.errorCode ?? responseData.code,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.errorMessage ||
+        errorData?.message ||
+        error.message ||
+        "Không thể chấm điểm bài thi",
+      status: error.response?.status,
+      errorCode: errorData?.errorCode ?? errorData?.code,
+    };
+  }
+};
+
 // API tạo yêu cầu phúc khảo (enquiry request)
 export const createEnquiryRequest = async (testSessionId, reason) => {
   try {
@@ -3318,3 +3629,4 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
 };
 
 export default api;
+

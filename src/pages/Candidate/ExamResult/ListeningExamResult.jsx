@@ -23,10 +23,7 @@ const ListeningExamResult = () => {
         correctAnswers,
         wrongAnswers,
         unansweredQuestions,
-        answers,
-        questions,
         timeSpent,
-        submittedAnswers,
         examInfo,
         totalScore,
         maxScore,
@@ -216,62 +213,61 @@ const ListeningExamResult = () => {
                 {/* Kết quả chính */}
                 <div className="p-6 mb-6 bg-white shadow-lg rounded-xl">
                     <div className="space-y-6">
-                        {/* Điểm số lớn */}
-                        <div className="text-center">
-                            <div className="inline-block p-6 rounded-full bg-red-100">
-                                <div className="text-5xl font-bold text-red-600">
-                                    {finalMaxScore > 0
-                                        ? `${finalTotalScore}/${finalMaxScore}`
-                                        : `${safeScore}/${safeTotalQuestions}`
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Container chung cho tất cả thông tin */}
                         <div className="max-w-3xl mx-auto space-y-6">
                             {/* User Info Section */}
-                            {(finalImgURL || finalUserFullName || finalUserEmail) && (
-                                <div className="border-t border-gray-200 pt-6">
-                                    <div className="flex flex-col items-center mb-4">
+                            <div className="border-t border-gray-200 pt-6">
+                                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                                    <div className="flex flex-col items-center md:flex-row md:items-center md:gap-6">
                                         {finalImgURL && (
                                             <img
                                                 src={finalImgURL}
                                                 alt="User Avatar"
-                                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
+                                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4 md:mb-0"
                                                 onError={(e) => {
                                                     console.error("Image load error:", finalImgURL);
                                                     e.target.style.display = 'none';
                                                 }}
                                             />
                                         )}
+
+                                        <div className="space-y-4 text-center md:text-left">
+                                            {finalUserFullName && (
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                        {t("full_name") || "Họ và tên"}
+                                                    </label>
+                                                    <p className="text-base font-semibold text-gray-800">
+                                                        {finalUserFullName}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {finalUserEmail && (
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                        {t("email") || "Email"}
+                                                    </label>
+                                                    <p className="text-base font-semibold text-gray-800">
+                                                        {finalUserEmail}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        {finalUserFullName && (
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                    {t("full_name") || "Họ và tên"}
-                                                </label>
-                                                <p className="text-base font-semibold text-gray-800">
-                                                    {finalUserFullName}
-                                                </p>
+                                    <div className="flex justify-center md:justify-end w-full md:w-auto">
+                                        <div className="inline-block p-6 rounded-full bg-red-100">
+                                            <div className="text-4xl font-bold text-red-600">
+                                                {finalMaxScore > 0
+                                                    ? `${finalTotalScore}/${finalMaxScore}`
+                                                    : `${safeScore}/${safeTotalQuestions}`
+                                                }
                                             </div>
-                                        )}
-
-                                        {finalUserEmail && (
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                                    {t("email") || "Email"}
-                                                </label>
-                                                <p className="text-base font-semibold text-gray-800">
-                                                    {finalUserEmail}
-                                                </p>
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
                             {/* Test Info Section */}
                             {(finalTestName || finalTestType) && (
@@ -365,122 +361,6 @@ const ListeningExamResult = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Chi tiết từng câu hỏi */}
-                {questions && answers && (
-                    <div className="p-8 bg-white shadow-lg rounded-xl">
-                        <h2 className="mb-6 text-xl font-bold text-gray-800">
-                            {t("detailed_results") || "Chi tiết kết quả"}
-                        </h2>
-                        <div className="space-y-4">
-                            {questions.map((question, index) => {
-                                const submittedAnswer = submittedAnswers?.find(
-                                    (ans) => Number(ans.questionId) === Number(question.id)
-                                );
-                                const userAnswer =
-                                    answers[question.id] || submittedAnswer?.selectedOptionKey;
-                                const isCorrect =
-                                    typeof submittedAnswer?.isCorrect === "boolean"
-                                        ? submittedAnswer.isCorrect
-                                        : question.correctAnswer
-                                            ? userAnswer === question.correctAnswer
-                                            : false;
-                                const isAnswered =
-                                    userAnswer !== undefined &&
-                                    userAnswer !== null &&
-                                    userAnswer !== "";
-
-                                const mappedOptions =
-                                    question.options?.map((option, optIndex) => {
-                                        const optionKey =
-                                            option?.key || String.fromCharCode(65 + optIndex);
-                                        const optionLabel =
-                                            typeof option === "string"
-                                                ? option
-                                                : option?.label || option?.optionContent || "";
-                                        return {
-                                            key: optionKey,
-                                            label: optionLabel,
-                                        };
-                                    }) || [];
-
-                                return (
-                                    <div
-                                        key={question.id}
-                                        className={`border-2 rounded-lg p-4 ${isCorrect
-                                            ? "border-green-200 bg-green-50"
-                                            : isAnswered
-                                                ? "border-red-200 bg-red-50"
-                                                : "border-gray-200 bg-gray-50"
-                                            }`}
-                                    >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex-1">
-                                                <div className="mb-2 font-semibold text-gray-800">
-                                                    {t("question") || "Câu hỏi"} {index + 1}:{" "}
-                                                    {question.question}
-                                                </div>
-                                                <div className="space-y-2">
-                                                    {mappedOptions.map((option) => {
-                                                        const isUserAnswer = userAnswer === option.key;
-                                                        const baseClasses = "flex items-center p-2 rounded";
-                                                        const stateClasses = isUserAnswer
-                                                            ? isCorrect
-                                                                ? " bg-green-100 border border-green-300"
-                                                                : " bg-red-100 border border-red-300"
-                                                            : " bg-gray-50";
-
-                                                        return (
-                                                            <div
-                                                                key={option.key}
-                                                                className={`${baseClasses}${stateClasses}`}
-                                                            >
-                                                                <span className="mr-2 font-medium">
-                                                                    {option.key}.
-                                                                </span>
-                                                                <span className="text-gray-700">
-                                                                    {option.label}
-                                                                </span>
-                                                                {isUserAnswer && (
-                                                                    <span className="ml-auto font-semibold">
-                                                                        {isCorrect ? (
-                                                                            <span className="text-green-600">
-                                                                                ✓ {t("your_answer") || "Đáp án của bạn"}
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className="text-red-600">
-                                                                                ✗ {t("your_answer") || "Đáp án của bạn"}
-                                                                            </span>
-                                                                        )}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                            <div className="ml-4">
-                                                {isCorrect ? (
-                                                    <span className="px-3 py-1 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
-                                                        ✓ {t("correct") || "Đúng"}
-                                                    </span>
-                                                ) : isAnswered ? (
-                                                    <span className="px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                                                        ✗ {t("incorrect") || "Sai"}
-                                                    </span>
-                                                ) : (
-                                                    <span className="px-3 py-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
-                                                        {t("not_answered") || "Chưa trả lời"}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
 
                 {/* Nút quay lại và phúc khảo */}
                 <div className="flex justify-center gap-4 mt-8">
