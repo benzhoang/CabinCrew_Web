@@ -3409,6 +3409,151 @@ export const getTestSessionAnswers = async (testSessionId) => {
   }
 };
 
+// API lấy danh sách câu trả lời kèm tiêu chí chấm điểm
+export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
+  try {
+    if (!testSessionId) {
+      return {
+        success: false,
+        error: "Test Session ID không được để trống",
+      };
+    }
+
+    const idNum =
+      typeof testSessionId === "string"
+        ? parseInt(testSessionId, 10)
+        : Number(testSessionId);
+    if (isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    const response = await api.get(
+      `/test-sessions/${idNum}/answers-with-criteria`
+    );
+    const responseData = response.data;
+
+    if (responseData?.code === 0 && Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy câu trả lời thành công",
+      };
+    }
+
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy câu trả lời thành công",
+      };
+    }
+
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy câu trả lời thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy câu trả lời",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy câu trả lời",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật điểm sau khi xử lý phúc khảo
+export const updateEnquiryRequestScore = async (
+  testSessionId,
+  answerScores,
+  newReason
+) => {
+  try {
+    if (!testSessionId) {
+      return {
+        success: false,
+        error: "Test Session ID không được để trống",
+      };
+    }
+
+    const idNum =
+      typeof testSessionId === "string"
+        ? parseInt(testSessionId, 10)
+        : Number(testSessionId);
+    if (isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Test Session ID không hợp lệ",
+      };
+    }
+
+    const payload = {
+      answerScores: answerScores || {},
+    };
+    if (newReason && newReason.trim()) {
+      payload.newReason = newReason.trim();
+    }
+
+    const response = await api.put(
+      `/enquiry-requests/${idNum}/score`,
+      payload
+    );
+    const responseData = response.data;
+
+    if (
+      response.status >= 200 &&
+      response.status < 300 &&
+      (responseData?.code === 0 ||
+        responseData?.errorCode === 0 ||
+        responseData?.status === true)
+    ) {
+      return {
+        success: true,
+        data: responseData.data,
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Cập nhật phúc khảo thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể cập nhật phúc khảo",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể cập nhật phúc khảo",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API chấm điểm câu trả lời trong phiên kiểm tra (dùng cho Speaking / chấm tay)
 // Body dự kiến: { testSessionId: number, answerScores: { [answerId]: { criteriaScores: { [criteriaName]: number }, isCorrect: boolean } } }
 export const scoreTestSessionAnswers = async (payload) => {

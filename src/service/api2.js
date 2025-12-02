@@ -1831,4 +1831,51 @@ export const submitMultipleChoiceTest = async (
   }
 };
 
+// API chuyển ứng viên từ test round sang interview round
+export const moveToInterview = async (roundId) => {
+  try {
+    const roundIdNum =
+      typeof roundId === "string" ? parseInt(roundId, 10) : Number(roundId);
+
+    if (!roundIdNum || Number.isNaN(roundIdNum) || roundIdNum <= 0) {
+      return {
+        success: false,
+        error: "Round ID không hợp lệ",
+      };
+    }
+
+    const payload = {
+      roundId: roundIdNum,
+    };
+
+    const response = await api2.post("/round-activities/move-to-interview", payload);
+
+    // API trả về code 200 khi thành công
+    if (response.status === 200 && response.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || "Chuyển vòng thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Không thể chuyển vòng",
+      errorData: response.data,
+    };
+  } catch (error) {
+    console.error("API Error moveToInterview:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể chuyển vòng",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;
