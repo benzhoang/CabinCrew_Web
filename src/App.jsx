@@ -69,6 +69,7 @@ import ExamResultPage from "./pages/Candidate/ExamResult/ExamResultPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ExaminerDetail/ScoreListPage";
+import AppealDetail from "./pages/Examiner/ExaminerDetail/AppealUpdate/AppealDetail";
 import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
@@ -708,6 +709,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <TestQuestionDetail />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/appeal/:testSessionId"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <AppealDetail />
               </main>
             </div>
           }

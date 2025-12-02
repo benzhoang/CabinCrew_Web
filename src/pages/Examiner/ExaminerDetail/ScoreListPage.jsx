@@ -1,81 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaSearch, FaBell } from "react-icons/fa";
-import { FaEye } from "react-icons/fa6";
+import { FaEye, FaFilePen } from "react-icons/fa6";
 import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
 import TestModal from "../../../components/ExaminerComponent/TestModal";
 import NotificationModal from "../../../components/ExaminerComponent/NotificationModal";
 import { getTestById, getTestSessionsByType } from "../../../service/api2";
-
-// Sample data
-const defaultCandidates = [
-  {
-    id: 1,
-    name: "Nguyễn Thị Lan",
-    education: "Đại học Ngoại thương",
-    email: "lan.nguyen@email.com",
-    phone: "0901234567",
-    appliedDate: "2025-10-15",
-    score: 85,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=3",
-  },
-  {
-    id: 2,
-    name: "Trần Văn Minh",
-    education: "Đại học Bách khoa",
-    email: "minh.tran@email.com",
-    phone: "0912345678",
-    appliedDate: "2025-10-16",
-    score: 92,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=1",
-  },
-  {
-    id: 3,
-    name: "Lê Thị Hương",
-    education: "Cao đẳng Du lịch",
-    email: "huong.le@email.com",
-    phone: "0923456789",
-    appliedDate: "2025-10-17",
-    score: 78,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=2",
-  },
-  {
-    id: 4,
-    name: "Phạm Văn Đức",
-    education: "Đại học Kinh tế",
-    email: "duc.pham@email.com",
-    phone: "0934567890",
-    appliedDate: "2025-10-18",
-    score: 88,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=4",
-  },
-  {
-    id: 5,
-    name: "Võ Thị Mai",
-    education: "Đại học Sư phạm",
-    email: "mai.vo@email.com",
-    phone: "0945678901",
-    appliedDate: "2025-10-19",
-    score: 90,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=5",
-  },
-  {
-    id: 6,
-    name: "Võ Thị Mai",
-    education: "Đại học Sư phạm",
-    email: "mai.vo@email.com",
-    phone: "0945678901",
-    appliedDate: "2025-10-19",
-    score: 90,
-    round: "Vòng kiểm tra",
-    photo: "https://i.pravatar.cc/150?img=6",
-  },
-];
 
 // const RoundBadge = ({ value }) => {
 //   return (
@@ -150,6 +80,7 @@ const ScoreListPage = () => {
             startTime: session.startTime,
             endTime: session.endTime,
             createdAt: session.createdAt || session.startTime,
+            status: session.status !== undefined ? session.status : null,
           }));
 
           setTestSessions(transformedSessions);
@@ -219,9 +150,9 @@ const ScoreListPage = () => {
   }, [derivedTestId]);
 
   const handleNotificationClick = (notification) => {
-    // Find candidate by candidateId and show complaint modal
-    const candidate = defaultCandidates.find(
-      (c) => c.id === notification.candidateId
+    // Find candidate by candidateId from testSessions and show complaint modal
+    const candidate = testSessions.find(
+      (c) => c.id === notification.candidateId || c.testSessionId === notification.candidateId
     );
     if (candidate) {
       setSelectedCandidate(candidate);
@@ -242,6 +173,32 @@ const ScoreListPage = () => {
   const handleBackToNotifications = () => {
     setShowComplaintModal(false);
     setShowNotificationModal(true);
+  };
+
+  const getStatusBadge = (status) => {
+    // Nếu status là null hoặc undefined, hiển thị "Chưa xác định"
+    if (status === null || status === undefined) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+          Chưa xác định
+        </span>
+      );
+    }
+
+    // status: true → "Đạt", false → "Phúc khảo"
+    if (status === true) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+          Đạt
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+          Phúc khảo
+        </span>
+      );
+    }
   };
 
   return (
@@ -367,6 +324,7 @@ const ScoreListPage = () => {
                   <th className="px-5 py-3 font-semibold">ẢNH 4X6</th>
                   <th className="px-5 py-3 font-semibold">ỨNG VIÊN</th>
                   <th className="px-5 py-3 font-semibold">EMAIL</th>
+                  <th className="px-5 py-3 font-semibold">TRẠNG THÁI</th>
                   {!isSpeakingTest && (
                     <th className="px-5 py-3 font-semibold">ĐIỂM</th>
                   )}
@@ -416,16 +374,18 @@ const ScoreListPage = () => {
                         </p>
                       </div>
                     </td>
+                    <td className="px-5 py-4">
+                      {getStatusBadge(candidate.status)}
+                    </td>
                     {!isSpeakingTest && (
                       <td className="px-5 py-4">
                         {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                              candidate.maxScore > 0 &&
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${candidate.maxScore > 0 &&
                               candidate.totalScore / candidate.maxScore >= 0.7
-                                ? "bg-green-100 text-green-700"
-                                : "bg-red-100 text-red-700"
-                            }`}
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                              }`}
                           >
                             {candidate.totalScore}/{candidate.maxScore}
                           </span>
@@ -435,23 +395,47 @@ const ScoreListPage = () => {
                       </td>
                     )}
                     <td className="px-5 py-4">
-                      <button
-                        className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
-                        title="Xem chi tiết"
-                        onClick={() => {
-                          const testSessionId =
-                            candidate.testSessionId || candidate.id;
-                          if (testSessionId) {
-                            navigate(
-                              `/examiner/candidate/test-session/${testSessionId}`
-                            );
-                          } else {
-                            console.error("Không tìm thấy testSessionId");
-                          }
-                        }}
-                      >
-                        <FaEye className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
+                          title="Xem chi tiết"
+                          onClick={() => {
+                            const testSessionId =
+                              candidate.testSessionId || candidate.id;
+                            if (testSessionId) {
+                              navigate(
+                                `/examiner/candidate/test-session/${testSessionId}`
+                              );
+                            } else {
+                              console.error("Không tìm thấy testSessionId");
+                            }
+                          }}
+                        >
+                          <FaEye className="w-5 h-5" />
+                        </button>
+                        <button
+                          className="p-2 text-yellow-600 transition-colors rounded hover:text-yellow-900 hover:bg-yellow-100"
+                          title="Phúc khảo"
+                          onClick={() => {
+                            const testSessionId =
+                              candidate.testSessionId || candidate.id;
+                            if (testSessionId) {
+                              navigate(`/examiner/appeal/${testSessionId}`, {
+                                state: {
+                                  candidate,
+                                  campaignId,
+                                  campaignRoundId,
+                                  testType,
+                                },
+                              });
+                            } else {
+                              console.error("Không tìm thấy testSessionId");
+                            }
+                          }}
+                        >
+                          <FaFilePen className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
