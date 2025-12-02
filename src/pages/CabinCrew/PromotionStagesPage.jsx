@@ -74,15 +74,11 @@ const PromotionStagesPage = () => {
             });
 
             if (matchedRound) {
-              const status = matchedRound.status?.toLowerCase() || "";
+              const status = (matchedRound.status || "").toLowerCase();
               const isCompleted =
                 status === "completed" ||
                 status === "passed" ||
                 status === "finished";
-              const isActive =
-                status === "in progress" ||
-                status === "ongoing" ||
-                status === "active";
 
               return {
                 id: hardcodedStage.id,
@@ -90,7 +86,6 @@ const PromotionStagesPage = () => {
                 name: hardcodedStage.name,
                 nameEn: hardcodedStage.nameEn,
                 completed: isCompleted,
-                active: isActive,
                 date: matchedRound.date || null,
                 status: matchedRound.status || "",
               };
@@ -102,33 +97,45 @@ const PromotionStagesPage = () => {
                 name: hardcodedStage.name,
                 nameEn: hardcodedStage.nameEn,
                 completed: false,
-                active: false,
                 date: null,
-                status: "pending",
+                status: "Pending",
               };
             }
           });
 
-          // Xác định currentStage dựa trên stage đã hoàn thành hoặc đang active
+          // Xác định currentStage dựa trên số stage đã hoàn thành
           const completedCount = mappedStages.filter(
             (stage) => stage.completed
           ).length;
 
-          // Tìm stage đang active
-          const activeStageIndex = mappedStages.findIndex(
-            (stage) => stage.active && !stage.completed
-          );
+          // Kiểm tra xem có stage nào bị Failed không
+          const failedStageIndex = mappedStages.findIndex((stage) => {
+            const status = (stage?.status || "").toLowerCase();
+            return [
+              "failed",
+              "fail",
+              "rejected",
+              "not passed",
+              "did not pass",
+            ].some((keyword) => status.includes(keyword));
+          });
 
           let currentStageIndex;
-          if (activeStageIndex !== -1) {
-            currentStageIndex = activeStageIndex + 1;
+
+          // Nếu có stage Failed, hiển thị stage đó
+          if (failedStageIndex !== -1) {
+            currentStageIndex = failedStageIndex + 1;
           } else {
+            // Nếu không có Failed, tính dựa trên số stage đã hoàn thành
             currentStageIndex = completedCount + 1;
+
+            // Nếu tất cả rounds đã hoàn thành, currentStage là tổng số stage
+            if (currentStageIndex > mappedStages.length) {
+              currentStageIndex = mappedStages.length;
+            }
           }
 
-          if (currentStageIndex > mappedStages.length) {
-            currentStageIndex = mappedStages.length;
-          }
+          // Đảm bảo currentStage ít nhất là 1
           if (currentStageIndex < 1) {
             currentStageIndex = 1;
           }
@@ -216,10 +223,20 @@ const PromotionStagesPage = () => {
   //   return lang === "vi" ? stage.name : stage.nameEn;
   // };
 
+  const isStageFailed = (stage) => {
+    const status = (stage?.status || "").toLowerCase();
+    return ["failed", "fail", "rejected", "not passed", "did not pass"].some(
+      (keyword) => status.includes(keyword)
+    );
+  };
+
   const getStageColor = (stage, currentStage, stageIndex) => {
+    if (isStageFailed(stage)) {
+      return "bg-red-500 text-white";
+    }
     if (stage.completed) {
       return "bg-green-500 text-white";
-    } else if (stage.active || stageIndex + 1 === currentStage) {
+    } else if (stageIndex + 1 === currentStage) {
       return "bg-yellow-500 text-white";
     } else {
       return "bg-gray-300 text-gray-600";
@@ -227,9 +244,20 @@ const PromotionStagesPage = () => {
   };
 
   const getStageIcon = (stage, currentStage, stageIndex) => {
+    if (isStageFailed(stage)) {
+      return (
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-10.95a1 1 0 10-1.414-1.414L10 7.758 7.879 5.636a1 1 0 00-1.414 1.414L8.586 9l-2.121 2.121a1 1 0 101.414 1.414L10 10.414l2.121 2.121a1 1 0 001.414-1.414L11.414 9l2.122-2.121z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    }
     if (stage.completed) {
       return <FaCheck className="w-4 h-4" />;
-    } else if (stage.active || stageIndex + 1 === currentStage) {
+    } else if (stageIndex + 1 === currentStage) {
       return <FaEllipsisH className="w-4 h-4" />;
     } else {
       return <FaClock className="w-4 h-4" />;

@@ -152,7 +152,9 @@ const ScoreListPage = () => {
   const handleNotificationClick = (notification) => {
     // Find candidate by candidateId from testSessions and show complaint modal
     const candidate = testSessions.find(
-      (c) => c.id === notification.candidateId || c.testSessionId === notification.candidateId
+      (c) =>
+        c.id === notification.candidateId ||
+        c.testSessionId === notification.candidateId
     );
     if (candidate) {
       setSelectedCandidate(candidate);
@@ -179,7 +181,7 @@ const ScoreListPage = () => {
     // Nếu status là null hoặc undefined, hiển thị "Chưa xác định"
     if (status === null || status === undefined) {
       return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">
           Chưa xác định
         </span>
       );
@@ -188,13 +190,13 @@ const ScoreListPage = () => {
     // status: true → "Đạt", false → "Phúc khảo"
     if (status === true) {
       return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
           Đạt
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 rounded-full">
           Phúc khảo
         </span>
       );
@@ -202,7 +204,7 @@ const ScoreListPage = () => {
   };
 
   return (
-    <div className="w-full h-full p-6">
+    <div className="w-full h-full">
       <div className="mb-6">
         <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600">
           <div>
@@ -216,7 +218,12 @@ const ScoreListPage = () => {
           <button
             onClick={() =>
               navigate(
-                `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`
+                `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`,
+                {
+                  state: {
+                    roundId: roundId || undefined,
+                  },
+                }
               )
             }
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
@@ -381,11 +388,12 @@ const ScoreListPage = () => {
                       <td className="px-5 py-4">
                         {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${candidate.maxScore > 0 &&
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                              candidate.maxScore > 0 &&
                               candidate.totalScore / candidate.maxScore >= 0.7
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                              }`}
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
                           >
                             {candidate.totalScore}/{candidate.maxScore}
                           </span>

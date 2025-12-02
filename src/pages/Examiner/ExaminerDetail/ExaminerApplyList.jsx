@@ -1,9 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { onLangChange } from "../../../i18n";
 import { FaRegEye, FaFilePen, FaArrowRight } from "react-icons/fa6";
 import TestListModal from "../../../components/ExaminerComponent/TestListModal";
-import { getCampaignRoundById, getRoundParticipants, moveToInterview } from "../../../service/api2";
+import {
+  getCampaignRoundById,
+  getRoundParticipants,
+  moveToInterview,
+} from "../../../service/api2";
 import { formatDate } from "../../../config/formatDate";
 
 const ExaminerApplyList = () => {
@@ -20,6 +24,7 @@ const ExaminerApplyList = () => {
   const [isMovingToInterview, setIsMovingToInterview] = useState(false);
   const [isConfirmMoveOpen, setIsConfirmMoveOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
 
   const campaignRoundId = params.campaignRoundId;
@@ -31,35 +36,47 @@ const ExaminerApplyList = () => {
     return () => off();
   }, []);
 
+  // Đọc roundId từ location.state để set filter khi quay lại từ ScoreListPage
+  useEffect(() => {
+    const roundIdFromState = location?.state?.roundId;
+    if (roundIdFromState && roundIdFromState !== roundFilter) {
+      setRoundFilter(roundIdFromState);
+      // Clear state sau khi đã sử dụng để tránh set lại khi component re-render
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location?.state?.roundId]);
+
+  // Hàm fetch dữ liệu đợt tuyển - có thể gọi lại khi cần refresh
+  const fetchCampaignRoundData = useCallback(async () => {
+    if (!campaignRoundId) {
+      setCampaignRoundData(null);
+      setAvailableRounds([]);
+      return;
+    }
+
+    setLoadingRoundData(true);
+    try {
+      const result = await getCampaignRoundById(campaignRoundId);
+      if (result.success && result.data) {
+        setCampaignRoundData(result.data);
+        // Lưu danh sách rounds từ API để sử dụng cho filter
+        const rounds = result.data.rounds || [];
+        setAvailableRounds(rounds);
+      } else {
+        console.error("Lỗi khi lấy thông tin đợt tuyển:", result.error);
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API getCampaignRoundById:", error);
+    } finally {
+      setLoadingRoundData(false);
+    }
+  }, [campaignRoundId]);
+
   // Gọi API để lấy thông tin đợt tuyển khi đang xem batch
   useEffect(() => {
-    const fetchCampaignRoundData = async () => {
-      if (!campaignRoundId) {
-        setCampaignRoundData(null);
-        setAvailableRounds([]);
-        return;
-      }
-
-      setLoadingRoundData(true);
-      try {
-        const result = await getCampaignRoundById(campaignRoundId);
-        if (result.success && result.data) {
-          setCampaignRoundData(result.data);
-          // Lưu danh sách rounds từ API để sử dụng cho filter
-          const rounds = result.data.rounds || [];
-          setAvailableRounds(rounds);
-        } else {
-          console.error("Lỗi khi lấy thông tin đợt tuyển:", result.error);
-        }
-      } catch (error) {
-        console.error("Lỗi khi gọi API getCampaignRoundById:", error);
-      } finally {
-        setLoadingRoundData(false);
-      }
-    };
-
     fetchCampaignRoundData();
-  }, [campaignRoundId]);
+  }, [fetchCampaignRoundData]);
 
   // Gọi API để lấy danh sách participants theo roundId khi filter thay đổi
   useEffect(() => {
@@ -259,10 +276,7 @@ const ExaminerApplyList = () => {
       const speakingRound = availableRounds.find((round) => {
         const roundName = (round.roundName || "").toLowerCase();
         const testType = round.testType;
-        return (
-          testType === 2 ||
-          roundName.includes("speaking")
-        );
+        return testType === 2 || roundName.includes("speaking");
       });
       return speakingRound;
     }
@@ -271,7 +285,9 @@ const ExaminerApplyList = () => {
       // Tìm Interview round
       const interviewRound = availableRounds.find((round) => {
         const roundName = (round.roundName || "").toLowerCase();
-        return roundName.includes("interview") || roundName.includes("phỏng vấn");
+        return (
+          roundName.includes("interview") || roundName.includes("phỏng vấn")
+        );
       });
       return interviewRound;
     }
@@ -413,6 +429,8 @@ const ExaminerApplyList = () => {
   const handleSelectTest = (test) => {
     setSelectedTest(test);
     setIsTestModalOpen(false);
+    // Refresh lại dữ liệu đợt tuyển để cập nhật testId mới
+    fetchCampaignRoundData();
   };
 
   // Helper function to map roundName to testType number
@@ -533,29 +551,36 @@ const ExaminerApplyList = () => {
 
           if (roundId && roundId !== "final") {
             const participantsResult = await getRoundParticipants(roundId);
-            if (participantsResult.success && participantsResult.data && Array.isArray(participantsResult.data)) {
-              const mappedParticipants = participantsResult.data.map((participant) => ({
-                id: participant.userId || participant.activityId,
-                activityId: participant.activityId || 0,
-                userId: participant.userId || 0,
-                name: participant.fullName || "",
-                email: participant.email || "",
-                phone: participant.phoneNumber || "",
-                photo: participant.imgURL || "",
-                status: participant.status || "pending",
-                roundId: participant.roundId || 0,
-                roundName: participant.roundName || "",
-                appliedDate:
-                  participant.appliedDate || new Date().toISOString().split("T")[0],
-                education: participant.education || "",
-                position: participant.position || "",
-                experience: participant.experience || "",
-                languages: participant.languages || [],
-                applicationType: participant.applicationType || "recruitment",
-                currentPosition: participant.currentPosition || "",
-                targetPosition: participant.targetPosition || "",
-                score: participant.score || null,
-              }));
+            if (
+              participantsResult.success &&
+              participantsResult.data &&
+              Array.isArray(participantsResult.data)
+            ) {
+              const mappedParticipants = participantsResult.data.map(
+                (participant) => ({
+                  id: participant.userId || participant.activityId,
+                  activityId: participant.activityId || 0,
+                  userId: participant.userId || 0,
+                  name: participant.fullName || "",
+                  email: participant.email || "",
+                  phone: participant.phoneNumber || "",
+                  photo: participant.imgURL || "",
+                  status: participant.status || "pending",
+                  roundId: participant.roundId || 0,
+                  roundName: participant.roundName || "",
+                  appliedDate:
+                    participant.appliedDate ||
+                    new Date().toISOString().split("T")[0],
+                  education: participant.education || "",
+                  position: participant.position || "",
+                  experience: participant.experience || "",
+                  languages: participant.languages || [],
+                  applicationType: participant.applicationType || "recruitment",
+                  currentPosition: participant.currentPosition || "",
+                  targetPosition: participant.targetPosition || "",
+                  score: participant.score || null,
+                })
+              );
               setParticipants(mappedParticipants);
             }
           }
@@ -573,29 +598,11 @@ const ExaminerApplyList = () => {
 
   // Render applicant list view
   return (
-    <div className="">
+    <div>
       {/* Page hero */}
       <div className="text-white bg-gradient-to-r from-indigo-600 to-blue-600">
         <div className="px-6 py-8 mx-auto max-w-7xl">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={goBackToCampaigns}
-              className="p-2 transition-colors rounded-lg hover:bg-white/10"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-extrabold md:text-3xl">
                 Danh sách ứng viên - {campaignRoundData?.roundName || "N/A"}
@@ -604,10 +611,17 @@ const ExaminerApplyList = () => {
                 Sàng lọc và đánh giá ứng viên tuyển dụng & thăng bậc
               </p>
             </div>
+            <button
+              onClick={goBackToCampaigns}
+              className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
+              aria-label="Quay lại"
+              title="Quay lại"
+            >
+              Quay lại
+            </button>
           </div>
         </div>
       </div>
-
       <div className="px-6 py-8 mx-auto max-w-7xl">
         {/* Batch Info */}
         <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
@@ -648,8 +662,9 @@ const ExaminerApplyList = () => {
                 <span className="text-sm text-slate-600">Chỉ tiêu:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData
-                    ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
-                    }`
+                    ? `${campaignRoundData.actualQuantiy || 0}/${
+                        campaignRoundData.targetQuantity || 0
+                      }`
                     : "—"}
                 </p>
               </div>
@@ -667,8 +682,8 @@ const ExaminerApplyList = () => {
                 {isEnglishTestRound && (
                   <div className="flex items-center gap-2">
                     {!activeRoundForTests?.testId ||
-                      activeRoundForTests?.testId === 0 ||
-                      activeRoundForTests?.testId === null ? (
+                    activeRoundForTests?.testId === 0 ||
+                    activeRoundForTests?.testId === null ? (
                       <button
                         onClick={handleOpenTestModal}
                         className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -827,9 +842,9 @@ const ExaminerApplyList = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getRoundBadge(
                           applicant.roundId ||
-                          applicant.roundName ||
-                          applicant.round ||
-                          "screening",
+                            applicant.roundName ||
+                            applicant.round ||
+                            "screening",
                           applicant
                         )}
                       </td>
@@ -876,11 +891,10 @@ const ExaminerApplyList = () => {
           </div>
         </div>
       </div>
-
       {/* Modal xác nhận xét duyệt */}
       {isConfirmMoveOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm p-6 bg-white rounded-xl shadow-lg">
+          <div className="w-full max-w-sm p-6 bg-white shadow-lg rounded-xl">
             <h2 className="mb-3 text-lg font-semibold text-slate-900">
               Xác nhận xét duyệt
             </h2>
@@ -890,7 +904,7 @@ const ExaminerApplyList = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeConfirmMoveModal}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+                className="px-4 py-2 text-sm font-medium rounded-lg text-slate-700 bg-slate-100 hover:bg-slate-200"
               >
                 Hủy
               </button>
@@ -905,7 +919,6 @@ const ExaminerApplyList = () => {
           </div>
         </div>
       )}
-
       <TestListModal
         isOpen={isTestModalOpen}
         onClose={handleCloseTestModal}
@@ -913,7 +926,9 @@ const ExaminerApplyList = () => {
         selectedTestId={selectedTest?.id}
         testType={testTypeForModal}
         roundId={activeRoundForTests?.roundId}
+        onRefresh={fetchCampaignRoundData}
       />
+      ;
     </div>
   );
 };
