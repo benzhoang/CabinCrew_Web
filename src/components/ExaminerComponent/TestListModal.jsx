@@ -51,6 +51,7 @@ const TestListModal = ({
   selectedTestId,
   testType,
   roundId,
+  onRefresh,
 }) => {
   const [tests, setTests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,10 +117,8 @@ const TestListModal = ({
       <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">
-              Chọn đề thi
-            </h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="text-2xl font-extrabold md:text-3xl">Chọn đề thi</h2>
+            <p className="mt-1 text-sm text-white/90">
               Danh sách đề thi đang hoạt động cho vòng kiểm tra
             </p>
           </div>
@@ -195,10 +194,10 @@ const TestListModal = ({
                             );
                             onSelectTest?.(test);
                             onClose?.();
-                            // Reload lại trang danh sách sau khi cập nhật thành công
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 800);
+                            // Refresh lại filter thay vì reload trang
+                            if (onRefresh) {
+                              onRefresh();
+                            }
                           } else {
                             const message =
                               result.error ||
