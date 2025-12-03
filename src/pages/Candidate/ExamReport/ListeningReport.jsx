@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from '../../../i18n';
 import { toast } from "react-toastify";
+import AppealModal from '../../../components/AppealModal';
 import { getMyListeningSessions } from "../../../service/api";
 
-const ListeningExamResult = () => {
-    const { id: campaignId } = useParams();
+const ListeningReport = () => {
+    const { id: testId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const [, setLangVersion] = useState(0);
@@ -15,18 +16,13 @@ const ListeningExamResult = () => {
     const [apiData, setApiData] = useState(null);
     const [error, setError] = useState(null);
 
-    // Lấy dữ liệu từ location state
+    // Lấy dữ liệu từ location state (fallback)
     const {
+        examId,
+        examName,
+        examType,
         score,
-        totalQuestions,
-        correctAnswers,
-        wrongAnswers,
-        unansweredQuestions,
-        timeSpent,
-        examInfo,
-        totalScore,
         maxScore,
-        testId: stateTestId,
     } = location.state || {};
 
     // re-render on language change
@@ -42,37 +38,39 @@ const ListeningExamResult = () => {
                 setIsLoading(true);
                 const result = await getMyListeningSessions();
 
-                console.log("API Result:", result);
+                console.log("API Result getMyListeningSessions:", result);
 
                 if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
-                    // Lấy session mới nhất hoặc session có testId phù hợp với campaignId
-                    let selectedSession = result.data[0]; // Mặc định lấy session đầu tiên
+                    // Tìm session có testId phù hợp với testId từ URL params hoặc examId từ state
+                    const targetTestId = testId || examId;
+                    let selectedSession = null;
 
-                    // Nếu có campaignId trong URL params, tìm session phù hợp
-                    if (campaignId) {
-                        const matchingSession = result.data.find(
-                            (session) => session.testId?.toString() === campaignId.toString()
+                    if (targetTestId) {
+                        selectedSession = result.data.find(
+                            (session) => session.testId?.toString() === targetTestId.toString()
                         );
-                        if (matchingSession) {
-                            selectedSession = matchingSession;
-                        }
+                    }
+
+                    // Nếu không tìm thấy, lấy session mới nhất
+                    if (!selectedSession) {
+                        selectedSession = result.data[0];
                     }
 
                     console.log("Selected Session:", selectedSession);
 
                     // Map dữ liệu từ API sang format của component
                     const mappedData = {
-                        score: selectedSession.totalScore || 0,
+                        score: selectedSession.totalScore || score || 0,
                         totalQuestions: selectedSession.totalAnswers || 0,
-                        totalScore: selectedSession.totalScore || 0,
-                        maxScore: selectedSession.maxScore || 0,
+                        totalScore: selectedSession.totalScore || score || 0,
+                        maxScore: selectedSession.maxScore || maxScore || 0,
                         userFullName: selectedSession.userFullName || "",
                         userEmail: selectedSession.userEmail || "",
                         imgURL: selectedSession.imgURL || "",
                         examInfo: {
-                            testName: selectedSession.testName || "",
-                            testType: selectedSession.testType || "",
-                            testId: selectedSession.testId || 0,
+                            testName: selectedSession.testName || examName || "",
+                            testType: selectedSession.testType || examType || "EnglishListening",
+                            testId: selectedSession.testId || testId || 0,
                         },
                         startTime: selectedSession.startTime,
                         endTime: selectedSession.endTime,
@@ -84,70 +82,21 @@ const ListeningExamResult = () => {
                     setApiData(mappedData);
                     setIsLoading(false);
                 } else {
-                    // Nếu có location.state, vẫn cho phép hiển thị
-                    if (location.state && score !== undefined) {
-                        setIsLoading(false);
-                    } else {
-                        // Không có dữ liệu từ API, chuyển về trang test
-                        setError("Không tìm thấy kết quả bài thi");
-                        setTimeout(() => {
-                            navigate("/test");
-                        }, 2000);
-                    }
+                    setError(result.error || "Không tìm thấy kết quả bài thi");
+                    setIsLoading(false);
                 }
             } catch (err) {
-                console.error("Error loading practical sessions:", err);
-                // Nếu có location.state, vẫn cho phép hiển thị
-                if (location.state && score !== undefined) {
-                    setIsLoading(false);
-                } else {
-                    setError("Không thể tải kết quả bài thi");
-                    setTimeout(() => {
-                        navigate("/test");
-                    }, 2000);
-                }
+                console.error("Error loading listening sessions:", err);
+                setError("Không thể tải kết quả bài thi");
+                setIsLoading(false);
             }
         };
 
         loadListeningSessions();
-    }, [location.state, score, navigate, campaignId]);
+    }, [testId, examId, examName, examType, score, maxScore]);
 
-    // Debug: Log apiData khi nó thay đổi
-    useEffect(() => {
-        console.log("apiData updated:", apiData);
-    }, [apiData]);
-
-    // Ưu tiên dữ liệu từ location.state, nếu không có thì dùng từ API
-    const finalTotalScore = totalScore !== undefined ? totalScore : (apiData?.totalScore || 0);
-    const finalMaxScore = maxScore !== undefined ? maxScore : (apiData?.maxScore || 0);
-    const finalExamInfo = examInfo || apiData?.examInfo || {};
-    const finalUserFullName = apiData?.userFullName || "";
-    const finalUserEmail = apiData?.userEmail || "";
-    const finalImgURL = apiData?.imgURL || "";
-    const finalTestName = finalExamInfo?.testName || "";
-    const finalTestType = finalExamInfo?.testType || "";
-    const finalStartTime = apiData?.startTime || "";
-    const finalEndTime = apiData?.endTime || "";
-
-    const safeScore = score !== undefined ? score : (apiData?.score || 0);
-    const safeTotalQuestions = totalQuestions || (apiData?.totalQuestions || 0);
-
-    // Debug: Log các giá trị final
-    useEffect(() => {
-        console.log("Final values:", {
-            finalUserFullName,
-            finalUserEmail,
-            finalImgURL,
-            finalTestName,
-            finalTestType,
-            finalStartTime,
-            finalEndTime,
-            apiData
-        });
-    }, [finalUserFullName, finalUserEmail, finalImgURL, finalTestName, finalTestType, finalStartTime, finalEndTime, apiData]);
-
-    const handleBackToTest = () => {
-        navigate(`/test/${campaignId}`);
+    const handleBackToScoreReport = () => {
+        navigate('/score-report');
     };
 
     const openAppealModal = () => {
@@ -156,6 +105,16 @@ const ListeningExamResult = () => {
 
     const closeAppealModal = () => {
         setIsAppealModalOpen(false);
+    };
+
+    const handleConfirmAppeal = (appealReason) => {
+        console.log("Appeal reason:", appealReason);
+        setIsAppealSubmitted(true);
+        setIsAppealModalOpen(false);
+        toast.success(
+            t("appeal_submitted_success") ||
+            "Yêu cầu phúc khảo đã được gửi thành công!"
+        );
     };
 
     // Nếu đang loading, hiển thị loading state
@@ -170,18 +129,35 @@ const ListeningExamResult = () => {
         );
     }
 
-    // Nếu không có dữ liệu từ cả location.state và API, hiển thị thông báo
-    if ((!location.state || score === undefined) && !apiData && !isLoading) {
+    // Nếu không có dữ liệu, hiển thị thông báo
+    if (!apiData && !isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
                 <div className="text-center">
                     <p className="mb-4 text-gray-600">
-                        {error || t("no_test_data") || "Không có dữ liệu bài thi. Đang chuyển hướng..."}
+                        {error || t("no_test_data") || "Không có dữ liệu bài thi"}
                     </p>
+                    <button
+                        onClick={handleBackToScoreReport}
+                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        {t("back") || "Quay lại"}
+                    </button>
                 </div>
             </div>
         );
     }
+
+    const finalTotalScore = apiData?.totalScore || 0;
+    const finalMaxScore = apiData?.maxScore || 0;
+    const finalExamInfo = apiData?.examInfo || {};
+    const finalUserFullName = apiData?.userFullName || "";
+    const finalUserEmail = apiData?.userEmail || "";
+    const finalImgURL = apiData?.imgURL || "";
+    const finalTestName = finalExamInfo?.testName || "";
+    const finalTestType = finalExamInfo?.testType || "";
+    const finalStartTime = apiData?.startTime || "";
+    const finalEndTime = apiData?.endTime || "";
 
     return (
         <div className="min-h-screen px-4 py-8 bg-gray-100">
@@ -189,11 +165,11 @@ const ListeningExamResult = () => {
                 {/* Header */}
                 <div className="mb-8 text-center">
                     <h1 className="mb-2 text-3xl font-bold text-gray-800">
-                        {t("exam_result_title") || "Kết quả bài thi"}
+                        {t("exam_report_title") || "Báo cáo kết quả bài thi"}
                     </h1>
                     <p className="text-gray-600">
-                        {finalExamInfo?.testName ||
-                            t("exam_result_subtitle") ||
+                        {finalTestName ||
+                            t("exam_report_subtitle") ||
                             "Xem chi tiết kết quả bài thi của bạn"}
                     </p>
                 </div>
@@ -201,7 +177,6 @@ const ListeningExamResult = () => {
                 {/* Kết quả chính */}
                 <div className="p-6 mb-6 bg-white shadow-lg rounded-xl">
                     <div className="space-y-6">
-                        {/* Container chung cho tất cả thông tin */}
                         <div className="max-w-3xl mx-auto space-y-6">
                             {/* User Info Section */}
                             <div className="border-t border-gray-200 pt-6">
@@ -213,7 +188,6 @@ const ListeningExamResult = () => {
                                                 alt="User Avatar"
                                                 className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4 md:mb-0"
                                                 onError={(e) => {
-                                                    console.error("Image load error:", finalImgURL);
                                                     e.target.style.display = 'none';
                                                 }}
                                             />
@@ -245,11 +219,11 @@ const ListeningExamResult = () => {
                                     </div>
 
                                     <div className="flex justify-center md:justify-end w-full md:w-auto">
-                                        <div className="inline-block p-6 rounded-full bg-red-100">
-                                            <div className="text-4xl font-bold text-red-600">
+                                        <div className="inline-block p-6 rounded-full bg-blue-100">
+                                            <div className="text-4xl font-bold text-blue-600">
                                                 {finalMaxScore > 0
                                                     ? `${finalTotalScore}/${finalMaxScore}`
-                                                    : `${safeScore}/${safeTotalQuestions}`
+                                                    : `${finalTotalScore}`
                                                 }
                                             </div>
                                         </div>
@@ -350,18 +324,66 @@ const ListeningExamResult = () => {
                     </div>
                 </div>
 
-                {/* Nút quay lại */}
+                {/* Nút quay lại và phúc khảo */}
                 <div className="flex justify-center gap-4 mt-8">
                     <button
-                        onClick={handleBackToTest}
+                        onClick={handleBackToScoreReport}
                         className="px-8 py-3 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
-                        {t("back_to_test_list") || "Quay lại danh sách bài thi"}
+                        {t("back_to_score_report") || "Quay lại báo cáo điểm số"}
                     </button>
+                    {!isAppealSubmitted && (
+                        <button
+                            onClick={openAppealModal}
+                            className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                            {t("request_appeal") || "Yêu cầu phúc khảo"}
+                        </button>
+                    )}
+                    {isAppealSubmitted && (
+                        <div className="flex items-center gap-2 px-8 py-3 font-semibold text-green-700 bg-green-100 border border-green-300 rounded-lg">
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            {t("appeal_submitted") || "Đã gửi yêu cầu phúc khảo"}
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Modal xác nhận phúc khảo */}
+            <AppealModal
+                isOpen={isAppealModalOpen}
+                onClose={closeAppealModal}
+                onConfirm={handleConfirmAppeal}
+                testSessionId={apiData?.testSessionId}
+            />
         </div>
     );
 };
 
-export default ListeningExamResult;
+export default ListeningReport;
+

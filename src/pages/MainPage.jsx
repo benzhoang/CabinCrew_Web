@@ -70,7 +70,7 @@ const MainPage = () => {
 
   // Mapping role với route tương ứng
   const roleRoutes = {
-    candidate: "/home",
+    candidate: "/recruitment",
     admin: "/admin/dashboard/cabin-crews",
     recruiter: "/recruiter/campaigns",
     "airline-partner": "/airline-partner/requests",
@@ -166,7 +166,7 @@ const MainPage = () => {
         // Lấy role từ JWT token (có thể nằm ở nhiều vị trí khác nhau)
         const apiRole =
           decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
           ] ||
           decodedToken.role ||
           decodedToken.Role ||
@@ -192,7 +192,7 @@ const MainPage = () => {
         // Lấy user ID từ token
         const userId =
           decodedToken[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decodedToken.sub ||
           decodedToken.userId ||

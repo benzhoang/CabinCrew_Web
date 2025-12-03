@@ -270,18 +270,23 @@ const Screening = () => {
     }
 
     const getApplicantStatusBadge = (status) => {
+        // Normalize status to handle case variations
+        const normalizedStatus = status ? String(status).toLowerCase() : "";
+
         const statusConfig = {
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
-            approved: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
-            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
-            interview: { color: 'bg-blue-100 text-blue-800', text: 'Phỏng vấn' }
-        }
-        const config = statusConfig[status] || statusConfig.pending
+            ongoing: { color: "bg-blue-100 text-blue-800", text: "Đang diễn ra" },
+            passed: { color: "bg-green-100 text-green-800", text: "Đã đạt" },
+            failed: { color: "bg-red-100 text-red-800", text: "Không đạt" },
+            pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
+        };
+        const config = statusConfig[normalizedStatus] || statusConfig.pending;
         return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+            <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}
+            >
                 {config.text}
             </span>
-        )
+        );
     }
 
     const getRoundBadge = (round, applicant = null) => {
@@ -427,7 +432,6 @@ const Screening = () => {
                                             onChange={(e) => setRoundFilter(e.target.value)}
                                             disabled={loadingRoundData}
                                         >
-                                            <option value="all">Tất cả</option>
                                             {loadingRoundData ? (
                                                 <option value="" disabled>Đang tải...</option>
                                             ) : availableRounds.length > 0 ? (

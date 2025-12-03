@@ -55,7 +55,8 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
     }
 
     const handleFinalReview = () => {
-        navigate('/recruiter/final-review', {
+        const campaignRoundId = batch.id || batch.campaignRoundId
+        navigate(`/recruiter/final-review/${campaignRoundId}`, {
             state: {
                 batch: batch,
                 campaignId: campaignId

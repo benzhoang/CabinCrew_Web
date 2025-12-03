@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { t, onLangChange } from '../../../i18n';
 import { toast } from 'react-toastify';
-import AppealModal from '../../../components/AppealModal';
 import { getMySpeakingSessions } from '../../../service/api';
 
 const SpeakingExamResult = () => {
@@ -145,14 +144,6 @@ const SpeakingExamResult = () => {
 
     const closeAppealModal = () => {
         setIsAppealModalOpen(false);
-    };
-
-    const handleConfirmAppeal = (appealReason) => {
-        // TODO: Gửi yêu cầu phúc khảo đến API với lý do (appealReason)
-        console.log('Appeal reason:', appealReason);
-        setIsAppealSubmitted(true);
-        setIsAppealModalOpen(false);
-        toast.success(t('appeal_submitted_success') || 'Yêu cầu phúc khảo đã được gửi thành công!');
     };
 
     // Tạo tên file ghi âm dựa trên questionId và timestamp
@@ -436,7 +427,7 @@ const SpeakingExamResult = () => {
                     </div>
                 )}
 
-                {/* Nút quay lại và phúc khảo */}
+                {/* Nút quay lại */}
                 <div className="mt-8 flex justify-center gap-4">
                     <button
                         onClick={handleBackToTest}
@@ -444,35 +435,8 @@ const SpeakingExamResult = () => {
                     >
                         {t('back_to_test_list') || 'Quay lại danh sách bài thi'}
                     </button>
-                    {!isAppealSubmitted && (
-                        <button
-                            onClick={openAppealModal}
-                            className="px-8 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold flex items-center gap-2"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            {t('request_appeal') || 'Yêu cầu phúc khảo'}
-                        </button>
-                    )}
-                    {isAppealSubmitted && (
-                        <div className="px-8 py-3 bg-green-100 text-green-700 rounded-lg font-semibold flex items-center gap-2 border border-green-300">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {t('appeal_submitted') || 'Đã gửi yêu cầu phúc khảo'}
-                        </div>
-                    )}
                 </div>
             </div>
-
-            {/* Modal xác nhận phúc khảo */}
-            <AppealModal
-                isOpen={isAppealModalOpen}
-                onClose={closeAppealModal}
-                onConfirm={handleConfirmAppeal}
-                testSessionId={sessionData?.testSessionId}
-            />
         </div>
     );
 };
