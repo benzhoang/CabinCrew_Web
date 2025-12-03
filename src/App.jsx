@@ -66,6 +66,8 @@ import ExaminerCandidateEvaluation from "./pages/Examiner/ExaminerDetail/Examine
 import Test from "./pages/Candidate/Test";
 import ExamPage from "./pages/Candidate/ExamTest/ExamPage";
 import ExamResultPage from "./pages/Candidate/ExamResult/ExamResultPage";
+import ScoreReport from "./pages/Candidate/ScoreReport";
+import ExamReportPage from "./pages/Candidate/ExamReport/ExamReportPage";
 import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ExaminerDetail/ScoreListPage";
@@ -253,6 +255,26 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/score-report"
+          element={
+            <>
+              <Navbar />
+              <ScoreReport />
+              <Footer />
+            </>
+          }
+        />
+        <Route
+          path="/exam-report/:id"
+          element={
+            <>
+              <Navbar />
+              <ExamReportPage />
+              <Footer />
+            </>
+          }
+        />
         {/* Recruiter Routes */}
         <Route
           path="/recruiter/campaigns"
@@ -300,7 +322,7 @@ function App() {
           }
         />
         <Route
-          path="/recruiter/final-review"
+          path="/recruiter/final-review/:id"
           element={
             <div className="flex h-screen bg-gray-50">
               <SidebarRecruiter />

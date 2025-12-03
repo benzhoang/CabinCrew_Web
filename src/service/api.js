@@ -2109,6 +2109,55 @@ export const getRoundParticipants = async (roundId, params = {}) => {
   }
 };
 
+// API export danh sách users theo roundId (file Excel)
+export const exportRoundUsers = async (roundId) => {
+  try {
+    const response = await api.get(`/rounds/${roundId}/export-users`, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type:
+        response.headers["content-type"] ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Lấy filename từ header nếu có
+    const disposition = response.headers["content-disposition"];
+    let filename = `round_${roundId}_users.xlsx`;
+    if (disposition) {
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1]);
+      }
+    }
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    return {
+      success: true,
+      message: "Export danh sách users thành công",
+    };
+  } catch (error) {
+    console.error("Lỗi khi export users theo roundId:", error);
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể export danh sách users",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy chiến dịch đang ứng tuyển của user
 export const getOngoingCampaign = async () => {
   try {

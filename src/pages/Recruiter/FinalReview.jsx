@@ -1,89 +1,131 @@
-import React, { useState, useMemo } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import React, { useState, useMemo, useEffect } from 'react'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { exportFinalReviewExcel } from './Export & Import/exportFinalReview'
 import ImportHauKiemModal from './Export & Import/ImportHauKiemModal'
-
-// Mock data cho ứng viên đã có kết quả cuối cùng
-const mockFinalCandidates = [
-    {
-        id: 1,
-        name: 'Nguyễn Thị Lan',
-        email: 'lan.nguyen@email.com',
-        phone: '0901234567',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-15',
-        status: 'approved',
-        score: 92,
-        experience: '2 năm',
-        education: 'Đại học Ngoại thương',
-        languages: ['Tiếng Việt', 'Tiếng Anh'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=200&fit=crop&crop=face'
-    },
-    {
-        id: 2,
-        name: 'Trần Văn Minh',
-        email: 'minh.tran@email.com',
-        phone: '0912345678',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-16',
-        status: 'approved',
-        score: 88,
-        experience: '3 năm',
-        education: 'Đại học Bách khoa',
-        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face'
-    },
-    {
-        id: 3,
-        name: 'Lê Thị Hương',
-        email: 'huong.le@email.com',
-        phone: '0923456789',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-17',
-        status: 'rejected',
-        score: 65,
-        experience: '1 năm',
-        education: 'Cao đẳng Du lịch',
-        languages: ['Tiếng Việt', 'Tiếng Anh'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=200&fit=crop&crop=face'
-    },
-    {
-        id: 4,
-        name: 'Phạm Văn Đức',
-        email: 'duc.pham@email.com',
-        phone: '0934567890',
-        position: 'Flight Attendant',
-        appliedDate: '2024-10-18',
-        status: 'approved',
-        score: 90,
-        experience: '4 năm',
-        education: 'Đại học Kinh tế',
-        languages: ['Tiếng Việt', 'Tiếng Anh', 'Tiếng Hàn'],
-        batchName: 'Đợt 1',
-        campaignId: 1,
-        photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=200&fit=crop&crop=face'
-    },
-]
+import { getCampaignRoundById, getRoundParticipants, exportRoundUsers } from '../../service/api'
 
 const FinalReview = () => {
-    const [candidates, setCandidates] = useState(mockFinalCandidates)
+    const { campaignRoundId } = useParams()
+    const [candidates, setCandidates] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [loadingRoundInfo, setLoadingRoundInfo] = useState(false)
+    const [loadingCandidates, setLoadingCandidates] = useState(false)
+    const [fetchError, setFetchError] = useState(null)
+    const [pagination, setPagination] = useState(null)
+    const [finalRoundId, setFinalRoundId] = useState(null)
     const navigate = useNavigate()
     const location = useLocation()
     const batchData = location.state?.batch
+    const resolvedCampaignRoundId = useMemo(
+        () => campaignRoundId || batchData?.campaignRoundId || batchData?.id,
+        [campaignRoundId, batchData]
+    )
+
+    useEffect(() => {
+        if (!resolvedCampaignRoundId) {
+            setFinalRoundId(null)
+            setFetchError('Không tìm thấy thông tin đợt tuyển để xác định vòng Final.')
+            return
+        }
+
+        const fetchRoundInfo = async () => {
+            setLoadingRoundInfo(true)
+            setFetchError(null)
+            try {
+                const result = await getCampaignRoundById(resolvedCampaignRoundId)
+                if (result.success && result.data) {
+                    const roundData = result.data
+                    const roundsList = Array.isArray(roundData.rounds) ? roundData.rounds : []
+
+                    // Tìm round có roundName là 'Final'
+                    let finalRound =
+                        roundsList.find((round) => round.roundName?.toLowerCase() === 'final') || null
+
+                    // Fallback: nếu bản thân round hiện tại là Final
+                    if (!finalRound && roundData.roundName?.toLowerCase() === 'final') {
+                        finalRound = {
+                            roundId: roundData.roundId || roundData.campaignRoundId || resolvedCampaignRoundId,
+                            roundName: roundData.roundName
+                        }
+                    }
+
+                    if (finalRound?.roundId) {
+                        setFinalRoundId(finalRound.roundId)
+                    } else {
+                        setFinalRoundId(null)
+                        setFetchError('Không tìm thấy vòng Final trong đợt tuyển này.')
+                    }
+                } else {
+                    setFinalRoundId(null)
+                    setFetchError(result.error || 'Không thể lấy thông tin đợt tuyển.')
+                }
+            } catch (error) {
+                setFinalRoundId(null)
+                setFetchError(error.message || 'Không thể lấy thông tin đợt tuyển.')
+            } finally {
+                setLoadingRoundInfo(false)
+            }
+        }
+
+        fetchRoundInfo()
+    }, [resolvedCampaignRoundId])
+
+    useEffect(() => {
+        if (!finalRoundId) {
+            setCandidates([])
+            setPagination(null)
+            return
+        }
+
+        const fetchParticipants = async () => {
+            setLoadingCandidates(true)
+            setFetchError(null)
+            try {
+                const result = await getRoundParticipants(finalRoundId, { roundName: 'Final' })
+                if (result.success && Array.isArray(result.data)) {
+                    const mappedCandidates = result.data.map((participant) => ({
+                        id: participant.userId || participant.activityId,
+                        activityId: participant.activityId || 0,
+                        userId: participant.userId || 0,
+                        name: participant.fullName || '',
+                        email: participant.email || '',
+                        phone: participant.phoneNumber || '',
+                        photo: participant.imgURL || '',
+                        status: participant.status?.toLowerCase() || 'pending',
+                        roundId: participant.roundId || finalRoundId,
+                        roundName: participant.roundName || 'Final',
+                        appliedDate: participant.appliedDate || new Date().toISOString().split('T')[0],
+                        education: participant.education || '',
+                        experience: participant.experience || '',
+                        score: participant.score ?? 0,
+                        batchName: batchData?.name || participant.roundName || 'Final',
+                        campaignId: batchData?.campaignId || participant.campaignId || 0,
+                        raw: participant
+                    }))
+                    setCandidates(mappedCandidates)
+                    setPagination(result.pagination || null)
+                } else {
+                    setCandidates([])
+                    setPagination(null)
+                    setFetchError(result.error || 'Không thể tải danh sách ứng viên.')
+                }
+            } catch (error) {
+                setCandidates([])
+                setPagination(null)
+                setFetchError(error.message || 'Không thể tải danh sách ứng viên.')
+            } finally {
+                setLoadingCandidates(false)
+            }
+        }
+
+        fetchParticipants()
+    }, [finalRoundId, batchData])
 
     // Filter candidates
     const filteredCandidates = useMemo(() => {
-        let filtered = candidates.filter(candidate =>
-            candidate.status === 'approved' || candidate.status === 'rejected'
-        )
+        // Bắt đầu từ toàn bộ danh sách, không auto lọc chỉ approved/rejected
+        let filtered = [...candidates]
 
         if (searchTerm) {
             const q = searchTerm.toLowerCase()
@@ -95,18 +137,21 @@ const FinalReview = () => {
         }
 
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(candidate => candidate.status === statusFilter)
+            const normalizedFilter = statusFilter.toLowerCase()
+            filtered = filtered.filter(candidate => (candidate.status || '').toLowerCase() === normalizedFilter)
         }
 
         return filtered
     }, [candidates, searchTerm, statusFilter])
 
     const getStatusBadge = (status) => {
+        const normalized = status ? String(status).toLowerCase() : ''
         const statusConfig = {
             approved: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
-            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' }
+            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
+            ongoing: { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' }
         }
-        const config = statusConfig[status] || statusConfig.approved
+        const config = statusConfig[normalized] || statusConfig.ongoing
         return (
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
                 {config.text}
@@ -116,8 +161,21 @@ const FinalReview = () => {
 
     const [showImport, setShowImport] = useState(false)
 
-    const handleExport = () => {
-        exportFinalReviewExcel(filteredCandidates)
+    const handleExport = async () => {
+        if (!finalRoundId) {
+            window.alert('Không tìm thấy roundId để export.')
+            return
+        }
+
+        try {
+            const result = await exportRoundUsers(finalRoundId)
+            if (!result?.success) {
+                window.alert(result?.error || 'Export danh sách users thất bại.')
+            }
+        } catch (error) {
+            console.error('Lỗi khi gọi API export-users:', error)
+            window.alert('Đã xảy ra lỗi khi export danh sách users.')
+        }
     }
 
     const handleImport = () => {
@@ -170,10 +228,6 @@ const FinalReview = () => {
                                 <span className="text-sm text-slate-600">Thời gian:</span>
                                 <p className="font-medium text-slate-800">{batchData.time || '—'}</p>
                             </div>
-                            <div>
-                                <span className="text-sm text-slate-600">Địa điểm:</span>
-                                <p className="font-medium text-slate-800">{batchData.location || '—'}</p>
-                            </div>
                         </div>
                     </div>
                 )}
@@ -223,7 +277,8 @@ const FinalReview = () => {
                         </button>
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+                            disabled={!finalRoundId}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -235,78 +290,91 @@ const FinalReview = () => {
 
                 {/* Candidates List */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    {fetchError && (
+                        <div className="px-6 py-3 bg-red-50 text-sm text-red-700 border-b border-red-100">
+                            {fetchError}
+                        </div>
+                    )}
                     <div className="p-6 border-b border-slate-200">
                         <h3 className="text-lg font-semibold text-slate-800">
                             Danh sách ứng viên ({filteredCandidates.length})
                         </h3>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-slate-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm số</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {filteredCandidates.map((candidate) => (
-                                    <tr key={candidate.id} className="hover:bg-slate-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
-                                                <img
-                                                    src={candidate.photo || 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'}
-                                                    alt={`Ảnh ${candidate.name}`}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'
-                                                    }}
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div>
-                                                <div className="text-sm font-medium text-slate-900">{candidate.name}</div>
-                                                <div className="text-sm text-slate-500">{candidate.education}</div>
-                                                <div className="text-xs text-slate-400">{candidate.experience}</div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-slate-900">{candidate.email}</div>
-                                            <div className="text-sm text-slate-500">{candidate.phone}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`text-lg font-bold ${candidate.score >= 85 ? 'text-green-600' : candidate.score >= 70 ? 'text-blue-600' : 'text-red-600'}`}>
-                                                {candidate.score}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {getStatusBadge(candidate.status)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button
-                                                className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded px-3 py-1 transition-colors"
-                                                onClick={() => navigate(`/candidate/${candidate.id}`, {
-                                                    state: { candidate, batchData }
-                                                })}
-                                            >
-                                                Xem chi tiết
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {filteredCandidates.length === 0 && (
-                        <div className="p-12 text-center">
-                            <p className="text-slate-500">Chưa có ứng viên nào đạt kết quả cuối cùng</p>
+                    {loadingCandidates ? (
+                        <div className="p-12 text-center text-slate-500 text-sm">
+                            Đang tải danh sách ứng viên...
                         </div>
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm số</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-slate-200">
+                                        {filteredCandidates.map((candidate) => (
+                                            <tr key={candidate.id} className="hover:bg-slate-50">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
+                                                        <img
+                                                            src={candidate.photo || 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'}
+                                                            alt={`Ảnh ${candidate.name}`}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo'
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-slate-900">{candidate.name}</div>
+                                                        <div className="text-sm text-slate-500">{candidate.education || '—'}</div>
+                                                        <div className="text-xs text-slate-400">{candidate.experience || '—'}</div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-slate-900">{candidate.email || '—'}</div>
+                                                    <div className="text-sm text-slate-500">{candidate.phone || '—'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`text-lg font-bold ${candidate.score >= 85 ? 'text-green-600' : candidate.score >= 70 ? 'text-blue-600' : 'text-red-600'}`}>
+                                                        {candidate.score ?? '—'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getStatusBadge(candidate.status)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button
+                                                        className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded px-3 py-1 transition-colors"
+                                                        onClick={() => navigate(`/candidate/${candidate.id}`, {
+                                                            state: { candidate, batchData }
+                                                        })}
+                                                    >
+                                                        Xem chi tiết
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {filteredCandidates.length === 0 && (
+                                <div className="p-12 text-center">
+                                    <p className="text-slate-500">Chưa có ứng viên nào đạt kết quả cuối cùng</p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
@@ -324,4 +392,3 @@ const FinalReview = () => {
 }
 
 export default FinalReview
-

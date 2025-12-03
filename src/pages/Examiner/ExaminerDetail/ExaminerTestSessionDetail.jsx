@@ -600,20 +600,6 @@ const ExaminerTestSessionDetail = () => {
                     </div>
                   )}
 
-                  {/* Essay Answer */}
-                  {answer.essayAnswer && (
-                    <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-700 mb-1">
-                        Câu trả lời (Tự luận):
-                      </p>
-                      <div className="p-3 bg-white rounded-lg border border-gray-200">
-                        <p className="text-gray-900 whitespace-pre-wrap">
-                          {answer.essayAnswer}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Speaking Answer (Audio) */}
                   {answer.answerAudioFileURL && (
                     <div className="mb-3">

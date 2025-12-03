@@ -10,12 +10,16 @@ const STATUS_LABELS = {
     },
     rejected: {
         vi: 'Không hoàn thành',
-        en: 'Rejected'
+        en: 'Not Completed'
+    },
+    pending: {
+        vi: 'Đang xử lý',
+        en: 'Pending'
     }
 };
 
 const COMPLETED_STAGE_STATUSES = ['completed', 'passed', 'done', 'approved', 'success'];
-const FAILED_STAGE_STATUSES = ['failed', 'rejected', 'cancelled', 'canceled'];
+const FAILED_STAGE_STATUSES = ['failed', 'rejected', 'cancelled', 'canceled', 'not completed', 'not_completed', 'notcompleted'];
 const IN_PROGRESS_STAGE_STATUSES = ['in_progress', 'processing', 'pending', 'ongoing', 'current'];
 
 const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
@@ -98,13 +102,24 @@ const isStageReached = (stage, index, currentStageIndex) => {
 };
 
 const normalizeStatusKey = (status) => {
-    const normalized = (status || '').toLowerCase();
+    if (!status) return 'pending';
+    const normalized = (status || '').toLowerCase().trim();
+
+    // Kiểm tra các status thành công
     if (['passed', 'completed', 'accepted', 'success', 'approved'].includes(normalized)) {
         return 'accepted';
     }
-    if (FAILED_STAGE_STATUSES.includes(normalized)) {
+
+    // Kiểm tra các status thất bại (bao gồm exact match và contains)
+    if (FAILED_STAGE_STATUSES.some(failedStatus => normalized === failedStatus || normalized.includes(failedStatus))) {
         return 'rejected';
     }
+
+    // Kiểm tra các biến thể của "not completed"
+    if (normalized.includes('not') && (normalized.includes('complete') || normalized.includes('finish'))) {
+        return 'rejected';
+    }
+
     return 'pending';
 };
 
@@ -113,9 +128,12 @@ const normalizeRounds = (rounds = []) => {
     const mappedStages = defaultStageTemplates.map((template, index) => {
         const matchingRound = rounds.find((round) => doesRoundMatchStage(round, template));
         const roundStatus = normalizeText(matchingRound?.status);
-        const isCompleted = COMPLETED_STAGE_STATUSES.some((status) => roundStatus.includes(status));
-        const isFailed = FAILED_STAGE_STATUSES.some((status) => roundStatus.includes(status));
-        const isInProgress = IN_PROGRESS_STAGE_STATUSES.some((status) => roundStatus.includes(status));
+
+        // Kiểm tra failed trước để tránh false positive (ví dụ: "not completed" không bị nhận nhầm là "completed")
+        const isFailed = FAILED_STAGE_STATUSES.some((status) => roundStatus.includes(status)) ||
+            (roundStatus.includes('not') && (roundStatus.includes('complete') || roundStatus.includes('finish')));
+        const isCompleted = !isFailed && COMPLETED_STAGE_STATUSES.some((status) => roundStatus.includes(status));
+        const isInProgress = !isFailed && !isCompleted && IN_PROGRESS_STAGE_STATUSES.some((status) => roundStatus.includes(status));
 
         return {
             activityId: matchingRound?.activityId || matchingRound?.roundId || '',
@@ -177,11 +195,14 @@ const deriveCurrentStage = (stages) => {
 };
 
 const normalizeHistoryData = (data = []) => {
+    if (!Array.isArray(data)) {
+        return [];
+    }
     return data.map((item, index) => {
         const stages = normalizeRounds(item.rounds || []);
         const { currentStageId, currentStageIndex } = deriveCurrentStage(stages);
         const statusKey = normalizeStatusKey(item.roundStatus);
-        const statusLabels = STATUS_LABELS[statusKey] || STATUS_LABELS.pending;
+        const statusLabels = STATUS_LABELS[statusKey] || STATUS_LABELS.pending || { vi: 'Đang xử lý', en: 'Pending' };
 
         return {
             id: item.campaignRoundId ?? item.roundId ?? index + 1,
@@ -189,8 +210,8 @@ const normalizeHistoryData = (data = []) => {
             company: item.airlinePartner || 'N/A',
             appliedDate: item.participateDate,
             status: statusKey,
-            statusText: statusLabels.vi,
-            statusTextEn: statusLabels.en,
+            statusText: statusLabels?.vi || 'Đang xử lý',
+            statusTextEn: statusLabels?.en || 'Pending',
             location: item.location || item.airlinePartner || 'N/A',
             description: item.description || '',
             salary: item.salary,
@@ -227,7 +248,8 @@ const RecruitmentHistory = () => {
                 if (!isMounted) return;
 
                 if (response.success) {
-                    setRecruitmentHistory(normalizeHistoryData(response.data));
+                    const data = Array.isArray(response.data) ? response.data : [];
+                    setRecruitmentHistory(normalizeHistoryData(data));
                 } else {
                     setError(response.error || 'Không thể tải lịch sử ứng tuyển');
                     setRecruitmentHistory([]);

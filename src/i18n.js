@@ -8,7 +8,7 @@ const dictionaries = {
     recruitment: "Tuyển dụng",
     promotion: "Nâng bậc",
     appointment: "Lịch hẹn",
-    score_report: "Báo cáo điểm",
+    score_report: "Xem điểm thi",
     test: "Test",
     contact: "Liên hệ",
     signin: "Đăng nhập",
@@ -531,6 +531,13 @@ const dictionaries = {
     answered_questions: "Câu đã trả lời",
     test_type: "Loại bài thi",
     full_name: "Họ và tên",
+    start_date: "Ngày bắt đầu",
+    duration: "Thời gian",
+    score_report_subtitle: "Xem điểm thi của bạn",
+    view_detail: "Xem chi tiết",
+    back_to_home: "Quay lại trang chủ",
+    no_tests: "Không tìm thấy bài thi",
+    no_tests_desc: "Bạn chưa có bài thi nào. Vui lòng thử lại.",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Lịch hẹn phỏng vấn thăng bậc",
@@ -1069,6 +1076,13 @@ const dictionaries = {
     answered_questions: "Answered Questions",
     test_type: "Test Type",
     full_name: "Full Name",
+    start_date: "Start Date",
+    duration: "Duration",
+    score_report_subtitle: "View your score report",
+    view_detail: "View detail",
+    back_to_home: "Back to home",
+    no_tests: "No tests found",
+    no_tests_desc: "You don't have any tests yet. Please take a test.",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Promotion interview appointments",
