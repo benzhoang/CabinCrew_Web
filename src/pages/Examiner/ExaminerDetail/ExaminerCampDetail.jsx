@@ -4,13 +4,6 @@ import { getCampaignById } from "../../../service/api";
 import ExaminerBatchManage from "./ExaminerBatchManage";
 import { formatDate } from "../../../config/formatDate";
 
-const Section = ({ title, children }) => (
-  <div className="p-5 bg-white border border-gray-200 rounded-xl">
-    <div className="mb-3 text-sm font-semibold text-gray-900">{title}</div>
-    {children}
-  </div>
-);
-
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start gap-3">
     <div className="text-sm text-gray-500 w-36 shrink-0">{label}</div>

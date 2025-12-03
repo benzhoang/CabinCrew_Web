@@ -88,7 +88,6 @@ const MainPage = () => {
     } else {
       const errorMsg = `Role "${role}" không được hỗ trợ. Vui lòng liên hệ quản trị viên.`;
       setErrorMessage(errorMsg);
-      toast.error(errorMsg);
       console.error("Unsupported role:", role);
     }
   };
@@ -110,7 +109,6 @@ const MainPage = () => {
     if (!loginData.username || !loginData.password) {
       const errorMsg = "Vui lòng điền đầy đủ thông tin đăng nhập";
       setErrorMessage(errorMsg);
-      toast.error(errorMsg);
       return;
     }
 
@@ -129,7 +127,6 @@ const MainPage = () => {
       setLoadingMessage("");
       const errorMsg = "Lỗi đăng nhập. Vui lòng thử lại.";
       setErrorMessage(errorMsg);
-      toast.error(errorMsg);
       navigate("/");
       loginTimeoutRef.current = null;
     }, 30000);
@@ -159,14 +156,13 @@ const MainPage = () => {
           setLoadingMessage("");
           const errorMsg = "Không thể xác thực token. Vui lòng thử lại.";
           setErrorMessage(errorMsg);
-          toast.error(errorMsg);
           return;
         }
 
         // Lấy role từ JWT token (có thể nằm ở nhiều vị trí khác nhau)
         const apiRole =
           decodedToken[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
           ] ||
           decodedToken.role ||
           decodedToken.Role ||
@@ -184,7 +180,6 @@ const MainPage = () => {
           setLoadingMessage("");
           const errorMsg = "Không thể xác định role của người dùng.";
           setErrorMessage(errorMsg);
-          toast.error(errorMsg);
           console.error("Decoded token:", decodedToken);
           return;
         }
@@ -192,7 +187,7 @@ const MainPage = () => {
         // Lấy user ID từ token
         const userId =
           decodedToken[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decodedToken.sub ||
           decodedToken.userId ||

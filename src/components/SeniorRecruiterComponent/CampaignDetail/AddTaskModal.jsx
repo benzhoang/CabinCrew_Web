@@ -240,7 +240,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       const campaignId = campaignIdRaw ? Number(campaignIdRaw) : null;
 
       if (!campaignId || isNaN(campaignId)) {
-        alert("Không tìm thấy ID chiến dịch hợp lệ");
+        toast.error("Không tìm thấy ID chiến dịch hợp lệ");
         setIsSubmitting(false);
         return;
       }
