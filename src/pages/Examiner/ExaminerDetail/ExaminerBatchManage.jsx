@@ -29,7 +29,7 @@ const formatDateForDisplay = (
     if (!isNaN(date.getTime())) {
       return date.toLocaleDateString("vi-VN");
     }
-  } catch (e) {
+  } catch {
     // If parsing fails, return the original string
     return dateString.split(" ")[0] || "—";
   }
@@ -37,7 +37,7 @@ const formatDateForDisplay = (
   return dateString.split(" ")[0] || "—";
 };
 
-const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
+const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
@@ -52,7 +52,12 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
 
     const campaignRoundId = batch.id || batch.campaignRoundId;
     navigate(
-      `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`
+      `/examiner/campaigns/${campaignId}/applications/${campaignRoundId}`,
+      {
+        state: {
+          campaignType: campaignType,
+        },
+      }
     );
   };
 
@@ -335,6 +340,14 @@ const ExaminerBatchManage = ({ campaign }) => {
     return Math.max(0, Math.min(100, p));
   };
 
+  // Lấy campaignType từ campaign object - kiểm tra nhiều field name có thể
+  const getCampaignType = () => {
+    if (!campaign) return null;
+    return campaign.campaignType || null;
+  };
+
+  const campaignType = getCampaignType();
+
   return (
     <div className="mt-6">
       <div className="mb-2">
@@ -359,6 +372,7 @@ const ExaminerBatchManage = ({ campaign }) => {
                 statusCfg={statusCfg}
                 percent={progressPercent}
                 campaignId={campaign?.campaignId || campaign?.id || 1}
+                campaignType={campaignType}
               />
             );
           })}

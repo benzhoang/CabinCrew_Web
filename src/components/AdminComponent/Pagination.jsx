@@ -122,7 +122,7 @@ const Pagination = ({
           </>
         )}
 
-        {currentPage >= 2 && currentPage <= 3 && (
+        {currentPage >= 2 && currentPage <= 3 && !isNearEnd && (
           <>
             {pageNumbers.map((page) => (
               <li key={page}>

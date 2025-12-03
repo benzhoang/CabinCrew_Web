@@ -31,6 +31,10 @@ const ExaminerCabinCrewEvaluationPage = () => {
   const [isLoadingCriteria, setIsLoadingCriteria] = useState(false);
   const [criteriaData, setCriteriaData] = useState(null);
 
+  // Countdown timer state (30 minutes = 1800 seconds)
+  const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
+  const [isTimerExpired, setIsTimerExpired] = useState(false);
+
   useEffect(() => {
     const off = onLangChange(() => setLangVersion((v) => v + 1));
     return () => off();
@@ -83,6 +87,28 @@ const ExaminerCabinCrewEvaluationPage = () => {
     }
   }, [candidate]);
 
+  // Countdown timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setIsTimerExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []); // Only run once on mount
+
+  // Format time remaining to MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
   // Calculate total score
   const totalScore = Object.values(evaluations).reduce((sum, criterion) => {
     return sum + (criterion.score || 0);
@@ -108,14 +134,14 @@ const ExaminerCabinCrewEvaluationPage = () => {
     }));
   };
 
-  const handleHeaderInfoChange = (key, value) => {
+  const _handleHeaderInfoChange = (key, value) => {
     setHeaderInfo((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleSave = () => {
+  const _handleSave = () => {
     // Save evaluation logic here
     const evaluationData = {
       headerInfo,
@@ -170,15 +196,49 @@ const ExaminerCabinCrewEvaluationPage = () => {
       {/* Header */}
       <div className="text-white bg-gradient-to-r from-indigo-600 to-blue-600">
         <div className="px-6 py-6 mx-auto max-w-7xl">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() =>
-                navigate("/examiner/applications", { state: batchData })
-              }
-              className="p-2 transition-colors rounded-lg hover:bg-white/10"
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 transition-colors rounded-lg hover:bg-white/10"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <div>
+                <h1 className="text-2xl font-extrabold md:text-3xl">
+                  Đánh giá tiếp viên
+                </h1>
+                <p className="mt-1 text-sm text-white/90">
+                  Đánh giá tiêu chí phỏng vấn cho tiếp viên
+                </p>
+              </div>
+            </div>
+            {/* Countdown Timer */}
+            <div
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
+                isTimerExpired
+                  ? "bg-red-500/20 border-2 border-red-400"
+                  : timeRemaining <= 300
+                  ? "bg-orange-500/20 border-2 border-orange-400"
+                  : "bg-white/10 border-2 border-white/20"
+              } transition-all duration-300`}
             >
               <svg
-                className="w-5 h-5"
+                className={`w-5 h-5 ${
+                  isTimerExpired ? "text-red-300" : "text-white"
+                }`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -187,17 +247,23 @@ const ExaminerCabinCrewEvaluationPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  d="M15 19l-7-7 7-7"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-            </button>
-            <div>
-              <h1 className="text-2xl font-extrabold md:text-3xl">
-                Đánh giá tiếp viên
-              </h1>
-              <p className="mt-1 text-sm text-white/90">
-                Đánh giá tiêu chí phỏng vấn cho tiếp viên
-              </p>
+              <div className="flex flex-col">
+                <span className="text-xs text-white/80">Thời gian còn lại</span>
+                <span
+                  className={`text-2xl font-bold tracking-wider ${
+                    isTimerExpired
+                      ? "text-red-200"
+                      : timeRemaining <= 300
+                      ? "text-orange-200"
+                      : "text-white"
+                  }`}
+                >
+                  {formatTime(timeRemaining)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -447,9 +513,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
           <button
-            onClick={() =>
-              navigate("/examiner/applications", { state: batchData })
-            }
+            onClick={() => navigate(-1)}
             className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
           >
             Hủy

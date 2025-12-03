@@ -204,7 +204,7 @@ const ScoreListPage = () => {
   };
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full pl-6 pr-6">
       <div className="mb-6">
         <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600">
           <div>

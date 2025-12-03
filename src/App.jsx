@@ -681,7 +681,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/candidate/:id"
+          path="/examiner/campaigns/candidate/:id"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />
@@ -692,7 +692,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/cabin-crew/:id"
+          path="/examiner/campaigns/cabin-crew/:id"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />

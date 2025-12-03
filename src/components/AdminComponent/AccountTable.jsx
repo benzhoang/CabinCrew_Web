@@ -61,8 +61,13 @@ const AccountTable = ({
     const fetchUsers = async () => {
       setLoading(true);
       try {
+        // Only fetch all pages if roleName is provided but roleId is not available
+        // AND we need to filter by roleName on client side
+        // If roleId is provided, always use server-side pagination (only fetch current page)
         const shouldFetchAllForRole =
-          roleName && (roleId === null || roleId === undefined);
+          roleId === null || roleId === undefined
+            ? roleName && !searchTerm?.trim() // Only fetch all if no roleId, has roleName, and no search term
+            : false; // If roleId exists, never fetch all pages
 
         const baseParams = {
           searchTerm: searchTerm?.trim() || undefined,
@@ -70,7 +75,7 @@ const AccountTable = ({
           partnerId: partnerId ?? undefined,
           isActive: typeof isActive === "boolean" ? isActive : undefined,
           page: shouldFetchAllForRole ? 1 : page ?? undefined,
-          pageSize: pageSize ?? undefined,
+          pageSize: shouldFetchAllForRole ? 100 : pageSize ?? undefined, // Use larger pageSize when fetching all
         };
 
         const sortColumnMap = {
@@ -90,10 +95,16 @@ const AccountTable = ({
         let lastPagination = null;
 
         if (shouldFetchAllForRole) {
+          // Only fetch all if really necessary (no roleId and no search)
+          // Limit to reasonable number of pages to avoid too many requests
+          const MAX_PAGES_TO_FETCH = 10;
           let currentPage = 1;
           let totalPages = 1;
 
-          while (currentPage <= totalPages) {
+          while (
+            currentPage <= totalPages &&
+            currentPage <= MAX_PAGES_TO_FETCH
+          ) {
             const result = await getAllUsers({
               ...baseParams,
               page: currentPage,
@@ -111,13 +122,17 @@ const AccountTable = ({
             const nextTotalPages = lastPagination?.totalPages ?? totalPages;
             totalPages = Math.max(totalPages, nextTotalPages);
 
-            if (!lastPagination?.hasNextPage) {
+            if (
+              !lastPagination?.hasNextPage ||
+              currentPage >= MAX_PAGES_TO_FETCH
+            ) {
               break;
             }
 
             currentPage += 1;
           }
         } else {
+          // Normal pagination - only fetch current page
           const result = await getAllUsers(baseParams);
 
           if (result.success) {
