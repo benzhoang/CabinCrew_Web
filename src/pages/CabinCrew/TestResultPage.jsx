@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
-import { toast } from "react-toastify";
-import AppealModal from "../../components/CabinCrewComponent/AppealModal";
 import { getMyPracticalSessions } from "../../service/api";
 
 const TestResultPage = () => {
@@ -10,8 +8,6 @@ const TestResultPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [, setLangVersion] = useState(0);
-  const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
-  const [isAppealSubmitted, setIsAppealSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiData, setApiData] = useState(null);
   const [error, setError] = useState(null);
@@ -48,7 +44,12 @@ const TestResultPage = () => {
 
         console.log("API Result:", result);
 
-        if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+        if (
+          result.success &&
+          result.data &&
+          Array.isArray(result.data) &&
+          result.data.length > 0
+        ) {
           // Lấy session mới nhất hoặc session có testId phù hợp với campaignId
           let selectedSession = result.data[0]; // Mặc định lấy session đầu tiên
 
@@ -122,8 +123,10 @@ const TestResultPage = () => {
   }, [apiData]);
 
   // Ưu tiên dữ liệu từ location.state, nếu không có thì dùng từ API
-  const finalTotalScore = totalScore !== undefined ? totalScore : (apiData?.totalScore || 0);
-  const finalMaxScore = maxScore !== undefined ? maxScore : (apiData?.maxScore || 0);
+  const finalTotalScore =
+    totalScore !== undefined ? totalScore : apiData?.totalScore || 0;
+  const finalMaxScore =
+    maxScore !== undefined ? maxScore : apiData?.maxScore || 0;
   const finalExamInfo = examInfo || apiData?.examInfo || {};
   const finalUserFullName = apiData?.userFullName || "";
   const finalUserEmail = apiData?.userEmail || "";
@@ -133,8 +136,8 @@ const TestResultPage = () => {
   const finalStartTime = apiData?.startTime || "";
   const finalEndTime = apiData?.endTime || "";
 
-  const safeScore = score !== undefined ? score : (apiData?.score || 0);
-  const safeTotalQuestions = totalQuestions || (apiData?.totalQuestions || 0);
+  const safeScore = score !== undefined ? score : apiData?.score || 0;
+  const safeTotalQuestions = totalQuestions || apiData?.totalQuestions || 0;
 
   // Debug: Log các giá trị final
   useEffect(() => {
@@ -146,31 +149,21 @@ const TestResultPage = () => {
       finalTestType,
       finalStartTime,
       finalEndTime,
-      apiData
+      apiData,
     });
-  }, [finalUserFullName, finalUserEmail, finalImgURL, finalTestName, finalTestType, finalStartTime, finalEndTime, apiData]);
+  }, [
+    finalUserFullName,
+    finalUserEmail,
+    finalImgURL,
+    finalTestName,
+    finalTestType,
+    finalStartTime,
+    finalEndTime,
+    apiData,
+  ]);
 
   const handleBackToTest = () => {
     navigate(`/cabin-crew/tests/${campaignId}`);
-  };
-
-  const openAppealModal = () => {
-    setIsAppealModalOpen(true);
-  };
-
-  const closeAppealModal = () => {
-    setIsAppealModalOpen(false);
-  };
-
-  const handleConfirmAppeal = (appealReason) => {
-    // TODO: Gửi yêu cầu phúc khảo đến API với lý do (appealReason)
-    console.log("Appeal reason:", appealReason);
-    setIsAppealSubmitted(true);
-    setIsAppealModalOpen(false);
-    toast.success(
-      t("appeal_submitted_success") ||
-      "Yêu cầu phúc khảo đã được gửi thành công!"
-    );
   };
 
   // Nếu đang loading, hiển thị loading state
@@ -191,7 +184,9 @@ const TestResultPage = () => {
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
-            {error || t("no_test_data") || "Không có dữ liệu bài thi. Đang chuyển hướng..."}
+            {error ||
+              t("no_test_data") ||
+              "Không có dữ liệu bài thi. Đang chuyển hướng..."}
           </p>
         </div>
       </div>
@@ -218,12 +213,11 @@ const TestResultPage = () => {
           <div className="space-y-6">
             {/* Điểm số lớn */}
             <div className="text-center">
-              <div className="inline-block p-6 rounded-full bg-red-100">
+              <div className="inline-block p-6 bg-red-100 rounded-full">
                 <div className="text-5xl font-bold text-red-600">
                   {finalMaxScore > 0
                     ? `${finalTotalScore}/${finalMaxScore}`
-                    : `${safeScore}/${safeTotalQuestions}`
-                  }
+                    : `${safeScore}/${safeTotalQuestions}`}
                 </div>
               </div>
             </div>
@@ -232,16 +226,16 @@ const TestResultPage = () => {
             <div className="max-w-3xl mx-auto space-y-6">
               {/* User Info Section */}
               {(finalImgURL || finalUserFullName || finalUserEmail) && (
-                <div className="border-t border-gray-200 pt-6">
+                <div className="pt-6 border-t border-gray-200">
                   <div className="flex flex-col items-center mb-4">
                     {finalImgURL && (
                       <img
                         src={finalImgURL}
                         alt="User Avatar"
-                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-300 mb-4"
+                        className="object-cover w-20 h-20 mb-4 border-2 border-gray-300 rounded-full"
                         onError={(e) => {
                           console.error("Image load error:", finalImgURL);
-                          e.target.style.display = 'none';
+                          e.target.style.display = "none";
                         }}
                       />
                     )}
@@ -250,7 +244,7 @@ const TestResultPage = () => {
                   <div className="space-y-4">
                     {finalUserFullName && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("full_name") || "Họ và tên"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
@@ -261,7 +255,7 @@ const TestResultPage = () => {
 
                     {finalUserEmail && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("email") || "Email"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
@@ -275,11 +269,11 @@ const TestResultPage = () => {
 
               {/* Test Info Section */}
               {(finalTestName || finalTestType) && (
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {finalTestName && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("test_name") || "Tên bài thi"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
@@ -290,7 +284,7 @@ const TestResultPage = () => {
 
                     {finalTestType && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("test_type") || "Loại bài thi"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
@@ -304,21 +298,21 @@ const TestResultPage = () => {
 
               {/* Time Info Section */}
               {(finalStartTime || finalEndTime) && (
-                <div className="border-t border-gray-200 pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                     {finalStartTime && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("start_time") || "Thời gian bắt đầu"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
-                          {new Date(finalStartTime).toLocaleString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
+                          {new Date(finalStartTime).toLocaleString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
                           })}
                         </p>
                       </div>
@@ -326,17 +320,17 @@ const TestResultPage = () => {
 
                     {finalEndTime && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("end_time") || "Thời gian kết thúc"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
-                          {new Date(finalEndTime).toLocaleString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
+                          {new Date(finalEndTime).toLocaleString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
                           })}
                         </p>
                       </div>
@@ -344,7 +338,7 @@ const TestResultPage = () => {
 
                     {finalStartTime && finalEndTime && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">
+                        <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("time_spent") || "Thời gian làm bài"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
@@ -353,8 +347,13 @@ const TestResultPage = () => {
                             const end = new Date(finalEndTime);
                             const diffMs = end - start;
                             const diffMins = Math.floor(diffMs / 60000);
-                            const diffSecs = Math.floor((diffMs % 60000) / 1000);
-                            return `${diffMins}:${String(diffSecs).padStart(2, '0')}`;
+                            const diffSecs = Math.floor(
+                              (diffMs % 60000) / 1000
+                            );
+                            return `${diffMins}:${String(diffSecs).padStart(
+                              2,
+                              "0"
+                            )}`;
                           })()}
                         </p>
                       </div>
@@ -383,8 +382,8 @@ const TestResultPage = () => {
                   typeof submittedAnswer?.isCorrect === "boolean"
                     ? submittedAnswer.isCorrect
                     : question.correctAnswer
-                      ? userAnswer === question.correctAnswer
-                      : false;
+                    ? userAnswer === question.correctAnswer
+                    : false;
                 const isAnswered =
                   userAnswer !== undefined &&
                   userAnswer !== null &&
@@ -407,12 +406,13 @@ const TestResultPage = () => {
                 return (
                   <div
                     key={question.id}
-                    className={`border-2 rounded-lg p-4 ${isCorrect
-                      ? "border-green-200 bg-green-50"
-                      : isAnswered
+                    className={`border-2 rounded-lg p-4 ${
+                      isCorrect
+                        ? "border-green-200 bg-green-50"
+                        : isAnswered
                         ? "border-red-200 bg-red-50"
                         : "border-gray-200 bg-gray-50"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -490,55 +490,8 @@ const TestResultPage = () => {
           >
             {t("back_to_test_list") || "Quay lại danh sách bài thi"}
           </button>
-          {!isAppealSubmitted && (
-            <button
-              onClick={openAppealModal}
-              className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              {t("request_appeal") || "Yêu cầu phúc khảo"}
-            </button>
-          )}
-          {isAppealSubmitted && (
-            <div className="flex items-center gap-2 px-8 py-3 font-semibold text-green-700 bg-green-100 border border-green-300 rounded-lg">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {t("appeal_submitted") || "Đã gửi yêu cầu phúc khảo"}
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Modal xác nhận phúc khảo */}
-      <AppealModal
-        isOpen={isAppealModalOpen}
-        onClose={closeAppealModal}
-        onConfirm={handleConfirmAppeal}
-        testSessionId={apiData?.testSessionId}
-      />
     </div>
   );
 };

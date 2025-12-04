@@ -92,6 +92,8 @@ import AirlineCampaignDetailPage from "./pages/AirlinePartner/AirlineCampaignDet
 import AirlineCampaignPage from "./pages/AirlinePartner/AirlineCampaignPage";
 import TestQuestionDetail from "./pages/Examiner/ExaminerDetail/TestQuestionDetail";
 import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerTestSessionDetail";
+import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestReportPage";
+import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
 
 // import ReportPage from "./pages/AirlinePartner/ReportPage";
 
@@ -585,6 +587,22 @@ function App() {
           element={
             <CabinCrewLayout>
               <PromotionAppointmentInterviewPage />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/score-report"
+          element={
+            <CabinCrewLayout>
+              <ScoreReportPage />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/score-report/:id"
+          element={
+            <CabinCrewLayout>
+              <PracticalTestReportPage />
             </CabinCrewLayout>
           }
         />

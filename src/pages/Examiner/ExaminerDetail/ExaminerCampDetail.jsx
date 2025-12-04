@@ -361,8 +361,7 @@ const ExaminerCampDetail = ({ campaign }) => {
             </div>
           </div>
           <div className="text-xs text-right text-slate-500">
-            <div>Ngày tạo: {formatDateFromAPI(data.createdAt) || "N/A"}</div>
-            <div>Mã số: {data.campaignId || "N/A"}</div>
+            Mã số: {data.campaignId || "N/A"}
           </div>
         </div>
 

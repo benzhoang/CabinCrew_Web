@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { t, onLangChange } from '../../i18n'
+import { toast } from 'react-toastify'
 
 const ProfileCabinCrewPage = () => {
     // Force re-render when language changes
@@ -106,7 +107,7 @@ const ProfileCabinCrewPage = () => {
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
+            toast.error(t('application_form_captcha_incorrect'))
             refreshCaptcha()
             return
         }
@@ -114,7 +115,7 @@ const ProfileCabinCrewPage = () => {
         // Xử lý cập nhật form ở đây
         console.log('Updated form data:', formData)
         console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
+        toast.success('Đã cập nhật thông tin thành công!')
     }
 
     const handleSubmit = (e) => {
@@ -122,7 +123,7 @@ const ProfileCabinCrewPage = () => {
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
+            toast.error(t('application_form_captcha_incorrect'))
             refreshCaptcha()
             return
         }
@@ -130,7 +131,7 @@ const ProfileCabinCrewPage = () => {
         // Xử lý nộp đơn ở đây
         console.log('Submitted form data:', formData)
         console.log('Submitted files:', files)
-        alert('Đã nộp đơn ứng tuyển thành công!')
+        toast.success('Đã nộp đơn ứng tuyển thành công!')
     }
 
     const handleEditClick = () => {
@@ -143,7 +144,7 @@ const ProfileCabinCrewPage = () => {
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
+            toast.error(t('application_form_captcha_incorrect'))
             refreshCaptcha()
             return
         }
@@ -151,7 +152,7 @@ const ProfileCabinCrewPage = () => {
         // Xử lý lưu thông tin
         console.log('Updated form data:', formData)
         console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
+        toast.success('Đã cập nhật thông tin thành công!')
         setIsEditing(false)
         setOriginalFormData(null)
     }
