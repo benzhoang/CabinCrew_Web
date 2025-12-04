@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import RequestInfo from "../../components/AirlinePartnerComponent/RequestInfo";
 import { getCampaignRequestDetail } from "../../service/api2.js";
 import Loading from "../../components/Loading.jsx";
+import { toast } from "react-toastify";
 
 const AirlineRequestDetailPage = () => {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ const AirlineRequestDetailPage = () => {
     // TODO: Implement save logic
     console.log("Saving title:", title);
     setIsEditingTitle(false);
-    alert("Đã cập nhật tiêu đề!");
+    toast.success("Đã cập nhật tiêu đề!");
   };
 
   const handleCancelEditTitle = () => {

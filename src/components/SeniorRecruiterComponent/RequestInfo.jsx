@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getCampaignRequestDetail } from "../../service/api2.js";
 import { convertDateFormat } from "../../config/formatDate.js";
 import Loading from "../Loading.jsx";
+import { toast } from "react-toastify";
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start gap-3">
@@ -78,7 +79,7 @@ const RequestInfo = () => {
     // TODO: Implement save logic
     console.log("Saving data info:", editData);
     setIsEditingInfo(false);
-    alert("Đã cập nhật thông tin data!");
+    toast.success("Đã cập nhật thông tin data!");
   };
 
   const handleCancelEdit = () => {

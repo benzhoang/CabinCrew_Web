@@ -40,9 +40,7 @@ const BatchCard = ({ batch, statusCfg, percent }) => {
             label="Thời gian kết thúc"
             value={formatDateOnly(batch.endDate)}
           />
-          <InfoMini label="Địa điểm" value={batch.location || "—"} />
           <InfoMini label="Hình thức" value={batch.method || "—"} />
-          <InfoMini label="Phụ trách" value={batch.owner || "—"} />
           {batch.target !== undefined && (
             <InfoMini
               label="Chỉ tiêu"

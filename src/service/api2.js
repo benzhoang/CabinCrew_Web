@@ -1848,7 +1848,10 @@ export const moveToInterview = async (roundId) => {
       roundId: roundIdNum,
     };
 
-    const response = await api2.post("/round-activities/move-to-interview", payload);
+    const response = await api2.post(
+      "/round-activities/move-to-interview",
+      payload
+    );
 
     // API trả về code 200 khi thành công
     if (response.status === 200 && response.data) {
@@ -1873,6 +1876,38 @@ export const moveToInterview = async (roundId) => {
         error.response?.data?.errorMessage ||
         error.message ||
         "Không thể chuyển vòng",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy lịch sử ứng tuyển của người dùng
+export const getPromotionHistory = async () => {
+  try {
+    const response = await api2.get("/users/history");
+    const responseData = response.data;
+
+    if (responseData.code === 0 && Array.isArray(responseData.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData.message || "Không thể lấy lịch sử thăng bậc",
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    return {
+      success: false,
+      error:
+        errorData?.message ||
+        errorData?.errorMessage ||
+        error.message ||
+        "Không thể lấy lịch sử thăng bậc",
       status: error.response?.status,
     };
   }

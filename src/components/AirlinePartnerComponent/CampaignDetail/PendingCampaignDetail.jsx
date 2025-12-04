@@ -1,5 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  formatDate,
+  convertDateFormat,
+  formatDateOnly,
+} from "../../../config/formatDate";
+import BatchInfo from "./BatchInfo";
 
 const PendingCampaignDetail = ({ campaign }) => {
   const navigate = useNavigate();
@@ -30,7 +36,7 @@ const PendingCampaignDetail = ({ campaign }) => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {campaign.name}
+              {campaign.campaignName || campaign.name}
             </h1>
             <p className="text-slate-600">Chiến dịch đang chờ phê duyệt</p>
           </div>
@@ -66,60 +72,97 @@ const PendingCampaignDetail = ({ campaign }) => {
       </div>
 
       {/* Campaign Information */}
-      <div className="mb-6">
-        <div className="w-full p-6 bg-white border rounded-lg shadow-sm border-slate-200">
-          <h2 className="mb-4 text-lg font-semibold text-slate-800">
-            Thông tin Chiến dịch
-          </h2>
-
-          <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <span className="text-sm text-slate-600">Vị trí:</span>
-              <p className="font-medium text-slate-800">{campaign.position}</p>
-            </div>
-            <div>
-              <span className="text-sm text-slate-600">Phòng ban:</span>
-              <p className="font-medium text-slate-800">
-                {campaign.department}
-              </p>
-            </div>
-            <div>
-              <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
-              <p className="font-medium text-slate-800">{campaign.startDate}</p>
-            </div>
-            <div>
-              <span className="text-sm text-slate-600">Ngày kết thúc:</span>
-              <p className="font-medium text-slate-800">{campaign.endDate}</p>
-            </div>
-            <div>
-              <span className="text-sm text-slate-600">
-                Mục tiêu tuyển dụng:
-              </span>
-              <p className="font-medium text-slate-800">
-                {campaign.targetHires} người
-              </p>
-            </div>
-            <div>
-              <span className="text-sm text-slate-600">Đã tuyển:</span>
-              <p className="font-medium text-slate-800">
-                {campaign.currentHires} người
-              </p>
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="space-y-1">
+            <div className="text-sm text-slate-500">Thông tin đề xuất</div>
+            <div className="font-semibold text-slate-800">
+              {campaign?.partnerName || "N/A"}
             </div>
           </div>
-
-          <div className="mb-4">
-            <span className="text-sm text-slate-600">Mô tả:</span>
-            <p className="mt-1 text-slate-800">{campaign.description}</p>
+          <div className="text-xs text-right text-slate-500">
+            <div>
+              Ngày tạo:{" "}
+              {formatDate(convertDateFormat(campaign?.createdAt)) || "N/A"}
+            </div>
+            <div>Mã số: {campaign?.campaignId || campaign?.id || "N/A"}</div>
           </div>
+        </div>
 
-          <div>
-            <span className="text-sm text-slate-600">Yêu cầu:</span>
-            <p className="mt-1 text-slate-800">{campaign.requirements}</p>
+        <div className="p-5">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {(campaign?.campaignType?.toLowerCase() === "promotion" ||
+                campaign?.campaignType === "Promotion") && (
+                <Info label="Vị trí" value={"Chief Flight Attendant"} />
+              )}
+              {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
+                campaign?.campaignType === "Recruitment") && (
+                <Info label="Vị trí" value={"Flight Attendant"} />
+              )}
+              <Info
+                label="Số lượng tuyển"
+                value={`${
+                  campaign?.targetQuantity || campaign?.targetHires || 0
+                }`}
+              />
+              <Info
+                label="Ngày bắt đầu"
+                value={formatDateOnly(campaign?.startDate) || "N/A"}
+              />
+              <Info
+                label="Ngày kết thúc"
+                value={formatDateOnly(campaign?.endDate) || "N/A"}
+              />
+            </div>
+
+            {/* Job Description */}
+            {campaign?.jobDescription && (
+              <div className="mt-6">
+                <h3 className="mb-2 text-lg font-semibold text-slate-800">
+                  📋 Mô tả công việc / Job Description
+                </h3>
+                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+                  <div
+                    className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: campaign.jobDescription || "N/A",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Job Requirements */}
+            {campaign?.jobRequirement && (
+              <div className="mt-6">
+                <h3 className="mb-2 text-lg font-semibold text-slate-800">
+                  📝 Yêu cầu công việc / Job Requirements
+                </h3>
+                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                  <div
+                    className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: campaign.jobRequirement || "N/A",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <BatchInfo campaign={campaign} />
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const Info = ({ label, value }) => (
+  <div>
+    <div className="text-sm text-slate-600">{label}</div>
+    <div className="font-medium text-slate-800">{value}</div>
+  </div>
+);
 
 export default PendingCampaignDetail;

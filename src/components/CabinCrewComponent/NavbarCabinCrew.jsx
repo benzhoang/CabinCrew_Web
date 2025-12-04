@@ -47,62 +47,62 @@ const NavbarCabinCrew = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-airline-blue-900 via-airline-blue-800 to-sky-700 shadow-xl sticky top-0 z-50 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 shadow-xl bg-gradient-to-r from-airline-blue-900 via-airline-blue-800 to-sky-700 backdrop-blur-sm">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex items-center h-20">
           {/* Logo Section */}
           <div className="flex items-center">
             <Link
               to="/cabin-crew/home"
-              className="flex items-center hover:opacity-80 transition-opacity duration-300"
+              className="flex items-center transition-opacity duration-300 hover:opacity-80"
             >
               <img
                 src={logoImage}
                 alt="SkyCabin Airlines"
-                className="h-10 w-auto"
+                className="w-auto h-10"
               />
             </Link>
           </div>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center justify-center flex-1 space-x-5">
+          <div className="items-center justify-center flex-1 hidden space-x-5 lg:flex">
             <Link
               to="/cabin-crew/home"
-              className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("home")}
             </Link>
             <Link
               to="/cabin-crew/promotion"
-              className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("promotion")}
             </Link>
             <Link
               to="/cabin-crew/interview-appointments"
-              className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("appointment")}
             </Link>
             <Link
               to="/cabin-crew/score-report"
-              className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("score_report")}
             </Link>
             <Link
               to="/cabin-crew/contact"
-              className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("contact")}
             </Link>
           </div>
 
           {/* Lang + Auth Buttons / User */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="items-center hidden space-x-4 lg:flex">
             <button
               onClick={toggleLang}
-              className="px-2 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
+              className="px-2 py-2 text-white transition-all duration-300 rounded-lg bg-white/10 hover:bg-white/20"
               aria-label="Toggle language"
               title={t(lang === "vi" ? "en" : "vi")}
             >
@@ -121,7 +121,7 @@ const NavbarCabinCrew = () => {
                   aria-haspopup="menu"
                   aria-expanded={isUserMenuOpen ? "true" : "false"}
                 >
-                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-semibold">
+                  <div className="flex items-center justify-center font-semibold rounded-full w-9 h-9 bg-white/20">
                     {user.displayName?.[0]?.toUpperCase() ||
                       user.username?.[0]?.toUpperCase() ||
                       "U"}
@@ -131,7 +131,7 @@ const NavbarCabinCrew = () => {
                   </span>
                 </button>
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white text-gray-700 rounded-lg shadow-xl ring-1 ring-black/5 overflow-hidden">
+                  <div className="absolute right-0 w-48 mt-2 overflow-hidden text-gray-700 bg-white rounded-lg shadow-xl top-full ring-1 ring-black/5">
                     <Link
                       to="/cabin-crew/settings"
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
@@ -211,7 +211,7 @@ const NavbarCabinCrew = () => {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100"
+                      className="flex items-center w-full gap-2 px-4 py-2 text-left hover:bg-gray-100"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -234,13 +234,13 @@ const NavbarCabinCrew = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-white border border-white/30 rounded-lg hover:bg-white/10 transition-all duration-300 font-medium"
+                  className="px-4 py-2 font-medium text-white transition-all duration-300 border rounded-lg border-white/30 hover:bg-white/10"
                 >
                   {t("signin")}
                 </Link>
                 <Link
                   to="/signup"
-                  className="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-all duration-300 font-medium"
+                  className="px-4 py-2 font-medium text-blue-600 transition-all duration-300 bg-white rounded-lg hover:bg-gray-50"
                 >
                   {t("signup")}
                 </Link>
@@ -252,7 +252,7 @@ const NavbarCabinCrew = () => {
           <div className="lg:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:text-sky-200 focus:outline-none focus:text-sky-200 p-2 rounded-lg hover:bg-white/10 transition-all duration-300"
+              className="p-2 text-white transition-all duration-300 rounded-lg hover:text-sky-200 focus:outline-none focus:text-sky-200 hover:bg-white/10"
             >
               {isMenuOpen ? "✕" : "☰"}
             </button>
@@ -262,56 +262,56 @@ const NavbarCabinCrew = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="lg:hidden animate-slide-down">
-            <div className="px-4 pt-4 pb-6 space-y-2 bg-airline-blue-800/95 backdrop-blur-sm rounded-xl mt-4 shadow-2xl border border-white/10">
+            <div className="px-4 pt-4 pb-6 mt-4 space-y-2 border shadow-2xl bg-airline-blue-800/95 backdrop-blur-sm rounded-xl border-white/10">
               <Link
                 to="/home"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("home")}
               </Link>
               <Link
                 to="/recruitment"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("recruitment")}
               </Link>
               <Link
                 to="/appointment"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("appointment")}
               </Link>
               <Link
                 to="/score-report"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("score_report")}
               </Link>
               <Link
                 to="/test"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("test")}
               </Link>
               <Link
                 to="/contact"
-                className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium"
+                className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("contact")}
               </Link>
-              <div className="border-t border-white/20 pt-4 mt-4 space-y-2">
+              <div className="pt-4 mt-4 space-y-2 border-t border-white/20">
                 <button
                   onClick={() => {
                     toggleLang();
                     setIsMenuOpen(false);
                   }}
-                  className="block w-full px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium text-left"
+                  className="block w-full px-4 py-3 font-medium text-left text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 >
                   <span className="inline-flex items-center gap-2">
                     <img
@@ -325,7 +325,7 @@ const NavbarCabinCrew = () => {
                 {user ? (
                   <div className="flex items-center justify-between px-2 text-white">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-semibold">
+                      <div className="flex items-center justify-center w-8 h-8 font-semibold rounded-full bg-white/20">
                         {user.displayName?.[0]?.toUpperCase() ||
                           user.username?.[0]?.toUpperCase() ||
                           "U"}
@@ -485,14 +485,14 @@ const NavbarCabinCrew = () => {
                   <div className="flex flex-col space-y-2">
                     <Link
                       to="/login"
-                      className="block px-4 py-3 text-white hover:text-sky-200 hover:bg-white/10 transition-all duration-300 rounded-lg font-medium text-center border border-white/30"
+                      className="block px-4 py-3 font-medium text-center text-white transition-all duration-300 border rounded-lg hover:text-sky-200 hover:bg-white/10 border-white/30"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {t("signin")}
                     </Link>
                     <Link
                       to="/signup"
-                      className="block px-4 py-3 bg-white text-blue-600 hover:bg-gray-50 transition-all duration-300 rounded-lg font-medium text-center"
+                      className="block px-4 py-3 font-medium text-center text-blue-600 transition-all duration-300 bg-white rounded-lg hover:bg-gray-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {t("signup")}

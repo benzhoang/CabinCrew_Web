@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getUsersByRole, assignCampaignUsers } from "../../../service/api2";
 import { toast } from "react-toastify";
+import { formatDate } from "../../../config/formatDate";
 
 // CSS animations for pop-up effect
 const popupStyles = `
@@ -51,6 +52,8 @@ const mapUserData = (users) => {
       `${user.firstName || ""} ${user.lastName || ""}`.trim(),
     position: user.position || user.roleName || "N/A",
     department: user.department || user.departmentName || "N/A",
+    count: user.count || 0,
+    assignedCampaigns: user.assignedCampaigns || [],
   }));
 };
 
@@ -400,14 +403,45 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       isSelected ? "bg-slate-50" : ""
                     }`}
                   >
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-slate-800">
                         {user.name}
                       </p>
+                      {user.count !== undefined && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs text-slate-600">
+                            <span className="font-medium">
+                              Số lượng chiến dịch:
+                            </span>{" "}
+                            {user.count}
+                          </p>
+                          {user.assignedCampaigns &&
+                            user.assignedCampaigns.length > 0 && (
+                              <div>
+                                <p className="mb-1 text-xs font-medium text-slate-600">
+                                  Ngày của những chiến dịch:
+                                </p>
+                                <div className="space-y-0.5">
+                                  {user.assignedCampaigns.map(
+                                    (campaign, idx) => (
+                                      <p
+                                        key={idx}
+                                        className="text-xs text-slate-500"
+                                      >
+                                        {formatDate(campaign.startDate)} -{" "}
+                                        {formatDate(campaign.endDate)}
+                                      </p>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
+                      )}
                     </div>
                     {isMulti ? (
                       <span
-                        className={`w-5 h-5 rounded border flex items-center justify-center ${
+                        className={`w-5 h-5 rounded border flex items-center justify-center ml-3 flex-shrink-0 ${
                           isSelected
                             ? "bg-blue-600 border-blue-600 text-white"
                             : "border-slate-300 text-transparent"
@@ -417,7 +451,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       </span>
                     ) : (
                       <span
-                        className={`w-4 h-4 border rounded-full flex items-center justify-center ${
+                        className={`w-4 h-4 border rounded-full flex items-center justify-center ml-3 flex-shrink-0 ${
                           isSelected
                             ? "bg-blue-600 border-blue-600"
                             : "border-slate-300"
@@ -575,14 +609,14 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       assignments[round.key].length > 0)) && (
                     <div className="mt-4">
                       <label className="block mb-2 text-sm font-medium text-slate-700">
-                        Mô tả nhiệm vụ
+                        Ghi chú
                       </label>
                       <textarea
                         value={taskDescriptions[round.key]}
                         onChange={(e) =>
                           handleDescriptionChange(round.key, e.target.value)
                         }
-                        placeholder="Nhập mô tả chi tiết cho nhiệm vụ này..."
+                        placeholder="Nhập ghi chú cho nhiệm vụ này..."
                         rows={3}
                         className="w-full px-4 py-3 text-sm border rounded-lg resize-none border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                       />

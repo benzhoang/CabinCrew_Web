@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  formatDate,
-  convertDateFormat,
-  formatDateOnly,
-} from "../../../config/formatDate";
+import { formatDateOnly } from "../../../config/formatDate";
 import BatchManagement from "./BatchManagement";
 
 const DetailInfo = ({ campaign, onCreateBatch }) => {
@@ -17,11 +13,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           </div>
         </div>
         <div className="text-xs text-right text-slate-500">
-          <div>
-            Ngày tạo:{" "}
-            {formatDate(convertDateFormat(campaign?.createdAt)) || "N/A"}
-          </div>
-          <div>Mã số: {campaign?.campaignId || campaign?.id || "N/A"}</div>
+          Mã số: {campaign?.campaignId || campaign?.id || "N/A"}
         </div>
       </div>
 
@@ -36,12 +28,6 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               campaign?.campaignType === "Recruitment") && (
               <Info label="Vị trí" value={"Flight Attendant"} />
             )}
-            <Info
-              label="Số lượng tuyển"
-              value={`${
-                campaign?.targetQuantity || campaign?.targetHires || 0
-              }`}
-            />
             <Info
               label="Số lượng tuyển"
               value={`${
@@ -66,7 +52,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               </h3>
               <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                 <div
-                  className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
+                  className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
                   dangerouslySetInnerHTML={{
                     __html: campaign.jobDescription || "N/A",
                   }}
@@ -83,7 +69,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               </h3>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <div
-                  className="job-requirement-content text-sm prose-sm prose text-slate-700 max-w-none"
+                  className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
                   dangerouslySetInnerHTML={{
                     __html: campaign.jobRequirement || "N/A",
                   }}

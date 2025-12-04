@@ -131,7 +131,6 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const addRound = () => {
-    if (formData.rounds.length >= 3) return;
     setFormData((prev) => ({
       ...prev,
       rounds: [
@@ -550,12 +549,8 @@ const SeniorCreateCampaignPage = () => {
                 <button
                   type="button"
                   onClick={addRound}
-                  disabled={formData.rounds.length >= 3}
-                  className={`px-3 py-1 text-sm text-white rounded-md ${
-                    formData.rounds.length >= 3
-                      ? "bg-slate-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                  className={`px-3 py-1 text-sm text-white rounded-md bg-blue-600 hover:bg-blue-700
+                  `}
                 >
                   + Thêm đợt
                 </button>

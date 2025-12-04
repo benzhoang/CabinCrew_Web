@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  formatDate,
-  convertDateFormat,
-  formatDateOnly,
-} from "../../../config/formatDate";
+import { formatDateOnly } from "../../../config/formatDate";
 
 const CampaignInfo = ({ campaign }) => {
   if (!campaign) {
@@ -20,11 +16,7 @@ const CampaignInfo = ({ campaign }) => {
           </div>
         </div>
         <div className="text-xs text-right text-slate-500">
-          <div>
-            Ngày tạo:{" "}
-            {formatDate(convertDateFormat(campaign?.createdAt)) || "N/A"}
-          </div>
-          <div>Mã số: {campaign?.campaignId || campaign?.id || "N/A"}</div>
+          Mã số: {campaign?.campaignId || campaign?.id || "N/A"}
         </div>
       </div>
 
@@ -62,7 +54,7 @@ const CampaignInfo = ({ campaign }) => {
               </h3>
               <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                 <div
-                  className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
+                  className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
                   dangerouslySetInnerHTML={{
                     __html: campaign.jobDescription || "N/A",
                   }}
@@ -78,7 +70,7 @@ const CampaignInfo = ({ campaign }) => {
               </h3>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <div
-                  className="job-requirement-content text-sm prose-sm prose text-slate-700 max-w-none"
+                  className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
                   dangerouslySetInnerHTML={{
                     __html: campaign.jobRequirement || "N/A",
                   }}
@@ -88,15 +80,15 @@ const CampaignInfo = ({ campaign }) => {
           )}
           {/* Recruitment Process */}
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">
               🔄 Quy trình tuyển dụng / Recruitment Process
             </h3>
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
               <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         1
                       </span>
                       <span className="text-slate-700">
@@ -105,7 +97,7 @@ const CampaignInfo = ({ campaign }) => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         2
                       </span>
                       <span className="text-slate-700">
@@ -113,7 +105,7 @@ const CampaignInfo = ({ campaign }) => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         3
                       </span>
                       <span className="text-slate-700">
@@ -121,7 +113,7 @@ const CampaignInfo = ({ campaign }) => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         4
                       </span>
                       <span className="text-slate-700">
@@ -129,7 +121,7 @@ const CampaignInfo = ({ campaign }) => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         5
                       </span>
                       <span className="text-slate-700">
@@ -137,7 +129,7 @@ const CampaignInfo = ({ campaign }) => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
                         6
                       </span>
                       <span className="text-slate-700">Phỏng vấn Hội đồng</span>
