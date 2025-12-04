@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import PostVerificationModal from '../../components/PostVerificationModal'
-import { getUserApplication, getUserProfile } from '../../service/api'
+import { getApplicationById } from '../../service/api'
 import ProfileFormActions from './ProfileFormActions'
 
 const ProfilePage = () => {
     const navigate = useNavigate()
+    const { applicationId: routeApplicationId } = useParams()
     const [, forceUpdate] = useState({})
     const decodeJwt = (token) => {
         if (!token) {
@@ -107,13 +108,16 @@ const ProfilePage = () => {
             setIsLoading(true)
             setError(null)
             try {
-                const userId = getUserId()
-                if (!userId) {
-                    setError('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.')
+                // Lấy applicationId từ route params
+                const appId = routeApplicationId
+                if (!appId) {
+                    setError('Không tìm thấy mã đơn ứng tuyển. Vui lòng kiểm tra lại đường dẫn.')
                     setIsLoading(false)
                     return
                 }
-                const result = await getUserApplication(userId)
+
+                // Gọi API mới để lấy thông tin application
+                const result = await getApplicationById(appId)
                 if (result.success && result.data) {
                     const appData = result.data
                     console.log('Application data from API:', appData)
@@ -189,8 +193,10 @@ const ProfilePage = () => {
                         return ''
                     }
                     // Store application metadata
-                    if (appData.applicationId) {
-                        setApplicationId(appData.applicationId)
+                    // Set applicationId from route param or from API response
+                    const finalApplicationId = appId || appData.applicationId
+                    if (finalApplicationId) {
+                        setApplicationId(finalApplicationId)
                     }
                     if (appData.submissionDate) {
                         const formattedSubmissionDate = formatDateForDisplay(appData.submissionDate)
@@ -311,66 +317,39 @@ const ProfilePage = () => {
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
                     }
-                    // Load user profile data from API
-                    const userProfileResult = await getUserProfile(userId)
-                    if (userProfileResult.success && userProfileResult.data) {
-                        const userData = userProfileResult.data
-                        console.log('User profile data from API:', userData)
-                        
-                        // Helper function to format date to YYYY-MM-DD
-                        const formatDateForInput = (dateString) => {
-                            if (!dateString) {
-                                return ''
-                            }
-                            if (typeof dateString === 'string') {
-                                // Check if it's YYYY-MM-DD format
-                                const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/)
-                                if (ymdMatch) {
-                                    return dateString.split('T')[0] // Remove time part if exists
-                                }
-                                // Try parsing as Date
-                                try {
-                                    const date = new Date(dateString)
-                                    if (!isNaN(date.getTime())) {
-                                        const year = date.getFullYear()
-                                        const month = String(date.getMonth() + 1).padStart(2, '0')
-                                        const day = String(date.getDate()).padStart(2, '0')
-                                        return `${year}-${month}-${day}`
-                                    }
-                                } catch (e) {
-                                    console.error('Error parsing date:', dateString, e)
-                                }
-                            }
-                            return ''
-                        }
-                        
-                        // Map gender: API returns integer (1 = male, 0 or 2 = female), form needs "male" or "female"
+                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender)
+                    // The new API includes all user profile fields in the response
+                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined) {
+                        // Map gender: API returns string or integer, form needs "male" or "female"
                         let genderValue = ''
-                        if (userData.gender !== undefined && userData.gender !== null) {
-                            // Assuming 1 = male, 0 or other = female (adjust based on your API)
-                            genderValue = userData.gender === 1 ? 'male' : 'female'
+                        if (appData.gender !== undefined && appData.gender !== null) {
+                            const genderStr = String(appData.gender).toLowerCase()
+                            if (genderStr === 'male' || genderStr === '1' || genderStr === 'm') {
+                                genderValue = 'male'
+                            } else if (genderStr === 'female' || genderStr === '0' || genderStr === '2' || genderStr === 'f') {
+                                genderValue = 'female'
+                            }
                         }
-                        
+
                         setFormData(prev => {
-                            // Preserve certificateExpireDate from API, don't override it
                             const updated = {
                                 ...prev,
-                                email: userData.email || prev.email || '',
-                                fullName: userData.fullName || prev.fullName || '',
-                                dateOfBirth: userData.dateOfBirth ? formatDateForInput(userData.dateOfBirth) : (prev.dateOfBirth || ''),
+                                email: appData.email || prev.email || '',
+                                fullName: appData.fullName || prev.fullName || '',
+                                dateOfBirth: appData.dateOfBirth ? formatDateForInput(appData.dateOfBirth) : (prev.dateOfBirth || ''),
                                 gender: genderValue || prev.gender || '',
-                                mobileNumber: userData.phoneNumber || prev.mobileNumber || '',
+                                mobileNumber: appData.phoneNumber || prev.mobileNumber || '',
                             }
                             // Keep certificateExpireDate from API if it was set
                             if (prev.certificateExpireDate) {
                                 updated.certificateExpireDate = prev.certificateExpireDate
                             }
-                            console.log('User profile data merged, certificateExpireDate preserved:', updated.certificateExpireDate)
+                            console.log('User profile data merged from application API, certificateExpireDate preserved:', updated.certificateExpireDate)
                             return updated
                         })
                     } else {
-                        console.warn('Could not load user profile from API, using localStorage as fallback')
-                        // Fallback to localStorage if API fails
+                        console.warn('No user profile data in API response, using localStorage as fallback')
+                        // Fallback to localStorage if API doesn't include profile data
                         const userData = JSON.parse(localStorage.getItem('user') || 'null')
                         if (userData) {
                             setFormData(prev => {
@@ -400,7 +379,7 @@ const ProfilePage = () => {
             }
         }
         loadApplicationData()
-    }, [])
+    }, [routeApplicationId])
     // Debug: Log formData.certificateExpireDate whenever it changes
     useEffect(() => {
         console.log('formData.certificateExpireDate changed:', formData.certificateExpireDate)

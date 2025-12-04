@@ -401,6 +401,13 @@ const ApplicationForm = () => {
 
             // Chuẩn bị dữ liệu để gửi API
             const applicationData = {
+                // Thông tin cá nhân
+                email: formData.email,
+                fullName: formData.fullName,
+                phoneNumber: formData.mobileNumber,
+                dateOfBirth: formData.dateOfBirth,
+                gender: formData.gender,
+                // Thông tin hồ sơ
                 experience: experienceMap[formData.workingExperience] || formData.workingExperience,
                 height: formData.height,
                 weight: formData.weight,
@@ -452,6 +459,13 @@ const ApplicationForm = () => {
 
             // Chuẩn bị dữ liệu để gửi API
             const draftData = {
+                // Thông tin cá nhân
+                email: formData.email || '',
+                fullName: formData.fullName || '',
+                phoneNumber: formData.mobileNumber || '',
+                dateOfBirth: formData.dateOfBirth || '',
+                gender: formData.gender || '',
+                // Thông tin hồ sơ
                 experience: experienceMap[formData.workingExperience] || formData.workingExperience || '',
                 height: formData.height || '',
                 weight: formData.weight || '',
@@ -477,7 +491,7 @@ const ApplicationForm = () => {
                 localStorage.setItem('applicationFormDraft', JSON.stringify(localDraftData))
 
                 alert(t('application_form_draft_saved') || result.message || 'Đã lưu bản nháp thành công!')
-                navigate('/profile')
+                navigate('/recruitment-stages')
             } else {
                 alert(result.error || 'Lưu bản nháp thất bại. Vui lòng thử lại.')
             }

@@ -135,7 +135,7 @@ function App() {
           }
         />
         <Route
-          path="/profile"
+          path="/profile/:applicationId"
           element={
             <>
               <Navbar />

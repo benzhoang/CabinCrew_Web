@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { t } from '../../../i18n';
 import SubmitWarningModal from './SubmitWarningModal';
 
@@ -103,7 +104,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
     // ==================== RECORDING ====================
     const startRecording = async () => {
         if (recordingCount >= MAX_RECORDINGS) {
-            alert(t('max_recordings_reached') || `Bạn đã ghi âm tối đa ${MAX_RECORDINGS} lần. Vui lòng nộp file hiện tại.`);
+            toast.warn(t('max_recordings_reached') || `Bạn đã ghi âm tối đa ${MAX_RECORDINGS} lần. Vui lòng nộp file hiện tại.`);
             return;
         }
 
@@ -169,7 +170,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
             }, 1000);
         } catch (err) {
             console.error('Microphone access error:', err);
-            alert(t('recording_error') || 'Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.');
+            toast.error(t('recording_error') || 'Không thể truy cập microphone. Vui lòng kiểm tra quyền truy cập.');
         }
     };
 
@@ -203,7 +204,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
 
         audio.play().catch(err => {
             console.error('Playback error:', err);
-            alert('Không thể phát lại bản ghi âm');
+            toast.error('Không thể phát lại bản ghi âm');
         });
     };
 
@@ -224,11 +225,11 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
     // ==================== SUBMIT ====================
     const handleSubmitClick = () => {
         if (!recording) {
-            alert(t('no_recording') || 'Chưa có bản ghi âm để nộp');
+            toast.warn(t('no_recording') || 'Chưa có bản ghi âm để nộp');
             return;
         }
         if (isSubmitted) {
-            alert(t('recording_already_submitted') || 'Bản ghi đã được nộp rồi');
+            toast.warn(t('recording_already_submitted') || 'Bản ghi đã được nộp rồi');
             return;
         }
         setShowWarningModal(true);
@@ -240,7 +241,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
         }
         setIsSubmitted(true);
         setShowWarningModal(false);
-        alert(t('submit_recording') || `Đã nộp file ghi âm cho câu ${questionId}`);
+        toast.success(t('submit_recording') || `Đã nộp file ghi âm cho câu ${questionId}`);
     };
 
     // ==================== RENDER ====================

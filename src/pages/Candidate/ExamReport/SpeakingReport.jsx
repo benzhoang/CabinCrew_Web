@@ -59,6 +59,7 @@ const SpeakingReport = () => {
                     console.log("Selected Session:", selectedSession);
 
                     // Map dữ liệu từ API sang format của component
+                    // Giữ nguyên totalScore từ API (có thể là null/undefined) để kiểm tra chính xác
                     const mappedData = {
                         ...selectedSession,
                         userFullName: selectedSession.userFullName || "",
@@ -68,8 +69,12 @@ const SpeakingReport = () => {
                         endTime: selectedSession.endTime,
                         testName: selectedSession.testName || examName || "",
                         testType: selectedSession.testType || examType || "EnglishSpeaking",
-                        totalScore: selectedSession.totalScore || score || 0,
-                        maxScore: selectedSession.maxScore || maxScore || 0,
+                        totalScore: selectedSession.totalScore !== undefined && selectedSession.totalScore !== null
+                            ? selectedSession.totalScore
+                            : (score !== undefined && score !== null ? score : null),
+                        maxScore: selectedSession.maxScore !== undefined && selectedSession.maxScore !== null
+                            ? selectedSession.maxScore
+                            : (maxScore !== undefined && maxScore !== null ? maxScore : 0),
                     };
 
                     setSessionData(mappedData);
@@ -109,9 +114,13 @@ const SpeakingReport = () => {
     const finalStartTime = sessionData?.startTime || "";
     const finalEndTime = sessionData?.endTime || "";
     const finalTestName = sessionData?.testName || "";
-    const finalTotalScore = sessionData?.totalScore || 0;
+    const finalTotalScore = sessionData?.totalScore;
     const finalMaxScore = sessionData?.maxScore || 0;
     const totalAnswers = sessionData?.totalAnswers || 0;
+
+    // Kiểm tra xem bài thi đã được chấm chưa
+    // Nếu totalScore là null, undefined, hoặc 0 thì coi là chưa được chấm
+    const isGraded = finalTotalScore !== null && finalTotalScore !== undefined && finalTotalScore !== 0;
 
     const handleBackToScoreReport = () => {
         navigate('/score-report');
@@ -220,14 +229,22 @@ const SpeakingReport = () => {
                                         </div>
 
                                         <div className="flex justify-center md:justify-end w-full md:w-auto">
-                                            <div className="inline-block p-6 rounded-full bg-green-100">
-                                                <div className="text-4xl font-bold text-green-600">
-                                                    {finalMaxScore > 0
-                                                        ? `${finalTotalScore}/${finalMaxScore}`
-                                                        : `${totalAnswers || 0}`
-                                                    }
+                                            {isGraded ? (
+                                                <div className="inline-block p-6 rounded-full bg-green-100">
+                                                    <div className="text-4xl font-bold text-green-600">
+                                                        {finalMaxScore > 0
+                                                            ? `${finalTotalScore}/${finalMaxScore}`
+                                                            : `${totalAnswers || 0}`
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ) : (
+                                                <div className="inline-block p-6 rounded-full bg-yellow-100">
+                                                    <div className="text-lg font-semibold text-yellow-700 text-center">
+                                                        {t('exam_not_graded') || 'Bài thi này chưa được chấm'}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -327,7 +344,8 @@ const SpeakingReport = () => {
                     >
                         {t("back_to_score_report") || "Quay lại báo cáo điểm số"}
                     </button>
-                    {!isAppealSubmitted && (
+                    {/* Chỉ hiển thị nút phúc khảo khi bài thi đã được chấm */}
+                    {isGraded && !isAppealSubmitted && (
                         <button
                             onClick={openAppealModal}
                             className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"
@@ -348,7 +366,7 @@ const SpeakingReport = () => {
                             {t("request_appeal") || "Yêu cầu phúc khảo"}
                         </button>
                     )}
-                    {isAppealSubmitted && (
+                    {isGraded && isAppealSubmitted && (
                         <div className="flex items-center gap-2 px-8 py-3 font-semibold text-green-700 bg-green-100 border border-green-300 rounded-lg">
                             <svg
                                 className="w-5 h-5"

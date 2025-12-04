@@ -11,6 +11,14 @@ const RequestList = () => {
     const [langVersion, setLangVersion] = useState(0)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 5, // Mỗi trang 5 request
+        totalRecords: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    })
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -19,11 +27,11 @@ const RequestList = () => {
     }, [])
 
     useEffect(() => {
-        const fetchCampaigns = async () => {
+        const fetchCampaigns = async (page = 1) => {
             setLoading(true)
             setError(null)
             try {
-                const result = await getCampaignRequests()
+                const result = await getCampaignRequests(page, pagination.pageSize)
                 if (result.success) {
                     // Hàm normalize status từ API
                     const normalizeStatus = (status) => {
@@ -67,6 +75,26 @@ const RequestList = () => {
                         department: item.partnerName || '',
                     }))
                     setCampaigns(mappedCampaigns)
+
+                    // Lưu thông tin phân trang từ API nếu có
+                    if (result.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...result.pagination,
+                            pageSize: pagination.pageSize || 5,
+                        }))
+                    } else {
+                        // Nếu API chưa trả pagination, fallback theo data hiện tại
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pagination.pageSize || 5,
+                            totalRecords: mappedCampaigns.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
                 } else {
                     setError(result.error || 'Không thể tải danh sách campaign')
                     setCampaigns([])
@@ -80,7 +108,8 @@ const RequestList = () => {
             }
         }
 
-        fetchCampaigns()
+        // Lần đầu load sẽ là trang 1
+        fetchCampaigns(1)
     }, [])
 
     useEffect(() => {
@@ -102,6 +131,72 @@ const RequestList = () => {
 
     const handleViewDetails = (campaign) => {
         navigate(`/director/requirements/${campaign.id}`, { state: { campaign } })
+    }
+
+    const handlePageChange = (page) => {
+        if (page === pagination.currentPage) return
+        if (page < 1) return
+        if (pagination.totalPages && page > pagination.totalPages) return
+        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+        if (page > pagination.currentPage && !pagination.hasNextPage) return
+        if (page < pagination.currentPage && !pagination.hasPreviousPage) return
+
+        // Gọi lại API với trang mới
+        const fetchNewPage = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const result = await getCampaignRequests(page, pagination.pageSize)
+                if (result.success) {
+                    const mappedCampaigns = (result.data || []).map(item => ({
+                        id: item.requestId,
+                        name: item.campaignName || 'N/A',
+                        description: item.description || '',
+                        targetQuantity: item.targetQuantity || 0,
+                        requestType: item.requestType || '',
+                        status: normalizeStatus(item.status),
+                        rejectReason: item.rejectReason || '',
+                        approvedAt: item.approvedAt || '',
+                        rejectedAt: item.rejectedAt || '',
+                        partnerName: item.partnerName || '',
+                        directorName: item.directorName || '',
+                        createdAt: item.createdAt || '',
+                        position: item.requestType || '',
+                        department: item.partnerName || '',
+                    }))
+                    setCampaigns(mappedCampaigns)
+
+                    if (result.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...result.pagination,
+                            pageSize: pagination.pageSize || 5,
+                        }))
+                    } else {
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pagination.pageSize || 5,
+                            totalRecords: mappedCampaigns.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
+                } else {
+                    setError(result.error || 'Không thể tải danh sách campaign')
+                    setCampaigns([])
+                }
+            } catch (err) {
+                console.error('Error fetching campaigns:', err)
+                setError('Đã xảy ra lỗi khi tải dữ liệu: ' + (err.message || 'Unknown error'))
+                setCampaigns([])
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchNewPage()
     }
 
     const handleDelete = (id) => {
@@ -310,6 +405,51 @@ const RequestList = () => {
                         <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
                     </div>
                 )}
+
+                {/* Phân trang */}
+                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                    <div className="text-sm text-slate-600">
+                        Trang <span className="font-semibold">{pagination.currentPage}</span>
+                        {pagination.totalPages ? (
+                            <> / <span className="font-semibold">{pagination.totalPages}</span></>
+                        ) : null}
+                        {typeof pagination.totalRecords === 'number' && (
+                            <span className="ml-2">
+                                ({pagination.totalRecords} bản ghi)
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => handlePageChange(pagination.currentPage - 1)}
+                            disabled={!pagination.hasPreviousPage}
+                            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                }`}
+                        >
+                            Trước
+                        </button>
+
+                        <span className="text-sm text-slate-600">
+                            {pagination.currentPage}
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={() => handlePageChange(pagination.currentPage + 1)}
+                            disabled={!pagination.hasNextPage}
+                            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                }`}
+                        >
+                            Sau
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     )

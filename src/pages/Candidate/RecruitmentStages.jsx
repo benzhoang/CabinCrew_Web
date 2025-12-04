@@ -5,6 +5,7 @@ import { getOngoingCampaign } from '../../service/api';
 
 const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
 const interviewKeywords = ['interview', 'phỏng vấn'];
+const screeningKeywords = ['screening', 'sang loc', 'sàng lọc'];
 const defaultStageTemplates = [
     {
         id: 'screening',
@@ -119,6 +120,7 @@ const RecruitmentStages = () => {
 
                         return {
                             activityId: matchingRound?.activityId || '',
+                            applicationId: matchingRound?.applicationId || '',
                             id: matchingRound?.roundId || `${template.id}-${index}`,
                             templateId: template.id,
                             name: matchingRound?.roundName || template.name,
@@ -161,8 +163,16 @@ const RecruitmentStages = () => {
                         }
                     }
 
+                    // Lấy applicationId từ rounds (ưu tiên từ screening round, nếu không có thì lấy từ round đầu tiên)
+                    const screeningRound = rounds.find((round) => {
+                        const roundName = normalizeText(round.roundName);
+                        return ['screening', 'sang loc'].some(keyword => roundName.includes(keyword));
+                    });
+                    const applicationId = screeningRound?.applicationId || rounds[0]?.applicationId || '';
+
                     const mappedData = {
                         id: campaignData.campaignRoundId || 1,
+                        applicationId: applicationId,
                         position: campaignData.campaignName || 'Chiến dịch tuyển dụng',
                         company: campaignData.airlinePartner || 'Đối tác hàng không',
                         roundName: campaignData.roundName || '',
@@ -424,6 +434,15 @@ const RecruitmentStages = () => {
                                                     <p className="text-xs text-gray-500 mt-1">
                                                         {new Date(stage.date).toLocaleDateString()}
                                                     </p>
+                                                )}
+                                                {stageReached && matchesStageKeywords(stage, screeningKeywords) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate(`/profile/${application.activityId || stage.activityId || ''}`)}
+                                                        className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                    >
+                                                        Xem hồ sơ
+                                                    </button>
                                                 )}
                                                 {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
                                                     <button

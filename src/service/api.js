@@ -441,9 +441,14 @@ export const uploadProfileImage = async (file) => {
 };
 
 // API lấy danh sách campaign requests
-export const getCampaignRequests = async () => {
+export const getCampaignRequests = async (page = 1, pageSize = 5) => {
   try {
-    const response = await api.get("/campaign-requests");
+    const response = await api.get("/campaign-requests", {
+      params: {
+        page: page,
+        pageSize: pageSize,
+      },
+    });
 
     if (response.data.code === 0 && response.data.data) {
       // API trả về data.items là array các campaign requests
@@ -2874,6 +2879,21 @@ export const saveApplicationDraft = async (draftData) => {
     const formData = new FormData();
 
     // Thêm các trường text/string
+    if (draftData.email) {
+      formData.append("Email", draftData.email);
+    }
+    if (draftData.fullName) {
+      formData.append("FullName", draftData.fullName);
+    }
+    if (draftData.phoneNumber) {
+      formData.append("PhoneNumber", draftData.phoneNumber);
+    }
+    if (draftData.dateOfBirth) {
+      formData.append("DateOfBirth", draftData.dateOfBirth);
+    }
+    if (draftData.gender !== undefined && draftData.gender !== null && draftData.gender !== "") {
+      formData.append("Gender", parseInt(draftData.gender));
+    }
     if (draftData.experience) {
       formData.append("Experience", draftData.experience);
     }
@@ -2981,6 +3001,25 @@ export const submitApplication = async (applicationData) => {
     const formData = new FormData();
 
     // Thêm các trường text/string (required)
+    if (applicationData.email) {
+      formData.append("Email", applicationData.email);
+    }
+    if (applicationData.fullName) {
+      formData.append("FullName", applicationData.fullName);
+    }
+    if (applicationData.phoneNumber) {
+      formData.append("PhoneNumber", applicationData.phoneNumber);
+    }
+    if (applicationData.dateOfBirth) {
+      formData.append("DateOfBirth", applicationData.dateOfBirth);
+    }
+    if (
+      applicationData.gender !== undefined &&
+      applicationData.gender !== null &&
+      applicationData.gender !== ""
+    ) {
+      formData.append("Gender", parseInt(applicationData.gender));
+    }
     if (applicationData.experience) {
       formData.append("Experience", applicationData.experience);
     }
@@ -3269,7 +3308,45 @@ export const submitExistingApplication = async (
   }
 };
 
-// API lấy thông tin đơn ứng tuyển của user theo ID
+// API lấy thông tin đơn ứng tuyển theo application ID
+// GET /api/v1/applications/{id}
+export const getApplicationById = async (applicationId) => {
+  try {
+    if (!applicationId) {
+      return {
+        success: false,
+        error: "Application ID không được để trống",
+      };
+    }
+
+    const response = await api.get(`/applications/${applicationId}`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Không thể lấy thông tin đơn ứng tuyển",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy thông tin đơn ứng tuyển",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy thông tin đơn ứng tuyển của user theo ID (deprecated - sử dụng getApplicationById thay thế)
 export const getUserApplication = async (userId) => {
   try {
     const response = await api.get(`/users/${userId}/application`);
@@ -3798,6 +3875,115 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
   } catch (error) {
     const errorData = error.response?.data;
     let errorMessage = "Đã xảy ra lỗi khi gửi yêu cầu phúc khảo";
+
+    if (errorData) {
+      if (errorData.errorMessage) {
+        errorMessage = errorData.errorMessage;
+      } else if (
+        Array.isArray(errorData.errors) &&
+        errorData.errors.length > 0
+      ) {
+        errorMessage = errorData.errors.join(". ");
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+      status: error.response?.status,
+    };
+  }
+};
+
+// API duyệt hồ sơ vòng sàng lọc (Screening Approval)
+// PUT /api/v1/applications/screening-approve/{activityId}
+// Body: { "status": 2 } (2 = Passed, 3 = Failed)
+export const screeningApprove = async (activityId, status) => {
+  if (!activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để duyệt hồ sơ sàng lọc",
+    };
+  }
+
+  if (!status || (status !== 2 && status !== 3)) {
+    return {
+      success: false,
+      error: "Status không hợp lệ. Status phải là 2 (Passed) hoặc 3 (Failed)",
+    };
+  }
+
+  try {
+    const response = await api.put(`/applications/screening-approve/${activityId}`, {
+      status: Number(status),
+    });
+
+    // Kiểm tra HTTP status code
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+
+    if (isHttpSuccess) {
+      const responseData = response.data;
+
+      // Kiểm tra nếu có errorCode
+      if (responseData && typeof responseData.errorCode !== "undefined") {
+        if (responseData.errorCode === 0 || responseData.errorCode === null) {
+          return {
+            success: true,
+            data: responseData.data,
+            message:
+              responseData.message ||
+              responseData.errorMessage ||
+              (status === 2
+                ? "Duyệt hồ sơ thành công"
+                : "Từ chối hồ sơ thành công"),
+          };
+        } else {
+          let errorMessage =
+            responseData.errorMessage ||
+            (status === 2
+              ? "Không thể duyệt hồ sơ"
+              : "Không thể từ chối hồ sơ");
+
+          if (
+            responseData.errors &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length > 0
+          ) {
+            errorMessage = responseData.errors.join(". ");
+          }
+
+          return {
+            success: false,
+            error: errorMessage,
+            errorCode: responseData.errorCode,
+          };
+        }
+      }
+
+      // Nếu không có errorCode, coi như thành công nếu HTTP status OK
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message:
+          responseData?.message ||
+          (status === 2 ? "Duyệt hồ sơ thành công" : "Từ chối hồ sơ thành công"),
+      };
+    }
+
+    return {
+      success: false,
+      error: "Không thể duyệt hồ sơ. Vui lòng thử lại.",
+      status: httpStatus,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    let errorMessage =
+      status === 2 ? "Đã xảy ra lỗi khi duyệt hồ sơ" : "Đã xảy ra lỗi khi từ chối hồ sơ";
 
     if (errorData) {
       if (errorData.errorMessage) {
