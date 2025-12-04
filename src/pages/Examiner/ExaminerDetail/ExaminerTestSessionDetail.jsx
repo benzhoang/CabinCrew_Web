@@ -113,6 +113,14 @@ const ExaminerTestSessionDetail = () => {
     { key: "grammar", label: "Grammar" },
   ];
 
+  // Tỉ lệ điểm của từng tiêu chí trên tổng điểm câu hỏi
+  // Pronunciation: 30%, Fluency: 30%, Grammar: 40%
+  const speakingCriteriaWeights = {
+    pronunciation: 0.3,
+    fluency: 0.3,
+    grammar: 0.4,
+  };
+
   useEffect(() => {
     if (testType !== "EnglishSpeaking") {
       setSpeakingScores({});
@@ -294,6 +302,18 @@ const ExaminerTestSessionDetail = () => {
         if (Number.isNaN(numericValue) || numericValue < 0) {
           validationErrors.push(
             `Điểm ${label} phải là số không âm (câu hỏi ${answer.questionId || index + 1
+            })`
+          );
+          continue;
+        }
+
+        // Giới hạn điểm mỗi tiêu chí theo % maxScore
+        // Pronunciation 30%, Fluency 30%, Grammar 40%
+        const weight = speakingCriteriaWeights[criteriaKey] || 0;
+        const maxForCriteria = (answer.maxScore || 0) * weight;
+        if (maxForCriteria > 0 && numericValue > maxForCriteria) {
+          validationErrors.push(
+            `Điểm ${label} tối đa là ${maxForCriteria} (câu hỏi ${answer.questionId || index + 1
             })`
           );
           continue;
@@ -571,7 +591,10 @@ const ExaminerTestSessionDetail = () => {
                         </span>
                       )}
                       <span className="px-3 py-1 text-sm font-semibold text-indigo-700 bg-indigo-100 rounded-full">
-                        Điểm: {answer.score || 0}
+                        Điểm:{" "}
+                        {answer.maxScore > 0
+                          ? `${answer.score ?? 0}/${answer.maxScore}`
+                          : answer.score ?? 0}
                       </span>
                     </div>
                   </div>
@@ -648,10 +671,6 @@ const ExaminerTestSessionDetail = () => {
                           </div>
                         ))}
                       </div>
-                      <p className="mt-2 text-xs text-gray-500">
-                        Gợi ý: nhập điểm từ 0-10. Hệ thống sẽ gửi dữ liệu này khi bạn
-                        nhấn nút Chấm điểm.
-                      </p>
                     </div>
                   )}
                 </div>

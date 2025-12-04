@@ -98,7 +98,6 @@ const FinalReview = () => {
                         appliedDate: participant.appliedDate || new Date().toISOString().split('T')[0],
                         education: participant.education || '',
                         experience: participant.experience || '',
-                        score: participant.score ?? 0,
                         batchName: batchData?.name || participant.roundName || 'Final',
                         campaignId: batchData?.campaignId || participant.campaignId || 0,
                         raw: participant
@@ -314,7 +313,6 @@ const FinalReview = () => {
                                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Điểm số</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
                                         </tr>
@@ -346,17 +344,12 @@ const FinalReview = () => {
                                                     <div className="text-sm text-slate-500">{candidate.phone || '—'}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`text-lg font-bold ${candidate.score >= 85 ? 'text-green-600' : candidate.score >= 70 ? 'text-blue-600' : 'text-red-600'}`}>
-                                                        {candidate.score ?? '—'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(candidate.status)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <button
                                                         className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded px-3 py-1 transition-colors"
-                                                        onClick={() => navigate(`/candidate/${candidate.id}`, {
+                                                        onClick={() => navigate(`/candidate/${candidate.activityId}`, {
                                                             state: { candidate, batchData }
                                                         })}
                                                     >

@@ -1,13 +1,350 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { onLangChange } from '../../i18n'
+import { getApplicationById, screeningApprove } from '../../service/api'
+
+const normalizeGender = (value) => {
+    if (value === null || value === undefined) return ''
+    const genderStr = String(value).toLowerCase()
+    if (['male', 'm', '1'].includes(genderStr)) return 'male'
+    if (['female', 'f', '0', '2'].includes(genderStr)) return 'female'
+    return genderStr
+}
+
+const formatMeasurement = (value, unit) => {
+    if (value === null || value === undefined || value === '') return ''
+    return `${value}${unit}`
+}
+
+const getDocumentDisplayName = (document) => {
+    if (!document) return ''
+    if (typeof document === 'string') return document
+    return document.name || document.title || document.documentName || document.url?.split('/').pop() || 'Document'
+}
+
+const getDocumentUrl = (document) => {
+    if (!document) return ''
+    if (typeof document === 'string') return `/documents/${document}`
+    return document.url || document.documentURL || ''
+}
+
+const mapDocumentsFromApi = (documents = []) => {
+    if (!Array.isArray(documents)) return {}
+    const mapped = {}
+
+    documents.forEach((doc) => {
+        if (!doc) return
+        const normalizedType = (doc.type || '').toLowerCase()
+        const normalizedName = (doc.name || doc.title || doc.documentName || doc.documentURL?.split('/').pop() || 'Document').trim()
+        const fileInfo = {
+            name: normalizedName,
+            url: doc.documentURL || doc.url || '',
+            type: normalizedType,
+            uploadDate: doc.uploadDate || doc.createdDate
+        }
+
+        if (normalizedType.includes('application') || normalizedType.includes('form')) {
+            mapped.applicationForm = fileInfo
+        } else if (normalizedType.includes('profile') || normalizedType.includes('photo')) {
+            mapped.profilePhoto = fileInfo
+        } else if (normalizedType.includes('education') || normalizedType.includes('degree') || normalizedType.includes('diploma')) {
+            mapped.educationDegree = fileInfo
+        } else if (normalizedType.includes('english') || normalizedType.includes('certificate') || normalizedType.includes('toeic')) {
+            mapped.englishCertificate = fileInfo
+        } else if (normalizedType.includes('passport') || normalizedType.includes('id') || normalizedType.includes('identification') || normalizedType.includes('card')) {
+            const hasBackSideIndicator = normalizedType.includes('back') || normalizedName.toLowerCase().includes('back')
+            mapped[hasBackSideIndicator ? 'idCardBack' : 'idCard'] = fileInfo
+        } else {
+            const fallbackKey = doc.documentId ? `document_${doc.documentId}` : `document_${Object.keys(mapped).length + 1}`
+            mapped[fallbackKey] = fileInfo
+        }
+    })
+
+    return mapped
+}
+
+const buildCandidateProfile = (apiData, fallback = {}) => {
+    const fallbackData = fallback || {}
+
+    if (!apiData) {
+        return fallbackData ? { ...fallbackData } : null
+    }
+
+    const documentsFromApi = mapDocumentsFromApi(apiData.documents)
+    const mergedDocuments = {
+        ...(fallbackData.documents || {}),
+        ...documentsFromApi
+    }
+
+    return {
+        id: apiData.applicationId ?? fallbackData.id,
+        activityId: apiData.activityId ?? fallbackData.activityId,
+        email: apiData.email ?? fallbackData.email ?? '',
+        fullName: apiData.fullName ?? fallbackData.fullName ?? '',
+        nationality: apiData.nationality ?? fallbackData.nationality ?? 'other',
+        dateOfBirth: apiData.dateOfBirth ?? fallbackData.dateOfBirth ?? '',
+        gender: normalizeGender(apiData.gender) || fallbackData.gender || '',
+        mobileNumber: apiData.phoneNumber ?? fallbackData.mobileNumber ?? '',
+        workingExperience: apiData.experience ?? fallbackData.workingExperience ?? '',
+        height: apiData.height ?? fallbackData.height ?? '',
+        weight: apiData.weight ?? fallbackData.weight ?? '',
+        englishCertificate: apiData.englishDegreeNumber ?? fallbackData.englishCertificate ?? '',
+        certificateExpireDate: apiData.endDate ?? fallbackData.certificateExpireDate ?? '',
+        basePreference: apiData.basePreference ?? fallbackData.basePreference ?? '',
+        termsAccepted: apiData.termsAccepted ?? fallbackData.termsAccepted ?? '',
+        status: apiData.status?.toLowerCase() ?? fallbackData.status ?? 'pending',
+        appliedDate: apiData.submissionDate ?? fallbackData.appliedDate ?? '',
+        currentRound: apiData.currentRound ?? fallbackData.currentRound ?? 'screening',
+        listeningScore: apiData.listeningScore ?? fallbackData.listeningScore ?? null,
+        readingScore: apiData.readingScore ?? fallbackData.readingScore ?? null,
+        totalScore: apiData.totalScore ?? fallbackData.totalScore ?? null,
+        englishTestDate: apiData.englishTestDate ?? fallbackData.englishTestDate ?? '',
+        citizenId: apiData.citizenId ?? fallbackData.citizenId ?? '',
+        documents: mergedDocuments
+    }
+}
+
+const DOCUMENT_SECTIONS = [
+    { key: 'applicationForm', label: 'VJC-PD-FRM-12 Form Job Application' },
+    { key: 'profilePhoto', label: 'Profile Photo 4x6cm' },
+    { key: 'educationDegree', label: 'Education Degree' },
+    { key: 'englishCertificate', label: 'English Certificate' },
+    {
+        key: 'idCard',
+        label: 'ID Card / Passport',
+        getValue: (docs) => docs.idCard || docs.idCardBack
+    }
+]
+
+// Timeline constants & helpers (reused from RecruitmentStages but simplified: no action buttons)
+const LINE_START_PERCENT = 5
+const LINE_END_PERCENT = 95
+const AXIS_SEGMENTS = 4
+const TIMELINE_HEIGHT = 240
+const BASELINE_Y = 110
+const BRANCH_OFFSET = 70
+
+const stageAxisPositionMap = {
+    screening: 0,
+    appearance: 1,
+    'english-listening': 2,
+    'english-speaking': 2,
+    interview: 3,
+    final: 4
+}
+
+const defaultStageTemplates = [
+    {
+        id: 'screening',
+        name: 'Sàng lọc hồ sơ',
+        nameEn: 'Screening'
+    },
+    {
+        id: 'appearance',
+        name: 'Vòng ngoại hình',
+        nameEn: 'Appearance'
+    },
+    {
+        id: 'english-listening',
+        name: 'Bài kiểm tra Nghe tiếng Anh',
+        nameEn: 'English Listening Test'
+    },
+    {
+        id: 'english-speaking',
+        name: 'Bài kiểm tra Nói tiếng Anh',
+        nameEn: 'English Speaking Test'
+    },
+    {
+        id: 'interview',
+        name: 'Phỏng vấn',
+        nameEn: 'Interview'
+    },
+    {
+        id: 'final',
+        name: 'Vòng cuối',
+        nameEn: 'Final'
+    }
+]
+
+const normalizeText = (text) => (text || '').toLowerCase().trim()
+
+const isStageReached = (stage, index, currentStage) => {
+    if (!stage || typeof index !== 'number') return false
+    if (stage.completed) return true
+    return index + 1 <= currentStage
+}
+
+const getProgressPercentage = (timeline) => {
+    if (!timeline || !timeline.stages || AXIS_SEGMENTS === 0) return 0
+
+    const completedPositions = timeline.stages
+        .filter(stage => stage.completed)
+        .map(stage => stageAxisPositionMap[stage.templateId])
+        .filter(pos => typeof pos === 'number')
+
+    const completedMax = completedPositions.length > 0 ? Math.max(...completedPositions) : 0
+
+    let currentPosition = completedMax
+    if (timeline.currentStage > 0 && timeline.currentStage <= timeline.stages.length) {
+        const currentStageData = timeline.stages[timeline.currentStage - 1]
+        if (currentStageData) {
+            const axisPos = stageAxisPositionMap[currentStageData.templateId]
+            if (typeof axisPos === 'number') {
+                currentPosition = axisPos
+            }
+        }
+    }
+
+    const furthest = Math.max(completedMax, currentPosition)
+    return (furthest / AXIS_SEGMENTS) * 100
+}
+
+const getAxisPercent = (templateId) => {
+    const axisPos = stageAxisPositionMap[templateId]
+    if (typeof axisPos !== 'number') return LINE_START_PERCENT
+    return LINE_START_PERCENT + ((LINE_END_PERCENT - LINE_START_PERCENT) * (axisPos / AXIS_SEGMENTS))
+}
+
+const getStagePositionStyle = (templateId) => {
+    const verticalOffset = templateId === 'english-listening'
+        ? -BRANCH_OFFSET
+        : templateId === 'english-speaking'
+            ? BRANCH_OFFSET
+            : 0
+
+    return {
+        left: `${getAxisPercent(templateId)}%`,
+        top: `${BASELINE_Y + verticalOffset}px`,
+        transform: 'translate(-50%, -50%)'
+    }
+}
+
+const isStageFailed = (stage, overallStatus) => {
+    const statusText = normalizeText(stage?.status)
+    if (['failed', 'fail', 'rejected', 'not passed', 'did not pass'].some(keyword => statusText.includes(keyword))) {
+        return true
+    }
+    const appStatus = normalizeText(overallStatus)
+    return ['failed', 'rejected'].some(keyword => appStatus.includes(keyword)) && stage.isCurrent
+}
+
+const getStageColor = (stage, currentStage, stageIndex, overallStatus) => {
+    if (isStageFailed(stage, overallStatus)) {
+        return 'bg-red-500 text-white'
+    }
+    if (stage.completed) {
+        return 'bg-green-500 text-white'
+    }
+    if (stageIndex + 1 === currentStage) {
+        return 'bg-yellow-500 text-white'
+    }
+    return 'bg-gray-300 text-gray-600'
+}
+
+const getStageIcon = (stage, currentStage, stageIndex, overallStatus) => {
+    if (isStageFailed(stage, overallStatus)) {
+        return (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.536-10.95a1 1 0 10-1.414-1.414L10 7.758 7.879 5.636a1 1 0 00-1.414 1.414L8.586 9l-2.121 2.121a1 1 0 101.414 1.414L10 10.414l2.121 2.121a1 1 0 001.414-1.414L11.414 9l2.122-2.121z" clipRule="evenodd" />
+            </svg>
+        )
+    }
+    if (stage.completed) {
+        return (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+        )
+    }
+    if (stageIndex + 1 === currentStage) {
+        return (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+            </svg>
+        )
+    }
+    return (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+        </svg>
+    )
+}
+
+// Build timeline data for a single application based on candidate.currentRound & status
+const buildTimelineForCandidate = (candidate) => {
+    if (!candidate) return null
+
+    const overallStatus = candidate.status || 'pending'
+
+    // Map currentRound (backend keys) to templateId used in defaultStageTemplates
+    const roundKey = normalizeText(candidate.currentRound || 'screening')
+    const roundToTemplateId = {
+        screening: 'screening',
+        'sang loc': 'screening',
+        grooming: 'appearance',
+        appearance: 'appearance',
+        test: 'english-listening',
+        'english-test': 'english-listening',
+        interview: 'interview',
+        final: 'final'
+    }
+
+    const currentTemplateId = roundToTemplateId[roundKey] || 'screening'
+    const stages = defaultStageTemplates.map((template, index) => {
+        const isCurrent = template.id === currentTemplateId
+        const isBeforeCurrent = defaultStageTemplates.findIndex(t => t.id === template.id) <
+            defaultStageTemplates.findIndex(t => t.id === currentTemplateId)
+
+        let completed = isBeforeCurrent
+        let statusText = 'Pending'
+
+        if (completed) {
+            statusText = 'Completed'
+        } else if (isCurrent) {
+            const lowerStatus = normalizeText(overallStatus)
+            if (['failed', 'rejected'].some(k => lowerStatus.includes(k))) {
+                statusText = 'Failed'
+            } else if (['passed', 'accepted', 'completed'].some(k => lowerStatus.includes(k))) {
+                statusText = 'Completed'
+                completed = true
+            } else {
+                statusText = 'In Progress'
+            }
+        }
+
+        return {
+            templateId: template.id,
+            name: template.name,
+            nameEn: template.nameEn,
+            completed,
+            isCurrent,
+            status: statusText,
+            date: null
+        }
+    })
+
+    const currentStageIndex = Math.max(
+        1,
+        stages.findIndex((s) => s.isCurrent) + 1
+    )
+
+    return {
+        stages,
+        currentStage: currentStageIndex
+    }
+}
 
 const CandidateApplyDetail = () => {
     const [candidate, setCandidate] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [actionLoading, setActionLoading] = useState(false)
+    const [error, setError] = useState(null)
     const [, setLangVersion] = useState(0)
     const navigate = useNavigate()
     const location = useLocation()
+    const { id: routeApplicationId } = useParams()
+    const candidateFromState = location.state?.candidate || null
+    const applicationTimeline = buildTimelineForCandidate(candidate)
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
@@ -15,70 +352,51 @@ const CandidateApplyDetail = () => {
     }, [])
 
     useEffect(() => {
-        // Lấy dữ liệu từ location.state (được truyền từ Screening.jsx)
-        const candidateData = location.state?.candidate
+        let isMounted = true
 
-        if (candidateData) {
-            // Sử dụng dữ liệu từ Screening.jsx
-            const candidateFromScreening = {
-                id: candidateData.id,
-                email: candidateData.email,
-                fullName: candidateData.name,
-                nationality: 'vietnamese',
-                dateOfBirth: '1995-03-15',
-                gender: 'female',
-                mobileNumber: candidateData.phone,
-                workingExperience: candidateData.experience || '1-2-years',
-                height: '165',
-                weight: '53',
-                englishCertificate: 'TOEIC 650',
-                certificateExpireDate: '2025-12-31',
-                basePreference: 'flexible',
-                termsAccepted: 'yes',
-                status: candidateData.status,
-                appliedDate: candidateData.appliedDate,
-                currentRound: candidateData.round || 'screening',
-                documents: {
-                    applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
-                    profilePhoto: 'Profile_Photo_4x6.jpg',
-                    educationDegree: 'Bachelor_Degree_Certificate.pdf',
-                    englishCertificate: 'TOEIC_Certificate_650.pdf',
-                    idCard: 'ID_Card_Front_Back.pdf'
+        const fetchCandidate = async () => {
+            const applicationId = routeApplicationId || candidateFromState?.applicationId || candidateFromState?.id
+
+            if (!applicationId) {
+                setError('Không tìm thấy mã đơn ứng tuyển. Vui lòng quay lại danh sách và thử lại.')
+                if (candidateFromState) {
+                    setCandidate(candidateFromState)
+                }
+                setLoading(false)
+                return
+            }
+
+            setLoading(true)
+            setError(null)
+
+            try {
+                const response = await getApplicationById(applicationId)
+                if (!isMounted) return
+
+                if (response.success) {
+                    setCandidate(prev => buildCandidateProfile(response.data, candidateFromState || prev || {}))
+                } else {
+                    setError(response.error || 'Không thể tải thông tin hồ sơ.')
+                    setCandidate(prev => prev || candidateFromState || null)
+                }
+            } catch (fetchError) {
+                if (!isMounted) return
+                console.error('Lỗi khi tải thông tin ứng viên:', fetchError)
+                setError('Đã xảy ra lỗi khi tải thông tin hồ sơ.')
+                setCandidate(prev => prev || candidateFromState || null)
+            } finally {
+                if (isMounted) {
+                    setLoading(false)
                 }
             }
-            setCandidate(candidateFromScreening)
-        } else {
-            // Fallback mock data nếu không có dữ liệu từ Screening
-            const mockCandidate = {
-                id: 'CAND001',
-                email: 'lan.nguyen@email.com',
-                fullName: 'Nguyễn Thị Lan',
-                nationality: 'vietnamese',
-                dateOfBirth: '1995-03-15',
-                gender: 'female',
-                mobileNumber: '+84 912 345 678',
-                workingExperience: '1-2-years',
-                height: '165',
-                weight: '53',
-                englishCertificate: 'TOEIC 650',
-                certificateExpireDate: '2025-12-31',
-                basePreference: 'flexible',
-                termsAccepted: 'yes',
-                status: 'pending',
-                appliedDate: '2024-10-15',
-                currentRound: 'screening',
-                documents: {
-                    applicationForm: 'VJC-PD-FRM-12_Application_Form.pdf',
-                    profilePhoto: 'Profile_Photo_4x6.jpg',
-                    educationDegree: 'Bachelor_Degree_Certificate.pdf',
-                    englishCertificate: 'TOEIC_Certificate_650.pdf',
-                    idCard: 'ID_Card_Front_Back.pdf'
-                }
-            }
-            setCandidate(mockCandidate)
         }
-        setLoading(false)
-    }, [location.state])
+
+        fetchCandidate()
+
+        return () => {
+            isMounted = false
+        }
+    }, [routeApplicationId, candidateFromState])
 
     const goBack = () => {
         // Quay về danh sách ứng viên với thông tin batch
@@ -92,10 +410,9 @@ const CandidateApplyDetail = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Chờ xử lý' },
-            approved: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
-            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
-            interview: { color: 'bg-blue-100 text-blue-800', text: 'Phỏng vấn' }
+            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang diễn ra' },
+            passed: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
+            failed: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
         }
         const config = statusConfig[status] || statusConfig.pending
         return (
@@ -108,23 +425,6 @@ const CandidateApplyDetail = () => {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A'
         return new Date(dateString).toLocaleDateString('vi-VN')
-    }
-
-    const getNationalityText = (nationality) => {
-        const nationalityMap = {
-            'vietnamese': 'Vietnamese',
-            'american': 'American',
-            'british': 'British',
-            'french': 'French',
-            'german': 'German',
-            'japanese': 'Japanese',
-            'korean': 'Korean',
-            'chinese': 'Chinese',
-            'thai': 'Thai',
-            'singaporean': 'Singaporean',
-            'other': 'Other'
-        }
-        return nationalityMap[nationality] || nationality
     }
 
     const getWorkingExperienceText = (experience) => {
@@ -165,16 +465,82 @@ const CandidateApplyDetail = () => {
         { key: 'final', label: 'Kết quả cuối cùng' }
     ]
 
+
     const getRoundIndex = (roundKey) => rounds.findIndex(r => r.key === roundKey)
 
-    const handleViewDocument = (documentName) => {
-        if (!documentName) return
+    const handleViewDocument = (documentSource) => {
+        const documentUrl = getDocumentUrl(documentSource)
+        if (!documentUrl) {
+            alert('Không tìm thấy đường dẫn tài liệu.')
+            return
+        }
+        window.open(documentUrl, '_blank', 'noopener,noreferrer')
+    }
 
-        // Tạo URL cho file PDF (giả sử file được lưu trong thư mục public/documents)
-        const pdfUrl = `/documents/${documentName}`
+    const handleApprove = async () => {
+        if (!candidate?.activityId) {
+            alert('Không tìm thấy activityId. Vui lòng thử lại.')
+            return
+        }
 
-        // Mở file PDF trong tab mới
-        window.open(pdfUrl, '_blank')
+        if (!window.confirm('Bạn có chắc chắn muốn duyệt hồ sơ này?')) {
+            return
+        }
+
+        setActionLoading(true)
+        try {
+            const result = await screeningApprove(candidate.activityId, 2) // 2 = Passed
+            if (result.success) {
+                alert(result.message || 'Duyệt hồ sơ thành công!')
+                // Cập nhật trạng thái candidate
+                setCandidate(prev => ({
+                    ...prev,
+                    status: 'approved'
+                }))
+                // Có thể navigate về trang trước hoặc reload
+                goBack()
+            } else {
+                alert(result.error || 'Không thể duyệt hồ sơ. Vui lòng thử lại.')
+            }
+        } catch (error) {
+            console.error('Lỗi khi duyệt hồ sơ:', error)
+            alert('Đã xảy ra lỗi khi duyệt hồ sơ. Vui lòng thử lại.')
+        } finally {
+            setActionLoading(false)
+        }
+    }
+
+    const handleReject = async () => {
+        if (!candidate?.activityId) {
+            alert('Không tìm thấy activityId. Vui lòng thử lại.')
+            return
+        }
+
+        if (!window.confirm('Bạn có chắc chắn muốn từ chối hồ sơ này?')) {
+            return
+        }
+
+        setActionLoading(true)
+        try {
+            const result = await screeningApprove(candidate.activityId, 3) // 3 = Failed
+            if (result.success) {
+                alert(result.message || 'Từ chối hồ sơ thành công!')
+                // Cập nhật trạng thái candidate
+                setCandidate(prev => ({
+                    ...prev,
+                    status: 'rejected'
+                }))
+                // Có thể navigate về trang trước hoặc reload
+                goBack()
+            } else {
+                alert(result.error || 'Không thể từ chối hồ sơ. Vui lòng thử lại.')
+            }
+        } catch (error) {
+            console.error('Lỗi khi từ chối hồ sơ:', error)
+            alert('Đã xảy ra lỗi khi từ chối hồ sơ. Vui lòng thử lại.')
+        } finally {
+            setActionLoading(false)
+        }
     }
 
     if (loading) {
@@ -190,6 +556,9 @@ const CandidateApplyDetail = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-slate-800 mb-4">Không tìm thấy thông tin ứng viên</h2>
+                    {error && (
+                        <p className="text-red-600 mb-4">{error}</p>
+                    )}
                     <button
                         onClick={goBack}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -226,59 +595,99 @@ const CandidateApplyDetail = () => {
             </div>
 
             <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Progress Bar (dynamic) */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                        {error}
+                    </div>
+                )}
+                {/* Progress Timeline - same style as RecruitmentStages (without action buttons) */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-6">Tiến trình ứng tuyển</h3>
-                    {(() => {
-                        const current = candidate?.currentRound || 'screening'
-                        const currentIdx = Math.max(0, getRoundIndex(current))
-                        const percent = (currentIdx / (rounds.length - 1)) * 100
-                        return (
-                            <div className="relative">
-                                {/* Progress Line */}
-                                <div className="absolute top-6 left-0 right-0 h-0.5 bg-slate-200">
-                                    <div className="h-full bg-blue-500" style={{ width: `${percent}%` }}></div>
-                                </div>
-                                {/* Steps */}
-                                <div className="relative flex justify-between">
-                                    {rounds.map((r, idx) => {
-                                        const isDone = idx < currentIdx
-                                        const isCurrent = idx === currentIdx
-                                        const circleClass = isDone
-                                            ? 'bg-green-500'
-                                            : isCurrent
-                                                ? 'bg-amber-500'
-                                                : 'bg-slate-300'
-                                        const icon = isDone
-                                            ? (
-                                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )
-                                            : isCurrent
-                                                ? (
-                                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12h.01M19 12h.01M5 12h.01" />
-                                                    </svg>
-                                                )
-                                                : (
-                                                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                )
-                                        return (
-                                            <div key={r.key} className="flex flex-col items-center">
-                                                <div className={`w-12 h-12 ${circleClass} rounded-full flex items-center justify-center mb-2 relative z-10`}>
-                                                    {icon}
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">Tiến trình ứng tuyển</h3>
+                    <p className="text-sm text-slate-600 mb-6">Theo dõi tiến trình của ứng viên qua các vòng</p>
+                    {applicationTimeline && (
+                        <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                            {(() => {
+                                const stageMap = {}
+                                const stageIndexMap = {}
+                                applicationTimeline.stages.forEach((stage, index) => {
+                                    if (stage.templateId) {
+                                        stageMap[stage.templateId] = stage
+                                        stageIndexMap[stage.templateId] = index
+                                    }
+                                })
+
+                                const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final']
+
+                                const renderStageInfo = (stage, stageIndex, stageReached, position) => (
+                                    <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-32 text-center`}>
+                                        <p className="text-xs font-medium text-gray-900">
+                                            {stage.name}
+                                        </p>
+                                        {stage.date && (
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {new Date(stage.date).toLocaleDateString('vi-VN')}
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+
+                                return (
+                                    <>
+                                        {/* Horizontal progress line */}
+                                        <div
+                                            className="absolute bg-gray-200"
+                                            style={{
+                                                top: `${BASELINE_Y}px`,
+                                                left: `${LINE_START_PERCENT}%`,
+                                                width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
+                                                height: '2px'
+                                            }}
+                                        >
+                                            <div
+                                                className="h-full bg-blue-500 transition-all duration-500"
+                                                style={{ width: `${getProgressPercentage(applicationTimeline)}%` }}
+                                            ></div>
+                                        </div>
+
+                                        {/* Vertical branch for English tests */}
+                                        <div
+                                            className="absolute bg-gray-200"
+                                            style={{
+                                                left: `${getAxisPercent('english-listening')}%`,
+                                                top: `${BASELINE_Y - BRANCH_OFFSET}px`,
+                                                height: `${BRANCH_OFFSET * 2}px`,
+                                                width: '2px',
+                                                transform: 'translateX(-50%)'
+                                            }}
+                                        ></div>
+
+                                        {/* Stage nodes */}
+                                        {timelineStageIds.map((templateId) => {
+                                            const stage = stageMap[templateId]
+                                            if (!stage) return null
+                                            const stageIndex = stageIndexMap[templateId]
+                                            const stageReached = isStageReached(stage, stageIndex, applicationTimeline.currentStage)
+                                            const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom'
+
+                                            return (
+                                                <div
+                                                    key={templateId}
+                                                    className="absolute flex flex-col items-center"
+                                                    style={getStagePositionStyle(templateId)}
+                                                >
+                                                    {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
+                                                    <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}`}>
+                                                        {getStageIcon(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}
+                                                    </div>
+                                                    {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
                                                 </div>
-                                                <span className={`text-sm font-medium ${isDone || isCurrent ? 'text-slate-800' : 'text-slate-600'}`}>{r.label}</span>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        )
-                    })()}
+                                            )
+                                        })}
+                                    </>
+                                )
+                            })()}
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -318,16 +727,14 @@ const CandidateApplyDetail = () => {
                                     <div className="font-medium text-slate-800 text-sm">{candidate.mobileNumber}</div>
                                 </div>
                                 <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Nationality</div>
-                                    <div className="font-medium text-slate-800 text-sm">{getNationalityText(candidate.nationality)}</div>
-                                </div>
-                                <div className="bg-slate-50 p-3 rounded-lg">
                                     <div className="text-slate-600 text-xs mb-1">Experience</div>
                                     <div className="font-medium text-slate-800 text-sm">{getWorkingExperienceText(candidate.workingExperience)}</div>
                                 </div>
                                 <div className="bg-slate-50 p-3 rounded-lg">
                                     <div className="text-slate-600 text-xs mb-1">Height/Weight</div>
-                                    <div className="font-medium text-slate-800 text-sm">{candidate.height}cm / {candidate.weight}kg</div>
+                                    <div className="font-medium text-slate-800 text-sm">
+                                        {(formatMeasurement(candidate.height, 'cm') || 'N/A')} / {(formatMeasurement(candidate.weight, 'kg') || 'N/A')}
+                                    </div>
                                 </div>
                                 <div className="bg-slate-50 p-3 rounded-lg">
                                     <div className="text-slate-600 text-xs mb-1">Applied Date</div>
@@ -341,145 +748,40 @@ const CandidateApplyDetail = () => {
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">UPLOADED DOCUMENTS</h3>
 
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        VJC-PD-FRM-12 Form Job Application
-                                    </label>
-                                    <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
-                                        {candidate.documents?.applicationForm ? (
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-green-600 font-medium">{candidate.documents.applicationForm}</span>
-                                                <button
-                                                    onClick={() => handleViewDocument(candidate.documents.applicationForm)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    View
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-500">No file uploaded</span>
-                                        )}
-                                    </div>
-                                </div>
+                                {DOCUMENT_SECTIONS.map(section => {
+                                    const docs = candidate?.documents || {}
+                                    const documentData = section.getValue ? section.getValue(docs) : docs[section.key]
 
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Profile Photo 4x6cm
-                                    </label>
-                                    <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
-                                        {candidate.documents?.profilePhoto ? (
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-green-600 font-medium">{candidate.documents.profilePhoto}</span>
-                                                <button
-                                                    onClick={() => handleViewDocument(candidate.documents.profilePhoto)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    View
-                                                </button>
+                                    return (
+                                        <div key={section.key}>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                {section.label}
+                                            </label>
+                                            <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
+                                                {documentData ? (
+                                                    <div className="flex items-center gap-3">
+                                                        <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span className="text-green-600 font-medium">{getDocumentDisplayName(documentData)}</span>
+                                                        <button
+                                                            onClick={() => handleViewDocument(documentData)}
+                                                            className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                            View
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-slate-500">No file uploaded</span>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <span className="text-slate-500">No file uploaded</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Education Degree
-                                    </label>
-                                    <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
-                                        {candidate.documents?.educationDegree ? (
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-green-600 font-medium">{candidate.documents.educationDegree}</span>
-                                                <button
-                                                    onClick={() => handleViewDocument(candidate.documents.educationDegree)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    View
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-500">No file uploaded</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        English Certificate
-                                    </label>
-                                    <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
-                                        {candidate.documents?.englishCertificate ? (
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-green-600 font-medium">{candidate.documents.englishCertificate}</span>
-                                                <button
-                                                    onClick={() => handleViewDocument(candidate.documents.englishCertificate)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    View
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-500">No file uploaded</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        ID Card / Passport
-                                    </label>
-                                    <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
-                                        {candidate.documents?.idCard ? (
-                                            <div className="flex items-center gap-3">
-                                                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-green-600 font-medium">{candidate.documents.idCard}</span>
-                                                <button
-                                                    onClick={() => handleViewDocument(candidate.documents.idCard)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    View
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-slate-500">No file uploaded</span>
-                                        )}
-                                    </div>
-                                </div>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     </div>
@@ -501,11 +803,6 @@ const CandidateApplyDetail = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
                                         <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.fullName || 'N/A'}</p>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Nationality:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getNationalityText(candidate.nationality) || 'N/A'}</p>
                                     </div>
 
                                     <div>
@@ -558,35 +855,24 @@ const CandidateApplyDetail = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Base Preference */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Base Preference</h3>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Base Preference:</label>
-                                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getBasePreferenceText(candidate.basePreference) || 'N/A'}</p>
-                                </div>
-                            </div>
                             {/* Recruiter Actions */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Recruiter Actions</h3>
                                 {candidate?.currentRound === 'screening' && (
                                     <div className="flex flex-wrap gap-3">
                                         <button
-                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                            onClick={() => {
-                                                console.log('Approve candidate:', candidate.id)
-                                            }}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={handleApprove}
+                                            disabled={actionLoading}
                                         >
-                                            Approve Application
+                                            {actionLoading ? 'Đang xử lý...' : 'Approve Application'}
                                         </button>
                                         <button
-                                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                                            onClick={() => {
-                                                console.log('Reject candidate:', candidate.id)
-                                            }}
+                                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={handleReject}
+                                            disabled={actionLoading}
                                         >
-                                            Reject Application
+                                            {actionLoading ? 'Đang xử lý...' : 'Reject Application'}
                                         </button>
                                     </div>
                                 )}

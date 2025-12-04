@@ -39,9 +39,23 @@ const Signup = () => {
         setIsLoading(true);
         setError(''); // Clear previous errors
 
+        // Validate username length (minimum 8 characters)
+        if (formData.username.length < 8) {
+            setError(t('username_min_length'));
+            setIsLoading(false);
+            return;
+        }
+
+        // Validate password length (minimum 8 characters)
+        if (formData.password.length < 8) {
+            setError(t('password_min_length'));
+            setIsLoading(false);
+            return;
+        }
+
         // Validate password and confirmPassword
         if (formData.password !== formData.confirmPassword) {
-            setError(t('password_mismatch')); // Ensure 'password_mismatch' is defined in i18n
+            setError(t('password_mismatch'));
             setIsLoading(false);
             return;
         }
@@ -228,6 +242,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('username_placeholder')}
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{t('username_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -262,6 +277,7 @@ const Signup = () => {
                                             )}
                                         </button>
                                     </div>
+                                    <p className="mt-1 text-xs text-gray-500">{t('password_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">

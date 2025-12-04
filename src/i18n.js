@@ -177,6 +177,7 @@ const dictionaries = {
     appeal_reason_min_length: "Lý do phúc khảo phải có ít nhất 10 ký tự",
     appeal_reason_helper:
       "Vui lòng mô tả chi tiết lý do bạn yêu cầu phúc khảo điểm thi này.",
+    exam_not_graded: "Bài thi này chưa được chấm",
     cancel: "Hủy",
     // Contact Page
     contact_title: "Liên hệ với chúng tôi",
@@ -230,10 +231,16 @@ const dictionaries = {
     email_placeholder: "Nhập email của bạn",
     account_username_label: "Tài khoản (Tên đăng nhập)",
     username_placeholder: "Nhập tên đăng nhập của bạn",
+    username_helper: "Tài khoản phải có ít nhất 8 ký tự",
     password_label: "Mật khẩu",
     password_placeholder: "Nhập mật khẩu của bạn",
+    password_helper: "Mật khẩu phải có ít nhất 8 ký tự",
     password_confirm_label: "Xác nhận mật khẩu",
     password_confirm_placeholder: "Nhập lại mật khẩu của bạn",
+    username_min_length: "Tài khoản phải có ít nhất 8 ký tự",
+    password_min_length: "Mật khẩu phải có ít nhất 8 ký tự",
+    password_mismatch: "Mật khẩu xác nhận không khớp",
+    registration_failed: "Đăng ký thất bại. Vui lòng thử lại.",
     submit_button: "GỬI",
     creating_account: "Đang tạo tài khoản...",
     have_account: "Đã có tài khoản?",
@@ -538,6 +545,10 @@ const dictionaries = {
     back_to_home: "Quay lại trang chủ",
     no_tests: "Không tìm thấy bài thi",
     no_tests_desc: "Bạn chưa có bài thi nào. Vui lòng thử lại.",
+    exam_report_title: "Báo cáo điểm thi",
+    speaking_exam_report_title: "Báo cáo điểm thi nói",
+    speaking_exam_report_subtitle: "Xem báo cáo điểm thi nói của bạn",
+    back_to_score_report: "Quay lại báo cáo điểm thi",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Lịch hẹn phỏng vấn thăng bậc",
@@ -726,6 +737,7 @@ const dictionaries = {
     appeal_reason_min_length: "Appeal reason must be at least 10 characters",
     appeal_reason_helper:
       "Please describe in detail why you are requesting an appeal for this exam result.",
+    exam_not_graded: "This exam has not been graded yet",
     cancel: "Cancel",
     // Contact Page
     contact_title: "Contact Us",
@@ -779,10 +791,16 @@ const dictionaries = {
     email_placeholder: "Enter your email",
     account_username_label: "Account (UserName)",
     username_placeholder: "Enter your username",
+    username_helper: "Username must be at least 8 characters",
     password_label: "Password",
     password_placeholder: "Enter your password",
+    password_helper: "Password must be at least 8 characters",
     password_confirm_label: "Confirm password",
     password_confirm_placeholder: "Confirm your password",
+    username_min_length: "Username must be at least 8 characters",
+    password_min_length: "Password must be at least 8 characters",
+    password_mismatch: "Passwords do not match",
+    registration_failed: "Registration failed. Please try again.",
     submit_button: "SUBMIT",
     creating_account: "Creating Account...",
     have_account: "Already have an account?",
@@ -1083,6 +1101,10 @@ const dictionaries = {
     back_to_home: "Back to home",
     no_tests: "No tests found",
     no_tests_desc: "You don't have any tests yet. Please take a test.",
+    exam_report_title: "Exam Report",
+    speaking_exam_report_title: "Speaking Exam Report",
+    speaking_exam_report_subtitle: "View your speaking exam report",
+    back_to_score_report: "Quay lại báo cáo điểm thi",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Promotion interview appointments",
