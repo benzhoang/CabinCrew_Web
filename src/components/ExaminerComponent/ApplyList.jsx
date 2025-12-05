@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaRegEye, FaFilePen, FaArrowRight } from "react-icons/fa6";
 import TestListModal from "./TestListModal";
-import { getRoundParticipants, moveToInterview } from "../../service/api2";
+import { getRoundParticipants, moveToInterview, getTestSessionsByType } from "../../service/api2";
 import { formatDate } from "../../config/formatDate";
 import { toast } from "react-toastify";
 
@@ -24,6 +24,8 @@ const ApplyList = ({
   const [selectedTest, setSelectedTest] = useState(null);
   const [isMovingToInterview, setIsMovingToInterview] = useState(false);
   const [isConfirmMoveOpen, setIsConfirmMoveOpen] = useState(false);
+  const [testSessions, setTestSessions] = useState([]);
+  const [loadingTestSessions, setLoadingTestSessions] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -163,6 +165,111 @@ const ApplyList = ({
 
     return null;
   }, [activeRoundForTests, availableRounds, getCurrentTestType]);
+
+  // Fetch test sessions khi ở round English Speaking Test
+  useEffect(() => {
+    const fetchTestSessions = async () => {
+      // Chỉ fetch khi ở round English Speaking Test (testType = 2)
+      if (
+        !activeRoundForTests ||
+        getCurrentTestType !== "speaking" ||
+        !activeRoundForTests.roundId
+      ) {
+        setTestSessions([]);
+        return;
+      }
+
+      setLoadingTestSessions(true);
+      try {
+        const result = await getTestSessionsByType({
+          testType: 2, // English Speaking Test
+          roundId: activeRoundForTests.roundId,
+        });
+
+        if (result.success && result.data) {
+          // Handle different response structures
+          let sessions = [];
+          if (Array.isArray(result.data)) {
+            sessions = result.data;
+          } else if (result.data.items && Array.isArray(result.data.items)) {
+            sessions = result.data.items;
+          } else if (result.data.data && Array.isArray(result.data.data)) {
+            sessions = result.data.data;
+          }
+
+          setTestSessions(sessions);
+        } else {
+          setTestSessions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching test sessions:", error);
+        setTestSessions([]);
+      } finally {
+        setLoadingTestSessions(false);
+      }
+    };
+
+    fetchTestSessions();
+  }, [activeRoundForTests, getCurrentTestType]);
+
+  // Kiểm tra xem có participant nào không có điểm trong English Speaking Test không
+  const hasUnscoredParticipants = useMemo(() => {
+    // Chỉ kiểm tra khi ở round English Speaking Test
+    if (getCurrentTestType !== "speaking") {
+      return false;
+    }
+
+    // Nếu đang loading, chưa thể xác định - không ẩn nút
+    if (loadingTestSessions) {
+      return false;
+    }
+
+    // Nếu không có participants nào, không cần kiểm tra
+    if (filteredApplicants.length === 0) {
+      return false;
+    }
+
+    // Nếu chưa có test sessions nào được fetch nhưng có participants, có nghĩa là chưa có ai làm bài thi
+    if (testSessions.length === 0) {
+      // Có participants nhưng không có test sessions nào = có người chưa có điểm
+      return true;
+    }
+
+    // Tạo map userId -> totalScore từ test sessions
+    const scoreMap = new Map();
+    testSessions.forEach((session) => {
+      const userId = session.userId;
+      const totalScore = session.totalScore;
+      // Kiểm tra nếu totalScore là null, undefined, hoặc không phải là số hợp lệ
+      // Coi 0 cũng là "không điểm" vì có thể API trả về 0 khi chưa chấm điểm
+      if (totalScore === null || totalScore === undefined || totalScore === "" || totalScore === 0) {
+        scoreMap.set(userId, false);
+      } else {
+        // Kiểm tra xem có phải là số hợp lệ không
+        const scoreNum = Number(totalScore);
+        if (isNaN(scoreNum)) {
+          scoreMap.set(userId, false);
+        } else {
+          // Có điểm hợp lệ (số dương)
+          scoreMap.set(userId, true);
+        }
+      }
+    });
+
+    // Kiểm tra xem có participant nào trong filteredApplicants không có điểm không
+    const hasUnscored = filteredApplicants.some((applicant) => {
+      const userId = applicant.userId || applicant.id;
+      // Nếu participant không có trong test sessions (chưa làm bài thi)
+      if (!scoreMap.has(userId)) {
+        return true; // Chưa có điểm
+      }
+      // Kiểm tra xem có điểm hợp lệ không
+      const hasScore = scoreMap.get(userId);
+      return hasScore === false;
+    });
+
+    return hasUnscored;
+  }, [testSessions, filteredApplicants, getCurrentTestType, loadingTestSessions]);
 
   // Tính toán message xác nhận cho modal
   const confirmMessage = useMemo(() => {
@@ -494,8 +601,8 @@ const ApplyList = ({
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                  activeRoundForTests?.testId === 0 ||
-                  activeRoundForTests?.testId === null ? (
+                    activeRoundForTests?.testId === 0 ||
+                    activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -512,14 +619,43 @@ const ApplyList = ({
                         <FaRegEye className="w-5 h-5" />
                         Xem bài thi
                       </button>
-                      <button
-                        onClick={openConfirmMoveModal}
-                        disabled={isMovingToInterview}
-                        className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FaArrowRight className="w-5 h-5" />
-                        {isMovingToInterview ? "Đang chuyển..." : "Xét duyệt"}
-                      </button>
+                      {/* Chỉ hiển thị nút Xét duyệt khi không có participant nào chưa có điểm (cho English Speaking Test) */}
+                      {(() => {
+                        const isSpeakingTest = getCurrentTestType === "speaking";
+                        const shouldHideButton = isSpeakingTest && hasUnscoredParticipants;
+
+                        // Debug log để kiểm tra
+                        if (isSpeakingTest) {
+                          console.log("🔍 English Speaking Test - Button visibility:", {
+                            isSpeakingTest,
+                            hasUnscoredParticipants,
+                            shouldHideButton,
+                            testSessionsCount: testSessions.length,
+                            participantsCount: filteredApplicants.length,
+                            loadingTestSessions,
+                            testSessions: testSessions.map(s => ({
+                              userId: s.userId,
+                              totalScore: s.totalScore,
+                              totalScoreType: typeof s.totalScore
+                            })),
+                            participants: filteredApplicants.map(a => ({
+                              userId: a.userId || a.id,
+                              name: a.name
+                            }))
+                          });
+                        }
+
+                        return !shouldHideButton;
+                      })() && (
+                          <button
+                            onClick={openConfirmMoveModal}
+                            disabled={isMovingToInterview}
+                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FaArrowRight className="w-5 h-5" />
+                            {isMovingToInterview ? "Đang chuyển..." : "Xét duyệt"}
+                          </button>
+                        )}
                     </>
                   )}
                 </div>
@@ -653,9 +789,9 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                          applicant.roundName ||
-                          applicant.round ||
-                          "screening",
+                        applicant.roundName ||
+                        applicant.round ||
+                        "screening",
                         applicant
                       )}
                     </td>

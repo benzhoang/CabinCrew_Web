@@ -12,6 +12,8 @@ const ExaminerCampaign = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
   const navigate = useNavigate();
 
   const parseDateValue = useCallback((value) => {
@@ -144,7 +146,27 @@ const ExaminerCampaign = () => {
     }
 
     setFilteredCampaigns(filtered);
+    setCurrentPage(1);
   }, [campaigns, searchTerm, typeFilter, normalizeString]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [filteredCampaigns, currentPage, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const displayedCampaigns = filteredCampaigns.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
 
   const handleViewDetails = (campaign) => {
     navigate(`/examiner/campaigns/${campaign.id}`, { state: { campaign } });
@@ -196,8 +218,8 @@ const ExaminerCampaign = () => {
       normalizedType === "promotion"
         ? "bg-purple-100 text-purple-700 border-purple-200"
         : normalizedType === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+          ? "bg-blue-100 text-blue-700 border-blue-200"
+          : "bg-gray-100 text-gray-600 border-gray-200";
 
     return (
       <span
@@ -288,7 +310,7 @@ const ExaminerCampaign = () => {
 
           {!isLoading &&
             !error &&
-            filteredCampaigns.map((campaign) => (
+            displayedCampaigns.map((campaign) => (
               <div
                 key={campaign.id}
                 className="p-6 transition-colors hover:bg-slate-50"
@@ -419,6 +441,47 @@ const ExaminerCampaign = () => {
         {!isLoading && !error && filteredCampaigns.length === 0 && (
           <div className="p-12 text-center">
             <p className="text-slate-500">Không có dữ liệu</p>
+          </div>
+        )}
+
+        {!isLoading && !error && filteredCampaigns.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-2 p-6">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 rounded-md border ${currentPage === 1
+                ? "text-slate-400 border-slate-200 cursor-not-allowed"
+                : "text-slate-700 border-slate-300 hover:bg-slate-50"
+                }`}
+            >
+              ←
+            </button>
+            {Array.from({ length: totalPages }).map((_, idx) => {
+              const pageNumber = idx + 1;
+              const isActive = pageNumber === currentPage;
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => handlePageChange(pageNumber)}
+                  className={`px-3 py-1 rounded-md border text-sm font-medium ${isActive
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "text-slate-700 border-slate-300 hover:bg-slate-50"
+                    }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 rounded-md border ${currentPage === totalPages
+                ? "text-slate-400 border-slate-200 cursor-not-allowed"
+                : "text-slate-700 border-slate-300 hover:bg-slate-50"
+                }`}
+            >
+              →
+            </button>
           </div>
         )}
       </div>

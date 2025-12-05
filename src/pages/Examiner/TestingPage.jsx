@@ -1,18 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FiEdit2,
-  FiTrash2,
-  FiEye,
-  FiEyeOff,
-  FiFileText,
-  FiLoader,
-  FiMusic,
-  FiExternalLink,
-  FiChevronLeft,
-  FiChevronRight,
-  FiPlus,
-} from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink, FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 import { exportQuestionTemplate } from "./ExportQuestionTemplate";
@@ -111,26 +99,21 @@ const TestTypeBadge = ({ testType }) => {
 // Helper function để format date an toàn
 const formatDate = (dateValue) => {
   if (!dateValue) return "Không có thông tin";
-
   try {
     // Nếu đã là format "dd/MM/yyyy" hoặc "dd/MM/yyyy HH:mm" thì dùng trực tiếp
     if (typeof dateValue === "string" && dateValue.includes("/")) {
       return dateValue.split(" ")[0]; // Lấy phần date nếu có cả time
     }
-
     // Parse date
     const date = new Date(dateValue);
-
     // Kiểm tra xem date có hợp lệ không
     if (isNaN(date.getTime())) {
       return "Ngày không hợp lệ";
     }
-
     // Format thành "dd/MM/yyyy"
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-
     return `${day}/${month}/${year}`;
   } catch (err) {
     console.error("Error formatting date:", err);
@@ -150,6 +133,8 @@ const TestingPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
   const [codeVisibility, setCodeVisibility] = useState({}); // Tracks visibility for each test code
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: 10,
@@ -214,7 +199,6 @@ const TestingPage = () => {
   }, [fetchTests]);
 
   const filteredTests = useMemo(() => {
-    // Nếu có pagination từ server (totalPages > 1), chỉ filter trên trang hiện tại
     // Vì filter nên được thực hiện ở server-side
     if (pagination.totalPages > 1) {
       return tests.filter((test) => {
@@ -261,7 +245,6 @@ const TestingPage = () => {
   const handleSaveTest = async (formData, responseData) => {
     // Lưu selectedTest ID trước khi nó bị reset
     const testIdToUpdate = selectedTest?.id;
-
     // Cập nhật test trong state với dữ liệu mới từ response nếu có
     if (responseData && testIdToUpdate) {
       setTests((prevTests) =>
@@ -273,7 +256,6 @@ const TestingPage = () => {
   };
 
   const handleDeleteTest = async (testId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa đề thi này?")) return;
     setDeletingTestId(testId);
     setError(null);
     try {
@@ -283,20 +265,21 @@ const TestingPage = () => {
         setTests((prev) => prev.filter((test) => test.id !== testId));
         // Tải lại danh sách để đồng bộ với server
         await fetchTests(pagination.currentPage, pagination.pageSize, true);
-        alert(response.message || "Xóa đề thi thành công");
+        showToast(response.message || "Xóa đề thi thành công", "success");
       } else {
         setError(response.error || "Không thể xóa đề thi");
-        alert(response.error || "Không thể xóa đề thi");
+        showToast(response.error || "Không thể xóa đề thi", "error");
         // Nếu xóa thất bại, tải lại danh sách để khôi phục trạng thái
         await fetchTests(pagination.currentPage, pagination.pageSize, true);
       }
     } catch (err) {
       setError(err.message || "Không thể xóa đề thi");
-      alert(err.message || "Không thể xóa đề thi");
+      showToast(err.message || "Không thể xóa đề thi", "error");
       // Tải lại danh sách nếu có lỗi để khôi phục trạng thái
       await fetchTests(pagination.currentPage, pagination.pageSize, true);
     } finally {
       setDeletingTestId(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -307,6 +290,21 @@ const TestingPage = () => {
   const handleCreateTest = () => {
     navigate("/examiner/testing/create");
   };
+
+  const openConfirmDelete = (testId) => {
+    setConfirmDeleteId(testId);
+  };
+
+  const closeConfirmDelete = () => {
+    setConfirmDeleteId(null);
+  };
+
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, visible: false }));
+    }, 3000);
+  }, []);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
@@ -350,7 +348,6 @@ const TestingPage = () => {
       // Show last page
       pages.push(totalPages);
     }
-
     return pages;
   };
 
@@ -573,7 +570,7 @@ const TestingPage = () => {
                       <FiEdit2 className="w-5 h-5" />
                     </button>
                     <button
-                      onClick={() => handleDeleteTest(test.id)}
+                      onClick={() => openConfirmDelete(test.id)}
                       disabled={deletingTestId === test.id}
                       className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Xóa"
@@ -631,11 +628,10 @@ const TestingPage = () => {
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      page === pagination.currentPage
-                        ? "bg-indigo-600 text-white"
-                        : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
-                    }`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${page === pagination.currentPage
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
+                      }`}
                   >
                     {page}
                   </button>
@@ -673,6 +669,51 @@ const TestingPage = () => {
         testData={selectedTest}
         onSave={handleSaveTest}
       />
+
+      {/* Confirm Delete Popup */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" onClick={closeConfirmDelete} />
+          <div className="relative z-10 w-full max-w-sm p-6 bg-white border rounded-xl shadow-xl border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">Xóa đề thi?</h3>
+            <p className="text-sm text-slate-600 mb-4">Bạn có chắc chắn muốn xóa đề thi này? Hành động này không thể hoàn tác.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeConfirmDelete}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border rounded-lg border-slate-300 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => handleDeleteTest(confirmDeleteId)}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                disabled={!!deletingTestId}
+              >
+                {deletingTestId ? "Đang xóa..." : "Xóa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast.visible && (() => {
+        const toastType = (toast.type || "success").toString().toLowerCase();
+        // Mặc định xanh, chỉ đỏ khi type là "error"
+        const isSuccess = toastType !== "error";
+        return (
+          <div className="fixed right-4 top-4 z-50">
+            <div
+              className={`min-w-[260px] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${isSuccess
+                ? "bg-green-50 text-red-800 border-red-200"
+                : "bg-red-50 text-green-700 border-green-200"
+                }`}
+            >
+              {toast.message}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

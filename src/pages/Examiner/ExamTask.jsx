@@ -15,6 +15,8 @@ const ExamTask = () => {
     const [langVersion, setLangVersion] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const pageSize = 5
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -180,7 +182,24 @@ const ExamTask = () => {
         })
 
         setFilteredTasks(sorted)
+        setCurrentPage(1)
     }, [tasks, searchTerm, statusFilter, taskFilter, sortBy])
+
+    useEffect(() => {
+        const totalPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize))
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages)
+        }
+    }, [filteredTasks, currentPage, pageSize])
+
+    const totalPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize))
+    const startIndex = (currentPage - 1) * pageSize
+    const displayedTasks = filteredTasks.slice(startIndex, startIndex + pageSize)
+
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages) return
+        setCurrentPage(page)
+    }
 
     const handleViewDetails = (task) => {
         setSelectedTask(task)
@@ -347,7 +366,7 @@ const ExamTask = () => {
                         </div>
                     )}
 
-                    {filteredTasks.map((task) => (
+                    {displayedTasks.map((task) => (
                         <div key={task.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
@@ -416,6 +435,47 @@ const ExamTask = () => {
                             </div>
                         </div>
                     ))}
+
+                    {!isLoading && !error && filteredTasks.length > 0 && (
+                        <div className="p-6 flex flex-wrap items-center justify-center gap-2">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className={`px-3 py-1 rounded-md border ${currentPage === 1
+                                    ? 'text-slate-400 border-slate-200 cursor-not-allowed'
+                                    : 'text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    }`}
+                            >
+                                ←
+                            </button>
+                            {Array.from({ length: totalPages }).map((_, idx) => {
+                                const pageNumber = idx + 1
+                                const isActive = pageNumber === currentPage
+                                return (
+                                    <button
+                                        key={pageNumber}
+                                        onClick={() => handlePageChange(pageNumber)}
+                                        className={`px-3 py-1 rounded-md border text-sm font-medium ${isActive
+                                            ? 'bg-blue-600 text-white border-blue-600'
+                                            : 'text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            }`}
+                                    >
+                                        {pageNumber}
+                                    </button>
+                                )
+                            })}
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className={`px-3 py-1 rounded-md border ${currentPage === totalPages
+                                    ? 'text-slate-400 border-slate-200 cursor-not-allowed'
+                                    : 'text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    }`}
+                            >
+                                →
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

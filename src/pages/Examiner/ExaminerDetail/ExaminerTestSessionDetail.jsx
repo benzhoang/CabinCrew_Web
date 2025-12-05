@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getTestSessionById, getTestSessionAnswers, scoreTestSessionAnswers } from "../../../service/api";
+import { getTestSessionById, getTestSessionAnswers, getTestSessionAnswersWithCriteria, scoreTestSessionAnswers } from "../../../service/api";
 
 const ExaminerTestSessionDetail = () => {
   const { testSessionId } = useParams();
@@ -13,8 +13,9 @@ const ExaminerTestSessionDetail = () => {
   const [speakingScores, setSpeakingScores] = useState({});
   const [submittingSpeakingScores, setSubmittingSpeakingScores] = useState(false);
   const [speakingSubmitMessage, setSpeakingSubmitMessage] = useState("");
-  const [speakingSubmitError, setSpeakingSubmitError] = useState("");
+  const [speakingSubmitError, setSpeakingSubmitError] = useState({}); // Object: { answerKey: [errors] }
   const [speakingScoresLocked, setSpeakingScoresLocked] = useState(false);
+  const [criteriaFetched, setCriteriaFetched] = useState(false);
 
   const {
     userFullName,
@@ -32,7 +33,84 @@ const ExaminerTestSessionDetail = () => {
     roundId,
   } = testSessionData || {};
 
+  const fetchAnswersWithCriteria = async () => {
+    if (!testSessionId || answers.length === 0 || criteriaFetched) {
+      return;
+    }
+
+    try {
+      const result = await getTestSessionAnswersWithCriteria(testSessionId);
+
+      console.log("Answers With Criteria API Result:", result);
+
+      if (result.success && result.data && Array.isArray(result.data)) {
+        console.log("Answers With Criteria Data:", result.data);
+
+        // Map criteriaScores từ API vào speakingScores state
+        const newScores = {};
+
+        result.data.forEach((answerWithCriteria) => {
+          // Tìm answer tương ứng trong answers state để lấy index chính xác
+          const matchingAnswerIndex = answers.findIndex(
+            (ans) =>
+              (ans.answerId && answerWithCriteria.answerId && ans.answerId === answerWithCriteria.answerId) ||
+              (ans.questionId && answerWithCriteria.questionId && ans.questionId === answerWithCriteria.questionId)
+          );
+
+          // Nếu tìm thấy match, dùng answer và index từ answers state
+          if (matchingAnswerIndex >= 0) {
+            const answer = answers[matchingAnswerIndex];
+            const key = getAnswerKey(answer, matchingAnswerIndex);
+
+            if (answerWithCriteria.criteriaScores && typeof answerWithCriteria.criteriaScores === "object") {
+              // Map từ criteriaScores (có thể là "Pronunciation", "Fluency", "Grammar")
+              // sang format của speakingScores (pronunciation, fluency, grammar)
+              newScores[key] = {
+                pronunciation: answerWithCriteria.criteriaScores.Pronunciation ??
+                  answerWithCriteria.criteriaScores.pronunciation ??
+                  answerWithCriteria.pronunciationScore ?? "",
+                fluency: answerWithCriteria.criteriaScores.Fluency ??
+                  answerWithCriteria.criteriaScores.fluency ??
+                  answerWithCriteria.fluencyScore ?? "",
+                grammar: answerWithCriteria.criteriaScores.Grammar ??
+                  answerWithCriteria.criteriaScores.grammar ??
+                  answerWithCriteria.grammarScore ?? "",
+              };
+            }
+          }
+        });
+
+        // Cập nhật speakingScores với dữ liệu từ API (chỉ cập nhật nếu chưa có giá trị)
+        setSpeakingScores((prevScores) => {
+          const merged = { ...prevScores };
+          Object.keys(newScores).forEach((key) => {
+            // Chỉ cập nhật nếu prevScores[key] chưa có hoặc có giá trị rỗng
+            if (!prevScores[key] ||
+              (!prevScores[key].pronunciation && !prevScores[key].fluency && !prevScores[key].grammar)) {
+              merged[key] = newScores[key];
+            } else {
+              // Merge để giữ lại các giá trị đã nhập, nhưng ưu tiên giá trị từ API nếu có
+              merged[key] = {
+                pronunciation: prevScores[key].pronunciation || newScores[key].pronunciation,
+                fluency: prevScores[key].fluency || newScores[key].fluency,
+                grammar: prevScores[key].grammar || newScores[key].grammar,
+              };
+            }
+          });
+          return merged;
+        });
+
+        setCriteriaFetched(true);
+      }
+    } catch (err) {
+      console.error("Error fetching answers with criteria:", err);
+    }
+  };
+
   useEffect(() => {
+    // Reset criteriaFetched when testSessionId changes
+    setCriteriaFetched(false);
+
     const fetchTestSession = async () => {
       if (!testSessionId) {
         setError("Không tìm thấy Test Session ID");
@@ -101,6 +179,19 @@ const ExaminerTestSessionDetail = () => {
     fetchAnswers();
   }, [testSessionId]);
 
+  // Fetch answers with criteria when testType is EnglishSpeaking and answers are loaded
+  useEffect(() => {
+    // Reset flag when testType or testSessionId changes
+    if (testType !== "EnglishSpeaking") {
+      setCriteriaFetched(false);
+      return;
+    }
+
+    if (testType === "EnglishSpeaking" && testSessionId && answers.length > 0 && !criteriaFetched) {
+      fetchAnswersWithCriteria();
+    }
+  }, [testType, testSessionId, answers.length, criteriaFetched]);
+
   const getAnswerKey = (answer, index) => {
     if (answer?.answerId) return `answer-${answer.answerId}`;
     if (answer?.questionId) return `question-${answer.questionId}`;
@@ -113,7 +204,6 @@ const ExaminerTestSessionDetail = () => {
     { key: "grammar", label: "Grammar" },
   ];
 
-  // Tỉ lệ điểm của từng tiêu chí trên tổng điểm câu hỏi
   // Pronunciation: 30%, Fluency: 30%, Grammar: 40%
   const speakingCriteriaWeights = {
     pronunciation: 0.3,
@@ -125,7 +215,7 @@ const ExaminerTestSessionDetail = () => {
     if (testType !== "EnglishSpeaking") {
       setSpeakingScores({});
       setSpeakingSubmitMessage("");
-      setSpeakingSubmitError("");
+      setSpeakingSubmitError({});
       setSpeakingScoresLocked(false);
       return;
     }
@@ -133,7 +223,7 @@ const ExaminerTestSessionDetail = () => {
     if (!answers || answers.length === 0) {
       setSpeakingScores({});
       setSpeakingSubmitMessage("");
-      setSpeakingSubmitError("");
+      setSpeakingSubmitError({});
       setSpeakingScoresLocked(false);
       return;
     }
@@ -257,6 +347,12 @@ const ExaminerTestSessionDetail = () => {
         [field]: value,
       },
     }));
+    // Xóa lỗi của câu hỏi này khi user thay đổi điểm
+    setSpeakingSubmitError((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[key];
+      return newErrors;
+    });
   };
 
   const handleSubmitSpeakingScores = async () => {
@@ -268,41 +364,41 @@ const ExaminerTestSessionDetail = () => {
     ) {
       return;
     }
-
-    setSpeakingSubmitError("");
+    setSpeakingSubmitError({});
     setSpeakingSubmitMessage("");
 
     const answerScoresPayload = {};
-    const validationErrors = [];
+    const validationErrorsByAnswer = {}; // Object: { answerKey: [errors] }
 
     answers.forEach((answer, index) => {
+      const key = getAnswerKey(answer, index);
+      const answerErrors = [];
+
       if (!answer.answerId) {
-        validationErrors.push(
-          `Không tìm thấy answerId cho câu hỏi ${answer.questionId || index + 1
-          }`
+        answerErrors.push(
+          `Không tìm thấy answerId cho câu hỏi ${answer.questionId || index + 1}`
         );
+        if (answerErrors.length > 0) {
+          validationErrorsByAnswer[key] = answerErrors;
+        }
         return;
       }
-
-      const key = getAnswerKey(answer, index);
       const currentScores = speakingScores[key] || {};
       const criteriaScores = {};
 
       for (const { key: criteriaKey, label } of speakingCriteria) {
         const rawValue = currentScores[criteriaKey];
         if (rawValue === "" || rawValue === undefined || rawValue === null) {
-          validationErrors.push(
-            `Vui lòng nhập điểm ${label} cho câu hỏi ${answer.questionId || index + 1
-            }`
+          answerErrors.push(
+            `Vui lòng nhập điểm ${label} cho câu hỏi ${answer.questionId || index + 1}`
           );
           continue;
         }
 
         const numericValue = Number(rawValue);
         if (Number.isNaN(numericValue) || numericValue < 0) {
-          validationErrors.push(
-            `Điểm ${label} phải là số không âm (câu hỏi ${answer.questionId || index + 1
-            })`
+          answerErrors.push(
+            `Điểm ${label} phải là số không âm (câu hỏi ${answer.questionId || index + 1})`
           );
           continue;
         }
@@ -312,14 +408,17 @@ const ExaminerTestSessionDetail = () => {
         const weight = speakingCriteriaWeights[criteriaKey] || 0;
         const maxForCriteria = (answer.maxScore || 0) * weight;
         if (maxForCriteria > 0 && numericValue > maxForCriteria) {
-          validationErrors.push(
-            `Điểm ${label} tối đa là ${maxForCriteria} (câu hỏi ${answer.questionId || index + 1
-            })`
+          answerErrors.push(
+            `Điểm ${label} tối đa là ${maxForCriteria} (câu hỏi ${answer.questionId || index + 1})`
           );
           continue;
         }
 
         criteriaScores[label] = numericValue;
+      }
+
+      if (answerErrors.length > 0) {
+        validationErrorsByAnswer[key] = answerErrors;
       }
 
       if (Object.keys(criteriaScores).length === speakingCriteria.length) {
@@ -334,13 +433,13 @@ const ExaminerTestSessionDetail = () => {
       }
     });
 
-    if (validationErrors.length > 0) {
-      setSpeakingSubmitError(validationErrors.join(". "));
+    if (Object.keys(validationErrorsByAnswer).length > 0) {
+      setSpeakingSubmitError(validationErrorsByAnswer);
       return;
     }
 
     if (Object.keys(answerScoresPayload).length === 0) {
-      setSpeakingSubmitError("Không có dữ liệu hợp lệ để chấm điểm.");
+      setSpeakingSubmitError({ general: ["Không có dữ liệu hợp lệ để chấm điểm."] });
       return;
     }
 
@@ -370,7 +469,7 @@ const ExaminerTestSessionDetail = () => {
       }
     } catch (err) {
       console.error("Error scoring speaking answers:", err);
-      setSpeakingSubmitError(err.message || "Không thể chấm điểm.");
+      setSpeakingSubmitError({ general: [err.message || "Không thể chấm điểm."] });
     } finally {
       setSubmittingSpeakingScores(false);
     }
@@ -665,12 +764,27 @@ const ExaminerTestSessionDetail = () => {
                                   e.target.value
                                 )
                               }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 text-sm"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 text-sm ${speakingSubmitError[answerKey]?.some(err =>
+                                err.includes(label)
+                              ) ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                }`}
                               placeholder="Nhập điểm"
                             />
                           </div>
                         ))}
                       </div>
+                      {/* Hiển thị lỗi ngay dưới phần chấm điểm của câu hỏi này */}
+                      {speakingSubmitError[answerKey] && speakingSubmitError[answerKey].length > 0 && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <ul className="space-y-1">
+                            {speakingSubmitError[answerKey].map((error, errIndex) => (
+                              <li key={errIndex} className="text-sm text-red-600">
+                                {error}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -678,10 +792,17 @@ const ExaminerTestSessionDetail = () => {
             })}
             {testType === "EnglishSpeaking" && answers.length > 0 && (
               <div className="pt-4 mt-6 border-t border-dashed border-gray-200">
-                {speakingSubmitError && (
-                  <p className="mb-3 text-sm text-red-600">
-                    {speakingSubmitError}
-                  </p>
+                {/* Hiển thị lỗi tổng quát (nếu có) */}
+                {speakingSubmitError.general && speakingSubmitError.general.length > 0 && (
+                  <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <ul className="space-y-1">
+                      {speakingSubmitError.general.map((error, errIndex) => (
+                        <li key={errIndex} className="text-sm text-red-600">
+                          {error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 {speakingSubmitMessage && (
                   <p className="mb-3 text-sm text-green-600">

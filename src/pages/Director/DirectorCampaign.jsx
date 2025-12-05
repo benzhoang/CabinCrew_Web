@@ -214,6 +214,14 @@ const DirectorCampaign = () => {
     const [langVersion, setLangVersion] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 5, // Mỗi trang 5 campaign
+        totalRecords: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    })
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -292,15 +300,39 @@ const DirectorCampaign = () => {
     }
 
     useEffect(() => {
-        const fetchCampaigns = async () => {
+        const fetchCampaigns = async (page = 1) => {
             setIsLoading(true)
             setError(null)
             try {
-                const response = await getCampaigns()
+                const pageSize = 5 // Mỗi trang 5 campaign
+                const response = await getCampaigns({
+                    page: page,
+                    pageSize: pageSize
+                })
                 if (response.success && Array.isArray(response.data)) {
                     const normalizedCampaigns = response.data.map(transformCampaignData)
                     setCampaigns(normalizedCampaigns)
                     setFilteredCampaigns(normalizedCampaigns)
+
+                    // Lưu thông tin phân trang từ API nếu có
+                    if (response.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...response.pagination,
+                            pageSize: pageSize,
+                        }))
+                    } else {
+                        // Nếu API chưa trả pagination, fallback theo data hiện tại
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pageSize,
+                            totalRecords: normalizedCampaigns.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
                 } else {
                     setCampaigns([])
                     setFilteredCampaigns([])
@@ -315,7 +347,8 @@ const DirectorCampaign = () => {
             }
         }
 
-        fetchCampaigns()
+        // Lần đầu load sẽ là trang 1
+        fetchCampaigns(1)
     }, [])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
@@ -385,6 +418,61 @@ const DirectorCampaign = () => {
         if (window.confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) {
             setCampaigns(campaigns.filter(campaign => campaign.id !== id))
         }
+    }
+
+    const handlePageChange = (page) => {
+        if (page === pagination.currentPage) return
+        if (page < 1) return
+        if (pagination.totalPages && page > pagination.totalPages) return
+        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+        if (page > pagination.currentPage && !pagination.hasNextPage) return
+        if (page < pagination.currentPage && !pagination.hasPreviousPage) return
+
+        // Gọi lại API với trang mới
+        const fetchNewPage = async () => {
+            setIsLoading(true)
+            setError(null)
+            try {
+                const pageSize = pagination.pageSize || 5
+                const response = await getCampaigns({
+                    page: page,
+                    pageSize: pageSize
+                })
+                if (response.success && Array.isArray(response.data)) {
+                    const normalizedCampaigns = response.data.map(transformCampaignData)
+                    setCampaigns(normalizedCampaigns)
+                    setFilteredCampaigns(normalizedCampaigns)
+
+                    if (response.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...response.pagination,
+                            pageSize: pageSize,
+                        }))
+                    } else {
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pageSize,
+                            totalRecords: normalizedCampaigns.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
+                } else {
+                    setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                    setCampaigns([])
+                }
+            } catch (err) {
+                setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                setCampaigns([])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchNewPage()
     }
 
     if (error) {
@@ -553,19 +641,70 @@ const DirectorCampaign = () => {
             </div>
 
             {/* Campaign Cards */}
-            {filteredCampaigns.length === 0 ? (
+            {isLoading ? (
+                <div className="py-12 text-center">
+                    <p className="text-slate-500">Đang tải dữ liệu...</p>
+                </div>
+            ) : filteredCampaigns.length === 0 ? (
                 <div className="py-12 text-center">
                     <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
                 </div>
             ) : (
-                filteredCampaigns.map((campaign) => (
-                    <CampaignCard
-                        key={campaign.id}
-                        campaign={campaign}
-                        onViewDetails={handleViewDetails}
-                        onDelete={handleDelete}
-                    />
-                ))
+                <>
+                    {filteredCampaigns.map((campaign) => (
+                        <CampaignCard
+                            key={campaign.id}
+                            campaign={campaign}
+                            onViewDetails={handleViewDetails}
+                            onDelete={handleDelete}
+                        />
+                    ))}
+
+                    {/* Phân trang */}
+                    <div className="mt-6 px-6 py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+                        <div className="text-sm text-slate-600">
+                            Trang <span className="font-semibold">{pagination.currentPage}</span>
+                            {pagination.totalPages ? (
+                                <> / <span className="font-semibold">{pagination.totalPages}</span></>
+                            ) : null}
+                            {typeof pagination.totalRecords === 'number' && (
+                                <span className="ml-2">
+                                    ({pagination.totalRecords} bản ghi)
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                disabled={!pagination.hasPreviousPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Trước
+                            </button>
+
+                            <span className="text-sm text-slate-600">
+                                {pagination.currentPage}
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                disabled={!pagination.hasNextPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* Modal Chi tiết */}

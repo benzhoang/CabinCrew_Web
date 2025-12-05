@@ -4,6 +4,9 @@ import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 import { t, onLangChange } from '../../i18n'
 import { saveApplicationDraft, submitApplication, getUserProfile } from '../../service/api'
+import EyeIcon from '../../components/ApplicationFormComponents/EyeIcon'
+import DeleteFileButton from '../../components/ApplicationFormComponents/DeleteFileButton'
+import CaptchaInput from '../../components/ApplicationFormComponents/CaptchaInput'
 
 const ApplicationForm = () => {
     const navigate = useNavigate()
@@ -44,8 +47,8 @@ const ApplicationForm = () => {
     })
 
     // Captcha state
-    const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
+    const [captchaCode, setCaptchaCode] = useState('')
 
     // Loading state for save draft and submit
     const [isSavingDraft, setIsSavingDraft] = useState(false)
@@ -129,20 +132,10 @@ const ApplicationForm = () => {
         return ''
     }
 
-    // Generate random captcha code
-    const generateCaptcha = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        let result = ''
-        for (let i = 0; i < 5; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length))
-        }
-        return result
+    // Handle captcha code change callback
+    const handleCaptchaCodeChange = (code) => {
+        setCaptchaCode(code)
     }
-
-    // Initialize captcha on component mount
-    useEffect(() => {
-        setCaptchaCode(generateCaptcha())
-    }, [])
 
     // Load user profile data from API
     useEffect(() => {
@@ -167,7 +160,6 @@ const ApplicationForm = () => {
                     console.log('Raw dateOfBirth from API:', userData.dateOfBirth)
                     console.log('Formatted dateOfBirth:', formattedDateOfBirth)
 
-                    // Map dữ liệu từ API vào formData
                     // Ưu tiên dữ liệu từ API nếu có
                     setFormData(prev => ({
                         ...prev,
@@ -195,7 +187,6 @@ const ApplicationForm = () => {
 
         if (locationState) {
             // Load từ state khi navigate từ ProfilePage - merge với dữ liệu hiện có
-            // Chỉ merge các field có giá trị, không ghi đè dateOfBirth nếu draft không có
             setFormData(prev => {
                 const draftFormData = state.draftData.formData || {}
                 return {
@@ -240,11 +231,6 @@ const ApplicationForm = () => {
         return unsubscribe
     }, [])
 
-    // Refresh captcha function
-    const refreshCaptcha = () => {
-        setCaptchaCode(generateCaptcha())
-        setCaptchaInput('')
-    }
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -256,6 +242,10 @@ const ApplicationForm = () => {
                 [name]: value
             }))
         }
+    }
+
+    const handleCaptchaChange = (e) => {
+        setCaptchaInput(e.target.value)
     }
 
     const handleFileChange = (e) => {
@@ -360,7 +350,7 @@ const ApplicationForm = () => {
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
             alert(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
+            // Captcha sẽ tự động refresh trong component
             return
         }
 
@@ -542,16 +532,9 @@ const ApplicationForm = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
                                         <span>{t('application_form_application_form_file')} *</span>
                                         {files.applicationForm && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClearFile('applicationForm')}
-                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
+                                            <DeleteFileButton
+                                                onDelete={() => handleClearFile('applicationForm')}
+                                            />
                                         )}
                                     </label>
                                     <div className="relative">
@@ -588,16 +571,9 @@ const ApplicationForm = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
                                         <span>{t('application_form_profile_photo')} *</span>
                                         {files.profilePhoto && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClearFile('profilePhoto')}
-                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
+                                            <DeleteFileButton
+                                                onDelete={() => handleClearFile('profilePhoto')}
+                                            />
                                         )}
                                     </label>
                                     <div className="relative">
@@ -631,16 +607,9 @@ const ApplicationForm = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
                                         <span>{t('application_form_education_degree')} *</span>
                                         {files.educationDegree && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClearFile('educationDegree')}
-                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
+                                            <DeleteFileButton
+                                                onDelete={() => handleClearFile('educationDegree')}
+                                            />
                                         )}
                                     </label>
                                     <div className="relative">
@@ -675,18 +644,17 @@ const ApplicationForm = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
-                                        <span>{t('application_form_english_certificate')} *</span>
+                                        <span className="flex items-center gap-2">
+                                            {t('application_form_english_certificate')} *
+                                            <EyeIcon
+                                                url="https://res.cloudinary.com/dxhaku7lp/image/upload/v1764240300/euxcie5gbzhzmzbg4o2x.jpg"
+                                                title="Xem mẫu chứng chỉ tiếng Anh"
+                                            />
+                                        </span>
                                         {files.englishCertificate && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleClearFile('englishCertificate')}
-                                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                title="Xóa file"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </button>
+                                            <DeleteFileButton
+                                                onDelete={() => handleClearFile('englishCertificate')}
+                                            />
                                         )}
                                     </label>
                                     <div className="relative">
@@ -724,16 +692,9 @@ const ApplicationForm = () => {
                                         <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
                                             <span>{t('application_form_id_card')} - Mặt trước *</span>
                                             {files.idCard && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleClearFile('idCard')}
-                                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                    title="Xóa file"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </button>
+                                                <DeleteFileButton
+                                                    onDelete={() => handleClearFile('idCard')}
+                                                />
                                             )}
                                         </label>
                                         <div className="relative">
@@ -770,16 +731,9 @@ const ApplicationForm = () => {
                                         <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
                                             <span>{t('application_form_id_card')} - Mặt sau *</span>
                                             {files.idCardBack && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleClearFile('idCardBack')}
-                                                    className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-                                                    title="Xóa file"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 7h12M10 11v6m4-6v6M9 7l1-2h4l1 2m-1 12H9a2 2 0 01-2-2V7h10v10a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                </button>
+                                                <DeleteFileButton
+                                                    onDelete={() => handleClearFile('idCardBack')}
+                                                />
                                             )}
                                         </label>
                                         <div className="relative">
@@ -1019,32 +973,11 @@ const ApplicationForm = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">{t('application_form_captcha')}</label>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
-                                        {captchaCode}
-                                    </div>
-                                    <div className="flex-1">
-                                        <input
-                                            type="text"
-                                            name="captcha"
-                                            value={captchaInput}
-                                            onChange={handleInputChange}
-                                            placeholder={t('application_form_enter_captcha')}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={refreshCaptcha}
-                                    className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
-                                >
-                                    {t('application_form_try_new_code')}
-                                </button>
-                            </div>
+                            <CaptchaInput
+                                value={captchaInput}
+                                onChange={handleCaptchaChange}
+                                onCodeChange={handleCaptchaCodeChange}
+                            />
 
                             <div className="flex gap-4">
                                 <button
