@@ -719,9 +719,9 @@ export const getCampaigns = async (params = {}) => {
 };
 
 // API lấy danh sách campaigns được giao cho recruiter/examiner
-export const getMyCampaigns = async () => {
+export const getMyCampaigns = async (params = {}) => {
   try {
-    const response = await api.get("/users/my-campaigns");
+    const response = await api.get("/users/my-campaigns", { params });
     const responseData = response.data;
 
     if (Array.isArray(responseData)) {
@@ -778,9 +778,9 @@ export const getMyCampaigns = async () => {
 };
 
 // API lấy danh sách tasks được giao cho recruiter/examiner
-export const getMyTasks = async () => {
+export const getMyTasks = async (params = {}) => {
   try {
-    const response = await api.get("/users/my-tasks");
+    const response = await api.get("/users/my-tasks", { params });
     const responseData = response.data;
 
     if (Array.isArray(responseData)) {

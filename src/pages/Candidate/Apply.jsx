@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { FiLoader } from 'react-icons/fi'
-import { getCampaignById } from '../../service/api'
+import { getCampaignById, getOngoingCampaign } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 
@@ -12,12 +12,16 @@ const Apply = () => {
     const [campaign, setCampaign] = useState(null)
     const [isLoading, setIsLoading] = useState(!!id)
     const [error, setError] = useState(null)
+    const [ongoingCampaign, setOngoingCampaign] = useState(null)
+    const [appliedRoundIds, setAppliedRoundIds] = useState(new Set()) // Lưu các roundId đã có applicationId
 
     useEffect(() => {
         // Nếu có ID trong URL, luôn gọi API để lấy dữ liệu mới nhất (bao gồm rounds)
         if (id) {
             fetchCampaignDetail()
         }
+        // Gọi API để kiểm tra ongoing campaign của user
+        fetchOngoingCampaign()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
 
@@ -114,6 +118,71 @@ const Apply = () => {
             return 'ongoing'
         }
         return 'upcoming'
+    }
+
+    // Hàm gọi API để lấy ongoing campaign của user
+    const fetchOngoingCampaign = async () => {
+        try {
+            const response = await getOngoingCampaign()
+            console.log('Ongoing Campaign Response:', response) // Debug log
+
+            if (response.success && response.data) {
+                const ongoingData = response.data
+                setOngoingCampaign(ongoingData)
+
+                // Lấy danh sách các roundId đã có applicationId
+                const rounds = ongoingData.rounds || []
+                const appliedIds = new Set()
+
+                // Kiểm tra xem có rounds nào có applicationId không
+                const hasApplication = rounds.some(round =>
+                    round.applicationId && round.applicationId > 0
+                )
+
+                // Nếu có applicationId trong rounds, thêm campaignRoundId vào danh sách
+                if (hasApplication && ongoingData.campaignRoundId) {
+                    appliedIds.add(ongoingData.campaignRoundId)
+                }
+
+                // Thêm các roundId có applicationId
+                rounds.forEach(round => {
+                    if (round.applicationId && round.applicationId > 0) {
+                        // Thêm roundId nếu có
+                        if (round.roundId) {
+                            appliedIds.add(round.roundId)
+                        }
+                        // Thêm campaignRoundId từ round nếu có
+                        if (round.campaignRoundId) {
+                            appliedIds.add(round.campaignRoundId)
+                        }
+                    }
+                })
+
+                console.log('Applied Round IDs:', Array.from(appliedIds)) // Debug log
+                setAppliedRoundIds(appliedIds)
+            } else {
+                // Nếu không có ongoing campaign, reset state
+                setOngoingCampaign(null)
+                setAppliedRoundIds(new Set())
+            }
+        } catch (err) {
+            console.error('Error fetching ongoing campaign:', err) // Debug log
+            // Không set error để không ảnh hưởng đến UI chính
+            setOngoingCampaign(null)
+            setAppliedRoundIds(new Set())
+        }
+    }
+
+    // Hàm kiểm tra xem batch có đã được ứng tuyển chưa
+    const isBatchApplied = (batch) => {
+        if (!batch || appliedRoundIds.size === 0) return false
+
+        // Kiểm tra campaignRoundId của batch có trong danh sách đã ứng tuyển không
+        if (batch.campaignRoundId && appliedRoundIds.has(batch.campaignRoundId)) {
+            return true
+        }
+
+        return false
     }
 
     // Hàm kiểm tra xem campaign có đang diễn ra không
@@ -345,9 +414,13 @@ const Apply = () => {
                                                         {b.status === 'ongoing' && (
                                                             <button
                                                                 onClick={() => navigate(`/application-form/${b.campaignRoundId}`, { state: { campaign: campaign, batch: b } })}
-                                                                className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
+                                                                disabled={isBatchApplied(b)}
+                                                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${isBatchApplied(b)
+                                                                    ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                                                                    : 'bg-green-600 hover:bg-green-700'
+                                                                    }`}
                                                             >
-                                                                Ứng tuyển ngay
+                                                                {isBatchApplied(b) ? 'Đã ứng tuyển' : 'Ứng tuyển ngay'}
                                                             </button>
                                                         )}
                                                     </div>

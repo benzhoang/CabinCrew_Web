@@ -15,6 +15,14 @@ const Tasks = () => {
     const [langVersion, setLangVersion] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 5, // Mỗi trang 5 task
+        totalRecords: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    })
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -113,15 +121,39 @@ const Tasks = () => {
     }
 
     useEffect(() => {
-        const fetchTasks = async () => {
+        const fetchTasks = async (page = 1) => {
             setIsLoading(true)
             setError(null)
             try {
-                const response = await getMyTasks()
+                const pageSize = 5 // Mỗi trang 5 task
+                const response = await getMyTasks({
+                    page: page,
+                    pageSize: pageSize
+                })
                 if (response.success && response.data) {
                     const transformedTasks = transformTasksData(response.data)
                     setTasks(transformedTasks)
                     setFilteredTasks(transformedTasks)
+
+                    // Lưu thông tin phân trang từ API nếu có
+                    if (response.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...response.pagination,
+                            pageSize: pageSize,
+                        }))
+                    } else {
+                        // Nếu API chưa trả pagination, fallback theo data hiện tại
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pageSize,
+                            totalRecords: transformedTasks.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
                 } else {
                     setTasks([])
                     setFilteredTasks([])
@@ -136,7 +168,8 @@ const Tasks = () => {
             }
         }
 
-        fetchTasks()
+        // Lần đầu load sẽ là trang 1
+        fetchTasks(1)
     }, [])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
@@ -187,6 +220,61 @@ const Tasks = () => {
     const handleViewDetails = (task) => {
         setSelectedTask(task)
         setShowModal(true)
+    }
+
+    const handlePageChange = (page) => {
+        if (page === pagination.currentPage) return
+        if (page < 1) return
+        if (pagination.totalPages && page > pagination.totalPages) return
+        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+        if (page > pagination.currentPage && !pagination.hasNextPage) return
+        if (page < pagination.currentPage && !pagination.hasPreviousPage) return
+
+        // Gọi lại API với trang mới
+        const fetchNewPage = async () => {
+            setIsLoading(true)
+            setError(null)
+            try {
+                const pageSize = pagination.pageSize || 5
+                const response = await getMyTasks({
+                    page: page,
+                    pageSize: pageSize
+                })
+                if (response.success && response.data) {
+                    const transformedTasks = transformTasksData(response.data)
+                    setTasks(transformedTasks)
+                    setFilteredTasks(transformedTasks)
+
+                    if (response.pagination) {
+                        setPagination(prev => ({
+                            ...prev,
+                            ...response.pagination,
+                            pageSize: pageSize,
+                        }))
+                    } else {
+                        setPagination(prev => ({
+                            ...prev,
+                            currentPage: page,
+                            pageSize: pageSize,
+                            totalRecords: transformedTasks.length,
+                            totalPages: 1,
+                            hasNextPage: false,
+                            hasPreviousPage: false,
+                        }))
+                    }
+                } else {
+                    setError(response.error || 'Không thể lấy danh sách công việc')
+                    setTasks([])
+                }
+            } catch (err) {
+                setError(err.message || 'Không thể lấy danh sách công việc')
+                setTasks([])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchNewPage()
     }
 
     const getStatusBadge = (status) => {
@@ -418,6 +506,51 @@ const Tasks = () => {
                             </div>
                         </div>
                     ))}
+
+                    {/* Phân trang */}
+                    <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                        <div className="text-sm text-slate-600">
+                            Trang <span className="font-semibold">{pagination.currentPage}</span>
+                            {pagination.totalPages ? (
+                                <> / <span className="font-semibold">{pagination.totalPages}</span></>
+                            ) : null}
+                            {typeof pagination.totalRecords === 'number' && (
+                                <span className="ml-2">
+                                    ({pagination.totalRecords} bản ghi)
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                disabled={!pagination.hasPreviousPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Trước
+                            </button>
+
+                            <span className="text-sm text-slate-600">
+                                {pagination.currentPage}
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                disabled={!pagination.hasNextPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Sau
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 

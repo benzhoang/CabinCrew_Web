@@ -83,7 +83,7 @@ const Recruiment = () => {
     const [error, setError] = useState(null)
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 10,
+        pageSize: 4,
         totalRecords: 0,
         totalPages: 0,
         hasNextPage: false,
@@ -131,15 +131,35 @@ const Recruiment = () => {
                     setPagination(prev => ({
                         ...prev,
                         currentPage: response.pagination.currentPage || page,
+                        pageSize: response.pagination.pageSize || prev.pageSize,
                         totalRecords: response.pagination.totalRecords || 0,
                         totalPages: response.pagination.totalPages || 0,
-                        hasNextPage: response.pagination.hasNextPage || false,
-                        hasPreviousPage: response.pagination.hasPreviousPage || false
+                        hasNextPage: response.pagination.hasNextPage !== undefined ? response.pagination.hasNextPage : false,
+                        hasPreviousPage: response.pagination.hasPreviousPage !== undefined ? response.pagination.hasPreviousPage : false
+                    }))
+                } else {
+                    // Nếu không có pagination từ API, tính toán dựa trên số lượng items
+                    const totalItems = normalized.length
+                    setPagination(prev => ({
+                        ...prev,
+                        currentPage: page,
+                        totalRecords: totalItems,
+                        totalPages: Math.ceil(totalItems / prev.pageSize),
+                        hasNextPage: page * prev.pageSize < totalItems,
+                        hasPreviousPage: page > 1
                     }))
                 }
             } else {
                 setCampaigns([])
                 setError(response.error || response.message || 'Không thể lấy danh sách chiến dịch')
+                setPagination(prev => ({
+                    ...prev,
+                    currentPage: 1,
+                    totalRecords: 0,
+                    totalPages: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false
+                }))
             }
         } catch (err) {
             setCampaigns([])
@@ -163,12 +183,16 @@ const Recruiment = () => {
     // Debounce search để tránh gọi API quá nhiều
     useEffect(() => {
         const timer = setTimeout(() => {
+            setPagination(prev => ({ ...prev, currentPage: 1 }))
             fetchCampaigns(1, search)
         }, 500) // Đợi 500ms sau khi user ngừng gõ
 
         return () => clearTimeout(timer)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search])
+
+    // Reset về trang 1 khi thay đổi filter (airline và statusFilter là client-side filter nên không cần gọi lại API)
+    // Chỉ cần reset currentPage về 1 để hiển thị đúng
 
     const baseCampaigns = useMemo(
         () => (statusFilter === 'active' ? campaigns.filter(c => c.status === 'active') : campaigns),
@@ -310,21 +334,29 @@ const Recruiment = () => {
                 )}
 
                 {/* Phân trang */}
-                {!isLoading && filtered.length > 0 && pagination.totalPages > 1 && (
+                {!isLoading && campaigns.length > 0 && pagination.totalPages > 1 && (
                     <div className="mt-6 flex items-center justify-center gap-2">
                         <button
-                            onClick={() => fetchCampaigns(pagination.currentPage - 1, search)}
-                            disabled={!pagination.hasPreviousPage}
+                            onClick={() => {
+                                const newPage = pagination.currentPage - 1
+                                setPagination(prev => ({ ...prev, currentPage: newPage }))
+                                fetchCampaigns(newPage, search)
+                            }}
+                            disabled={!pagination.hasPreviousPage || pagination.currentPage === 1}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
                         >
                             Trước
                         </button>
                         <span className="px-4 py-2 text-slate-700">
-                            Trang {pagination.currentPage} / {pagination.totalPages}
+                            Trang {pagination.currentPage} / {pagination.totalPages} ({pagination.totalRecords} chiến dịch)
                         </span>
                         <button
-                            onClick={() => fetchCampaigns(pagination.currentPage + 1, search)}
-                            disabled={!pagination.hasNextPage}
+                            onClick={() => {
+                                const newPage = pagination.currentPage + 1
+                                setPagination(prev => ({ ...prev, currentPage: newPage }))
+                                fetchCampaigns(newPage, search)
+                            }}
+                            disabled={!pagination.hasNextPage || pagination.currentPage >= pagination.totalPages}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
                         >
                             Sau

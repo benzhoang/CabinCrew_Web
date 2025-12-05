@@ -3,11 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaUser } from "react-icons/fa";
 import { FaClipboardList, FaEye } from "react-icons/fa6";
 import { toast } from "react-toastify";
-import {
-    getTestSessionById,
-    getTestSessionAnswersWithCriteria,
-    updateEnquiryRequestScore,
-} from "../../../../service/api";
+import { getTestSessionById, getTestSessionAnswers, getTestSessionAnswersWithCriteria, updateEnquiryRequestScore } from "../../../../service/api";
 
 const AppealDetail = () => {
     const { testSessionId } = useParams();
@@ -69,13 +65,94 @@ const AppealDetail = () => {
             setAnswersLoading(true);
             setAnswersError(null);
             try {
-                const result = await getTestSessionAnswersWithCriteria(testSessionId);
+                // Gọi cả 2 API: một để lấy questionContent, một để lấy criteria scores
+                // Sử dụng Promise.allSettled để không bị fail nếu một API lỗi
+                const [criteriaResult, answersResult] = await Promise.allSettled([
+                    getTestSessionAnswersWithCriteria(testSessionId),
+                    getTestSessionAnswers(testSessionId)
+                ]);
+
                 if (!isMounted) return;
-                if (result.success && Array.isArray(result.data)) {
-                    setAnswers(result.data);
+
+                // Xử lý kết quả từ Promise.allSettled
+                const criteriaData = criteriaResult.status === 'fulfilled' ? criteriaResult.value : null;
+                const answersData = answersResult.status === 'fulfilled' ? answersResult.value : null;
+
+                // Xử lý dữ liệu từ getTestSessionAnswersWithCriteria
+                let answersWithCriteria = [];
+                if (criteriaData?.success && Array.isArray(criteriaData.data)) {
+                    answersWithCriteria = criteriaData.data;
+                } else if (criteriaData?.success && criteriaData.data) {
+                    // Nếu không phải array, thử lấy từ data.answers hoặc data.data
+                    answersWithCriteria = Array.isArray(criteriaData.data.answers)
+                        ? criteriaData.data.answers
+                        : Array.isArray(criteriaData.data.data)
+                            ? criteriaData.data.data
+                            : [];
+                }
+
+                // Xử lý dữ liệu từ getTestSessionAnswers để lấy questionContent
+                let answersWithQuestions = [];
+                if (answersData?.success && answersData.data) {
+                    if (Array.isArray(answersData.data)) {
+                        answersWithQuestions = answersData.data;
+                    } else if (Array.isArray(answersData.data.answers)) {
+                        answersWithQuestions = answersData.data.answers;
+                    } else if (Array.isArray(answersData.data.data)) {
+                        answersWithQuestions = answersData.data.data;
+                    }
+                }
+
+                // Nếu không có dữ liệu từ criteria API, báo lỗi
+                if (answersWithCriteria.length === 0) {
+                    setAnswers([]);
+                    const errorMsg = criteriaData?.error ||
+                        (criteriaResult.status === 'rejected' ? criteriaResult.reason?.message : null) ||
+                        "Không thể tải câu trả lời với tiêu chí chấm điểm.";
+                    setAnswersError(errorMsg);
+                    return;
+                }
+
+                // Merge dữ liệu: lấy questionContent từ answersWithQuestions và merge vào answersWithCriteria
+                const mergedAnswers = answersWithCriteria.map((answerWithCriteria, index) => {
+                    // Tìm answer tương ứng trong answersWithQuestions dựa trên answerId hoặc questionId
+                    let matchingAnswer = answersWithQuestions.find(
+                        (ans) =>
+                            ans.answerId === answerWithCriteria.answerId ||
+                            ans.id === answerWithCriteria.answerId ||
+                            ans.questionId === answerWithCriteria.questionId ||
+                            (ans.question?.questionId === answerWithCriteria.question?.questionId)
+                    );
+
+                    // Nếu không tìm thấy theo ID, thử tìm theo index
+                    if (!matchingAnswer && answersWithQuestions[index]) {
+                        matchingAnswer = answersWithQuestions[index];
+                    }
+
+                    // Lấy questionContent từ matchingAnswer hoặc giữ nguyên từ answerWithCriteria
+                    const questionContent = matchingAnswer?.questionContent ||
+                        matchingAnswer?.question?.questionContent ||
+                        answerWithCriteria.question?.questionContent ||
+                        null;
+
+                    // Merge questionContent vào answer
+                    return {
+                        ...answerWithCriteria,
+                        question: {
+                            ...(answerWithCriteria.question || {}),
+                            questionContent: questionContent
+                        }
+                    };
+                });
+
+                if (mergedAnswers.length > 0) {
+                    setAnswers(mergedAnswers);
+                } else if (answersWithCriteria.length > 0) {
+                    // Nếu không merge được, dùng dữ liệu từ criteria
+                    setAnswers(answersWithCriteria);
                 } else {
                     setAnswers([]);
-                    setAnswersError(result.error || "Không thể tải câu trả lời.");
+                    setAnswersError("Không có dữ liệu câu trả lời.");
                 }
             } catch (err) {
                 if (!isMounted) return;
