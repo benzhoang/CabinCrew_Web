@@ -1,46 +1,98 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import { toast } from 'react-toastify'
+import PostVerificationModal from '../../components/PostVerificationModal'
+import { getApplicationById } from '../../service/api'
+import CabincrewActionForm from '../../components/CabinCrewComponent/CabincrewActionForm'
 
 const ProfileCabinCrewPage = () => {
-    // Force re-render when language changes
+    const navigate = useNavigate()
+    const { id: routeApplicationId } = useParams()
     const [, forceUpdate] = useState({})
+    const decodeJwt = (token) => {
+        if (!token) {
+            return null;
+        }
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return null;
+            }
+            const payload = parts[1]
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+            const decoded = atob(paddedPayload);
+            return JSON.parse(decoded);
+        } catch (error) {
+            console.error('Lỗi khi decode JWT:', error);
+            return null;
+        }
+    };
+
+    const getUserId = () => {
+        const userData = JSON.parse(localStorage.getItem('user') || 'null');
+        if (userData) {
+            const userId = userData.userId || userData.userID || userData.id ||
+                userData.user?.userId || userData.user?.id ||
+                userData.data?.userId || userData.data?.id;
+            if (userId) {
+                return userId;
+            }
+        }
+        const token = localStorage.getItem('token') || userData?.accessToken;
+        if (token) {
+            const decoded = decodeJwt(token);
+            if (decoded) {
+                return decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+                    decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier'] ||
+                    decoded.sub ||
+                    decoded.userId ||
+                    decoded.id;
+            }
+        }
+        return null;
+    };
 
     const [formData, setFormData] = useState({
-        email: 'lan.nguyen@email.com',
-        fullName: 'Nguyễn Thị Lan',
-        nationality: 'vietnamese',
-        dateOfBirth: '1995-03-15',
-        gender: 'female',
-        mobileNumber: '+84 912 345 678',
-        workingExperience: '1-2-years',
-        flightExperience: '672',
-        height: '165',
-        weight: '53',
-        englishCertificate: 'TOEIC 650',
-        certificateExpireDate: '2025-12-31',
-        basePreference: 'flexible',
-        termsAccepted: 'yes',
+        email: '',
+        fullName: '',
+        dateOfBirth: '',
+        gender: '',
+        mobileNumber: '',
+        workingExperience: '',
+        experience: '',
+        experienceOther: '',
+        totalFlightHours: '',
+        height: '',
+        weight: '',
+        englishCertificate: '',
+        certificateExpireDate: '',
+        campaignRoundId: '',
+        termsAccepted: '',
         captcha: ''
     })
 
     const [files, setFiles] = useState({
-        applicationForm: { name: 'VJC-PD-FRM-12_Application_Form.pdf' },
-        profilePhoto: { name: 'Profile_Photo_4x6.jpg' },
-        educationDegree: { name: 'Bachelor_Degree_Certificate.pdf' },
-        englishCertificate: { name: 'TOEIC_Certificate_650.pdf' },
-        idCard: { name: 'ID_Card_Front_Back.pdf' }
+        applicationForm: null,
+        profilePhoto: null,
+        educationDegree: null,
+        englishCertificate: null,
+        idCard: null,
+        idCardBack: null
     })
 
-    // Captcha state
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
-
-    // Edit mode state
     const [isEditing, setIsEditing] = useState(false)
     const [originalFormData, setOriginalFormData] = useState(null)
+    const [showPostVerificationModal, setShowPostVerificationModal] = useState(false)
+    const [applicationStatus, setApplicationStatus] = useState('') // 'pending', 'accepted', 'rejected', 'final'
+    const [submissionDate, setSubmissionDate] = useState('')
+    const [applicationId, setApplicationId] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    // Generate random captcha code
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         let result = ''
@@ -50,24 +102,344 @@ const ProfileCabinCrewPage = () => {
         return result
     }
 
-    // Initialize captcha on component mount
     useEffect(() => {
         setCaptchaCode(generateCaptcha())
     }, [])
 
-    // Load draft data on component mount
     useEffect(() => {
-        const savedDraft = localStorage.getItem('applicationFormDraft')
-        if (savedDraft) {
+        const loadApplicationData = async () => {
+            setIsLoading(true)
+            setError(null)
             try {
-                const draftData = JSON.parse(savedDraft)
-                setFormData(draftData.formData)
-            } catch (error) {
-                console.error('Error loading draft:', error)
+                // Lấy applicationId từ route params
+                const appId = routeApplicationId
+                console.log('Route applicationId:', appId)
+                if (!appId) {
+                    setError('Không tìm thấy mã đơn ứng tuyển. Vui lòng kiểm tra lại đường dẫn.')
+                    setIsLoading(false)
+                    return
+                }
+
+                // Gọi API mới để lấy thông tin application
+                console.log('Calling getApplicationById with:', appId)
+                const result = await getApplicationById(appId)
+                console.log('API result:', result)
+                if (result.success && result.data) {
+                    const appData = result.data
+                    console.log('Application data from API:', appData)
+                    // Helper function to format date to YYYY-MM-DD
+                    const formatDateForInput = (dateString) => {
+                        if (!dateString) {
+                            console.warn('formatDateForInput: dateString is empty')
+                            return ''
+                        }
+                        console.log('formatDateForInput - Input:', dateString, 'Type:', typeof dateString)
+                        // If it's already in YYYY-MM-DD format, return as is
+                        if (typeof dateString === 'string') {
+                            // Check if it's YYYY-MM-DD format
+                            const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/)
+                            if (ymdMatch) {
+                                const result = dateString.split('T')[0] // Remove time part if exists
+                                console.log('formatDateForInput - Already YYYY-MM-DD:', result)
+                                return result
+                            }
+                            // Try parsing as Date
+                            try {
+                                const date = new Date(dateString)
+                                if (!isNaN(date.getTime())) {
+                                    // Get local date parts to avoid timezone issues
+                                    const year = date.getFullYear()
+                                    const month = String(date.getMonth() + 1).padStart(2, '0')
+                                    const day = String(date.getDate()).padStart(2, '0')
+                                    const result = `${year}-${month}-${day}`
+                                    console.log('formatDateForInput - Parsed:', result)
+                                    return result
+                                } else {
+                                    console.warn('formatDateForInput - Invalid date:', dateString)
+                                }
+                            } catch (e) {
+                                console.error('formatDateForInput - Error parsing date:', dateString, e)
+                            }
+                        }
+                        console.warn('formatDateForInput - Could not format:', dateString)
+                        return ''
+                    }
+                    // Helper function to format date for display
+                    const formatDateForDisplay = (dateString) => {
+                        if (!dateString) {
+                            console.warn('formatDateForDisplay: dateString is empty')
+                            return ''
+                        }
+                        console.log('formatDateForDisplay - Input:', dateString, 'Type:', typeof dateString)
+                        try {
+                            let date
+                            // Nếu là string có format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
+                            if (typeof dateString === 'string') {
+                                const dateStr = dateString.trim()
+                                // Kiểm tra format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
+                                const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/)
+                                if (ddmmyyyyMatch) {
+                                    const [, day, month, year] = ddmmyyyyMatch
+                                    // Tạo date object với format YYYY-MM-DD để tránh nhầm lẫn
+                                    date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`)
+                                } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                                    // ISO format YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm:ss
+                                    date = new Date(dateString)
+                                } else {
+                                    // Thử parse như ISO string hoặc format khác
+                                    date = new Date(dateString)
+                                }
+                            } else {
+                                date = new Date(dateString)
+                            }
+
+                            if (!isNaN(date.getTime())) {
+                                // Format theo định dạng Việt Nam: "DD tháng MM, YYYY"
+                                const day = date.getDate()
+                                const month = date.getMonth() + 1
+                                const year = date.getFullYear()
+                                const monthNames = [
+                                    'tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6',
+                                    'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'
+                                ]
+                                const result = `${day} ${monthNames[month - 1]}, ${year}`
+                                console.log('formatDateForDisplay - Formatted:', result)
+                                return result
+                            } else {
+                                console.warn('formatDateForDisplay - Invalid date:', dateString)
+                                // Try to return as is if it's a valid string
+                                if (typeof dateString === 'string' && dateString.trim()) {
+                                    return dateString
+                                }
+                            }
+                        } catch (e) {
+                            console.error('formatDateForDisplay - Error formatting date:', dateString, e)
+                            // Return as is if it's a valid string
+                            if (typeof dateString === 'string' && dateString.trim()) {
+                                return dateString
+                            }
+                        }
+                        console.warn('formatDateForDisplay - Could not format:', dateString)
+                        return ''
+                    }
+                    // Store application metadata
+                    // Set applicationId from route param or from API response
+                    const finalApplicationId = appId || appData.applicationId
+                    if (finalApplicationId) {
+                        setApplicationId(finalApplicationId)
+                    }
+                    if (appData.submissionDate) {
+                        const formattedSubmissionDate = formatDateForDisplay(appData.submissionDate)
+                        // Only set if we got a valid formatted date (not empty and not "Invalid Date")
+                        if (formattedSubmissionDate && formattedSubmissionDate !== 'Invalid Date' && formattedSubmissionDate.trim()) {
+                            setSubmissionDate(formattedSubmissionDate)
+                        } else {
+                            // Try to use raw value if formatting failed
+                            console.warn('Could not format submissionDate, using raw value:', appData.submissionDate)
+                            setSubmissionDate(appData.submissionDate)
+                        }
+                    }
+                    // Set application status
+                    if (appData.status) {
+                        setApplicationStatus(appData.status.toLowerCase())
+                    }
+                    // Format endDate to YYYY-MM-DD for date input
+                    console.log('=== Processing endDate ===')
+                    console.log('Raw endDate from API:', appData.endDate)
+                    console.log('endDate type:', typeof appData.endDate)
+                    console.log('endDate value:', JSON.stringify(appData.endDate))
+                    let formattedEndDate = ''
+                    if (appData.endDate) {
+                        formattedEndDate = formatDateForInput(appData.endDate)
+                        console.log('Formatted endDate:', formattedEndDate)
+                        // If formatDateForInput returned empty, try alternative methods
+                        if (!formattedEndDate) {
+                            console.log('formatDateForInput returned empty, trying alternative methods...')
+                            // Try direct string manipulation if it's already close to YYYY-MM-DD
+                            const dateStr = String(appData.endDate).trim()
+                            if (dateStr.length >= 10) {
+                                // Try to extract YYYY-MM-DD from various formats
+                                const patterns = [
+                                    /(\d{4})-(\d{2})-(\d{2})/,  // YYYY-MM-DD
+                                    /(\d{4})\/(\d{2})\/(\d{2})/, // YYYY/MM/DD
+                                    /(\d{2})\/(\d{2})\/(\d{4})/, // DD/MM/YYYY
+                                ]
+                                for (const pattern of patterns) {
+                                    const match = dateStr.match(pattern)
+                                    if (match) {
+                                        if (pattern === patterns[2]) {
+                                            // DD/MM/YYYY -> YYYY-MM-DD
+                                            formattedEndDate = `${match[3]}-${match[2]}-${match[1]}`
+                                        } else {
+                                            // YYYY-MM-DD or YYYY/MM/DD
+                                            formattedEndDate = `${match[1]}-${match[2]}-${match[3]}`
+                                        }
+                                        console.log('Alternative format worked:', formattedEndDate)
+                                        break
+                                    }
+                                }
+                            }
+                            // Last resort: try new Date again with different approach
+                            if (!formattedEndDate) {
+                                try {
+                                    const date = new Date(appData.endDate)
+                                    if (!isNaN(date.getTime())) {
+                                        const year = date.getUTCFullYear()
+                                        const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+                                        const day = String(date.getUTCDate()).padStart(2, '0')
+                                        formattedEndDate = `${year}-${month}-${day}`
+                                        console.log('UTC date format worked:', formattedEndDate)
+                                    }
+                                } catch (e) {
+                                    console.error('All date formatting methods failed:', e)
+                                }
+                            }
+                        }
+                    } else {
+                        console.warn('endDate is null, undefined, or empty')
+                    }
+                    console.log('Final formattedEndDate:', formattedEndDate)
+                    // Map experience field - check if it matches dropdown options
+                    let experienceValue = ''
+                    let experienceOtherValue = ''
+                    if (appData.experience) {
+                        const expStr = String(appData.experience).trim()
+                        const dropdownOptions = ['1 năm', '2 năm', '3-5 năm']
+                        if (dropdownOptions.includes(expStr)) {
+                            experienceValue = expStr
+                        } else {
+                            experienceValue = 'khác'
+                            experienceOtherValue = expStr
+                        }
+                    }
+                    // If experienceOther is provided separately, use it
+                    if (appData.experienceOther) {
+                        experienceOtherValue = appData.experienceOther
+                        if (!experienceValue) {
+                            experienceValue = 'khác'
+                        }
+                    }
+                    // Map API response to form data
+                    const newFormData = {
+                        workingExperience: appData.experience || '',
+                        experience: experienceValue,
+                        experienceOther: experienceOtherValue,
+                        totalFlightHours: appData.totalFlightHours?.toString() || '',
+                        height: appData.height?.toString() || '',
+                        weight: appData.weight?.toString() || '',
+                        englishCertificate: appData.englishDegreeNumber || '',
+                        certificateExpireDate: formattedEndDate,
+                        campaignRoundId: appData.campaignRoundId?.toString() || '',
+                    }
+                    console.log('New form data to set:', newFormData)
+                    setFormData(prev => ({
+                        ...prev,
+                        ...newFormData
+                    }))
+                    // Debug: Log form data to verify after state update
+                    setTimeout(() => {
+                        console.log('Form data after state update (check in next render):', {
+                            certificateExpireDate: formattedEndDate,
+                            workingExperience: appData.experience,
+                            height: appData.height,
+                            weight: appData.weight,
+                            englishCertificate: appData.englishDegreeNumber
+                        })
+                    }, 100)
+                    // Map documents to files
+                    if (appData.documents && Array.isArray(appData.documents)) {
+                        const filesMap = {}
+                        appData.documents.forEach(doc => {
+                            // Map document type to file field
+                            const type = doc.type?.toLowerCase() || ''
+                            const name = doc.name?.toLowerCase() || doc.title?.toLowerCase() || ''
+                            const url = doc.documentURL
+                            const fileInfo = { name: url?.split('/').pop() || 'Document', url }
+                            if (type.includes('application') || type.includes('form')) {
+                                filesMap.applicationForm = fileInfo
+                            } else if (type.includes('profile') || type.includes('photo')) {
+                                filesMap.profilePhoto = fileInfo
+                            } else if (type.includes('education') || type.includes('degree')) {
+                                filesMap.educationDegree = fileInfo
+                            } else if (type.includes('english') || type.includes('certificate')) {
+                                filesMap.englishCertificate = fileInfo
+                            } else if (type.includes('passport') || type.includes('id') || type.includes('card')) {
+                                const targetField = type.includes('back') || name.includes('back') ? 'idCardBack' : 'idCard'
+                                filesMap[targetField] = fileInfo
+                            }
+                        })
+                        setFiles(prev => ({ ...prev, ...filesMap }))
+                    }
+                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender)
+                    // The new API includes all user profile fields in the response
+                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined) {
+                        // Map gender: API returns string or integer, form needs "male" or "female"
+                        let genderValue = ''
+                        if (appData.gender !== undefined && appData.gender !== null) {
+                            const genderStr = String(appData.gender).toLowerCase()
+                            if (genderStr === 'male' || genderStr === '1' || genderStr === 'm') {
+                                genderValue = 'male'
+                            } else if (genderStr === 'female' || genderStr === '0' || genderStr === '2' || genderStr === 'f') {
+                                genderValue = 'female'
+                            }
+                        }
+
+                        setFormData(prev => {
+                            const updated = {
+                                ...prev,
+                                email: appData.email || prev.email || '',
+                                fullName: appData.fullName || prev.fullName || '',
+                                dateOfBirth: appData.dateOfBirth ? formatDateForInput(appData.dateOfBirth) : (prev.dateOfBirth || ''),
+                                gender: genderValue || prev.gender || '',
+                                mobileNumber: appData.phoneNumber || prev.mobileNumber || '',
+                            }
+                            // Keep certificateExpireDate from API if it was set
+                            if (prev.certificateExpireDate) {
+                                updated.certificateExpireDate = prev.certificateExpireDate
+                            }
+                            console.log('User profile data merged from application API, certificateExpireDate preserved:', updated.certificateExpireDate)
+                            return updated
+                        })
+                    } else {
+                        console.warn('No user profile data in API response, using localStorage as fallback')
+                        // Fallback to localStorage if API doesn't include profile data
+                        const userData = JSON.parse(localStorage.getItem('user') || 'null')
+                        if (userData) {
+                            setFormData(prev => {
+                                const updated = {
+                                    ...prev,
+                                    email: userData.email || prev.email || '',
+                                    fullName: userData.fullName || userData.name || prev.fullName || '',
+                                    dateOfBirth: userData.dateOfBirth || prev.dateOfBirth || '',
+                                    gender: userData.gender || prev.gender || '',
+                                    mobileNumber: userData.mobileNumber || userData.phoneNumber || prev.mobileNumber || '',
+                                }
+                                if (prev.certificateExpireDate) {
+                                    updated.certificateExpireDate = prev.certificateExpireDate
+                                }
+                                return updated
+                            })
+                        }
+                    }
+                } else {
+                    const errorMsg = result.error || 'Không thể tải thông tin đơn ứng tuyển'
+                    console.error('API returned error:', errorMsg, result)
+                    setError(errorMsg)
+                }
+            } catch (err) {
+                console.error('Error loading application data:', err)
+                const errorMsg = err.response?.data?.message || err.message || 'Đã xảy ra lỗi khi tải thông tin đơn ứng tuyển'
+                setError(errorMsg)
+            } finally {
+                setIsLoading(false)
             }
         }
-    }, [])
-
+        loadApplicationData()
+    }, [routeApplicationId])
+    // Debug: Log formData.certificateExpireDate whenever it changes
+    useEffect(() => {
+        console.log('formData.certificateExpireDate changed:', formData.certificateExpireDate)
+    }, [formData.certificateExpireDate])
     // Listen for language changes and force re-render
     useEffect(() => {
         const unsubscribe = onLangChange(() => {
@@ -75,13 +447,11 @@ const ProfileCabinCrewPage = () => {
         })
         return unsubscribe
     }, [])
-
     // Refresh captcha function
     const refreshCaptcha = () => {
         setCaptchaCode(generateCaptcha())
         setCaptchaInput('')
     }
-
     const handleInputChange = (e) => {
         const { name, value } = e.target
         if (name === 'captcha') {
@@ -93,7 +463,6 @@ const ProfileCabinCrewPage = () => {
             }))
         }
     }
-
     const handleFileChange = (e) => {
         const { name, files: fileList } = e.target
         setFiles(prev => ({
@@ -101,72 +470,64 @@ const ProfileCabinCrewPage = () => {
             [name]: fileList[0] || null
         }))
     }
-
-    const handleUpdate = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            toast.error(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
+    const handleFileDelete = (fileName) => {
+        setFiles(prev => ({
+            ...prev,
+            [fileName]: null
+        }))
+        // Reset file input
+        const fileInput = document.querySelector(`input[name="${fileName}"]`)
+        if (fileInput) {
+            fileInput.value = ''
         }
-
-        // Xử lý cập nhật form ở đây
-        console.log('Updated form data:', formData)
-        console.log('Updated files:', files)
-        toast.success('Đã cập nhật thông tin thành công!')
     }
-
-    const handleSubmit = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            toast.error(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
+    const handleSaveDraft = () => {
+        // Lưu form data vào localStorage (không lưu files)
+        const draftData = {
+            formData,
+            timestamp: new Date().toISOString(),
+            campaignId: null
         }
-
-        // Xử lý nộp đơn ở đây
-        console.log('Submitted form data:', formData)
-        console.log('Submitted files:', files)
-        toast.success('Đã nộp đơn ứng tuyển thành công!')
+        localStorage.setItem('applicationFormDraft', JSON.stringify(draftData))
+        alert(t('application_form_draft_saved') || 'Đã lưu bản nháp thành công!')
     }
-
-    const handleEditClick = () => {
-        setOriginalFormData({ ...formData })
-        setIsEditing(true)
+    const handlePostVerificationSubmit = (verificationData) => {
+        // Xử lý nộp hậu kiểm
+        console.log('Post verification data:', verificationData)
+        alert('Đã nộp hậu kiểm thành công! Chúng tôi sẽ xem xét và phản hồi trong thời gian sớm nhất.')
     }
-
-    const handleSaveClick = (e) => {
-        e.preventDefault()
-
-        // Validate captcha
-        if (captchaInput.toUpperCase() !== captchaCode) {
-            toast.error(t('application_form_captcha_incorrect'))
-            refreshCaptcha()
-            return
-        }
-
-        // Xử lý lưu thông tin
-        console.log('Updated form data:', formData)
-        console.log('Updated files:', files)
-        toast.success('Đã cập nhật thông tin thành công!')
-        setIsEditing(false)
-        setOriginalFormData(null)
+    // Kiểm tra xem có hiển thị nút "Nộp hậu kiểm" không
+    const shouldShowPostVerificationButton = applicationStatus === 'final'
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600">Đang tải thông tin hồ sơ...</p>
+                </div>
+            </div>
+        )
     }
-
-    const handleCancelClick = () => {
-        if (originalFormData) {
-            setFormData(originalFormData)
-        }
-        setIsEditing(false)
-        setOriginalFormData(null)
+    // Error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center max-w-md">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        <p className="font-bold">Lỗi</p>
+                        <p>{error}</p>
+                    </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
+        )
     }
-
-    // Removed unused handleSaveDraft to satisfy linter
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
@@ -174,35 +535,94 @@ const ProfileCabinCrewPage = () => {
                     <div className="flex items-center gap-4">
                         <h1 className="text-3xl font-bold text-slate-800">Hồ sơ</h1>
                         {/* Thanh hiển thị kết quả cuối cùng - nhỏ gọn bên cạnh title */}
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg px-3 py-1 text-white">
-                            <div className="flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span className="text-sm font-medium">Kết quả cuối cùng</span>
+                        {applicationStatus === 'final' && (
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg px-3 py-1 text-white">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="text-sm font-medium">Kết quả cuối cùng</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
+                    </div>
+                    <div className="flex gap-3">
+                        {shouldShowPostVerificationButton && (
+                            <button
+                                onClick={() => setShowPostVerificationModal(true)}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                            >
+                                Nộp hậu kiểm
+                            </button>
+                        )}
                     </div>
                 </div>
-
+                {/* Application Information Card */}
+                {(applicationStatus || submissionDate || applicationId) && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {applicationId && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Mã đơn ứng tuyển</label>
+                                    <p className="text-sm font-semibold text-slate-800">#{applicationId}</p>
+                                </div>
+                            )}
+                            {applicationStatus && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Trạng thái</label>
+                                    <p className="text-sm font-semibold text-slate-800 capitalize">
+                                        {applicationStatus === 'pending' && 'Đang chờ'}
+                                        {applicationStatus === 'accepted' && 'Đã chấp nhận'}
+                                        {applicationStatus === 'rejected' && 'Đã từ chối'}
+                                        {applicationStatus === 'final' && 'Kết quả cuối cùng'}
+                                        {!['pending', 'accepted', 'rejected', 'final'].includes(applicationStatus) && applicationStatus}
+                                    </p>
+                                </div>
+                            )}
+                            {submissionDate && (
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Ngày nộp đơn</label>
+                                    <p className="text-sm font-semibold text-slate-800">
+                                        {submissionDate}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column - Document Uploads */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
-
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_application_form_file')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Form Job Application *
+                                        </label>
+                                        {false && files.applicationForm && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('applicationForm')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="applicationForm"
                                             onChange={handleFileChange}
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            accept=".pdf"
+                                            disabled={true}
+                                            className="hidden"
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -212,7 +632,14 @@ const ProfileCabinCrewPage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.applicationForm ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.applicationForm.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.applicationForm instanceof File ? files.applicationForm.name : (files.applicationForm.name || files.applicationForm.file?.name || 'Form Job Application')}
+                                                            {files.applicationForm.url && !(files.applicationForm instanceof File) && (
+                                                                <a href={files.applicationForm.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -221,19 +648,32 @@ const ProfileCabinCrewPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_profile_photo')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Ảnh 4x6 *
+                                        </label>
+                                        {false && files.profilePhoto && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('profilePhoto')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="profilePhoto"
                                             onChange={handleFileChange}
                                             accept="image/*"
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            disabled={true}
+                                            className="hidden"
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -243,7 +683,14 @@ const ProfileCabinCrewPage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.profilePhoto ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.profilePhoto.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.profilePhoto instanceof File ? files.profilePhoto.name : (files.profilePhoto.name || files.profilePhoto.file?.name || 'Ảnh 4x6')}
+                                                            {files.profilePhoto.url && !(files.profilePhoto instanceof File) && (
+                                                                <a href={files.profilePhoto.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select_image')}</span>
                                                     )}
@@ -252,19 +699,33 @@ const ProfileCabinCrewPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_education_degree')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            Education Degree *
+                                        </label>
+                                        {false && files.educationDegree && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('educationDegree')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="educationDegree"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            accept=".pdf"
+                                            disabled={true}
+                                            className="hidden"
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -274,7 +735,14 @@ const ProfileCabinCrewPage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.educationDegree ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.educationDegree.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.educationDegree instanceof File ? files.educationDegree.name : (files.educationDegree.name || files.educationDegree.file?.name || 'Education Degree')}
+                                                            {files.educationDegree.url && !(files.educationDegree instanceof File) && (
+                                                                <a href={files.educationDegree.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -283,19 +751,33 @@ const ProfileCabinCrewPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_english_certificate')} *
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-medium text-slate-700">
+                                            English Certificate *
+                                        </label>
+                                        {false && files.englishCertificate && isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleFileDelete('englishCertificate')}
+                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                title="Xóa file"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             name="englishCertificate"
                                             onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            accept=".jpg,.jpeg,image/jpeg"
+                                            disabled={true}
+                                            className="hidden"
                                             required
                                         />
                                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
@@ -305,7 +787,14 @@ const ProfileCabinCrewPage = () => {
                                                 </svg>
                                                 <p className="text-sm text-slate-600">
                                                     {files.englishCertificate ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.englishCertificate.name}</span>
+                                                        <span className="text-green-600 font-medium">
+                                                            ✓ {files.englishCertificate instanceof File ? files.englishCertificate.name : (files.englishCertificate.name || files.englishCertificate.file?.name || 'English Certificate')}
+                                                            {files.englishCertificate.url && !(files.englishCertificate instanceof File) && (
+                                                                <a href={files.englishCertificate.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                    (Xem)
+                                                                </a>
+                                                            )}
+                                                        </span>
                                                     ) : (
                                                         <span>{t('application_form_click_to_select')}</span>
                                                     )}
@@ -314,33 +803,110 @@ const ProfileCabinCrewPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        {t('application_form_id_card')} *
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            name="idCard"
-                                            onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            disabled={!isEditing}
-                                            className={`absolute inset-0 w-full h-full opacity-0 ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                            required
-                                        />
-                                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
-                                            <div className="text-center">
-                                                <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                                                </svg>
-                                                <p className="text-sm text-slate-600">
-                                                    {files.idCard ? (
-                                                        <span className="text-green-600 font-medium">✓ {files.idCard.name}</span>
-                                                    ) : (
-                                                        <span>{t('application_form_click_to_select')}</span>
-                                                    )}
-                                                </p>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-sm font-medium text-slate-700">
+                                                    Citizen identification card - Mặt trước *
+                                                </label>
+                                                {false && files.idCard && isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFileDelete('idCard')}
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                        title="Xóa file"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    name="idCard"
+                                                    onChange={handleFileChange}
+                                                    accept=".jpg,.jpeg,image/jpeg"
+                                                    disabled={true}
+                                                    className="hidden"
+                                                    required
+                                                />
+                                                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                    <div className="text-center">
+                                                        <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                        </svg>
+                                                        <p className="text-sm text-slate-600">
+                                                            {files.idCard ? (
+                                                                <span className="text-green-600 font-medium">
+                                                                    ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'Citizen identification card - Mặt trước')}
+                                                                    {files.idCard.url && !(files.idCard instanceof File) && (
+                                                                        <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                            (Xem)
+                                                                        </a>
+                                                                    )}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{t('application_form_click_to_select')}</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-sm font-medium text-slate-700">
+                                                    Citizen identification card - Mặt sau *
+                                                </label>
+                                                {false && files.idCardBack && isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFileDelete('idCardBack')}
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                        title="Xóa file"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    name="idCardBack"
+                                                    onChange={handleFileChange}
+                                                    accept=".jpg,.jpeg,image/jpeg"
+                                                    disabled={true}
+                                                    className="hidden"
+                                                    required
+                                                />
+                                                <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                                                    <div className="text-center">
+                                                        <svg className="mx-auto h-8 w-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                        </svg>
+                                                        <p className="text-sm text-slate-600">
+                                                            {files.idCardBack ? (
+                                                                <span className="text-green-600 font-medium">
+                                                                    ✓ {files.idCardBack instanceof File ? files.idCardBack.name : (files.idCardBack.name || files.idCardBack.file?.name || 'Citizen identification card - Mặt sau')}
+                                                                    {files.idCardBack.url && !(files.idCardBack instanceof File) && (
+                                                                        <a href={files.idCardBack.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
+                                                                            (Xem)
+                                                                        </a>
+                                                                    )}
+                                                                </span>
+                                                            ) : (
+                                                                <span>{t('application_form_click_to_select')}</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -348,12 +914,24 @@ const ProfileCabinCrewPage = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM DETAILS</h2>
-
-                        <form onSubmit={handleUpdate} className="space-y-6">
+                        <CabincrewActionForm
+                            formData={formData}
+                            files={files}
+                            applicationId={applicationId}
+                            isEditing={isEditing}
+                            setIsEditing={setIsEditing}
+                            originalFormData={originalFormData}
+                            setOriginalFormData={setOriginalFormData}
+                            setFormData={setFormData}
+                            captchaCode={captchaCode}
+                            captchaInput={captchaInput}
+                            handleInputChange={handleInputChange}
+                            refreshCaptcha={refreshCaptcha}
+                            applicationStatus={applicationStatus}
+                        >
                             {/* Personal Information */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Personal Information</h3>
@@ -365,12 +943,11 @@ const ProfileCabinCrewPage = () => {
                                             name="email"
                                             value={formData.email}
                                             onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                             required
                                         />
                                     </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
                                         <input
@@ -378,52 +955,25 @@ const ProfileCabinCrewPage = () => {
                                             name="fullName"
                                             value={formData.fullName}
                                             onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                             required
                                         />
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Nationality:</label>
-                                        <select
-                                            name="nationality"
-                                            value={formData.nationality}
-                                            onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                            required
-                                        >
-                                            <option value="">Select Nationality</option>
-                                            <option value="vietnamese">Vietnamese</option>
-                                            <option value="american">American</option>
-                                            <option value="british">British</option>
-                                            <option value="french">French</option>
-                                            <option value="german">German</option>
-                                            <option value="japanese">Japanese</option>
-                                            <option value="korean">Korean</option>
-                                            <option value="chinese">Chinese</option>
-                                            <option value="thai">Thai</option>
-                                            <option value="singaporean">Singaporean</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Date of Birth:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Date of Birth:</label>
                                         <input
                                             type="date"
                                             name="dateOfBirth"
                                             value={formData.dateOfBirth}
                                             onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                             required
                                         />
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Gender:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Gender:</label>
                                         <div className="flex gap-4">
                                             <label className="flex items-center">
                                                 <input
@@ -432,7 +982,7 @@ const ProfileCabinCrewPage = () => {
                                                     value="male"
                                                     checked={formData.gender === 'male'}
                                                     onChange={handleInputChange}
-                                                    disabled={!isEditing}
+                                                    disabled={true}
                                                     className="mr-2"
                                                     required
                                                 />
@@ -445,7 +995,7 @@ const ProfileCabinCrewPage = () => {
                                                     value="female"
                                                     checked={formData.gender === 'female'}
                                                     onChange={handleInputChange}
-                                                    disabled={!isEditing}
+                                                    disabled={true}
                                                     className="mr-2"
                                                     required
                                                 />
@@ -453,91 +1003,61 @@ const ProfileCabinCrewPage = () => {
                                             </label>
                                         </div>
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Mobile number:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Mobile number:</label>
                                         <input
                                             type="tel"
                                             name="mobileNumber"
                                             value={formData.mobileNumber}
                                             onChange={handleInputChange}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Experience:</label>
+                                        <select
+                                            name="experience"
+                                            value={formData.experience}
+                                            onChange={handleInputChange}
                                             disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            required
+                                        >
+                                            <option value="">-- Chọn kinh nghiệm --</option>
+                                            <option value="1 năm">1 năm</option>
+                                            <option value="2 năm">2 năm</option>
+                                            <option value="3-5 năm">3-5 năm</option>
+                                            <option value="khác">Khác</option>
+                                        </select>
+                                        {formData.experience === 'khác' && (
+                                            <input
+                                                type="text"
+                                                name="experienceOther"
+                                                value={formData.experienceOther}
+                                                onChange={handleInputChange}
+                                                placeholder="Nhập kinh nghiệm của bạn"
+                                                disabled={!isEditing}
+                                                className={`w-full mt-2 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                required={formData.experience === 'khác'}
+                                            />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Total Flight Hours:</label>
+                                        <input
+                                            type="number"
+                                            name="totalFlightHours"
+                                            value={formData.totalFlightHours}
+                                            onChange={handleInputChange}
+                                            placeholder="0"
+                                            disabled={!isEditing}
+                                            min="0"
                                             className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
                                             required
                                         />
                                     </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
-                                        <div className="space-y-2">
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="no-experience"
-                                                    checked={formData.workingExperience === 'no-experience'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                No experience
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="less-than-1-year"
-                                                    checked={formData.workingExperience === 'less-than-1-year'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                Less than 1 year
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="1-2-years"
-                                                    checked={formData.workingExperience === '1-2-years'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                1-2 years
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="3-5-years"
-                                                    checked={formData.workingExperience === '3-5-years'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                3-5 years
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7a. Flight experience (hours):</label>
-                                        <input
-                                            type="number"
-                                            name="flightExperience"
-                                            value={formData.flightExperience}
-                                            onChange={handleInputChange}
-                                            placeholder="e.g. 500"
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                        />
-                                    </div>
-
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">
@@ -549,8 +1069,8 @@ const ProfileCabinCrewPage = () => {
                                                     value={formData.height}
                                                     onChange={handleInputChange}
                                                     placeholder="165"
-                                                    disabled={!isEditing}
-                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                    disabled={true}
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                                     required
                                                 />
                                             </div>
@@ -562,8 +1082,8 @@ const ProfileCabinCrewPage = () => {
                                                     value={formData.weight}
                                                     onChange={handleInputChange}
                                                     placeholder="53"
-                                                    disabled={!isEditing}
-                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                    disabled={true}
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                                     required
                                                 />
                                             </div>
@@ -571,7 +1091,6 @@ const ProfileCabinCrewPage = () => {
                                     </div>
                                 </div>
                             </div>
-
                             {/* English Certificate */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English Certificate</h3>
@@ -584,8 +1103,8 @@ const ProfileCabinCrewPage = () => {
                                             value={formData.englishCertificate}
                                             onChange={handleInputChange}
                                             placeholder="TOEIC 500"
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                             required
                                         />
                                     </div>
@@ -596,63 +1115,13 @@ const ProfileCabinCrewPage = () => {
                                             name="certificateExpireDate"
                                             value={formData.certificateExpireDate}
                                             onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                             required
                                         />
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Base Preference */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Base Preference</h3>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Base Preference:</label>
-                                    <div className="space-y-2">
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="flexible"
-                                                checked={formData.basePreference === 'flexible'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Flexible base
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="cam-ranh"
-                                                checked={formData.basePreference === 'cam-ranh'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Cam Ranh City (CXR)
-                                        </label>
-                                        <label className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="basePreference"
-                                                value="da-nang"
-                                                checked={formData.basePreference === 'da-nang'}
-                                                onChange={handleInputChange}
-                                                disabled={!isEditing}
-                                                className="mr-2"
-                                                required
-                                            />
-                                            Da Nang City (DAD)
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* Terms and Conditions */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Terms and Conditions</h3>
@@ -669,7 +1138,7 @@ const ProfileCabinCrewPage = () => {
                                                 value="yes"
                                                 checked={formData.termsAccepted === 'yes'}
                                                 onChange={handleInputChange}
-                                                disabled={!isEditing}
+                                                disabled={true}
                                                 className="mr-2"
                                                 required
                                             />
@@ -682,7 +1151,7 @@ const ProfileCabinCrewPage = () => {
                                                 value="no"
                                                 checked={formData.termsAccepted === 'no'}
                                                 onChange={handleInputChange}
-                                                disabled={!isEditing}
+                                                disabled={true}
                                                 className="mr-2"
                                                 required
                                             />
@@ -691,77 +1160,16 @@ const ProfileCabinCrewPage = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Captcha */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Captcha Verification</label>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-gray-200 p-4 rounded border text-2xl font-bold text-gray-700 select-none">
-                                        {captchaCode}
-                                    </div>
-                                    <div className="flex-1">
-                                        <input
-                                            type="text"
-                                            name="captcha"
-                                            value={captchaInput}
-                                            onChange={handleInputChange}
-                                            placeholder="Enter captcha code"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={refreshCaptcha}
-                                    className="text-sm text-blue-600 underline hover:text-blue-800 cursor-pointer"
-                                >
-                                    Try new code
-                                </button>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-4">
-                                {!isEditing ? (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleEditClick}
-                                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Cập nhật thông tin
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSubmit}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Nộp đơn
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelClick}
-                                            className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Hủy
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSaveClick}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg"
-                                        >
-                                            Lưu
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </form>
+                        </CabincrewActionForm>
                     </div>
                 </div>
             </div>
+            {/* Post Verification Modal */}
+            <PostVerificationModal
+                isOpen={showPostVerificationModal}
+                onClose={() => setShowPostVerificationModal(false)}
+                onSubmit={handlePostVerificationSubmit}
+            />
         </div>
     )
 }

@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 import { useLocation, useParams, useNavigate } from 'react-router-dom'
-import Approvers from './Approvers'
-import ApprovalLog from './ApprovalLog'
+// import Approvers from './Approvers'
+// import ApprovalLog from './ApprovalLog'
 import DetailInfo from './DetailInfo'
-import Followers from './Followers'
+// import Followers from './Followers'
 // import PendingCampaignDetail from './PendingCampaignDetail'
 
 const CampaignDetail = () => {
@@ -38,11 +38,11 @@ const CampaignDetail = () => {
                     <DetailInfo campaign={campaign} />
                 </div>
 
-                <div className="space-y-6">
+                {/* <div className="space-y-6">
                     <Approvers />
                     <Followers />
                     <ApprovalLog timeline={timeline} />
-                </div>
+                </div> */}
             </div>
         </div>
     )

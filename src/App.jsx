@@ -94,6 +94,7 @@ import TestQuestionDetail from "./pages/Examiner/ExaminerDetail/TestQuestionDeta
 import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerTestSessionDetail";
 import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestReportPage";
 import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
+import ApplicationFormPage from "./pages/CabinCrew/ApplicationFormPage";
 
 function App() {
   return (
@@ -539,7 +540,7 @@ function App() {
           }
         />
         <Route
-          path="/cabin-crew/profile"
+          path="/cabin-crew/profile/:id"
           element={
             <CabinCrewLayout>
               <ProfileCabinCrewPage />
@@ -599,6 +600,14 @@ function App() {
           element={
             <CabinCrewLayout>
               <PracticalTestReportPage />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/application-form/:id"
+          element={
+            <CabinCrewLayout>
+              <ApplicationFormPage />
             </CabinCrewLayout>
           }
         />

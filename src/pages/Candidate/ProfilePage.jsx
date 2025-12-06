@@ -166,13 +166,37 @@ const ProfilePage = () => {
                         }
                         console.log('formatDateForDisplay - Input:', dateString, 'Type:', typeof dateString)
                         try {
-                            const date = new Date(dateString)
+                            let date
+                            // Nếu là string có format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
+                            if (typeof dateString === 'string') {
+                                const dateStr = dateString.trim()
+                                // Kiểm tra format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
+                                const ddmmyyyyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/)
+                                if (ddmmyyyyMatch) {
+                                    const [, day, month, year] = ddmmyyyyMatch
+                                    // Tạo date object với format YYYY-MM-DD để tránh nhầm lẫn
+                                    date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`)
+                                } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                                    // ISO format YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm:ss
+                                    date = new Date(dateString)
+                                } else {
+                                    // Thử parse như ISO string hoặc format khác
+                                    date = new Date(dateString)
+                                }
+                            } else {
+                                date = new Date(dateString)
+                            }
+
                             if (!isNaN(date.getTime())) {
-                                const result = date.toLocaleDateString('vi-VN', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })
+                                // Format theo định dạng Việt Nam: "DD tháng MM, YYYY"
+                                const day = date.getDate()
+                                const month = date.getMonth() + 1
+                                const year = date.getFullYear()
+                                const monthNames = [
+                                    'tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6',
+                                    'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'
+                                ]
+                                const result = `${day} ${monthNames[month - 1]}, ${year}`
                                 console.log('formatDateForDisplay - Formatted:', result)
                                 return result
                             } else {
@@ -898,6 +922,7 @@ const ProfilePage = () => {
                             captchaInput={captchaInput}
                             handleInputChange={handleInputChange}
                             refreshCaptcha={refreshCaptcha}
+                            applicationStatus={applicationStatus}
                         >
                             {/* Personal Information */}
                             <div>

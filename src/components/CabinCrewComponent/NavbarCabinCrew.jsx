@@ -151,24 +151,6 @@ const NavbarCabinCrew = () => {
                       {t("settings")}
                     </Link>
                     <Link
-                      to="/cabin-crew/profile"
-                      className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="w-4 h-4"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      {t("profile")}
-                    </Link>
-                    <Link
                       to="/cabin-crew/promotion-history"
                       className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                       onClick={() => setIsUserMenuOpen(false)}

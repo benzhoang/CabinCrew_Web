@@ -3308,6 +3308,77 @@ export const submitExistingApplication = async (
   }
 };
 
+// API cập nhật flight experience (totalFlightHours và experience)
+// PUT /api/v1/flight-experience/{applicationSnapshotId}
+export const updateFlightExperience = async (applicationSnapshotId, payload) => {
+  if (!applicationSnapshotId) {
+    return {
+      success: false,
+      error: "Thiếu mã hồ sơ để cập nhật",
+    };
+  }
+
+  try {
+    const requestBody = {
+      totalFlightHours: payload.totalFlightHours !== undefined && payload.totalFlightHours !== null 
+        ? parseInt(payload.totalFlightHours, 10) 
+        : 0,
+      experience: payload.experience || null
+    };
+
+    const response = await api.put(
+      `/flight-experience/${applicationSnapshotId}`,
+      requestBody
+    );
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const responseData = response.data || {};
+
+    const isBusinessSuccess =
+      responseData.code === 0 ||
+      responseData.code === 4 ||
+      responseData.errorCode === 0 ||
+      responseData.status?.toLowerCase() === "success";
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Cập nhật thông tin thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData.errorMessage ||
+        responseData.message ||
+        "Cập nhật thông tin thất bại",
+      errors: responseData.errors,
+      status: httpStatus,
+    };
+  } catch (error) {
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Cập nhật thông tin thất bại";
+
+    return {
+      success: false,
+      error: errorMessage,
+      errors: errorData?.errors,
+      errorCode: errorData?.errorCode,
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy thông tin đơn ứng tuyển theo application ID
 // GET /api/v1/applications/{id}
 export const getApplicationById = async (applicationId) => {

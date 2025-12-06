@@ -855,61 +855,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_working_experience')}</label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="no-experience"
-                                            checked={formData.workingExperience === 'no-experience'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_no_experience')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="less-than-1-year"
-                                            checked={formData.workingExperience === 'less-than-1-year'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_less_than_1_year')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="1-2-years"
-                                            checked={formData.workingExperience === '1-2-years'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_1_2_years')}
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="workingExperience"
-                                            value="3-5-years"
-                                            checked={formData.workingExperience === '3-5-years'}
-                                            onChange={handleInputChange}
-                                            className="mr-2"
-                                            required
-                                        />
-                                        {t('application_form_3_5_years')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_height_weight')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">6. {t('application_form_height_weight')}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-slate-600 mb-1">{t('application_form_height')}</label>
@@ -940,7 +886,7 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">8. {t('application_form_terms_conditions')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
                                     {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
                                     {t('application_form_for_recruitment')}

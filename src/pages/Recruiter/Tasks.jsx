@@ -4,8 +4,9 @@ import { t, onLangChange } from '../../i18n'
 import { getMyTasks } from '../../service/api'
 
 const Tasks = () => {
-    const [tasks, setTasks] = useState([])
-    const [filteredTasks, setFilteredTasks] = useState([])
+    const [allTasks, setAllTasks] = useState([]) // Lưu tất cả tasks từ API
+    const [filteredTasks, setFilteredTasks] = useState([]) // Tasks sau khi filter/sort
+    const [displayedTasks, setDisplayedTasks] = useState([]) // Tasks hiển thị trên trang hiện tại (5 items)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [taskFilter, setTaskFilter] = useState('all')
@@ -121,61 +122,55 @@ const Tasks = () => {
     }
 
     useEffect(() => {
-        const fetchTasks = async (page = 1) => {
+        const fetchTasks = async () => {
             setIsLoading(true)
             setError(null)
             try {
-                const pageSize = 5 // Mỗi trang 5 task
-                const response = await getMyTasks({
-                    page: page,
-                    pageSize: pageSize
-                })
+                // Lấy tất cả tasks từ API (không phân trang ở server)
+                const response = await getMyTasks({})
                 if (response.success && response.data) {
                     const transformedTasks = transformTasksData(response.data)
-                    setTasks(transformedTasks)
-                    setFilteredTasks(transformedTasks)
+                    setAllTasks(transformedTasks)
 
-                    // Lưu thông tin phân trang từ API nếu có
-                    if (response.pagination) {
-                        setPagination(prev => ({
-                            ...prev,
-                            ...response.pagination,
-                            pageSize: pageSize,
-                        }))
-                    } else {
-                        // Nếu API chưa trả pagination, fallback theo data hiện tại
-                        setPagination(prev => ({
-                            ...prev,
-                            currentPage: page,
-                            pageSize: pageSize,
-                            totalRecords: transformedTasks.length,
-                            totalPages: 1,
-                            hasNextPage: false,
-                            hasPreviousPage: false,
-                        }))
-                    }
+                    // Tính toán phân trang dựa trên tổng số tasks
+                    const pageSize = 5
+                    const totalRecords = transformedTasks.length
+                    const totalPages = Math.ceil(totalRecords / pageSize) || 1
+
+                    setPagination(prev => ({
+                        ...prev,
+                        currentPage: 1,
+                        pageSize: pageSize,
+                        totalRecords: totalRecords,
+                        totalPages: totalPages,
+                        hasNextPage: totalPages > 1,
+                        hasPreviousPage: false,
+                    }))
                 } else {
-                    setTasks([])
+                    setAllTasks([])
                     setFilteredTasks([])
+                    setDisplayedTasks([])
                     setError(response.error || 'Không thể lấy danh sách công việc')
                 }
             } catch (err) {
-                setTasks([])
+                setAllTasks([])
                 setFilteredTasks([])
+                setDisplayedTasks([])
                 setError(err.message || 'Không thể lấy danh sách công việc')
             } finally {
                 setIsLoading(false)
             }
         }
 
-        // Lần đầu load sẽ là trang 1
-        fetchTasks(1)
+        // Lần đầu load sẽ lấy tất cả tasks
+        fetchTasks()
     }, [])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
 
+    // Filter và sort tasks
     useEffect(() => {
-        let filtered = tasks
+        let filtered = allTasks
 
         // Filter by search term
         if (searchTerm) {
@@ -215,7 +210,32 @@ const Tasks = () => {
         })
 
         setFilteredTasks(sorted)
-    }, [tasks, searchTerm, statusFilter, taskFilter, sortBy])
+
+        // Cập nhật pagination dựa trên số lượng filtered tasks
+        // Reset về trang 1 khi filter/search/sort thay đổi
+        const pageSize = 5
+        const totalRecords = sorted.length
+        const totalPages = Math.ceil(totalRecords / pageSize) || 1
+
+        setPagination(prev => ({
+            ...prev,
+            currentPage: 1, // Reset về trang 1 khi filter thay đổi
+            totalRecords: totalRecords,
+            totalPages: totalPages,
+            hasNextPage: totalPages > 1,
+            hasPreviousPage: false,
+        }))
+    }, [allTasks, searchTerm, statusFilter, taskFilter, sortBy])
+
+    // Áp dụng client-side pagination trên filteredTasks
+    useEffect(() => {
+        const pageSize = pagination.pageSize || 5
+        const currentPage = pagination.currentPage || 1
+        const startIndex = (currentPage - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        const paginatedTasks = filteredTasks.slice(startIndex, endIndex)
+        setDisplayedTasks(paginatedTasks)
+    }, [filteredTasks, pagination.currentPage, pagination.pageSize])
 
     const handleViewDetails = (task) => {
         setSelectedTask(task)
@@ -226,55 +246,61 @@ const Tasks = () => {
         if (page === pagination.currentPage) return
         if (page < 1) return
         if (pagination.totalPages && page > pagination.totalPages) return
-        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
-        if (page > pagination.currentPage && !pagination.hasNextPage) return
-        if (page < pagination.currentPage && !pagination.hasPreviousPage) return
 
-        // Gọi lại API với trang mới
-        const fetchNewPage = async () => {
-            setIsLoading(true)
-            setError(null)
-            try {
-                const pageSize = pagination.pageSize || 5
-                const response = await getMyTasks({
-                    page: page,
-                    pageSize: pageSize
-                })
-                if (response.success && response.data) {
-                    const transformedTasks = transformTasksData(response.data)
-                    setTasks(transformedTasks)
-                    setFilteredTasks(transformedTasks)
+        // Chỉ cập nhật trang hiện tại (client-side pagination)
+        setPagination(prev => ({
+            ...prev,
+            currentPage: page,
+            hasNextPage: page < prev.totalPages,
+            hasPreviousPage: page > 1,
+        }))
+    }
 
-                    if (response.pagination) {
-                        setPagination(prev => ({
-                            ...prev,
-                            ...response.pagination,
-                            pageSize: pageSize,
-                        }))
-                    } else {
-                        setPagination(prev => ({
-                            ...prev,
-                            currentPage: page,
-                            pageSize: pageSize,
-                            totalRecords: transformedTasks.length,
-                            totalPages: 1,
-                            hasNextPage: false,
-                            hasPreviousPage: false,
-                        }))
-                    }
-                } else {
-                    setError(response.error || 'Không thể lấy danh sách công việc')
-                    setTasks([])
+    // Hàm tính toán các số trang cần hiển thị
+    const getPageNumbers = () => {
+        const currentPage = pagination.currentPage || 1
+        const totalPages = pagination.totalPages || 1
+
+        if (totalPages <= 0) {
+            return []
+        }
+
+        const pageNumbers = []
+
+        if (totalPages <= 7) {
+            // Nếu tổng số trang <= 7, hiển thị tất cả
+            for (let i = 1; i <= totalPages; i++) {
+                pageNumbers.push(i)
+            }
+        } else {
+            // Nếu tổng số trang > 7, hiển thị thông minh
+            if (currentPage <= 4) {
+                // Gần đầu: 1, 2, 3, 4, 5, ..., totalPages
+                for (let i = 1; i <= 5; i++) {
+                    pageNumbers.push(i)
                 }
-            } catch (err) {
-                setError(err.message || 'Không thể lấy danh sách công việc')
-                setTasks([])
-            } finally {
-                setIsLoading(false)
+                pageNumbers.push('...')
+                pageNumbers.push(totalPages)
+            } else if (currentPage >= totalPages - 3) {
+                // Gần cuối: 1, ..., totalPages-4, totalPages-3, totalPages-2, totalPages-1, totalPages
+                pageNumbers.push(1)
+                pageNumbers.push('...')
+                for (let i = totalPages - 4; i <= totalPages; i++) {
+                    pageNumbers.push(i)
+                }
+            } else {
+                // Ở giữa: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
+                pageNumbers.push(1)
+                pageNumbers.push('...')
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pageNumbers.push(i)
+                }
+                pageNumbers.push('...')
+                pageNumbers.push(totalPages)
             }
         }
 
-        fetchNewPage()
+        return pageNumbers
     }
 
     const getStatusBadge = (status) => {
@@ -295,7 +321,7 @@ const Tasks = () => {
     // Lấy danh sách các task types duy nhất
     const getUniqueTaskTypes = () => {
         const taskTypes = new Set()
-        tasks.forEach(task => {
+        allTasks.forEach(task => {
             if (task.task) {
                 taskTypes.add(task.task)
             }
@@ -431,13 +457,13 @@ const Tasks = () => {
                         </div>
                     )}
 
-                    {!isLoading && !error && filteredTasks.length === 0 && (
+                    {!isLoading && !error && displayedTasks.length === 0 && (
                         <div className="p-6 text-center text-slate-500">
                             Không có công việc nào được giao
                         </div>
                     )}
 
-                    {filteredTasks.map((task) => (
+                    {displayedTasks.map((task) => (
                         <div key={task.id} className="p-6 hover:bg-slate-50 transition-colors">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
@@ -508,49 +534,72 @@ const Tasks = () => {
                     ))}
 
                     {/* Phân trang */}
-                    <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-                        <div className="text-sm text-slate-600">
-                            Trang <span className="font-semibold">{pagination.currentPage}</span>
-                            {pagination.totalPages ? (
-                                <> / <span className="font-semibold">{pagination.totalPages}</span></>
-                            ) : null}
-                            {typeof pagination.totalRecords === 'number' && (
-                                <span className="ml-2">
-                                    ({pagination.totalRecords} bản ghi)
-                                </span>
-                            )}
+                    {(pagination.totalPages > 0 || pagination.totalPages === undefined) && getPageNumbers().length > 0 && (
+                        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+                            <div className="text-sm text-slate-600">
+                                Trang <span className="font-semibold">{pagination.currentPage || 1}</span>
+                                {pagination.totalPages ? (
+                                    <> / <span className="font-semibold">{pagination.totalPages}</span></>
+                                ) : null}
+                                {typeof pagination.totalRecords === 'number' && pagination.totalRecords > 0 && (
+                                    <span className="ml-2">
+                                        ({pagination.totalRecords} bản ghi)
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange((pagination.currentPage || 1) - 1)}
+                                    disabled={!pagination.hasPreviousPage || (pagination.currentPage || 1) === 1}
+                                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage && (pagination.currentPage || 1) > 1
+                                        ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                        }`}
+                                >
+                                    Trước
+                                </button>
+
+                                {getPageNumbers().map((pageNum, index) => {
+                                    if (pageNum === '...') {
+                                        return (
+                                            <span key={`ellipsis-${index}`} className="px-2 text-slate-400">
+                                                ...
+                                            </span>
+                                        )
+                                    }
+
+                                    const isActive = pageNum === (pagination.currentPage || 1)
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            type="button"
+                                            onClick={() => handlePageChange(pageNum)}
+                                            className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${isActive
+                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    )
+                                })}
+
+                                <button
+                                    type="button"
+                                    onClick={() => handlePageChange((pagination.currentPage || 1) + 1)}
+                                    disabled={!pagination.hasNextPage || (pagination.currentPage || 1) >= (pagination.totalPages || 1)}
+                                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage && (pagination.currentPage || 1) < (pagination.totalPages || 1)
+                                        ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                        }`}
+                                >
+                                    Sau
+                                </button>
+                            </div>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                                disabled={!pagination.hasPreviousPage}
-                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                                    }`}
-                            >
-                                Trước
-                            </button>
-
-                            <span className="text-sm text-slate-600">
-                                {pagination.currentPage}
-                            </span>
-
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                                disabled={!pagination.hasNextPage}
-                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                                    }`}
-                            >
-                                Sau
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

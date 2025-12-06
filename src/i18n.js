@@ -448,7 +448,7 @@ const dictionaries = {
     application_form_height_weight: "Chiều cao (cm) & cân nặng (kg) của bạn:",
     application_form_height: "Chiều cao (cm)",
     application_form_weight: "Cân nặng (kg)",
-    application_form_height_example: "Ví dụ: 165 cm - 53kg",
+    application_form_height_example: "Ví dụ: Nam: 165 cm - 53kg, Nữ: 155 cm - 48kg",
     application_form_english_certificate_info:
       "Chứng chỉ tiếng Anh (TOEIC/IELTS/TOEFL) & Ngày hết hạn:",
     application_form_certificate_number: "Số chứng chỉ",
@@ -1003,7 +1003,7 @@ const dictionaries = {
     application_form_height_weight: "Your height (in cm) & weight (in kg):",
     application_form_height: "Height (cm)",
     application_form_weight: "Weight (kg)",
-    application_form_height_example: "Example: 165 cm - 53kg",
+    application_form_height_example: "Example: Male: 165 cm - 53kg, Female: 155 cm - 48kg",
     application_form_english_certificate_info:
       "English Certificate (TOEIC/IELTS/TOEFL) & Expire Date:",
     application_form_certificate_number: "Number",

@@ -83,6 +83,7 @@ const PromotionStagesPage = () => {
               return {
                 id: hardcodedStage.id,
                 roundId: matchedRound.roundId || matchedRound.id,
+                activityId: matchedRound.activityId || null,
                 name: hardcodedStage.name,
                 nameEn: hardcodedStage.nameEn,
                 completed: isCompleted,
@@ -171,7 +172,7 @@ const PromotionStagesPage = () => {
             roundName: campaignData.roundName || "",
             airlinePartner: campaignData.airlinePartner || "",
             campaignName: campaignData.campaignName || "",
-            appliedDate: new Date().toISOString().split("T")[0],
+            participatedDate: campaignData.participatedDate || "",
             status,
             statusText,
             statusTextEn,
@@ -416,7 +417,7 @@ const PromotionStagesPage = () => {
                           />
                         </svg>
                         Ngày đăng ký:{" "}
-                        {new Date(application.appliedDate).toLocaleDateString()}
+                        {application.participatedDate}
                       </div>
                     </div>
                   </div>
@@ -428,12 +429,11 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 0
-                              ? `${
-                                  (application.stages.filter((s) => s.completed)
-                                    .length /
-                                    application.stages.length) *
-                                  100
-                                }%`
+                              ? `${(application.stages.filter((s) => s.completed)
+                                .length /
+                                application.stages.length) *
+                              100
+                              }%`
                               : "0%",
                         }}
                       ></div>
@@ -468,6 +468,16 @@ const PromotionStagesPage = () => {
                                 {new Date(stage.date).toLocaleDateString()}
                               </p>
                             )}
+                            {stage.name === "Screening" && stage.activityId && (
+                              <button
+                                onClick={() =>
+                                  navigate(`/cabin-crew/profile/${stage.activityId}`)
+                                }
+                                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                              >
+                                Xem hồ sơ
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -479,20 +489,42 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Trạng thái hiện tại:</strong>{" "}
                         {application.stages.length > 0 &&
-                        application.currentStage > 0 &&
-                        application.currentStage <= application.stages.length
+                          application.currentStage > 0 &&
+                          application.currentStage <= application.stages.length
                           ? (() => {
-                              const currentStageData =
-                                application.stages[
-                                  application.currentStage - 1
-                                ];
-                              if (currentStageData?.completed) {
-                                return `Hoàn thành ${currentStageData.name}`;
-                              }
-                              return `Đang trong giai đoạn ${currentStageData.name}`;
-                            })()
+                            const currentStageData =
+                              application.stages[
+                              application.currentStage - 1
+                              ];
+                            if (currentStageData?.completed) {
+                              return `Hoàn thành ${currentStageData.name}`;
+                            }
+                            return `Đang trong giai đoạn ${currentStageData.name}`;
+                          })()
                           : "Đang chờ xử lý"}
                       </p>
+
+                      {/* Flight Hours Confirmation Button - show while Flight Hours Confirmation stage is active */}
+                      {(() => {
+                        const currentStageData =
+                          application.stages[application.currentStage - 1];
+                        const isFlightHoursStage = currentStageData?.name
+                          ?.toLowerCase()
+                          .includes("flight hours");
+                        if (isFlightHoursStage && !currentStageData?.completed && currentStageData?.activityId) {
+                          return (
+                            <button
+                              onClick={() =>
+                                navigate(`/cabin-crew/profile/${currentStageData.activityId}`)
+                              }
+                              className="inline-flex items-center px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              Cập nhật thời gian bay
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()}
 
                       {/* Join Test Button - show while Practical Test stage is active */}
                       {(() => {
