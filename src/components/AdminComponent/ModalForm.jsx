@@ -8,6 +8,7 @@ const getRoleId = (roleName) => {
   const roleMap = {
     Recruiter: 4,
     Examiner: 5,
+    "Cabin Crew": 6,
     "Airline Partner": 8,
   };
   return roleMap[roleName] || 4;
