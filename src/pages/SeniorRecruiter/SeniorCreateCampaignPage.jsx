@@ -122,12 +122,59 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const handleRoundChange = (index, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      rounds: prev.rounds.map((round, i) =>
-        i === index ? { ...round, [field]: value } : round
-      ),
-    }));
+    setFormData((prev) => {
+      const updatedRounds = prev.rounds.map((round, i) => {
+        if (i === index) {
+          const updatedRound = { ...round, [field]: value };
+
+          // Nếu thay đổi roundStartDate, đảm bảo roundEndDate >= roundStartDate
+          if (field === "roundStartDate" && updatedRound.roundEndDate) {
+            if (updatedRound.roundEndDate < value) {
+              updatedRound.roundEndDate = value;
+            }
+          }
+
+          // Nếu thay đổi roundEndDate, đảm bảo roundEndDate >= roundStartDate
+          if (field === "roundEndDate" && updatedRound.roundStartDate) {
+            if (value < updatedRound.roundStartDate) {
+              updatedRound.roundStartDate = value;
+            }
+          }
+
+          return updatedRound;
+        }
+        return round;
+      });
+
+      // Nếu thay đổi roundEndDate của đợt trước, cập nhật min của roundStartDate đợt sau
+      if (field === "roundEndDate" && index < prev.rounds.length - 1) {
+        const nextRoundIndex = index + 1;
+        const nextRound = updatedRounds[nextRoundIndex];
+        if (
+          nextRound &&
+          nextRound.roundStartDate &&
+          nextRound.roundStartDate < value
+        ) {
+          updatedRounds[nextRoundIndex] = {
+            ...nextRound,
+            roundStartDate: value,
+          };
+        }
+      }
+
+      return {
+        ...prev,
+        rounds: updatedRounds,
+      };
+    });
+
+    // Clear error khi thay đổi
+    if (errors[`rounds.${index}.${field}`]) {
+      setErrors((prev) => ({
+        ...prev,
+        [`rounds.${index}.${field}`]: "",
+      }));
+    }
   };
 
   const addRound = () => {
@@ -170,6 +217,55 @@ const SeniorCreateCampaignPage = () => {
       formData.startDate >= formData.endDate
     ) {
       newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+    }
+
+    // Validate ngày của các đợt
+    if (formData.startDate && formData.endDate) {
+      formData.rounds.forEach((round, index) => {
+        // Validate roundStartDate
+        if (round.roundStartDate) {
+          if (round.roundStartDate < formData.startDate) {
+            newErrors[`rounds.${index}.roundStartDate`] =
+              "Ngày bắt đầu đợt phải nằm trong khoảng ngày chiến dịch";
+          }
+          if (round.roundStartDate > formData.endDate) {
+            newErrors[`rounds.${index}.roundStartDate`] =
+              "Ngày bắt đầu đợt không được vượt quá ngày kết thúc chiến dịch";
+          }
+
+          // Từ đợt 2 trở đi, ngày bắt đầu phải >= ngày kết thúc đợt trước
+          if (index > 0) {
+            const previousRound = formData.rounds[index - 1];
+            if (previousRound.roundEndDate) {
+              if (round.roundStartDate < previousRound.roundEndDate) {
+                newErrors[`rounds.${index}.roundStartDate`] =
+                  "Ngày bắt đầu đợt này phải sau hoặc bằng ngày kết thúc đợt trước";
+              }
+            }
+          }
+        }
+
+        // Validate roundEndDate
+        if (round.roundEndDate) {
+          if (round.roundEndDate < formData.startDate) {
+            newErrors[`rounds.${index}.roundEndDate`] =
+              "Ngày kết thúc đợt phải nằm trong khoảng ngày chiến dịch";
+          }
+          if (round.roundEndDate > formData.endDate) {
+            newErrors[`rounds.${index}.roundEndDate`] =
+              "Ngày kết thúc đợt không được vượt quá ngày kết thúc chiến dịch";
+          }
+
+          // Ngày kết thúc phải >= ngày bắt đầu của đợt
+          if (
+            round.roundStartDate &&
+            round.roundEndDate < round.roundStartDate
+          ) {
+            newErrors[`rounds.${index}.roundEndDate`] =
+              "Ngày kết thúc đợt phải sau hoặc bằng ngày bắt đầu đợt";
+          }
+        }
+      });
     }
     if (!formData.description.trim()) {
       newErrors.description = "Mô tả nhu cầu là bắt buộc";
@@ -320,7 +416,7 @@ const SeniorCreateCampaignPage = () => {
         toast.success(response.message || "Cập nhật campaign thành công!");
 
         setTimeout(() => {
-          navigate("/senior-recruiter/campaigns");
+          navigate(`/senior-recruiter/campaigns`);
         }, 2000);
       } else {
         toast.error(response.error || "Cập nhật campaign thất bại");
@@ -399,22 +495,10 @@ const SeniorCreateCampaignPage = () => {
                   </div>
                 </div>
                 <div className="text-xs text-right text-slate-500">
-                  <div>
-                    Ngày tạo:{" "}
-                    {campaignDetail?.createdAt
-                      ? new Date(campaignDetail.createdAt).toLocaleString(
-                          "vi-VN"
-                        )
-                      : isLoadingDetail
-                      ? "Đang tải..."
-                      : "N/A"}
-                  </div>
-                  <div>
-                    Mã số:{" "}
-                    {campaignDetail?.campaignId ||
-                      campaignId ||
-                      (isLoadingDetail ? "Đang tải..." : "—")}
-                  </div>
+                  Mã số:{" "}
+                  {campaignDetail?.campaignId ||
+                    campaignId ||
+                    (isLoadingDetail ? "Đang tải..." : "—")}
                 </div>
               </div>
 
@@ -628,7 +712,13 @@ const SeniorCreateCampaignPage = () => {
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              min={todayString}
+                              min={
+                                index > 0 &&
+                                formData.rounds[index - 1]?.roundEndDate
+                                  ? formData.rounds[index - 1].roundEndDate
+                                  : formData.startDate || todayString
+                              }
+                              max={formData.endDate || undefined}
                             />
                             {errors[`rounds.${index}.roundStartDate`] && (
                               <p className="mt-1 text-xs text-red-600">
@@ -655,7 +745,14 @@ const SeniorCreateCampaignPage = () => {
                                   ? "border-red-300"
                                   : "border-slate-300"
                               }`}
-                              min={round.roundStartDate || todayString}
+                              min={
+                                round.roundStartDate ||
+                                (index > 0 &&
+                                formData.rounds[index - 1]?.roundEndDate
+                                  ? formData.rounds[index - 1].roundEndDate
+                                  : formData.startDate || todayString)
+                              }
+                              max={formData.endDate || undefined}
                             />
                             {errors[`rounds.${index}.roundEndDate`] && (
                               <p className="mt-1 text-xs text-red-600">

@@ -1,10 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  formatDate,
-  convertDateFormat,
-  formatDateOnly,
-} from "../../../config/formatDate";
+import { formatDateOnly } from "../../../config/formatDate";
 import BatchInfo from "./BatchInfo";
 
 const PendingCampaignDetail = ({ campaign }) => {
@@ -36,7 +32,7 @@ const PendingCampaignDetail = ({ campaign }) => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {campaign.campaignName || campaign.name}
+              {campaign?.campaignName || "N/A"}
             </h1>
             <p className="text-slate-600">Chiến dịch đang chờ phê duyệt</p>
           </div>
@@ -81,11 +77,7 @@ const PendingCampaignDetail = ({ campaign }) => {
             </div>
           </div>
           <div className="text-xs text-right text-slate-500">
-            <div>
-              Ngày tạo:{" "}
-              {formatDate(convertDateFormat(campaign?.createdAt)) || "N/A"}
-            </div>
-            <div>Mã số: {campaign?.campaignId || campaign?.id || "N/A"}</div>
+            Mã số: {campaign?.campaignId || "N/A"}
           </div>
         </div>
 
@@ -102,9 +94,7 @@ const PendingCampaignDetail = ({ campaign }) => {
               )}
               <Info
                 label="Số lượng tuyển"
-                value={`${
-                  campaign?.targetQuantity || campaign?.targetHires || 0
-                }`}
+                value={`${campaign?.targetQuantity || 0}`}
               />
               <Info
                 label="Ngày bắt đầu"

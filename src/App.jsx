@@ -95,8 +95,6 @@ import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerT
 import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestReportPage";
 import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
 
-// import ReportPage from "./pages/AirlinePartner/ReportPage";
-
 function App() {
   return (
     <BrowserRouter>
@@ -488,8 +486,6 @@ function App() {
             </AirlinePartnerLayout>
           }
         />
-
-        {/* <Route path="/airline-partner/report" element={<AirlinePartnerLayout><ReportPage /></AirlinePartnerLayout>} /> */}
       </Routes>
 
       {/* Cabin Crew Routes */}

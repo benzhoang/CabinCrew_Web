@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getUsersByRole, assignCampaignUsers } from "../../../service/api2";
 import { toast } from "react-toastify";
-import { formatDate } from "../../../config/formatDate";
+//import { formatDate } from "../../../config/formatDate";
 
 // CSS animations for pop-up effect
 const popupStyles = `
@@ -62,21 +62,21 @@ const roundConfig = [
     key: "screening",
     title: "Vòng sàng lọc",
     description: "Kiểm tra CV, kinh nghiệm và chứng chỉ cần thiết.",
-    maxSelect: 1,
+    maxSelect: null, // No limit
     taskType: 1, // Screening
   },
   {
     key: "appearance",
     title: "Vòng ngoại hình",
     description: "Đánh giá tiêu chuẩn ngoại hình và tác phong.",
-    maxSelect: 1,
+    maxSelect: null, // No limit
     taskType: 4, // Appearance
   },
   {
     key: "assessment",
     title: "Vòng kiểm tra",
     description: "Tổ chức bài kiểm tra kỹ năng chuyên môn.",
-    maxSelect: 1,
+    maxSelect: null, // No limit
     taskType: 3, // Assessment
   },
   {
@@ -89,9 +89,9 @@ const roundConfig = [
 ];
 
 const getDefaultAssignments = () => ({
-  screening: null,
-  appearance: null,
-  assessment: null,
+  screening: [],
+  appearance: [],
+  assessment: [],
   interview: [],
 });
 
@@ -153,18 +153,21 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
     }
   };
 
-  const handleSingleSelection = (roundKey, recruiter) => {
+  const toggleMultiSelection = (roundKey, user) => {
     setAssignments((prev) => {
-      // Nếu đã chọn rồi thì hủy chọn, nếu chưa chọn thì chọn
-      if (prev[roundKey]?.id === recruiter.id) {
-        return { ...prev, [roundKey]: null };
+      const currentList = prev[roundKey] || [];
+      const exists = currentList.find((item) => item.id === user.id);
+      let updatedList;
+
+      if (exists) {
+        updatedList = currentList.filter((item) => item.id !== user.id);
       } else {
-        return { ...prev, [roundKey]: recruiter };
+        updatedList = [...currentList, user];
       }
+
+      return { ...prev, [roundKey]: updatedList };
     });
     clearError(roundKey);
-    // Đóng dropdown sau khi chọn
-    setOpenDropdown(null);
   };
 
   const toggleInterviewRecruiter = (recruiter) => {
@@ -185,8 +188,6 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       return { ...prev, interview: updatedInterview };
     });
     clearError("interview");
-    // Đóng dropdown sau khi chọn
-    setOpenDropdown(null);
   };
 
   const handleDescriptionChange = (roundKey, value) => {
@@ -199,13 +200,13 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!assignments.screening) {
+    if (!assignments.screening || assignments.screening.length === 0) {
       newErrors.screening = "Vui lòng chọn người phụ trách vòng sàng lọc.";
     }
-    if (!assignments.appearance) {
+    if (!assignments.appearance || assignments.appearance.length === 0) {
       newErrors.appearance = "Vui lòng chọn người phụ trách vòng ngoại hình.";
     }
-    if (!assignments.assessment) {
+    if (!assignments.assessment || assignments.assessment.length === 0) {
       newErrors.assessment = "Vui lòng chọn người phụ trách vòng kiểm tra.";
     }
     if (assignments.interview.length !== 3) {
@@ -258,26 +259,15 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
         const assignment = assignments[roundKey];
         const description = taskDescriptions[roundKey] || "";
 
-        if (round.maxSelect === 1) {
-          // Single select (screening, appearance, assessment)
-          if (assignment) {
+        // All rounds now use array format
+        if (Array.isArray(assignment) && assignment.length > 0) {
+          assignment.forEach((user) => {
             assignmentsArray.push({
-              userId: assignment.id,
+              userId: user.id,
               taskType: taskType,
               taskDescription: description,
             });
-          }
-        } else {
-          // Multi select (interview)
-          if (Array.isArray(assignment) && assignment.length > 0) {
-            assignment.forEach((user) => {
-              assignmentsArray.push({
-                userId: user.id,
-                taskType: taskType,
-                taskDescription: description,
-              });
-            });
-          }
+          });
         }
       });
 
@@ -329,6 +319,9 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
 
   const renderDropdownList = (roundKey, isMulti = false) => {
     const isOpen = openDropdown === roundKey;
+    const round = roundConfig.find((r) => r.key === roundKey);
+    const isUnlimited = round?.maxSelect === null;
+    const isInterview = roundKey === "interview";
 
     const selectLabel = getSelectLabel(roundKey);
 
@@ -336,6 +329,10 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
     // Screening uses recruiters (roleId = 4), others use examiners (roleId = 5)
     const userOptions =
       roundKey === "screening" ? recruiterOptions : examinerOptions;
+
+    const selectedCount = Array.isArray(assignments[roundKey])
+      ? assignments[roundKey].length
+      : 0;
 
     return (
       <div className="relative">
@@ -351,15 +348,17 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
             <p className="text-sm font-medium text-slate-800">
               {loadingUsers
                 ? "Đang tải..."
-                : isMulti
-                ? assignments[roundKey].length > 0
-                  ? `${assignments[roundKey].length} người đã chọn`
+                : isMulti || isUnlimited
+                ? selectedCount > 0
+                  ? `${selectedCount} người đã chọn`
                   : selectLabel
                 : assignments[roundKey]?.name || selectLabel}
             </p>
-            <p className="text-xs text-slate-500">
-              {isMulti ? "Tối đa 3 người" : "1 người phụ trách"}
-            </p>
+            {!isUnlimited && (
+              <p className="text-xs text-slate-500">
+                {isInterview ? "Tối đa 3 người" : ""}
+              </p>
+            )}
           </div>
           <svg
             className={`w-5 h-5 text-slate-500 transition-transform ${
@@ -386,25 +385,41 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
               </div>
             ) : (
               userOptions.map((user) => {
-                const isSelected = isMulti
+                const isSelected = Array.isArray(assignments[roundKey])
                   ? assignments[roundKey].some((item) => item.id === user.id)
                   : assignments[roundKey]?.id === user.id;
+
+                // Disable logic: nếu là interview và đã chọn đủ 3 người và user này chưa được chọn
+                const isDisabled =
+                  isInterview &&
+                  assignments[roundKey].length >= 3 &&
+                  !isSelected;
 
                 return (
                   <button
                     key={user.id}
                     type="button"
-                    onClick={() =>
-                      isMulti
-                        ? toggleInterviewRecruiter(user)
-                        : handleSingleSelection(roundKey, user)
-                    }
-                    className={`w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-50 ${
-                      isSelected ? "bg-slate-50" : ""
-                    }`}
+                    onClick={() => {
+                      if (isDisabled) return; // Không cho phép click nếu disabled
+                      if (isInterview) {
+                        toggleInterviewRecruiter(user);
+                      } else {
+                        toggleMultiSelection(roundKey, user);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`w-full px-4 py-3 flex items-center justify-between text-left ${
+                      isDisabled
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-slate-50"
+                    } ${isSelected ? "bg-slate-50" : ""}`}
                   >
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-800">
+                      <p
+                        className={`text-sm font-medium ${
+                          isDisabled ? "text-slate-400" : "text-slate-800"
+                        }`}
+                      >
                         {user.name}
                       </p>
                       {user.count !== undefined && (
@@ -415,7 +430,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                             </span>{" "}
                             {user.count}
                           </p>
-                          {user.assignedCampaigns &&
+                          {/* {user.assignedCampaigns &&
                             user.assignedCampaigns.length > 0 && (
                               <div>
                                 <p className="mb-1 text-xs font-medium text-slate-600">
@@ -435,33 +450,21 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                                   )}
                                 </div>
                               </div>
-                            )}
+                            )} */}
                         </div>
                       )}
                     </div>
-                    {isMulti ? (
-                      <span
-                        className={`w-5 h-5 rounded border flex items-center justify-center ml-3 flex-shrink-0 ${
-                          isSelected
-                            ? "bg-blue-600 border-blue-600 text-white"
-                            : "border-slate-300 text-transparent"
-                        }`}
-                      >
-                        {isSelected && "✓"}
-                      </span>
-                    ) : (
-                      <span
-                        className={`w-4 h-4 border rounded-full flex items-center justify-center ml-3 flex-shrink-0 ${
-                          isSelected
-                            ? "bg-blue-600 border-blue-600"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        {isSelected && (
-                          <span className="w-2 h-2 bg-white rounded-full"></span>
-                        )}
-                      </span>
-                    )}
+                    <span
+                      className={`w-5 h-5 rounded border flex items-center justify-center ml-3 flex-shrink-0 ${
+                        isSelected
+                          ? "bg-blue-600 border-blue-600 text-white"
+                          : isDisabled
+                          ? "border-slate-200 bg-slate-50 text-transparent"
+                          : "border-slate-300 text-transparent"
+                      }`}
+                    >
+                      {isSelected && "✓"}
+                    </span>
                   </button>
                 );
               })
@@ -473,19 +476,28 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   };
 
   const renderSelectedChips = (roundKey) => {
-    if (assignments[roundKey].length === 0) return null;
+    if (
+      !Array.isArray(assignments[roundKey]) ||
+      assignments[roundKey].length === 0
+    )
+      return null;
+
+    const toggleFunction =
+      roundKey === "interview"
+        ? toggleInterviewRecruiter
+        : (user) => toggleMultiSelection(roundKey, user);
 
     return (
       <div className="flex flex-wrap gap-2 mt-3">
-        {assignments[roundKey].map((recruiter) => (
+        {assignments[roundKey].map((user) => (
           <span
-            key={recruiter.id}
+            key={user.id}
             className="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium text-blue-700 rounded-full bg-blue-50"
           >
-            {recruiter.name}
+            {user.name}
             <button
               type="button"
-              onClick={() => toggleInterviewRecruiter(recruiter)}
+              onClick={() => toggleFunction(user)}
               className="text-blue-500 hover:text-blue-700"
             >
               ×
@@ -512,7 +524,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
             <div>
               <h2 className="text-2xl font-bold text-slate-900">Giao việc</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Phân công recruiter phụ trách từng vòng tuyển dụng của chiến
+                Phân công nhân viên phụ trách từng vòng tuyển dụng của chiến
                 dịch
               </p>
             </div>
@@ -562,7 +574,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                     Phân bổ nhiệm vụ cho từng vòng
                   </h3>
                   <p className="mt-1 text-sm text-slate-600">
-                    Mỗi vòng cần chọn đúng số lượng recruiter yêu cầu. Vòng
+                    Mỗi vòng cần chọn đúng số lượng nhân viên yêu cầu. Vòng
                     phỏng vấn cần đủ 3 người để đảm bảo hội đồng.
                   </p>
                 </div>
@@ -588,40 +600,35 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       {round.description}
                     </p>
                   </div>
-                  <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
-                    {round.maxSelect === 1 ? "1 người" : "3 người"}
-                  </span>
+                  {round.maxSelect !== null && (
+                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
+                      {round.maxSelect === 3 ? "3 người" : ""}
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-4">
-                  {round.maxSelect === 1 ? (
-                    renderDropdownList(round.key)
-                  ) : (
-                    <>
-                      {renderDropdownList(round.key, true)}
-                      {renderSelectedChips(round.key)}
-                    </>
-                  )}
+                  {renderDropdownList(round.key, round.maxSelect !== null)}
+                  {renderSelectedChips(round.key)}
 
                   {/* Hiển thị input mô tả task khi đã chọn recruiter */}
-                  {((round.maxSelect === 1 && assignments[round.key]) ||
-                    (round.maxSelect > 1 &&
-                      assignments[round.key].length > 0)) && (
-                    <div className="mt-4">
-                      <label className="block mb-2 text-sm font-medium text-slate-700">
-                        Ghi chú
-                      </label>
-                      <textarea
-                        value={taskDescriptions[round.key]}
-                        onChange={(e) =>
-                          handleDescriptionChange(round.key, e.target.value)
-                        }
-                        placeholder="Nhập ghi chú cho nhiệm vụ này..."
-                        rows={3}
-                        className="w-full px-4 py-3 text-sm border rounded-lg resize-none border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                      />
-                    </div>
-                  )}
+                  {Array.isArray(assignments[round.key]) &&
+                    assignments[round.key].length > 0 && (
+                      <div className="mt-4">
+                        <label className="block mb-2 text-sm font-medium text-slate-700">
+                          Ghi chú
+                        </label>
+                        <textarea
+                          value={taskDescriptions[round.key]}
+                          onChange={(e) =>
+                            handleDescriptionChange(round.key, e.target.value)
+                          }
+                          placeholder="Nhập ghi chú cho nhiệm vụ này..."
+                          rows={3}
+                          className="w-full px-4 py-3 text-sm border rounded-lg resize-none border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
 
                   {errors[round.key] && (
                     <p className="mt-3 text-sm text-red-600">

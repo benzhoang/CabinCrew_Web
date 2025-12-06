@@ -40,7 +40,7 @@ const hardcodedStages = [
 
 const PromotionHistoryPage = () => {
   const navigate = useNavigate();
-  const [recruitmentHistory, setRecruitmentHistory] = useState([]);
+  const [promotionHistory, setPromotionHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Tự động re-render khi đổi ngôn ngữ
@@ -180,13 +180,13 @@ const PromotionHistoryPage = () => {
             };
           });
 
-          setRecruitmentHistory(mappedHistory);
+          setPromotionHistory(mappedHistory);
         } else {
-          setRecruitmentHistory([]);
+          setPromotionHistory([]);
         }
       } catch (err) {
         console.error("Error fetching promotion history:", err);
-        setRecruitmentHistory([]);
+        setPromotionHistory([]);
       } finally {
         setLoading(false);
       }
@@ -313,11 +313,11 @@ const PromotionHistoryPage = () => {
   };
 
   // Tính toán statistics
-  const totalApplications = recruitmentHistory.length;
-  const completedCount = recruitmentHistory.filter(
+  const totalApplications = promotionHistory.length;
+  const completedCount = promotionHistory.filter(
     (item) => item.status === "accepted"
   ).length;
-  const rejectedCount = recruitmentHistory.filter(
+  const rejectedCount = promotionHistory.filter(
     (item) => item.status === "rejected"
   ).length;
 
@@ -445,7 +445,7 @@ const PromotionHistoryPage = () => {
             </h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {recruitmentHistory.map((application) => (
+            {promotionHistory.map((application) => (
               <div
                 key={application.id}
                 className="p-6 transition-colors hover:bg-gray-50"
@@ -628,7 +628,7 @@ const PromotionHistoryPage = () => {
         </div>
 
         {/* Empty State (if no applications) */}
-        {recruitmentHistory.length === 0 && !loading && (
+        {promotionHistory.length === 0 && !loading && (
           <div className="bg-white rounded-lg shadow">
             <div className="py-12 text-center">
               <svg

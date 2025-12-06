@@ -79,9 +79,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
             label="Thời gian kết thúc"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
-          <InfoMini label="Địa điểm" value={batch.location || "—"} />
           <InfoMini label="Hình thức" value={batch.method || "—"} />
-          <InfoMini label="Phụ trách" value={batch.owner || "—"} />
           {batch.target !== undefined && batch.target !== null && (
             <InfoMini label="Chỉ tiêu" value={batch.target.toString()} />
           )}

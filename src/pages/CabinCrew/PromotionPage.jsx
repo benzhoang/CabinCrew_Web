@@ -313,7 +313,7 @@ const PromotionPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
                         c.status === "active"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-700"
@@ -324,8 +324,10 @@ const PromotionPage = () => {
                   </div>
                   <div className="grid grid-cols-1 gap-3 mt-4 text-sm sm:grid-cols-3">
                     <div>
-                      <span className="text-slate-500">Loại</span>
-                      <p className="font-medium text-slate-800">{c.position}</p>
+                      <span className="text-slate-500">Vị trí</span>
+                      <p className="font-medium text-slate-800">
+                        Chief Flight Attendant
+                      </p>
                     </div>
                     <div>
                       <span className="text-slate-500">Ngày bắt đầu</span>

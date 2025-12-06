@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 import Loading from "../Loading.jsx";
@@ -136,78 +136,170 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 5,
+    totalRecords: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
 
   // Fetch data from API
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchRequests = async (page = 1) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Map campaignTypeFilter to API format
-        const requestTypeMap = {
-          all: undefined,
-          recruitment: "Recruitment",
-          promotion: "Promotion",
-        };
+      // Map campaignTypeFilter to API format
+      const requestTypeMap = {
+        all: undefined,
+        Recruitment: "Recruitment",
+        Promotion: "Promotion",
+      };
 
-        const params = {
-          page: 1,
-          pageSize: 5,
-          searchTerm: search || undefined,
-          // Không gửi status filter lên API, sẽ filter ở client-side
-          status: undefined,
-          requestType: requestTypeMap[campaignTypeFilter],
-        };
+      // Không gửi status filter lên API, sẽ filter ở client-side giống Director
+      const params = {
+        page: page,
+        pageSize: pagination.pageSize,
+        searchTerm: search || undefined,
+        // Không gửi status filter lên API
+        status: undefined,
+        requestType: requestTypeMap[campaignTypeFilter],
+      };
 
-        const result = await getCampaignRequestList(params);
+      const result = await getCampaignRequestList(params);
 
-        if (result.success) {
-          setRequests(result.data.items || []);
+      if (result.success) {
+        setRequests(result.data.items || []);
+
+        // Update pagination from API response
+        if (result.data.pagination) {
+          setPagination((prev) => ({
+            ...prev,
+            ...result.data.pagination,
+            pageSize: prev.pageSize || 5,
+          }));
         } else {
-          setError(result.error || "Lỗi khi tải danh sách yêu cầu");
+          // Fallback if API doesn't return pagination
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: page,
+            totalRecords: result.data.items?.length || 0,
+            totalPages: 1,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          }));
         }
-      } catch (err) {
-        setError(err.message || "Lỗi khi tải danh sách yêu cầu");
-      } finally {
-        setLoading(false);
+      } else {
+        setError(result.error || "Lỗi khi tải danh sách yêu cầu");
+        setRequests([]);
       }
+    } catch (err) {
+      setError(err.message || "Lỗi khi tải danh sách yêu cầu");
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Reset to page 1 when search or filters change
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchRequests(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, campaignTypeFilter, selectedStatus]);
+
+  const handlePageChange = (page) => {
+    if (page === pagination.currentPage) return;
+    if (page < 1) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+    // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+    if (page > pagination.currentPage && !pagination.hasNextPage) return;
+    if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
+
+    fetchRequests(page);
+  };
+
+  // Normalize status function giống Director
+  const normalizeStatus = (status) => {
+    if (!status) return "pending_approval";
+
+    // Nếu là số
+    if (typeof status === "number") {
+      if (status === 2) return "approved";
+      if (status === 3) return "rejected";
+      return "pending_approval"; // 1 hoặc các giá trị khác
+    }
+
+    // Nếu là string, chuyển về chữ thường và xử lý
+    const statusLower = String(status).toLowerCase().trim();
+
+    // Xử lý các format khác nhau
+    if (statusLower === "approved" || statusLower === "approve")
+      return "approved";
+    if (statusLower === "rejected" || statusLower === "reject")
+      return "rejected";
+    if (
+      statusLower === "pending" ||
+      statusLower === "pending_approval" ||
+      statusLower === "pending approval"
+    )
+      return "pending_approval";
+
+    // Mặc định
+    return "pending_approval";
+  };
+
+  // Map status filter từ UI sang format normalized
+  const getNormalizedStatusFilter = () => {
+    if (selectedStatus === "all") return null;
+    const statusMap = {
+      Approved: "approved",
+      Pending: "pending_approval",
+      Rejected: "rejected",
     };
+    return statusMap[selectedStatus] || null;
+  };
 
-    fetchRequests();
-  }, [search, campaignTypeFilter]);
+  // Filter ở client-side giống Director
+  const filtered = requests.filter((request) => {
+    // Normalize status từ API
+    const normalizedStatus = normalizeStatus(request.status);
+    const statusFilter = getNormalizedStatusFilter();
 
-  const filtered = useMemo(() => {
-    // If status filter is "all", show all requests (API already filtered by status if selected)
-    // Otherwise, filter client-side for consistency
-    const s = search.trim().toLowerCase();
-    return requests.filter((c) => {
-      const matchSearch =
-        !s ||
-        [c.campaignName, c.description].some((v) =>
-          String(v || "")
-            .toLowerCase()
-            .includes(s)
-        );
+    // Filter by status
+    if (statusFilter && normalizedStatus !== statusFilter) {
+      return false;
+    }
 
-      // Normalize status for comparison
-      const normalizedStatus = c.status?.toLowerCase() || "";
-      const normalizedSelectedStatus = selectedStatus?.toLowerCase() || "";
-      const matchStatus =
-        normalizedSelectedStatus === "all" ||
-        normalizedStatus === normalizedSelectedStatus;
-
-      // Normalize requestType for comparison
-      const normalizedRequestType = c.requestType?.toLowerCase() || "";
+    // Filter by requestType (campaignTypeFilter)
+    if (campaignTypeFilter !== "all") {
+      const normalizedRequestType = request.requestType?.toLowerCase() || "";
       const normalizedCampaignTypeFilter =
         campaignTypeFilter?.toLowerCase() || "";
-      const matchCampaignType =
-        normalizedCampaignTypeFilter === "all" ||
-        normalizedRequestType === normalizedCampaignTypeFilter;
+      if (normalizedRequestType !== normalizedCampaignTypeFilter) {
+        return false;
+      }
+    }
 
-      return matchSearch && matchStatus && matchCampaignType;
-    });
-  }, [requests, search, selectedStatus, campaignTypeFilter]);
+    // Filter by search (API đã xử lý searchTerm, nhưng có thể filter thêm ở đây nếu cần)
+    if (search) {
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        (request.campaignName &&
+          request.campaignName.toLowerCase().includes(searchLower)) ||
+        (request.description &&
+          request.description.toLowerCase().includes(searchLower)) ||
+        (request.requestType &&
+          request.requestType.toLowerCase().includes(searchLower));
+      if (!matchesSearch) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   if (loading) {
     return <Loading message="Đang tải dữ liệu..." />;
@@ -224,7 +316,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Danh sách yêu cầu ({filtered.length})
+        Danh sách yêu cầu ({pagination.totalRecords || filtered.length})
       </h2>
       <div className="flex items-center gap-3">
         <div className="inline-flex items-stretch gap-3">
@@ -277,7 +369,62 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       {filtered.length === 0 ? (
         <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
       ) : (
-        filtered.map((c) => <CampaignCard key={c.requestId} request={c} />)
+        <>
+          {filtered.map((c) => (
+            <CampaignCard key={c.requestId} request={c} />
+          ))}
+        </>
+      )}
+
+      {/* Phân trang */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-200 rounded-b-xl">
+          <div className="text-sm text-slate-600">
+            Trang{" "}
+            <span className="font-semibold">{pagination.currentPage}</span>
+            {pagination.totalPages ? (
+              <>
+                {" "}
+                / <span className="font-semibold">{pagination.totalPages}</span>
+              </>
+            ) : null}
+            {typeof pagination.totalRecords === "number" && (
+              <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={!pagination.hasPreviousPage}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasPreviousPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
+            >
+              Trước
+            </button>
+
+            <span className="text-sm text-slate-600">
+              {pagination.currentPage}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasNextPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
+            >
+              Sau
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

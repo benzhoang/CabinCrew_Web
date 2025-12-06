@@ -1,10 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  formatDate,
-  convertDateFormat,
-  formatDateOnly,
-} from "../../../config/formatDate";
+import { formatDateOnly } from "../../../config/formatDate";
 import BatchManagement from "./BatchManagement";
 
 const PendingCampaignDetail = ({ campaign }) => {
@@ -81,11 +77,7 @@ const PendingCampaignDetail = ({ campaign }) => {
             </div>
           </div>
           <div className="text-xs text-right text-slate-500">
-            <div>
-              Ngày tạo:{" "}
-              {formatDate(convertDateFormat(campaign?.createdAt)) || "N/A"}
-            </div>
-            <div>Mã số: {campaign?.campaignId || campaign?.id || "N/A"}</div>
+            Mã số: {campaign?.campaignId || "N/A"}
           </div>
         </div>
 
