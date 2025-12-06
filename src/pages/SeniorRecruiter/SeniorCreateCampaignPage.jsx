@@ -416,7 +416,7 @@ const SeniorCreateCampaignPage = () => {
         toast.success(response.message || "Cập nhật campaign thành công!");
 
         setTimeout(() => {
-          navigate(`/senior-recruiter/campaigns`);
+          navigate(`/senior-recruiter/campaigns/${campaignId}/create-round`);
         }, 2000);
       } else {
         toast.error(response.error || "Cập nhật campaign thất bại");
