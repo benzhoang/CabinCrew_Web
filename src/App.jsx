@@ -95,6 +95,7 @@ import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerT
 import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestReportPage";
 import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
 import ApplicationFormPage from "./pages/CabinCrew/ApplicationFormPage";
+import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
   return (
@@ -636,6 +637,14 @@ function App() {
           element={
             <SeniorRecruiterLayout>
               <SeniorCreateCampaignPage />
+            </SeniorRecruiterLayout>
+          }
+        />
+        <Route
+          path="/senior-recruiter/campaigns/:id/create-round"
+          element={
+            <SeniorRecruiterLayout>
+              <SeniorCreateRoundPage />
             </SeniorRecruiterLayout>
           }
         />

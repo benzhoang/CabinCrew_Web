@@ -1913,4 +1913,54 @@ export const getPromotionHistory = async () => {
   }
 };
 
+// API cập nhật startDate và endDate cho một round cụ thể - PUT /api/v1/rounds/{id}/dates
+export const updateRoundDates = async (roundId, startDate, endDate) => {
+  try {
+    // Validate roundId
+    const roundIdNum =
+      typeof roundId === "string" ? parseInt(roundId, 10) : Number(roundId);
+    if (!roundIdNum || Number.isNaN(roundIdNum) || roundIdNum <= 0) {
+      return {
+        success: false,
+        error: "Round ID không hợp lệ",
+      };
+    }
+
+    // Tạo payload theo format API (ISO 8601 format string)
+    const payload = {
+      startDate: startDate,
+      endDate: endDate,
+    };
+
+    const response = await api2.put(`/rounds/${roundIdNum}/dates`, payload);
+
+    // Kiểm tra response: API trả về status 200 và response body là boolean true
+    const isSuccess = response.status === 200 && response.data === true;
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data,
+        message: "Cập nhật dates thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error: "Cập nhật dates thất bại",
+        responseData: response.data,
+        status: response.status,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cập nhật dates cho round thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;
