@@ -401,10 +401,21 @@ const CandidateApplyDetail = () => {
     const goBack = () => {
         // Quay về danh sách ứng viên với thông tin batch
         const batchData = location.state?.batchData
-        if (batchData) {
-            navigate('/recruiter/applications', { state: batchData })
+        // Lấy campaignRoundId từ nhiều nguồn có thể
+        const campaignRoundId =
+            batchData?.batch?.id ||
+            batchData?.batch?.campaignRoundId ||
+            batchData?.campaignRoundId ||
+            location.state?.campaignRoundId ||
+            candidate?.activityId // fallback nếu không có trong batchData
+
+        if (batchData && campaignRoundId) {
+            navigate(`/recruiter/applications/${campaignRoundId}`, { state: batchData })
+        } else if (campaignRoundId) {
+            navigate(`/recruiter/applications/${campaignRoundId}`)
         } else {
-            navigate('/recruiter/applications')
+            // Fallback nếu không có campaignRoundId
+            navigate(`/recruiter/applications/`)
         }
     }
 

@@ -114,7 +114,7 @@ const PromotionPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 4,
     totalRecords: 0,
     totalPages: 0,
     hasNextPage: false,
@@ -167,11 +167,13 @@ const PromotionPage = () => {
             .filter(Boolean);
           setCampaigns(normalized);
 
-          const pageInfo = response.data.pagination;
+          // Lấy thông tin phân trang từ response.data.pagination hoặc response.data
+          const pageInfo = response.data.pagination || response.data;
           if (pageInfo) {
             setPagination((prev) => ({
               ...prev,
               currentPage: pageInfo.currentPage || page,
+              pageSize: pageInfo.pageSize || prev.pageSize,
               totalRecords: pageInfo.totalRecords || 0,
               totalPages: pageInfo.totalPages || 0,
               hasNextPage: pageInfo.hasNextPage || false,
@@ -182,8 +184,8 @@ const PromotionPage = () => {
           setCampaigns([]);
           setError(
             response.error ||
-              response.message ||
-              "Không thể lấy danh sách chiến dịch nâng bậc"
+            response.message ||
+            "Không thể lấy danh sách chiến dịch nâng bậc"
           );
         }
       } catch (err) {
@@ -313,11 +315,10 @@ const PromotionPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
-                        c.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                        }`}
                     >
                       {c.status === "active" ? "Đang diễn ra" : "Đã kết thúc"}
                     </span>

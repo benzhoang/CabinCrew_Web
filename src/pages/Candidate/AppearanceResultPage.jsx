@@ -104,18 +104,20 @@ const AppearanceResultPage = () => {
         return []
     }, [result])
 
-    // Map scoringCriteriaItemId -> useful metadata (VN/EN text + details)
+    // Map scoringCriteriaItemId -> useful metadata (VN/EN text + details + title)
     const criteriaInfoMap = useMemo(() => {
         const map = {}
         if (Array.isArray(scoringCriterias)) {
             scoringCriterias.forEach(category => {
+                const categoryTitle = category.title || ''
                 if (Array.isArray(category.items)) {
                     category.items.forEach(item => {
                         if (item.scoringCriteriaItemId) {
                             map[item.scoringCriteriaItemId] = {
                                 name: item.text || item.englishText || '',
                                 englishText: item.englishText || '',
-                                details: Array.isArray(item.details) ? item.details : []
+                                details: Array.isArray(item.details) ? item.details : [],
+                                title: categoryTitle
                             }
                         }
                     })
@@ -125,7 +127,7 @@ const AppearanceResultPage = () => {
         return map
     }, [scoringCriterias])
 
-    // Hàm lấy thông tin tiêu chí (VN/EN + chi tiết)
+    // Hàm lấy thông tin tiêu chí (VN/EN + chi tiết + title)
     const getCriteriaInfo = useCallback((criteria) => {
         const itemId = criteria.scoringCriteriaItemId ||
             criteria.criteriaId ||
@@ -154,12 +156,29 @@ const AppearanceResultPage = () => {
                     ? criteria.scoringCriteriaItem.details
                     : []
 
+        const title = mapInfo?.title || ''
+
         return {
             name: mapInfo?.name || fallbackName || '',
             englishText,
-            details: detailList
+            details: detailList,
+            title
         }
     }, [criteriaInfoMap])
+
+    // Nhóm criteriaList theo title
+    const groupedCriteria = useMemo(() => {
+        const groups = {}
+        criteriaList.forEach((criteria, index) => {
+            const criteriaInfo = getCriteriaInfo(criteria)
+            const title = criteriaInfo.title || 'Khác'
+            if (!groups[title]) {
+                groups[title] = []
+            }
+            groups[title].push({ ...criteria, criteriaInfo, originalIndex: index })
+        })
+        return groups
+    }, [criteriaList, getCriteriaInfo])
 
     const summaryItems = useMemo(() => ([
         { label: 'Mã đánh giá', value: result?.evaluationId ?? '—' },
@@ -239,53 +258,64 @@ const AppearanceResultPage = () => {
                                         </p>
                                     </div>
                                     <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí</h2>
-                                    <div className="overflow-hidden border border-gray-200 rounded-lg">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Tiêu chí
-                                                    </th>
-                                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Kết quả
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
-                                                {criteriaList.map((criteria, index) => {
-                                                    const criteriaInfo = getCriteriaInfo(criteria)
-                                                    const criteriaName = criteriaInfo.name || `Tiêu chí ${index + 1}`
-                                                    const isPassed = criteria.isPassed ?? criteria.result ?? criteria.score
-                                                    return (
-                                                        <tr key={criteria.id || criteria.criteriaId || index}>
-                                                            <td className="px-4 py-3 text-sm">
-                                                                <div className="font-medium text-gray-900">
-                                                                    {criteriaName}
-                                                                </div>
-                                                                {criteriaInfo.englishText && (
-                                                                    <div className="text-xs text-gray-500 italic mt-1">
-                                                                        {criteriaInfo.englishText}
-                                                                    </div>
-                                                                )}
-                                                                {Array.isArray(criteriaInfo.details) && criteriaInfo.details.length > 0 && (
-                                                                    <ul className="mt-2 space-y-1">
-                                                                        {criteriaInfo.details.map((detail, detailIndex) => (
-                                                                            <li key={detail.detailText || detail.text || detailIndex} className="text-xs text-gray-600 flex gap-2">
-                                                                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                                                                                <span>{detail.detailText || detail.text || detail.description || detail}</span>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                )}
-                                                            </td>
-                                                            <td className={`px-4 py-3 text-sm ${getResultColorClass(isPassed)}`}>
-                                                                {getPassLabel(isPassed)}
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                        </table>
+                                    <div className="space-y-6">
+                                        {Object.entries(groupedCriteria).map(([title, criteriaGroup]) => (
+                                            <div key={title} className="space-y-3">
+                                                {title && (
+                                                    <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2">
+                                                        {title}
+                                                    </h3>
+                                                )}
+                                                <div className="overflow-hidden border border-gray-200 rounded-lg">
+                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                    Tiêu chí
+                                                                </th>
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                    Kết quả
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                            {criteriaGroup.map((criteria) => {
+                                                                const criteriaInfo = criteria.criteriaInfo
+                                                                const criteriaName = criteriaInfo.name || `Tiêu chí ${criteria.originalIndex + 1}`
+                                                                const isPassed = criteria.isPassed ?? criteria.result ?? criteria.score
+                                                                return (
+                                                                    <tr key={criteria.id || criteria.criteriaId || criteria.originalIndex}>
+                                                                        <td className="px-4 py-3 text-sm">
+                                                                            <div className="font-medium text-gray-900">
+                                                                                {criteriaName}
+                                                                            </div>
+                                                                            {criteriaInfo.englishText && (
+                                                                                <div className="text-xs text-gray-500 italic mt-1">
+                                                                                    {criteriaInfo.englishText}
+                                                                                </div>
+                                                                            )}
+                                                                            {Array.isArray(criteriaInfo.details) && criteriaInfo.details.length > 0 && (
+                                                                                <ul className="mt-2 space-y-1">
+                                                                                    {criteriaInfo.details.map((detail, detailIndex) => (
+                                                                                        <li key={detail.detailText || detail.text || detailIndex} className="text-xs text-gray-600 flex gap-2">
+                                                                                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                                                                                            <span>{detail.detailText || detail.text || detail.description || detail}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                </ul>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className={`px-4 py-3 text-sm ${getResultColorClass(isPassed)}`}>
+                                                                            {getPassLabel(isPassed)}
+                                                                        </td>
+                                                                    </tr>
+                                                                )
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </section>
                             )}

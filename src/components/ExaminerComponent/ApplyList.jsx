@@ -94,6 +94,20 @@ const ApplyList = ({
     );
   }, [availableRounds, roundFilter]);
 
+  // Tính toán dateRange từ round được chọn
+  const selectedRoundDateRange = useMemo(() => {
+    if (!activeRoundForTests) return null;
+    const startDate = activeRoundForTests.startDate ? formatDate(activeRoundForTests.startDate) : "";
+    const endDate = activeRoundForTests.endDate ? formatDate(activeRoundForTests.endDate) : "";
+    if (startDate && endDate) {
+      return `${startDate} - ${endDate}`;
+    }
+    if (startDate || endDate) {
+      return startDate || endDate;
+    }
+    return null;
+  }, [activeRoundForTests]);
+
   // Check if the active round is a test round that requires test selection (English or Practical)
   const isTestRound = useMemo(() => {
     if (!activeRoundForTests) return false;
@@ -684,6 +698,11 @@ const ApplyList = ({
                     </option>
                   )}
                 </select>
+                {selectedRoundDateRange && (
+                  <div className="px-3 py-2 text-sm bg-slate-50 border rounded-md border-slate-300 text-slate-700 whitespace-nowrap">
+                    {selectedRoundDateRange}
+                  </div>
+                )}
               </div>
               <div className="relative w-full md:w-64">
                 <input

@@ -14,6 +14,7 @@ const FinalReview = () => {
     const [fetchError, setFetchError] = useState(null)
     const [pagination, setPagination] = useState(null)
     const [finalRoundId, setFinalRoundId] = useState(null)
+    const [campaignId, setCampaignId] = useState(null)
     const navigate = useNavigate()
     const location = useLocation()
     const batchData = location.state?.batch
@@ -21,6 +22,14 @@ const FinalReview = () => {
         () => campaignRoundId || batchData?.campaignRoundId || batchData?.id,
         [campaignRoundId, batchData]
     )
+
+    // Khởi tạo campaignId từ location.state ngay khi component mount
+    useEffect(() => {
+        const initialCampaignId = location.state?.campaignId || batchData?.campaignId
+        if (initialCampaignId) {
+            setCampaignId(initialCampaignId)
+        }
+    }, [location.state, batchData])
 
     useEffect(() => {
         if (!resolvedCampaignRoundId) {
@@ -37,6 +46,16 @@ const FinalReview = () => {
                 if (result.success && result.data) {
                     const roundData = result.data
                     const roundsList = Array.isArray(roundData.rounds) ? roundData.rounds : []
+
+                    // Lưu campaignId từ nhiều nguồn
+                    const fetchedCampaignId =
+                        location.state?.campaignId ||
+                        roundData.campaignId ||
+                        batchData?.campaignId ||
+                        null
+                    if (fetchedCampaignId) {
+                        setCampaignId(fetchedCampaignId)
+                    }
 
                     // Tìm round có roundName là 'Final'
                     let finalRound =
@@ -182,8 +201,12 @@ const FinalReview = () => {
     }
 
     const handleBack = () => {
-        if (batchData) {
-            navigate(`/recruiter/campaigns/${batchData.campaignId}`, { state: batchData })
+        // Lấy campaignId từ state hoặc từ location.state
+        const effectiveCampaignId = campaignId || location.state?.campaignId || batchData?.campaignId
+        if (effectiveCampaignId) {
+            navigate(`/recruiter/campaigns/${effectiveCampaignId}`, { state: batchData })
+        } else if (batchData) {
+            navigate(`/recruiter/campaigns`, { state: batchData })
         } else {
             navigate('/recruiter/campaigns')
         }

@@ -1,9 +1,8 @@
 import React, { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { t } from '../../i18n'
-import { submitExistingApplication, updateApplication } from '../../service/api'
+import { updateFlightExperience } from '../../service/api'
 
-const ProfileFormActions = ({
+const CabincrewActionForm = ({
     children,
     formData,
     files,
@@ -19,9 +18,7 @@ const ProfileFormActions = ({
     refreshCaptcha,
     applicationStatus
 }) => {
-    const navigate = useNavigate()
     const [isSaving, setIsSaving] = useState(false)
-    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const validateCaptcha = useCallback(() => {
         if (captchaInput.toUpperCase() !== captchaCode) {
@@ -31,49 +28,6 @@ const ProfileFormActions = ({
         }
         return true
     }, [captchaCode, captchaInput, refreshCaptcha])
-
-    const handleUpdate = useCallback((e) => {
-        e.preventDefault()
-        if (!validateCaptcha()) {
-            return
-        }
-
-        console.log('Updated form data:', formData)
-        console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
-    }, [files, formData, validateCaptcha])
-
-    const handleSubmit = useCallback(async (e) => {
-        e.preventDefault()
-        if (isSubmitting) {
-            return
-        }
-        if (!validateCaptcha()) {
-            return
-        }
-        if (!applicationId) {
-            alert('Không tìm thấy mã hồ sơ. Vui lòng tải lại trang và thử lại.')
-            return
-        }
-        const campaignRoundId = formData.campaignRoundId
-            ? parseInt(formData.campaignRoundId, 10)
-            : undefined
-        setIsSubmitting(true)
-        try {
-            const result = await submitExistingApplication(applicationId, campaignRoundId)
-            if (result.success) {
-                alert(result.message || 'Đã nộp hồ sơ thành công!')
-                navigate('/profile')
-            } else {
-                alert(result.error || 'Không thể nộp hồ sơ. Vui lòng thử lại.')
-            }
-        } catch (error) {
-            console.error('Submit application error:', error)
-            alert('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.')
-        } finally {
-            setIsSubmitting(false)
-        }
-    }, [applicationId, formData.campaignRoundId, isSubmitting, navigate, validateCaptcha])
 
     const handleEditClick = useCallback(() => {
         if (applicationStatus === 'passed') {
@@ -98,27 +52,19 @@ const ProfileFormActions = ({
 
         setIsSaving(true)
         try {
-            const campaignRoundId = formData.campaignRoundId
-                ? parseInt(formData.campaignRoundId, 10)
-                : undefined
+            // Chỉ gửi totalFlightHours và experience
+            // Xử lý experience: nếu là "khác" thì lấy experienceOther, ngược lại lấy giá trị từ dropdown
+            const experienceValue = formData.experience === 'khác'
+                ? formData.experienceOther
+                : formData.experience
+
             const payload = {
-                experience: formData.workingExperience,
-                height: formData.height,
-                weight: formData.weight,
-                englishDegreeNumber: formData.englishCertificate,
-                endDate: formData.certificateExpireDate,
-                applicationForm: files.applicationForm,
-                profilePhoto: files.profilePhoto,
-                educationDegree: files.educationDegree,
-                englishCertificate: files.englishCertificate,
-                passportOrID: files.idCard,
-                passportOrIDBack: files.idCardBack
-            }
-            if (campaignRoundId) {
-                payload.campaignRoundId = campaignRoundId
+                totalFlightHours: formData.totalFlightHours ? parseInt(formData.totalFlightHours, 10) : 0,
+                experience: experienceValue || null
             }
 
-            const result = await updateApplication(applicationId, payload)
+            // Gọi API với applicationId (được sử dụng làm applicationSnapshotId trong API endpoint)
+            const result = await updateFlightExperience(applicationId, payload)
             if (result.success) {
                 alert(result.message || 'Đã cập nhật thông tin thành công!')
                 setIsEditing(false)
@@ -127,12 +73,12 @@ const ProfileFormActions = ({
                 alert(result.error || 'Không thể cập nhật hồ sơ. Vui lòng thử lại.')
             }
         } catch (error) {
-            console.error('Update application error:', error)
+            console.error('Update flight experience error:', error)
             alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại sau.')
         } finally {
             setIsSaving(false)
         }
-    }, [applicationId, files, formData, isSaving, setIsEditing, setOriginalFormData, validateCaptcha])
+    }, [applicationId, formData, isSaving, setIsEditing, setOriginalFormData, validateCaptcha])
 
     const handleCancelClick = useCallback(() => {
         if (originalFormData) {
@@ -143,7 +89,7 @@ const ProfileFormActions = ({
     }, [originalFormData, setFormData, setIsEditing, setOriginalFormData])
 
     return (
-        <form onSubmit={handleUpdate} className="space-y-6">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             {children}
 
             <div>
@@ -180,9 +126,8 @@ const ProfileFormActions = ({
                             type="button"
                             onClick={handleEditClick}
                             disabled={applicationStatus === 'passed'}
-                            className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg ${
-                                applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg ${applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
                         >
                             Cập nhật thông tin
                         </button>
@@ -200,9 +145,8 @@ const ProfileFormActions = ({
                             type="button"
                             onClick={handleSaveClick}
                             disabled={isSaving || applicationStatus === 'passed'}
-                            className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${
-                                isSaving || applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${isSaving || applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
                         >
                             {isSaving ? 'Đang lưu...' : 'Lưu'}
                         </button>
@@ -213,4 +157,4 @@ const ProfileFormActions = ({
     )
 }
 
-export default ProfileFormActions
+export default CabincrewActionForm

@@ -313,17 +313,34 @@ const RecruitmentStages = () => {
     };
 
     const getStagePositionStyle = (templateId) => {
-        const verticalOffset = templateId === 'english-listening'
-            ? -BRANCH_OFFSET
-            : templateId === 'english-speaking'
-                ? BRANCH_OFFSET
-                : 0;
+        // Hình tròn có kích thước w-12 h-12 = 48px, bán kính = 24px
+        const circleRadius = 24;
 
-        return {
-            left: `${getAxisPercent(templateId)}%`,
-            top: `${BASELINE_Y + verticalOffset}px`,
-            transform: 'translate(-50%, -50%)'
-        };
+        // Xác định các stage chính cần nằm trên baseline
+        const isMainStage = ['screening', 'appearance', 'interview', 'final'].includes(templateId);
+
+        if (isMainStage) {
+            // Các stage chính: đáy hình tròn chạm baseline
+            // Không dùng transform translate(-50%, -50%) để dễ kiểm soát vị trí
+            // Đặt top = BASELINE_Y - 48px (chiều cao hình tròn) để đáy chạm baseline
+            return {
+                left: `${getAxisPercent(templateId)}%`,
+                top: `${BASELINE_Y - 30}px`,
+                transform: 'translateX(-50%)'
+            };
+        } else {
+            // Các stage nhánh (english-listening, english-speaking): căn giữa với offset
+            const verticalOffset = templateId === 'english-listening'
+                ? -BRANCH_OFFSET
+                : templateId === 'english-speaking'
+                    ? BRANCH_OFFSET
+                    : 0;
+            return {
+                left: `${getAxisPercent(templateId)}%`,
+                top: `${BASELINE_Y + verticalOffset}px`,
+                transform: 'translate(-50%, -50%)'
+            };
+        }
     };
 
     return (
@@ -501,13 +518,18 @@ const RecruitmentStages = () => {
                                                     if (!stage) return null;
                                                     const stageIndex = stageIndexMap[templateId];
                                                     const stageReached = isStageReached(stage, stageIndex, application.currentStage);
+                                                    // Chỉ english-listening hiển thị info ở trên, các stage khác hiển thị ở dưới
                                                     const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom';
+
+                                                    // Đảm bảo các stage chính (screening, appearance, interview, final) nằm trên baseline
+                                                    const isMainStage = ['screening', 'appearance', 'interview', 'final'].includes(templateId);
+                                                    const positionStyle = getStagePositionStyle(templateId);
 
                                                     return (
                                                         <div
                                                             key={templateId}
                                                             className="absolute flex flex-col items-center"
-                                                            style={getStagePositionStyle(templateId)}
+                                                            style={positionStyle}
                                                         >
                                                             {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
                                                             <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStage, stageIndex ?? 0)}`}>
