@@ -388,12 +388,6 @@ const RequestList = () => {
                                     >
                                         Xem chi tiết
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(campaign.id)}
-                                        className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
-                                    >
-                                        Xóa
-                                    </button>
                                 </div>
                             </div>
                         </div>

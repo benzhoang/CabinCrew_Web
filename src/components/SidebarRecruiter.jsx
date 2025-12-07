@@ -23,20 +23,6 @@ const FolderIcon = ({ className = "" }) => (
   </svg>
 );
 
-const MicIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <rect x="9" y="2" width="6" height="12" rx="3" />
-    <path d="M5 11a7 7 0 0014 0" />
-    <path d="M12 19v3" />
-  </svg>
-);
-
-const StarIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M11.48 3.5a1 1 0 011.04 0l3.12 1.87 3.54.52a1 1 0 01.55 1.7l-2.56 2.5.6 3.5a1 1 0 01-1.45 1.06L12 13.9 8.68 15.7a1 1 0 01-1.45-1.06l.6-3.5L5.27 7.6a1 1 0 01.55-1.7l3.54-.52 3.12-1.87z" />
-  </svg>
-);
-
 const CampaignIcon = ({ className = "" }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
     <path d="M3 3h18v18H3V3z" />
@@ -71,9 +57,7 @@ const LogoutIcon = ({ className = "" }) => (
 
 const navItems = [
   { to: "/recruiter/campaigns", key: "sidebar_campaign", icon: CampaignIcon },
-  { to: "/recruiter/tasks", key: "sidebar_task", icon: TaskIcon },
-  { to: "/recruiter/interviews", key: "sidebar_interviews", icon: MicIcon },
-  { to: "/recruiter/scoring", key: "sidebar_evaluation", icon: StarIcon },
+  { to: "/recruiter/tasks", key: "sidebar_task", icon: TaskIcon }
 ];
 
 const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {

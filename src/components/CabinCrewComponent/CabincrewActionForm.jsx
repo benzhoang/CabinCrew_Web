@@ -63,7 +63,7 @@ const CabincrewActionForm = ({
                 experience: experienceValue || null
             }
 
-            // Gọi API với applicationId (được sử dụng làm applicationSnapshotId trong API endpoint)
+            // Gọi API với applicationId (được sử dụng làm activityId trong API endpoint)
             const result = await updateFlightExperience(applicationId, payload)
             if (result.success) {
                 alert(result.message || 'Đã cập nhật thông tin thành công!')
