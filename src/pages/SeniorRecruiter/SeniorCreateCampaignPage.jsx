@@ -37,8 +37,46 @@ const SeniorCreateCampaignPage = () => {
   const [isLoadingDetail, setIsLoadingDetail] = useState(true);
   const [detailError, setDetailError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roundsData, setRoundsData] = useState([]); // State để lưu rounds data cho UI mới
   const navigate = useNavigate();
   const isRequestDataLocked = Boolean(campaignDetail);
+
+  // Hàm lấy round name dựa trên campaignType và index
+  const getRoundNameByIndex = (index, campaignType) => {
+    const recruitmentRounds = [
+      "Screening",
+      "Appearance",
+      "English Listening Test",
+      "English Speaking Test",
+      "Interview",
+      "Final",
+    ];
+
+    const promotionRounds = [
+      "Screening",
+      "Flight Hours Confirmation",
+      "Practical Test",
+      "Interview",
+      "Final",
+    ];
+
+    if (campaignType === "Recruitment") {
+      return recruitmentRounds[index] || `Round ${index + 1}`;
+    } else if (campaignType === "Promotion") {
+      return promotionRounds[index] || `Round ${index + 1}`;
+    }
+    return `Round ${index + 1}`;
+  };
+
+  // Hàm lấy số lượng rounds dựa trên campaignType
+  const getRoundsCountByCampaignType = (campaignType) => {
+    if (campaignType === "Recruitment") {
+      return 6; // Screening, Appearance, English Listening Test, English Speaking Test, Interview, Final
+    } else if (campaignType === "Promotion") {
+      return 5; // Screening, Flight Hours Confirmation, Practical Test, Interview, Final
+    }
+    return 6; // Default to Recruitment
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -75,9 +113,9 @@ const SeniorCreateCampaignPage = () => {
         } else {
           setDetailError(result.error || "Không thể tải chi tiết yêu cầu");
         }
-      } catch (error) {
+      } catch (err) {
         if (!isMounted) return;
-        setDetailError(error.message || "Không thể tải chi tiết yêu cầu");
+        setDetailError(err.message || "Không thể tải chi tiết yêu cầu");
       } finally {
         if (isMounted) {
           setIsLoadingDetail(false);
@@ -91,6 +129,170 @@ const SeniorCreateCampaignPage = () => {
       isMounted = false;
     };
   }, [campaignId]);
+
+  // Tự động cập nhật roundsData khi roundStartDate hoặc roundEndDate thay đổi
+  useEffect(() => {
+    formData.rounds.forEach((round, index) => {
+      const campaignType = campaignDetail?.campaignType || "Recruitment";
+      const roundsCount = getRoundsCountByCampaignType(campaignType);
+      const expectedRoundNames = Array.from({ length: roundsCount }, (_, idx) =>
+        getRoundNameByIndex(idx, campaignType)
+      );
+
+      if (round.roundStartDate || round.roundEndDate) {
+        setRoundsData((prevRoundsData) => {
+          const updatedRoundsData = [...prevRoundsData];
+
+          // Tìm rounds liên quan
+          let relatedRounds = [];
+
+          if (round.campaignRoundId) {
+            relatedRounds = updatedRoundsData.filter(
+              (r) => r.campaignRoundId === round.campaignRoundId
+            );
+          } else {
+            const startIdx = index * roundsCount;
+            const endIdx = startIdx + roundsCount;
+
+            relatedRounds = updatedRoundsData
+              .slice(startIdx, endIdx)
+              .filter((r) => expectedRoundNames.includes(r.roundName));
+          }
+
+          // Cập nhật startDate của round đầu tiên
+          if (round.roundStartDate) {
+            const firstRoundName = expectedRoundNames[0];
+            const foundRound = relatedRounds.find(
+              (r) => r.roundName === firstRoundName
+            );
+
+            if (foundRound) {
+              const roundIdx = updatedRoundsData.findIndex(
+                (r) =>
+                  r === foundRound ||
+                  (r.roundName === firstRoundName &&
+                    ((round.campaignRoundId &&
+                      r.campaignRoundId === round.campaignRoundId) ||
+                      (!round.campaignRoundId && !r.campaignRoundId)))
+              );
+
+              if (roundIdx !== -1) {
+                updatedRoundsData[roundIdx] = {
+                  ...updatedRoundsData[roundIdx],
+                  startDate: round.roundStartDate,
+                };
+              }
+            } else {
+              // Kiểm tra xem round đã tồn tại chưa (tránh trùng lặp)
+              const existingRound = updatedRoundsData.find(
+                (r) =>
+                  r.roundName === firstRoundName &&
+                  ((round.campaignRoundId &&
+                    r.campaignRoundId === round.campaignRoundId) ||
+                    (!round.campaignRoundId && !r.campaignRoundId))
+              );
+
+              if (!existingRound) {
+                // Tạo round đầu tiên mới nếu chưa tồn tại
+                const newRound = {
+                  roundId: null,
+                  roundName: firstRoundName,
+                  campaignRoundId: round.campaignRoundId,
+                  startDate: round.roundStartDate,
+                  endDate: "",
+                };
+
+                if (round.campaignRoundId) {
+                  updatedRoundsData.push(newRound);
+                } else {
+                  const insertIdx = index * roundsCount;
+                  updatedRoundsData.splice(insertIdx, 0, newRound);
+                }
+              } else {
+                // Cập nhật round đã tồn tại
+                const existingIdx = updatedRoundsData.findIndex(
+                  (r) => r === existingRound
+                );
+                if (existingIdx !== -1) {
+                  updatedRoundsData[existingIdx] = {
+                    ...updatedRoundsData[existingIdx],
+                    startDate: round.roundStartDate,
+                  };
+                }
+              }
+            }
+          }
+
+          // Cập nhật endDate của round cuối cùng
+          if (round.roundEndDate) {
+            const lastRoundName =
+              expectedRoundNames[expectedRoundNames.length - 1];
+            const foundRound = relatedRounds.find(
+              (r) => r.roundName === lastRoundName
+            );
+
+            if (foundRound) {
+              const roundIdx = updatedRoundsData.findIndex(
+                (r) =>
+                  r === foundRound ||
+                  (r.roundName === lastRoundName &&
+                    ((round.campaignRoundId &&
+                      r.campaignRoundId === round.campaignRoundId) ||
+                      (!round.campaignRoundId && !r.campaignRoundId)))
+              );
+
+              if (roundIdx !== -1) {
+                updatedRoundsData[roundIdx] = {
+                  ...updatedRoundsData[roundIdx],
+                  endDate: round.roundEndDate,
+                };
+              }
+            } else {
+              // Kiểm tra xem round đã tồn tại chưa (tránh trùng lặp)
+              const existingRound = updatedRoundsData.find(
+                (r) =>
+                  r.roundName === lastRoundName &&
+                  ((round.campaignRoundId &&
+                    r.campaignRoundId === round.campaignRoundId) ||
+                    (!round.campaignRoundId && !r.campaignRoundId))
+              );
+
+              if (!existingRound) {
+                // Tạo round cuối cùng mới nếu chưa tồn tại
+                const newRound = {
+                  roundId: null,
+                  roundName: lastRoundName,
+                  campaignRoundId: round.campaignRoundId,
+                  startDate: "",
+                  endDate: round.roundEndDate,
+                };
+
+                if (round.campaignRoundId) {
+                  updatedRoundsData.push(newRound);
+                } else {
+                  const insertIdx = index * roundsCount + roundsCount - 1;
+                  updatedRoundsData.splice(insertIdx, 0, newRound);
+                }
+              } else {
+                // Cập nhật round đã tồn tại
+                const existingIdx = updatedRoundsData.findIndex(
+                  (r) => r === existingRound
+                );
+                if (existingIdx !== -1) {
+                  updatedRoundsData[existingIdx] = {
+                    ...updatedRoundsData[existingIdx],
+                    endDate: round.roundEndDate,
+                  };
+                }
+              }
+            }
+          }
+
+          return updatedRoundsData;
+        });
+      }
+    });
+  }, [formData.rounds, campaignDetail?.campaignType]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -122,10 +324,12 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const handleRoundChange = (index, field, value) => {
+    let updatedRound = null;
+
     setFormData((prev) => {
       const updatedRounds = prev.rounds.map((round, i) => {
         if (i === index) {
-          const updatedRound = { ...round, [field]: value };
+          updatedRound = { ...round, [field]: value };
 
           // Nếu thay đổi roundStartDate, đảm bảo roundEndDate >= roundStartDate
           if (field === "roundStartDate" && updatedRound.roundEndDate) {
@@ -167,6 +371,173 @@ const SeniorCreateCampaignPage = () => {
         rounds: updatedRounds,
       };
     });
+
+    // Cập nhật roundsData khi thay đổi roundStartDate hoặc roundEndDate
+    if (
+      (field === "roundStartDate" || field === "roundEndDate") &&
+      updatedRound
+    ) {
+      const campaignType = campaignDetail?.campaignType || "Recruitment";
+      const roundsCount = getRoundsCountByCampaignType(campaignType);
+      const expectedRoundNames = Array.from({ length: roundsCount }, (_, idx) =>
+        getRoundNameByIndex(idx, campaignType)
+      );
+
+      setRoundsData((prevRoundsData) => {
+        const updatedRoundsData = [...prevRoundsData];
+
+        // Tìm rounds liên quan - sử dụng logic tương tự như trong render
+        let relatedRounds = [];
+
+        if (updatedRound.campaignRoundId) {
+          // Trường hợp có campaignRoundId: Tìm theo campaignRoundId
+          relatedRounds = updatedRoundsData.filter(
+            (r) => r.campaignRoundId === updatedRound.campaignRoundId
+          );
+        } else {
+          // Trường hợp chưa có campaignRoundId: Tìm theo index
+          const startIdx = index * roundsCount;
+          const endIdx = startIdx + roundsCount;
+
+          relatedRounds = updatedRoundsData
+            .slice(startIdx, endIdx)
+            .filter((r) => expectedRoundNames.includes(r.roundName));
+        }
+
+        if (field === "roundStartDate" && value) {
+          // Cập nhật startDate của round đầu tiên
+          const firstRoundName = expectedRoundNames[0];
+          const foundRound = relatedRounds.find(
+            (r) => r.roundName === firstRoundName
+          );
+
+          if (foundRound) {
+            // Tìm index trong updatedRoundsData
+            const roundIdx = updatedRoundsData.findIndex(
+              (r) =>
+                r === foundRound ||
+                (r.roundName === firstRoundName &&
+                  ((updatedRound.campaignRoundId &&
+                    r.campaignRoundId === updatedRound.campaignRoundId) ||
+                    (!updatedRound.campaignRoundId && !r.campaignRoundId)))
+            );
+
+            if (roundIdx !== -1) {
+              updatedRoundsData[roundIdx] = {
+                ...updatedRoundsData[roundIdx],
+                startDate: value,
+              };
+            }
+          } else {
+            // Kiểm tra xem round đã tồn tại chưa (tránh trùng lặp)
+            const existingRound = updatedRoundsData.find(
+              (r) =>
+                r.roundName === firstRoundName &&
+                ((updatedRound.campaignRoundId &&
+                  r.campaignRoundId === updatedRound.campaignRoundId) ||
+                  (!updatedRound.campaignRoundId && !r.campaignRoundId))
+            );
+
+            if (!existingRound) {
+              // Tạo round đầu tiên mới
+              const newRound = {
+                roundId: null,
+                roundName: firstRoundName,
+                campaignRoundId: updatedRound.campaignRoundId,
+                startDate: value,
+                endDate: "",
+              };
+
+              if (updatedRound.campaignRoundId) {
+                updatedRoundsData.push(newRound);
+              } else {
+                const insertIdx = index * roundsCount;
+                updatedRoundsData.splice(insertIdx, 0, newRound);
+              }
+            } else {
+              // Cập nhật round đã tồn tại
+              const existingIdx = updatedRoundsData.findIndex(
+                (r) => r === existingRound
+              );
+              if (existingIdx !== -1) {
+                updatedRoundsData[existingIdx] = {
+                  ...updatedRoundsData[existingIdx],
+                  startDate: value,
+                };
+              }
+            }
+          }
+        }
+
+        if (field === "roundEndDate" && value) {
+          // Cập nhật endDate của round cuối cùng
+          const lastRoundName =
+            expectedRoundNames[expectedRoundNames.length - 1];
+          const foundRound = relatedRounds.find(
+            (r) => r.roundName === lastRoundName
+          );
+
+          if (foundRound) {
+            // Tìm index trong updatedRoundsData
+            const roundIdx = updatedRoundsData.findIndex(
+              (r) =>
+                r === foundRound ||
+                (r.roundName === lastRoundName &&
+                  ((updatedRound.campaignRoundId &&
+                    r.campaignRoundId === updatedRound.campaignRoundId) ||
+                    (!updatedRound.campaignRoundId && !r.campaignRoundId)))
+            );
+
+            if (roundIdx !== -1) {
+              updatedRoundsData[roundIdx] = {
+                ...updatedRoundsData[roundIdx],
+                endDate: value,
+              };
+            }
+          } else {
+            // Kiểm tra xem round đã tồn tại chưa (tránh trùng lặp)
+            const existingRound = updatedRoundsData.find(
+              (r) =>
+                r.roundName === lastRoundName &&
+                ((updatedRound.campaignRoundId &&
+                  r.campaignRoundId === updatedRound.campaignRoundId) ||
+                  (!updatedRound.campaignRoundId && !r.campaignRoundId))
+            );
+
+            if (!existingRound) {
+              // Tạo round cuối cùng mới
+              const newRound = {
+                roundId: null,
+                roundName: lastRoundName,
+                campaignRoundId: updatedRound.campaignRoundId,
+                startDate: "",
+                endDate: value,
+              };
+
+              if (updatedRound.campaignRoundId) {
+                updatedRoundsData.push(newRound);
+              } else {
+                const insertIdx = index * roundsCount + roundsCount - 1;
+                updatedRoundsData.splice(insertIdx, 0, newRound);
+              }
+            } else {
+              // Cập nhật round đã tồn tại
+              const existingIdx = updatedRoundsData.findIndex(
+                (r) => r === existingRound
+              );
+              if (existingIdx !== -1) {
+                updatedRoundsData[existingIdx] = {
+                  ...updatedRoundsData[existingIdx],
+                  endDate: value,
+                };
+              }
+            }
+          }
+        }
+
+        return updatedRoundsData;
+      });
+    }
 
     // Clear error khi thay đổi
     if (errors[`rounds.${index}.${field}`]) {
@@ -305,17 +676,96 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const mapRoundsToPayload = () => {
-    return formData.rounds.map((round) => ({
-      roundName: round.roundName || "",
-      description: round.description || "",
-      targetQuantity: parseInt(round.targetQuantity, 10) || 0,
-      roundStartDate: round.roundStartDate
-        ? `${round.roundStartDate}T00:00:00Z`
-        : null,
-      roundEndDate: round.roundEndDate
-        ? `${round.roundEndDate}T23:59:59Z`
-        : null,
-    }));
+    // Chỉ map rounds hợp lệ (không có error)
+    return formData.rounds
+      .map((round, roundIndex) => {
+        // Kiểm tra round có error không - bỏ qua nếu có
+        const hasError =
+          errors[`rounds.${roundIndex}.roundName`] ||
+          errors[`rounds.${roundIndex}.roundStartDate`] ||
+          errors[`rounds.${roundIndex}.roundEndDate`] ||
+          errors[`rounds.${roundIndex}.targetQuantity`] ||
+          errors[`rounds.${roundIndex}.description`];
+
+        if (hasError) {
+          return null; // Bỏ qua rounds có error
+        }
+
+        // Kiểm tra round có đầy đủ thông tin cần thiết
+        if (
+          !round.roundName ||
+          !round.roundStartDate ||
+          !round.roundEndDate ||
+          !round.targetQuantity ||
+          !round.description
+        ) {
+          return null; // Bỏ qua rounds thiếu thông tin
+        }
+
+        // Tìm tất cả rounds con (Screening, Appearance, etc.) từ roundsData
+        let roundDates = [];
+
+        // Lấy campaignType để biết số lượng rounds
+        const campaignType = campaignDetail?.campaignType || "Recruitment";
+        const roundsCount = getRoundsCountByCampaignType(campaignType);
+
+        // Tạo danh sách round names theo thứ tự
+        const expectedRoundNames = Array.from(
+          { length: roundsCount },
+          (_, idx) => getRoundNameByIndex(idx, campaignType)
+        );
+
+        // Tìm rounds liên quan
+        let relatedRounds = [];
+
+        if (round.campaignRoundId) {
+          // Trường hợp có campaignRoundId (edit): Tìm rounds theo campaignRoundId
+          relatedRounds = roundsData.filter(
+            (r) => r.campaignRoundId === round.campaignRoundId
+          );
+        } else {
+          // Trường hợp chưa có campaignRoundId (tạo mới):
+          // Tìm rounds trong roundsData dựa trên index của round trong formData.rounds
+          // Sử dụng index để nhóm rounds (giả sử rounds được tạo theo thứ tự)
+          const startIdx = roundIndex * roundsCount;
+          const endIdx = startIdx + roundsCount;
+
+          // Lấy rounds từ roundsData theo index và filter theo roundName
+          relatedRounds = roundsData
+            .slice(startIdx, endIdx)
+            .filter((r) => expectedRoundNames.includes(r.roundName));
+        }
+
+        // Sắp xếp theo thứ tự roundName để đảm bảo đúng thứ tự
+        roundDates = expectedRoundNames
+          .map((roundName) => {
+            const foundRound = relatedRounds.find(
+              (r) => r.roundName === roundName
+            );
+            if (foundRound && foundRound.startDate && foundRound.endDate) {
+              return {
+                startDate: foundRound.startDate,
+                endDate: foundRound.endDate,
+              };
+            }
+            return null;
+          })
+          .filter((item) => item !== null);
+
+        return {
+          roundName: round.roundName || "",
+          description: round.description || "",
+          targetQuantity: parseInt(round.targetQuantity, 10) || 0,
+          roundStartDate: round.roundStartDate
+            ? `${round.roundStartDate}T00:00:00Z`
+            : null,
+          roundEndDate: round.roundEndDate
+            ? `${round.roundEndDate}T23:59:59Z`
+            : null,
+          roundDates: roundDates.length > 0 ? roundDates : [],
+        };
+      })
+      .filter((round) => round !== null); // Loại bỏ rounds null (có error)
   };
 
   const validateRoundTargets = () => {
@@ -331,54 +781,54 @@ const SeniorCreateCampaignPage = () => {
       return false;
     }
 
-    // Round 1 must be 60-70% of campaign target
-    const firstTarget = parseInt(rounds[0].targetQuantity, 10) || 0;
-    if (
-      firstTarget < campaignTarget * 0.6 ||
-      firstTarget > campaignTarget * 0.7
-    ) {
-      toast.error(
-        "Đợt 1 phải có chỉ tiêu 60% - 70% tổng chỉ tiêu của campaign."
-      );
-      return false;
-    }
+    // // Round 1 must be 60-70% of campaign target
+    // const firstTarget = parseInt(rounds[0].targetQuantity, 10) || 0;
+    // if (
+    //   firstTarget < campaignTarget * 0.6 ||
+    //   firstTarget > campaignTarget * 0.7
+    // ) {
+    //   toast.error(
+    //     "Đợt 1 phải có chỉ tiêu 60% - 70% tổng chỉ tiêu của campaign."
+    //   );
+    //   return false;
+    // }
 
-    // Remaining target after round 1
-    let remaining = campaignTarget - firstTarget;
+    // // Remaining target after round 1
+    // let remaining = campaignTarget - firstTarget;
 
-    // Middle rounds (excluding first and last if there are >=2 rounds)
-    if (rounds.length > 2) {
-      for (let i = 1; i < rounds.length - 1; i += 1) {
-        const roundTarget = parseInt(rounds[i].targetQuantity, 10) || 0;
-        if (roundTarget < remaining * 0.6 || roundTarget > remaining * 0.7) {
-          toast.error(
-            `Đợt ${
-              i + 1
-            } phải có chỉ tiêu 60% - 70% của số lượng còn lại sau các đợt trước.`
-          );
-          return false;
-        }
-        remaining -= roundTarget;
-      }
-    }
+    // // Middle rounds (excluding first and last if there are >=2 rounds)
+    // if (rounds.length > 2) {
+    //   for (let i = 1; i < rounds.length - 1; i += 1) {
+    //     const roundTarget = parseInt(rounds[i].targetQuantity, 10) || 0;
+    //     if (roundTarget < remaining * 0.6 || roundTarget > remaining * 0.7) {
+    //       toast.error(
+    //         `Đợt ${
+    //           i + 1
+    //         } phải có chỉ tiêu 60% - 70% của số lượng còn lại sau các đợt trước.`
+    //       );
+    //       return false;
+    //     }
+    //     remaining -= roundTarget;
+    //   }
+    // }
 
-    // Last round must be >=80% of remaining
-    if (rounds.length > 1) {
-      const lastTarget =
-        parseInt(rounds[rounds.length - 1].targetQuantity, 10) || 0;
-      if (lastTarget < remaining * 0.8) {
-        toast.error(
-          "Đợt cuối phải có chỉ tiêu tối thiểu 80% số lượng còn lại."
-        );
-        return false;
-      }
-    } else {
-      // If only one round, remaining was campaignTarget - firstTarget; ensure nothing left
-      if (remaining > 0) {
-        toast.error("Tổng chỉ tiêu các đợt chưa đạt 100% campaign target.");
-        return false;
-      }
-    }
+    // // Last round must be >=80% of remaining
+    // if (rounds.length > 1) {
+    //   const lastTarget =
+    //     parseInt(rounds[rounds.length - 1].targetQuantity, 10) || 0;
+    //   if (lastTarget < remaining * 0.8) {
+    //     toast.error(
+    //       "Đợt cuối phải có chỉ tiêu tối thiểu 80% số lượng còn lại."
+    //     );
+    //     return false;
+    //   }
+    // } else {
+    //   // If only one round, remaining was campaignTarget - firstTarget; ensure nothing left
+    //   if (remaining > 0) {
+    //     toast.error("Tổng chỉ tiêu các đợt chưa đạt 100% campaign target.");
+    //     return false;
+    //   }
+    // }
 
     return true;
   };
@@ -400,12 +850,24 @@ const SeniorCreateCampaignPage = () => {
     setIsSubmitting(true);
 
     try {
+      // Map rounds và kiểm tra có rounds hợp lệ không
+      const validRounds = mapRoundsToPayload();
+
+      // Nếu không có rounds hợp lệ, không gửi request
+      if (validRounds.length === 0) {
+        toast.error(
+          "Không có đợt tuyển hợp lệ để lưu. Vui lòng kiểm tra lại thông tin."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
         startDate: formData.startDate
           ? `${formData.startDate}T00:00:00Z`
           : null,
         endDate: formData.endDate ? `${formData.endDate}T23:59:59Z` : null,
-        rounds: mapRoundsToPayload(),
+        rounds: validRounds,
       };
 
       const response = await updateCampaignAndCreateRounds(campaignId, payload);
@@ -416,14 +878,17 @@ const SeniorCreateCampaignPage = () => {
         toast.success(response.message || "Cập nhật campaign thành công!");
 
         setTimeout(() => {
-          navigate(`/senior-recruiter/campaigns/${campaignId}/create-round`);
+          navigate(`/senior-recruiter/campaigns`);
         }, 2000);
       } else {
+        // Nếu API trả về error, không lưu rounds
         toast.error(response.error || "Cập nhật campaign thất bại");
+        console.error("API Error - Rounds were not saved:", response);
       }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      toast.error("Có lỗi xảy ra khi tạo campaign");
+      toast.error("Có lỗi xảy ra khi tạo campaign. Rounds không được lưu.");
+      // Không lưu rounds khi có exception
     } finally {
       setIsSubmitting(false);
     }
@@ -645,7 +1110,7 @@ const SeniorCreateCampaignPage = () => {
                   {formData.rounds.map((round, index) => (
                     <div
                       key={index}
-                      className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
+                      className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200 pb-10"
                     >
                       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
                         <div className="flex items-center gap-3">
@@ -816,6 +1281,309 @@ const SeniorCreateCampaignPage = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Hiển thị rounds của đợt này */}
+                      {(() => {
+                        // Lấy campaignType từ campaignDetail
+                        const campaignType =
+                          campaignDetail?.campaignType || "Recruitment";
+
+                        // Lấy số lượng rounds dựa trên campaignType
+                        const roundsCount =
+                          getRoundsCountByCampaignType(campaignType);
+
+                        // Tạo danh sách round names theo thứ tự
+                        const expectedRoundNames = Array.from(
+                          { length: roundsCount },
+                          (_, idx) => getRoundNameByIndex(idx, campaignType)
+                        );
+
+                        // Tìm rounds liên quan từ roundsData
+                        let relatedRounds = [];
+
+                        if (round.campaignRoundId) {
+                          // Trường hợp có campaignRoundId (edit): Tìm rounds theo campaignRoundId
+                          relatedRounds = roundsData.filter(
+                            (r) => r.campaignRoundId === round.campaignRoundId
+                          );
+                        } else {
+                          // Trường hợp chưa có campaignRoundId (tạo mới):
+                          // Tìm rounds trong roundsData dựa trên index của round trong formData.rounds
+                          const startIdx = index * roundsCount;
+                          const endIdx = startIdx + roundsCount;
+
+                          // Lấy rounds từ roundsData theo index và filter theo roundName
+                          relatedRounds = roundsData
+                            .slice(startIdx, endIdx)
+                            .filter((r) =>
+                              expectedRoundNames.includes(r.roundName)
+                            );
+                        }
+
+                        // Tạo mảng rounds dựa trên campaignType và dữ liệu từ roundsData
+                        const defaultRounds = expectedRoundNames.map(
+                          (roundName, roundIdx) => {
+                            const foundRound = relatedRounds.find(
+                              (r) => r.roundName === roundName
+                            );
+
+                            // Round đầu tiên: tự động điền startDate từ round.roundStartDate nếu chưa có
+                            let startDate = foundRound?.startDate || "";
+                            if (
+                              roundIdx === 0 &&
+                              !startDate &&
+                              round.roundStartDate
+                            ) {
+                              startDate = round.roundStartDate;
+                            }
+
+                            // Round cuối cùng: tự động điền endDate từ round.roundEndDate nếu chưa có
+                            let endDate = foundRound?.endDate || "";
+                            if (
+                              roundIdx === expectedRoundNames.length - 1 &&
+                              !endDate &&
+                              round.roundEndDate
+                            ) {
+                              endDate = round.roundEndDate;
+                            }
+
+                            return {
+                              roundId: foundRound?.roundId || null,
+                              roundName: roundName,
+                              campaignRoundId: round.campaignRoundId,
+                              startDate: startDate,
+                              endDate: endDate,
+                            };
+                          }
+                        );
+
+                        // Min date = roundStartDate của đợt (startDate của round đầu tiên phải khớp với đây)
+                        const minDate = round.roundStartDate || undefined;
+
+                        // Max date = roundEndDate của đợt (endDate của round cuối cùng phải khớp với đây)
+                        const maxDate = round.roundEndDate || undefined;
+
+                        return (
+                          <div className="mt-4 space-y-4">
+                            {defaultRounds.map((dotRound, roundIndex) => {
+                              // Tính min date cho startDate của round này
+                              // Round đầu tiên: min = roundStartDate của đợt
+                              // Round tiếp theo: min = endDate của round trước (hoặc roundStartDate nếu chưa có)
+                              let startDateMin = minDate;
+                              if (roundIndex > 0) {
+                                const previousRound =
+                                  defaultRounds[roundIndex - 1];
+                                startDateMin =
+                                  previousRound.endDate || minDate || undefined;
+                              }
+
+                              return (
+                                <div
+                                  key={`${round.campaignRoundId}-${roundIndex}`}
+                                  className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200 mx-4"
+                                >
+                                  {/* Header của round - luôn hiển thị */}
+                                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-sm font-semibold text-slate-800">
+                                        {dotRound.roundName}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-4">
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                      <div>
+                                        <label className="block mb-1 text-sm font-medium text-slate-700">
+                                          Ngày bắt đầu
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={dotRound.startDate || ""}
+                                          min={startDateMin}
+                                          max={maxDate}
+                                          onChange={(e) => {
+                                            // Tìm hoặc tạo round trong roundsData
+                                            let existingRoundIdx = -1;
+
+                                            if (round.campaignRoundId) {
+                                              // Trường hợp có campaignRoundId: Tìm theo campaignRoundId và roundName
+                                              existingRoundIdx =
+                                                roundsData.findIndex(
+                                                  (r) =>
+                                                    r.campaignRoundId ===
+                                                      round.campaignRoundId &&
+                                                    r.roundName ===
+                                                      dotRound.roundName
+                                                );
+                                            } else {
+                                              // Trường hợp chưa có campaignRoundId: Tìm theo index và roundName
+                                              const startIdx =
+                                                index * roundsCount;
+                                              const endIdx =
+                                                startIdx + roundsCount;
+
+                                              const roundsInRange =
+                                                roundsData.slice(
+                                                  startIdx,
+                                                  endIdx
+                                                );
+
+                                              existingRoundIdx =
+                                                roundsInRange.findIndex(
+                                                  (r) =>
+                                                    r.roundName ===
+                                                    dotRound.roundName
+                                                );
+
+                                              // Nếu tìm thấy, cần điều chỉnh index về index trong roundsData
+                                              if (existingRoundIdx !== -1) {
+                                                existingRoundIdx += startIdx;
+                                              }
+                                            }
+
+                                            const updatedRounds = [
+                                              ...roundsData,
+                                            ];
+
+                                            if (existingRoundIdx !== -1) {
+                                              // Cập nhật round đã tồn tại
+                                              updatedRounds[existingRoundIdx] =
+                                                {
+                                                  ...updatedRounds[
+                                                    existingRoundIdx
+                                                  ],
+                                                  startDate: e.target.value,
+                                                };
+                                              // Đảm bảo endDate >= startDate
+                                              if (
+                                                updatedRounds[existingRoundIdx]
+                                                  .endDate &&
+                                                updatedRounds[existingRoundIdx]
+                                                  .endDate < e.target.value
+                                              ) {
+                                                updatedRounds[
+                                                  existingRoundIdx
+                                                ].endDate = e.target.value;
+                                              }
+                                            } else {
+                                              // Tạo round mới
+                                              updatedRounds.push({
+                                                roundId: null,
+                                                roundName: dotRound.roundName,
+                                                campaignRoundId:
+                                                  round.campaignRoundId,
+                                                startDate: e.target.value,
+                                                endDate: dotRound.endDate || "",
+                                              });
+                                            }
+                                            setRoundsData(updatedRounds);
+                                          }}
+                                          className="w-full px-2 py-1 text-xs border rounded border-slate-300"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block mb-1 text-sm font-medium text-slate-700">
+                                          Ngày kết thúc
+                                        </label>
+                                        <input
+                                          type="date"
+                                          value={dotRound.endDate || ""}
+                                          min={
+                                            dotRound.startDate ||
+                                            startDateMin ||
+                                            undefined
+                                          }
+                                          max={maxDate || undefined}
+                                          onChange={(e) => {
+                                            // Tìm hoặc tạo round trong roundsData
+                                            let existingRoundIdx = -1;
+
+                                            if (round.campaignRoundId) {
+                                              // Trường hợp có campaignRoundId: Tìm theo campaignRoundId và roundName
+                                              existingRoundIdx =
+                                                roundsData.findIndex(
+                                                  (r) =>
+                                                    r.campaignRoundId ===
+                                                      round.campaignRoundId &&
+                                                    r.roundName ===
+                                                      dotRound.roundName
+                                                );
+                                            } else {
+                                              // Trường hợp chưa có campaignRoundId: Tìm theo index và roundName
+                                              const startIdx =
+                                                index * roundsCount;
+                                              const endIdx =
+                                                startIdx + roundsCount;
+
+                                              const roundsInRange =
+                                                roundsData.slice(
+                                                  startIdx,
+                                                  endIdx
+                                                );
+
+                                              existingRoundIdx =
+                                                roundsInRange.findIndex(
+                                                  (r) =>
+                                                    r.roundName ===
+                                                    dotRound.roundName
+                                                );
+
+                                              // Nếu tìm thấy, cần điều chỉnh index về index trong roundsData
+                                              if (existingRoundIdx !== -1) {
+                                                existingRoundIdx += startIdx;
+                                              }
+                                            }
+
+                                            const updatedRounds = [
+                                              ...roundsData,
+                                            ];
+
+                                            if (existingRoundIdx !== -1) {
+                                              // Cập nhật round đã tồn tại
+                                              updatedRounds[existingRoundIdx] =
+                                                {
+                                                  ...updatedRounds[
+                                                    existingRoundIdx
+                                                  ],
+                                                  endDate: e.target.value,
+                                                };
+                                              // Đảm bảo startDate <= endDate
+                                              if (
+                                                updatedRounds[existingRoundIdx]
+                                                  .startDate &&
+                                                updatedRounds[existingRoundIdx]
+                                                  .startDate > e.target.value
+                                              ) {
+                                                updatedRounds[
+                                                  existingRoundIdx
+                                                ].startDate = e.target.value;
+                                              }
+                                            } else {
+                                              // Tạo round mới
+                                              updatedRounds.push({
+                                                roundId: null,
+                                                roundName: dotRound.roundName,
+                                                campaignRoundId:
+                                                  round.campaignRoundId,
+                                                startDate:
+                                                  dotRound.startDate || "",
+                                                endDate: e.target.value,
+                                              });
+                                            }
+                                            setRoundsData(updatedRounds);
+                                          }}
+                                          className="w-full px-2 py-1 text-xs border rounded border-slate-300"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
