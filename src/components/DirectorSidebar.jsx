@@ -23,26 +23,6 @@ const FolderIcon = ({ className = "" }) => (
   </svg>
 );
 
-const MicIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <rect x="9" y="2" width="6" height="12" rx="3" />
-    <path d="M5 11a7 7 0 0014 0" />
-    <path d="M12 19v3" />
-  </svg>
-);
-
-const StarIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M11.48 3.5a1 1 0 011.04 0l3.12 1.87 3.54.52a1 1 0 01.55 1.7l-2.56 2.5.6 3.5a1 1 0 01-1.45 1.06L12 13.9 8.68 15.7a1 1 0 01-1.45-1.06l.6-3.5L5.27 7.6a1 1 0 01.55-1.7l3.54-.52 3.12-1.87z" />
-  </svg>
-);
-
 const CampaignIcon = ({ className = "" }) => (
   <svg
     viewBox="0 0 24 24"
@@ -91,8 +71,6 @@ const navItems = [
     icon: RequirementsIcon,
   },
   { to: "/director/campaigns", key: "sidebar_campaign", icon: CampaignIcon },
-  { to: "/interviews", key: "sidebar_interviews", icon: MicIcon },
-  { to: "/scoring", key: "sidebar_evaluation", icon: StarIcon },
 ];
 
 const DirectorSidebar = ({ username = "Nguyễn Văn A" }) => {
@@ -157,10 +135,9 @@ const DirectorSidebar = ({ username = "Nguyễn Văn A" }) => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${
-                isActive
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
+              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${isActive
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`
             }
           >

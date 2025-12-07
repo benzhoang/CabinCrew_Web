@@ -20,7 +20,6 @@ const ApplicationForm = () => {
         dateOfBirth: '',
         gender: '',
         mobileNumber: '',
-        workingExperience: '',
         height: '',
         weight: '',
         termsAccepted: '',
@@ -356,7 +355,7 @@ const ApplicationForm = () => {
 
         // Validate required fields
         if (!formData.email || !formData.fullName || !formData.dateOfBirth ||
-            !formData.gender || !formData.mobileNumber || !formData.workingExperience ||
+            !formData.gender || !formData.mobileNumber ||
             !formData.height || !formData.weight ||
             formData.termsAccepted !== 'yes') {
             alert('Vui lòng điền đầy đủ thông tin bắt buộc')
@@ -381,14 +380,6 @@ const ApplicationForm = () => {
         setIsSubmitting(true)
 
         try {
-            // Map workingExperience từ form sang format API
-            const experienceMap = {
-                'no-experience': 'No experience',
-                'less-than-1-year': 'Less than 1 year',
-                '1-2-years': '1-2 years',
-                '3-5-years': '3-5 years'
-            }
-
             // Chuẩn bị dữ liệu để gửi API
             const applicationData = {
                 // Thông tin cá nhân
@@ -398,7 +389,6 @@ const ApplicationForm = () => {
                 dateOfBirth: formData.dateOfBirth,
                 gender: formData.gender,
                 // Thông tin hồ sơ
-                experience: experienceMap[formData.workingExperience] || formData.workingExperience,
                 height: formData.height,
                 weight: formData.weight,
                 campaignRoundId: campaignRoundId,
@@ -436,14 +426,6 @@ const ApplicationForm = () => {
         setIsSavingDraft(true)
 
         try {
-            // Map workingExperience từ form sang format API
-            const experienceMap = {
-                'no-experience': 'No experience',
-                'less-than-1-year': 'Less than 1 year',
-                '1-2-years': '1-2 years',
-                '3-5-years': '3-5 years'
-            }
-
             // Lấy campaignRoundId
             const campaignRoundId = getCampaignRoundId()
 
@@ -456,7 +438,6 @@ const ApplicationForm = () => {
                 dateOfBirth: formData.dateOfBirth || '',
                 gender: formData.gender || '',
                 // Thông tin hồ sơ
-                experience: experienceMap[formData.workingExperience] || formData.workingExperience || '',
                 height: formData.height || '',
                 weight: formData.weight || '',
                 campaignRoundId: campaignRoundId || '',

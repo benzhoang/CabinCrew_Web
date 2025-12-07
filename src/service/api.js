@@ -2894,9 +2894,6 @@ export const saveApplicationDraft = async (draftData) => {
     if (draftData.gender !== undefined && draftData.gender !== null && draftData.gender !== "") {
       formData.append("Gender", parseInt(draftData.gender));
     }
-    if (draftData.experience) {
-      formData.append("Experience", draftData.experience);
-    }
     if (draftData.height !== undefined && draftData.height !== "") {
       formData.append("Height", parseInt(draftData.height));
     }
@@ -3019,9 +3016,6 @@ export const submitApplication = async (applicationData) => {
       applicationData.gender !== ""
     ) {
       formData.append("Gender", parseInt(applicationData.gender));
-    }
-    if (applicationData.experience) {
-      formData.append("Experience", applicationData.experience);
     }
     if (applicationData.height !== undefined && applicationData.height !== "") {
       formData.append("Height", parseInt(applicationData.height));
@@ -3308,10 +3302,214 @@ export const submitExistingApplication = async (
   }
 };
 
+// API export Flight Hours Confirmation Excel file cho một round
+// GET /api/v1/flight-experiences/export/{roundId}
+export const exportFlightHoursConfirmation = async (roundId) => {
+  if (!roundId) {
+    return {
+      success: false,
+      error: "Thiếu roundId để export",
+    };
+  }
+
+  try {
+    const response = await api.get(`/flight-experiences/export/${roundId}`, {
+      responseType: "blob",
+    });
+
+    // Kiểm tra content-type để xem có phải là error JSON không
+    const contentType = response.headers["content-type"] || '';
+
+    // Kiểm tra nếu response là lỗi (thường là JSON error trong blob)
+    if (contentType.includes('application/json')) {
+      // Nếu là JSON error, đọc nội dung
+      const text = await response.data.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(text);
+      } catch (e) {
+        errorData = { message: text };
+      }
+      return {
+        success: false,
+        error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+        status: response.status,
+      };
+    }
+
+    // Kiểm tra size của blob (nếu quá nhỏ có thể là lỗi)
+    if (response.data.size < 100) {
+      // Clone blob để đọc mà không làm hỏng original
+      const clonedBlob = response.data.slice();
+      const text = await clonedBlob.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(text);
+      } catch (e) {
+        errorData = { message: text || "File quá nhỏ, có thể là lỗi" };
+      }
+      return {
+        success: false,
+        error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+        status: response.status,
+      };
+    }
+
+    const blob = new Blob([response.data], {
+      type:
+        response.headers["content-type"] ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Lấy filename từ header nếu có, nếu không dùng tên mặc định
+    const disposition = response.headers["content-disposition"];
+    let filename = `FlightHoursConfirmation_${roundId}.xlsx`;
+    if (disposition) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+      }
+    }
+
+    // Tạo link để download file
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    return {
+      success: true,
+      message: "Export file Excel thành công",
+      filename: filename,
+    };
+  } catch (error) {
+    console.error("Lỗi khi export Flight Hours Confirmation:", error);
+
+    // Nếu error response có data là blob, cố gắng đọc nó
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(text);
+        } catch (e) {
+          errorData = { message: text };
+        }
+        return {
+          success: false,
+          error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+          status: error.response?.status,
+        };
+      } catch (e) {
+        // Nếu không đọc được, dùng error message mặc định
+      }
+    }
+
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể export file Excel",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API import Flight Hours Confirmation results từ Excel file
+// POST /api/v1/flight-experiences/import/{roundId}
+export const importFlightHoursConfirmation = async (roundId, file) => {
+  if (!roundId) {
+    return {
+      success: false,
+      error: "Thiếu roundId để import",
+    };
+  }
+
+  if (!file) {
+    return {
+      success: false,
+      error: "Thiếu file để import",
+    };
+  }
+
+  try {
+    // Tạo FormData để gửi file
+    const formData = new FormData();
+    formData.append("file", file);
+    // roundId là path parameter, không cần append vào FormData
+
+    // Tạo axios instance riêng cho upload file (cần Content-Type: multipart/form-data)
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${API_BASE_URL}/flight-experiences/import/${roundId}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const responseData = response.data || {};
+
+    const isBusinessSuccess =
+      responseData.code === 0 ||
+      responseData.code === 4 ||
+      responseData.errorCode === 0 ||
+      responseData.status?.toLowerCase() === "success" ||
+      isHttpSuccess;
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          `Import thành công. Đã xử lý ${responseData.data?.totalProcessed || 0} ứng viên.`,
+        totalProcessed: responseData.data?.totalProcessed || 0,
+        passedCount: responseData.data?.passedCount || 0,
+        failedCount: responseData.data?.failedCount || 0,
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          responseData.errorMessage ||
+          responseData.message ||
+          "Không thể import file Excel",
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    console.error("Lỗi khi import Flight Hours Confirmation:", error);
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Không thể import file Excel";
+
+    return {
+      success: false,
+      error: errorMessage,
+      status: error.response?.status,
+    };
+  }
+};
+
 // API cập nhật flight experience (totalFlightHours và experience)
-// PUT /api/v1/flight-experience/{applicationSnapshotId}
-export const updateFlightExperience = async (applicationSnapshotId, payload) => {
-  if (!applicationSnapshotId) {
+// PUT /api/v1/flight-experiences/{activityId}
+export const updateFlightExperience = async (activityId, payload) => {
+  if (!activityId) {
     return {
       success: false,
       error: "Thiếu mã hồ sơ để cập nhật",
@@ -3320,14 +3518,14 @@ export const updateFlightExperience = async (applicationSnapshotId, payload) => 
 
   try {
     const requestBody = {
-      totalFlightHours: payload.totalFlightHours !== undefined && payload.totalFlightHours !== null 
-        ? parseInt(payload.totalFlightHours, 10) 
+      totalFlightHours: payload.totalFlightHours !== undefined && payload.totalFlightHours !== null
+        ? parseInt(payload.totalFlightHours, 10)
         : 0,
       experience: payload.experience || null
     };
 
     const response = await api.put(
-      `/flight-experience/${applicationSnapshotId}`,
+      `/flight-experiences/${activityId}`,
       requestBody
     );
 

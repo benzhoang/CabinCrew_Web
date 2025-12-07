@@ -172,12 +172,6 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                     >
                         Xem chi tiết
                     </button>
-                    <button
-                        className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700"
-                        onClick={() => onDelete(campaign.id)}
-                    >
-                        Xóa
-                    </button>
                 </div>
             </div>
 

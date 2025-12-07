@@ -43,42 +43,42 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants }) => {
 
         {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
-          <div className="pt-3 border-t border-slate-100">
-            <button
-              onClick={() => setOpenStats(!openStats)}
-              className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
-            >
-              <span>Thống kê ứng viên</span>
-              <span>{openStats ? "▲" : "▼"}</span>
-            </button>
-            {openStats && (
-              <div className="mt-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {batch.totalApplicants !== undefined && (
-                    <div className="p-3 rounded-lg bg-blue-50">
-                      <div className="mb-1 text-xs text-blue-600">
-                        Lượt quan tâm
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                onClick={() => setOpenStats(!openStats)}
+                className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
+              >
+                <span>Thống kê ứng viên</span>
+                <span>{openStats ? "▲" : "▼"}</span>
+              </button>
+              {openStats && (
+                <div className="mt-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {batch.totalApplicants !== undefined && (
+                      <div className="p-3 rounded-lg bg-blue-50">
+                        <div className="mb-1 text-xs text-blue-600">
+                          Lượt quan tâm
+                        </div>
+                        <div className="text-lg font-bold text-blue-700">
+                          {batch.totalApplicants}
+                        </div>
                       </div>
-                      <div className="text-lg font-bold text-blue-700">
-                        {batch.totalApplicants}
+                    )}
+                    {batch.appliedCandidates !== undefined && (
+                      <div className="p-3 rounded-lg bg-green-50">
+                        <div className="mb-1 text-xs text-green-600">
+                          Đã ứng tuyển
+                        </div>
+                        <div className="text-lg font-bold text-green-700">
+                          {batch.appliedCandidates}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {batch.appliedCandidates !== undefined && (
-                    <div className="p-3 rounded-lg bg-green-50">
-                      <div className="mb-1 text-xs text-green-600">
-                        Đã ứng tuyển
-                      </div>
-                      <div className="text-lg font-bold text-green-700">
-                        {batch.appliedCandidates}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
         {batch.target !== undefined && (
           <div className="pt-3 border-t border-slate-100">
@@ -99,11 +99,10 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
                 ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
                 : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+              }`}
             title={
               isUpcoming
                 ? "Chưa thể xem danh sách ứng viên vì đợt chưa bắt đầu"
@@ -197,12 +196,12 @@ const BatchInfo = ({ campaign }) => {
   };
 
   const handleViewCandidates = (batch) => {
-    const campaignId = campaign?.campaignId || campaign?.id;
-    if (!campaignId) return;
+    const campaignRoundId = batch?.campaignRoundId || batch?.id;
+    if (!campaignRoundId) return;
 
-    navigate(`/airline-partner/campaigns/${campaignId}/candidate`, {
+    navigate(`/airline-partner/campaigns/${campaignRoundId}/candidate`, {
       state: {
-        campaignId,
+        campaignRoundId,
         roundName: batch.name,
         round: batch,
         campaign,
