@@ -5,6 +5,7 @@ import {
   approveOrRejectCampaignRequest,
 } from "../../../service/api";
 import RejectRequestModal from "./RejectRequestModal";
+import { toast } from "react-toastify";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -249,7 +250,7 @@ const RequestCampInfo = () => {
                     2
                   );
                   if (result.success) {
-                    alert(result.message || "Duyệt yêu cầu thành công");
+                    toast.success(result.message || "Duyệt yêu cầu thành công");
                     // Reload dữ liệu để cập nhật trạng thái
                     const refreshResult = await getCampaignRequestById(data.id);
                     if (refreshResult.success) {
@@ -261,11 +262,11 @@ const RequestCampInfo = () => {
                       });
                     }
                   } else {
-                    alert(result.error || "Không thể duyệt yêu cầu");
+                    toast.error(result.error || "Không thể duyệt yêu cầu");
                   }
                 } catch (err) {
                   console.error("Error approving request:", err);
-                  alert("Đã xảy ra lỗi khi duyệt yêu cầu");
+                  toast.error("Đã xảy ra lỗi khi duyệt yêu cầu");
                 } finally {
                   setIsApproving(false);
                 }
@@ -320,7 +321,7 @@ const RequestCampInfo = () => {
               reason
             );
             if (result.success) {
-              alert(result.message || "Từ chối yêu cầu thành công");
+              toast.success(result.message || "Từ chối yêu cầu thành công");
               setIsRejectModalOpen(false);
               // Reload dữ liệu để cập nhật trạng thái
               const refreshResult = await getCampaignRequestById(data.id);
@@ -334,11 +335,11 @@ const RequestCampInfo = () => {
                 });
               }
             } else {
-              alert(result.error || "Không thể từ chối yêu cầu");
+              toast.error(result.error || "Không thể từ chối yêu cầu");
             }
           } catch (err) {
             console.error("Error rejecting request:", err);
-            alert("Đã xảy ra lỗi khi từ chối yêu cầu");
+            toast.error("Đã xảy ra lỗi khi từ chối yêu cầu");
           } finally {
             setIsRejecting(false);
           }
