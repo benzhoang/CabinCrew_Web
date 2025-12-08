@@ -287,7 +287,13 @@ const PromotionStagesPage = () => {
             </p>
           </div>
           <div className="p-6">
-            {loading && <Loading message="Đang tải dữ liệu..." />}
+            {loading && (
+              <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
+                <div className="py-8 text-center text-gray-600">
+                  Đang tải dữ liệu...
+                </div>
+              </div>
+            )}
 
             {error && !loading && (
               <div className="py-12 text-center">
@@ -416,8 +422,7 @@ const PromotionStagesPage = () => {
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                        Ngày đăng ký:{" "}
-                        {application.participatedDate}
+                        Ngày đăng ký: {application.participatedDate}
                       </div>
                     </div>
                   </div>
@@ -429,11 +434,12 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 0
-                              ? `${(application.stages.filter((s) => s.completed)
-                                .length /
-                                application.stages.length) *
-                              100
-                              }%`
+                              ? `${
+                                  (application.stages.filter((s) => s.completed)
+                                    .length /
+                                    application.stages.length) *
+                                  100
+                                }%`
                               : "0%",
                         }}
                       ></div>
@@ -471,7 +477,9 @@ const PromotionStagesPage = () => {
                             {stage.name === "Screening" && stage.activityId && (
                               <button
                                 onClick={() =>
-                                  navigate(`/cabin-crew/profile/${stage.activityId}`)
+                                  navigate(
+                                    `/cabin-crew/profile/${stage.activityId}`
+                                  )
                                 }
                                 className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
                               >
@@ -489,18 +497,18 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Trạng thái hiện tại:</strong>{" "}
                         {application.stages.length > 0 &&
-                          application.currentStage > 0 &&
-                          application.currentStage <= application.stages.length
+                        application.currentStage > 0 &&
+                        application.currentStage <= application.stages.length
                           ? (() => {
-                            const currentStageData =
-                              application.stages[
-                              application.currentStage - 1
-                              ];
-                            if (currentStageData?.completed) {
-                              return `Hoàn thành ${currentStageData.name}`;
-                            }
-                            return `Đang trong giai đoạn ${currentStageData.name}`;
-                          })()
+                              const currentStageData =
+                                application.stages[
+                                  application.currentStage - 1
+                                ];
+                              if (currentStageData?.completed) {
+                                return `Hoàn thành ${currentStageData.name}`;
+                              }
+                              return `Đang trong giai đoạn ${currentStageData.name}`;
+                            })()
                           : "Đang chờ xử lý"}
                       </p>
 
@@ -511,11 +519,17 @@ const PromotionStagesPage = () => {
                         const isFlightHoursStage = currentStageData?.name
                           ?.toLowerCase()
                           .includes("flight hours");
-                        if (isFlightHoursStage && !currentStageData?.completed && currentStageData?.activityId) {
+                        if (
+                          isFlightHoursStage &&
+                          !currentStageData?.completed &&
+                          currentStageData?.activityId
+                        ) {
                           return (
                             <button
                               onClick={() =>
-                                navigate(`/cabin-crew/profile/${currentStageData.activityId}`)
+                                navigate(
+                                  `/cabin-crew/profile/${currentStageData.activityId}`
+                                )
                               }
                               className="inline-flex items-center px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >

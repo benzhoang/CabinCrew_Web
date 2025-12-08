@@ -62,8 +62,8 @@ const RequestTypeBadge = ({ type }) => {
     normalizedType === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : normalizedType === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -131,7 +131,8 @@ const CampaignCard = ({ request }) => {
 const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -143,9 +144,12 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   });
 
   // Fetch data from API
-  const fetchRequests = async (page = 1) => {
+  const fetchRequests = async (page = 1, showLoading = false) => {
     try {
-      setLoading(true);
+      // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
+      if (showLoading || isInitialLoad) {
+        setLoading(true);
+      }
       setError(null);
 
       // Map campaignTypeFilter to API format
@@ -196,14 +200,26 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       setError(err.message || "Lỗi khi tải danh sách yêu cầu");
       setRequests([]);
     } finally {
-      setLoading(false);
+      if (showLoading || isInitialLoad) {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
     }
   };
 
+  // Initial load - chỉ chạy một lần khi component mount
   useEffect(() => {
-    // Reset to page 1 when search or filters change
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchRequests(1);
+    fetchRequests(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch lại khi filter thay đổi (không hiển thị loading)
+  useEffect(() => {
+    if (!isInitialLoad) {
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchRequests(1, false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, campaignTypeFilter, selectedStatus]);
 
@@ -215,7 +231,8 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     if (page > pagination.currentPage && !pagination.hasNextPage) return;
     if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
 
-    fetchRequests(page);
+    // Không hiển thị loading khi đổi trang
+    fetchRequests(page, false);
   };
 
   // Normalize status function giống Director
@@ -299,7 +316,16 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   });
 
   if (loading) {
-    return <Loading message="Đang tải dữ liệu..." />;
+    return (
+      <div className="flex flex-col gap-5">
+        <h2 className="mb-6 text-xl font-bold text-gray-800">
+          Danh sách yêu cầu
+        </h2>
+        <div className="py-12 text-center">
+          <p className="text-slate-500">Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -320,40 +346,44 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("all")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "all"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "all"
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            }`}
           >
             Tất cả
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Approved"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "Approved"
                 ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            }`}
           >
             Đã được duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Pending"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "Pending"
                 ? "bg-yellow-600 text-white border-yellow-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            }`}
           >
             Đang chờ duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Rejected"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "Rejected"
                 ? "bg-red-600 text-white border-red-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            }`}
           >
             Bị từ chối
           </button>
@@ -391,10 +421,11 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasPreviousPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              }`}
             >
               Trước
             </button>
@@ -407,10 +438,11 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasNextPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              }`}
             >
               Sau
             </button>

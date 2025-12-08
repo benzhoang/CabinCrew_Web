@@ -114,12 +114,14 @@ const PromotionPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    pageSize: 4,
+    pageSize: 1000, // Tăng pageSize để fetch tất cả campaigns ngay từ đầu
     totalRecords: 0,
     totalPages: 0,
     hasNextPage: false,
     hasPreviousPage: false,
   });
+  const [displayPage, setDisplayPage] = useState(1); // Trang hiển thị hiện tại
+  const displayPageSize = 4; // Số campaigns hiển thị mỗi trang
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -157,35 +159,30 @@ const PromotionPage = () => {
         // Gọi API mới từ api2.js
         const response = await getCampaignList(params);
 
-        if (
-          response.success &&
-          response.data &&
-          Array.isArray(response.data.items)
-        ) {
-          const normalized = response.data.items
+        if (response.success && response.data && Array.isArray(response.data)) {
+          const normalized = response.data
             .map(transformCampaign)
             .filter(Boolean);
           setCampaigns(normalized);
 
-          // Lấy thông tin phân trang từ response.data.pagination hoặc response.data
-          const pageInfo = response.data.pagination || response.data;
-          if (pageInfo) {
+          // Lấy thông tin phân trang từ response.pagination
+          if (response.pagination) {
             setPagination((prev) => ({
               ...prev,
-              currentPage: pageInfo.currentPage || page,
-              pageSize: pageInfo.pageSize || prev.pageSize,
-              totalRecords: pageInfo.totalRecords || 0,
-              totalPages: pageInfo.totalPages || 0,
-              hasNextPage: pageInfo.hasNextPage || false,
-              hasPreviousPage: pageInfo.hasPreviousPage || false,
+              currentPage: response.pagination.currentPage || page,
+              pageSize: response.pagination.pageSize || prev.pageSize,
+              totalRecords: response.pagination.totalRecords || 0,
+              totalPages: response.pagination.totalPages || 0,
+              hasNextPage: response.pagination.hasNextPage || false,
+              hasPreviousPage: response.pagination.hasPreviousPage || false,
             }));
           }
         } else {
           setCampaigns([]);
           setError(
             response.error ||
-            response.message ||
-            "Không thể lấy danh sách chiến dịch nâng bậc"
+              response.message ||
+              "Không thể lấy danh sách chiến dịch nâng bậc"
           );
         }
       } catch (err) {
@@ -225,13 +222,20 @@ const PromotionPage = () => {
     [statusFilter, campaigns]
   );
 
-  const airlineOptions = [
-    "all",
-    "Vietnam Airlines",
-    "Vietjet",
-    "Bamboo Airways",
-    "Sun PhuQuoc Airways",
-  ];
+  // Lấy danh sách hãng hàng không duy nhất từ campaigns
+  const airlineOptions = useMemo(() => {
+    const airlines = new Set();
+    campaigns.forEach((c) => {
+      if (
+        c.airline &&
+        c.airline.trim() &&
+        c.airline !== "Đối tác chưa cập nhật"
+      ) {
+        airlines.add(c.airline.trim());
+      }
+    });
+    return ["all", ...Array.from(airlines).sort()];
+  }, [campaigns]);
 
   const filtered = useMemo(() => {
     let data = baseCampaigns;
@@ -243,6 +247,20 @@ const PromotionPage = () => {
     }
     return data;
   }, [baseCampaigns, airline]);
+
+  // Phân trang cho phần hiển thị
+  const paginatedCampaigns = useMemo(() => {
+    const startIndex = (displayPage - 1) * displayPageSize;
+    const endIndex = startIndex + displayPageSize;
+    return filtered.slice(startIndex, endIndex);
+  }, [filtered, displayPage, displayPageSize]);
+
+  const totalDisplayPages = Math.ceil(filtered.length / displayPageSize);
+
+  // Reset về trang 1 khi filter thay đổi
+  useEffect(() => {
+    setDisplayPage(1);
+  }, [airline, search]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -296,7 +314,7 @@ const PromotionPage = () => {
             </div>
           )}
           {!isLoading &&
-            filtered.map((c) => (
+            paginatedCampaigns.map((c) => (
               <div
                 key={c.id}
                 className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl"
@@ -315,10 +333,11 @@ const PromotionPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
-                        }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
+                        c.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                     >
                       {c.status === "active" ? "Đang diễn ra" : "Đã kết thúc"}
                     </span>
@@ -375,21 +394,23 @@ const PromotionPage = () => {
           </div>
         )}
 
-        {!isLoading && filtered.length > 0 && pagination.totalPages > 1 && (
+        {!isLoading && filtered.length > 0 && totalDisplayPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">
             <button
-              onClick={() => fetchCampaigns(pagination.currentPage - 1, search)}
-              disabled={!pagination.hasPreviousPage}
+              onClick={() => setDisplayPage((prev) => Math.max(1, prev - 1))}
+              disabled={displayPage === 1}
               className="px-4 py-2 border rounded-md border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
             >
               Trước
             </button>
             <span className="px-4 py-2 text-slate-700">
-              Trang {pagination.currentPage} / {pagination.totalPages}
+              Trang {displayPage} / {totalDisplayPages}
             </span>
             <button
-              onClick={() => fetchCampaigns(pagination.currentPage + 1, search)}
-              disabled={!pagination.hasNextPage}
+              onClick={() =>
+                setDisplayPage((prev) => Math.min(totalDisplayPages, prev + 1))
+              }
+              disabled={displayPage === totalDisplayPages}
               className="px-4 py-2 border rounded-md border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
             >
               Sau

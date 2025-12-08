@@ -218,14 +218,14 @@ const CreateTestPage = () => {
               <ul className="space-y-3 text-sm text-slate-600">
                 <li>
                   <span className="font-medium text-slate-800">
-                    English Test
+                    English Listening Test
                   </span>{" "}
                   yêu cầu bắt buộc upload audio; hệ thống sẽ kiểm tra khi gửi
                   form.
                 </li>
                 <li>
                   <span className="font-medium text-slate-800">
-                    Practical Test
+                    English Speaking Test và Practical Test
                   </span>{" "}
                   có thể bỏ qua file audio nếu không cần.
                 </li>
@@ -377,44 +377,46 @@ const CreateTestPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <label className="text-sm font-medium text-slate-700">
-                File audio
-              </label>
-              <div className="flex flex-col gap-4 p-6 text-center text-indigo-700 border border-indigo-300 border-dashed rounded-xl bg-indigo-50/60">
-                <FaCloudUploadAlt className="w-10 h-10 mx-auto" />
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold">
-                    Kéo thả file vào đây hoặc bấm chọn tệp
-                  </p>
-                  <p className="text-xs text-indigo-600/80">
-                    Hỗ trợ .mp3, .wav · Tối đa 50&nbsp;MB
-                  </p>
-                </div>
-                <label
-                  htmlFor="audioFile"
-                  className="inline-flex items-center gap-2 px-4 py-2 mx-auto text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-700"
-                >
-                  <FaFileUpload className="w-4 h-4" />
-                  Chọn tệp từ thiết bị
-                  <input
-                    id="audioFile"
-                    type="file"
-                    accept=".mp3,.wav"
-                    onChange={handleChange("audioFile")}
-                    className="hidden"
-                  />
+            {formData.testType !== "2" && formData.testType !== "3" && (
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-medium text-slate-700">
+                  File audio
                 </label>
-              </div>
-              {previewFile && (
-                <div className="p-4 text-sm bg-white border rounded-lg border-slate-200 text-slate-700">
-                  <p className="font-medium">{previewFile.name}</p>
-                  <p className="text-xs text-slate-500">
-                    {previewFile.type} · {previewFile.size} MB
-                  </p>
+                <div className="flex flex-col gap-4 p-6 text-center text-indigo-700 border border-indigo-300 border-dashed rounded-xl bg-indigo-50/60">
+                  <FaCloudUploadAlt className="w-10 h-10 mx-auto" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">
+                      Kéo thả file vào đây hoặc bấm chọn tệp
+                    </p>
+                    <p className="text-xs text-indigo-600/80">
+                      Hỗ trợ .mp3, .wav · Tối đa 50&nbsp;MB
+                    </p>
+                  </div>
+                  <label
+                    htmlFor="audioFile"
+                    className="inline-flex items-center gap-2 px-4 py-2 mx-auto text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-700"
+                  >
+                    <FaFileUpload className="w-4 h-4" />
+                    Chọn tệp từ thiết bị
+                    <input
+                      id="audioFile"
+                      type="file"
+                      accept=".mp3,.wav"
+                      onChange={handleChange("audioFile")}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
-              )}
-            </div>
+                {previewFile && (
+                  <div className="p-4 text-sm bg-white border rounded-lg border-slate-200 text-slate-700">
+                    <p className="font-medium">{previewFile.name}</p>
+                    <p className="text-xs text-slate-500">
+                      {previewFile.type} · {previewFile.size} MB
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-wrap justify-end gap-3 pt-2">
               <button

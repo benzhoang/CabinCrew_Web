@@ -142,36 +142,36 @@ const CreateCampaignRequestPage = () => {
 
   return (
     <div className="p-6">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 mr-50">
-          <div className="mb-4">
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Tiêu đề *
-            </label>
-            <input
-              type="text"
-              name="campaignName"
-              value={formData.campaignName}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.campaignName ? "border-red-300" : "border-slate-300"
-              }`}
-              placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
-            />
-            {errors.campaignName && (
-              <p className="mt-1 text-sm text-red-600">{errors.campaignName}</p>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Đăng công khai tuyển dụng - Cabin Crew
-          </p>
+      <div className="relative mb-4">
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => navigate("/airline-partner/requests")}
+            className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+          >
+            Quay lại
+          </button>
         </div>
-        <button
-          onClick={() => navigate("/airline-partner/requests")}
-          className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
-        >
-          Quay lại
-        </button>
+        <div className="mb-4">
+          <label className="block mb-2 text-sm font-medium text-slate-700">
+            Tiêu đề *
+          </label>
+          <input
+            type="text"
+            name="campaignName"
+            value={formData.campaignName}
+            onChange={handleInputChange}
+            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.campaignName ? "border-red-300" : "border-slate-300"
+            }`}
+            placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
+          />
+          {errors.campaignName && (
+            <p className="mt-1 text-sm text-red-600">{errors.campaignName}</p>
+          )}
+        </div>
+        <p className="mt-1 text-sm text-slate-600">
+          Đăng công khai tuyển dụng - Cabin Crew
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>

@@ -45,12 +45,7 @@ const HeaderAdmin = ({ toggleSidebar }) => {
           {/* Dropdown */}
           <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60]">
             {/* Invisible bridge để dễ hover từ profile đến dropdown */}
-            <div className="absolute left-0 right-0 h-2 -top-2"></div>
             <div className="py-2">
-              <button className="flex items-center w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-gray-200">
-                <FaUserCircle className="mr-3" />
-                <span>Profile</span>
-              </button>
               <button
                 onClick={handleLogout}
                 className="flex items-center w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600"

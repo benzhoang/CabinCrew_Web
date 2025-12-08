@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import CampaignTable from '../../components/AdminComponent/CampaignTable'
-import Pagination from '../../components/AdminComponent/Pagination'
-import { FaPlus, FaSearch } from 'react-icons/fa'
+import { useState } from "react";
+import Pagination from "../../components/AdminComponent/Pagination";
+import { FaSearch } from "react-icons/fa";
+import CampaignList from "../../components/AdminComponent/CampaignList";
 
 const CampaignListPage = () => {
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState("");
 
   return (
     <div className="w-full h-full">
@@ -23,7 +23,7 @@ const CampaignListPage = () => {
             </div>
           </div>
 
-          <CampaignTable />
+          <CampaignList />
 
           <div className="pt-4">
             <Pagination />
@@ -31,7 +31,7 @@ const CampaignListPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CampaignListPage
+export default CampaignListPage;
