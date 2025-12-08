@@ -78,12 +78,12 @@ const Navbar = () => {
             >
               {t("recruitment")}
             </Link>
-            <Link
+            {/* <Link
               to="/appointment"
               className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
             >
               {t("appointment")}
-            </Link>
+            </Link> */}
             <Link
               to="/score-report"
               className="nav-link px-3 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"

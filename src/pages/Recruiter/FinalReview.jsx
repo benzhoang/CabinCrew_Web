@@ -165,8 +165,8 @@ const FinalReview = () => {
     const getStatusBadge = (status) => {
         const normalized = status ? String(status).toLowerCase() : ''
         const statusConfig = {
-            approved: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
-            rejected: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
+            passed: { color: 'bg-green-100 text-green-800', text: 'Đạt' },
+            failed: { color: 'bg-red-100 text-red-800', text: 'Không đạt' },
             ongoing: { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' }
         }
         const config = statusConfig[normalized] || statusConfig.ongoing
@@ -398,10 +398,10 @@ const FinalReview = () => {
             <ImportHauKiemModal
                 open={showImport}
                 onClose={() => setShowImport(false)}
-                onSubmit={(files) => {
-                    // TODO: integrate upload API; currently just logs
-                    console.log('Hau kiem files selected:', files)
-                }}
+                roundId={finalRoundId}
+                campaignRoundId={resolvedCampaignRoundId}
+                campaignId={campaignId}
+                batchData={batchData}
             />
         </div>
     )

@@ -62,8 +62,8 @@ const RequestTypeBadge = ({ type }) => {
     normalizedType === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : normalizedType === "recruitment"
-      ? "bg-blue-100 text-blue-700 border-blue-200"
-      : "bg-gray-100 text-gray-600 border-gray-200";
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -121,9 +121,6 @@ const CampaignCard = ({ request }) => {
             }
           >
             Xem chi tiết
-          </button>
-          <button className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700">
-            Xóa
           </button>
         </div>
       </div>
@@ -323,44 +320,40 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("all")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "all"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "all"
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+              }`}
           >
             Tất cả
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Approved"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Approved"
                 ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+              }`}
           >
             Đã được duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Pending"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Pending"
                 ? "bg-yellow-600 text-white border-yellow-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+              }`}
           >
             Đang chờ duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("Rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Rejected"
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "Rejected"
                 ? "bg-red-600 text-white border-red-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+              }`}
           >
             Bị từ chối
           </button>
@@ -398,11 +391,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               Trước
             </button>
@@ -415,11 +407,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               Sau
             </button>

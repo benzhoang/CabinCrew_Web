@@ -461,7 +461,7 @@ const dictionaries = {
     application_form_terms_conditions: "Xác nhận Điều khoản và Điều kiện:",
     application_form_privacy_policy: "Chính sách bảo mật",
     application_form_acknowledge_data:
-      "Tôi xác nhận rằng dữ liệu cá nhân của tôi sẽ được xử lý bởi Công ty Cổ phần Hàng không Vietjet theo",
+      "Tôi xác nhận rằng dữ liệu cá nhân của tôi sẽ được xử lý bởi Công ty Cổ phần Hàng không CabinCrew theo",
     application_form_for_recruitment: "cho mục đích tuyển dụng.",
     application_form_yes: "Có",
     application_form_no: "Không",
@@ -1017,7 +1017,7 @@ const dictionaries = {
       "Acknowledgement of Terms and Conditions:",
     application_form_privacy_policy: "Privacy Policy",
     application_form_acknowledge_data:
-      "I acknowledge that my personal data will be processed by Vietjet Aviation Joint Stock Company in accordance with the",
+      "I acknowledge that my personal data will be processed by CabinCrew Group in accordance with the",
     application_form_for_recruitment: "for recruitment purposes.",
     application_form_yes: "Yes",
     application_form_no: "No",

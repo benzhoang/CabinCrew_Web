@@ -6,12 +6,10 @@ import Navbar from "./components/Navbar";
 import SidebarRecruiter from "./components/SidebarRecruiter";
 import Footer from "./pages/Candidate/Footer";
 import AdminLayout from "./layouts/AdminLayout";
-import AirlinePartnerDashboardPage from "./pages/Admin/AirlinePartnerDashboardPage";
 import AirlinePartnerListPage from "./pages/Admin/AirlinePartnerListPage";
-import CabinCrewDashboardPage from "./pages/Admin/CabinCrewDashboardPage";
 import CabinCrewListPage from "./pages/Admin/CabinCrewListPage";
-import CandidateDashboardPage from "./pages/Admin/CandidateDashboardPage";
 import CandidateListPage from "./pages/Admin/CandidateListPage";
+import DashboardPage from "./pages/Admin/DashboardPage";
 import CampaignListPage from "./pages/Admin/CampaignListPage";
 import RecruiterListPage from "./pages/Admin/RecruiterListPage";
 import MainPage from "./pages/MainPage";
@@ -348,30 +346,40 @@ function App() {
       </Routes>
       {/* Admin Routes */}
       <Routes>
+        {/* Dashboard Route - New unified dashboard */}
         <Route
+          path="/admin/dashboard"
+          element={
+            <AdminLayout>
+              <DashboardPage />
+            </AdminLayout>
+          }
+        />
+        {/* Old Dashboard Routes - Commented out */}
+        {/* <Route
           path="/admin/dashboard/cabin-crews"
           element={
             <AdminLayout>
               <CabinCrewDashboardPage />
             </AdminLayout>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/admin/dashboard/candidates"
           element={
             <AdminLayout>
               <CandidateDashboardPage />
             </AdminLayout>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/admin/dashboard/airline-partners"
           element={
             <AdminLayout>
               <AirlinePartnerDashboardPage />
             </AdminLayout>
           }
-        />
+        /> */}
         <Route
           path="/admin/account/cabin-crews"
           element={

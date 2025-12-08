@@ -237,7 +237,7 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
         {notifications.length > 0 && (
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <p className="text-xs text-center text-gray-500">
-              Click vào thông báo để xem chi tiết và đánh dấu đã đọc
+              Click vào thông báo để đánh dấu đã đọc
             </p>
           </div>
         )}
@@ -247,4 +247,3 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
 };
 
 export default RecruiterNotificationModal;
-
