@@ -400,172 +400,57 @@ export const updateCampaignRequest = async (requestId, campaignRequestData) => {
 // API lấy danh sách campaigns - GET /api/v1/campaigns
 export const getCampaignList = async (params = {}) => {
   try {
-    const { fetchAll, ...requestParams } = params;
+    const response = await api2.get("/campaigns", { params });
+    const responseData = response.data;
 
-    const mapPagination = (paginationPayload) => {
-      if (!paginationPayload) return undefined;
+    if (Array.isArray(responseData)) {
       return {
-        currentPage: paginationPayload.currentPage || 1,
-        pageSize: paginationPayload.pageSize || 0,
-        totalRecords: paginationPayload.totalRecords || 0,
-        totalPages: paginationPayload.totalPages || 0,
-        hasNextPage: Boolean(paginationPayload.hasNextPage),
-        hasPreviousPage: Boolean(paginationPayload.hasPreviousPage),
-      };
-    };
-
-    const normalizeResponse = (responseData) => {
-      if (responseData?.code === 0 && responseData?.data) {
-        const payload = responseData.data;
-        if (Array.isArray(payload)) {
-          return {
-            success: true,
-            data: { items: payload, pagination: undefined },
-            message: responseData.message,
-          };
-        }
-
-        if (payload.items || typeof payload === "object") {
-          return {
-            success: true,
-            data: {
-              items: payload.items || (Array.isArray(payload) ? payload : []),
-              pagination: mapPagination(payload.pagination || payload),
-            },
-            message: responseData.message,
-          };
-        }
-      }
-
-      if (Array.isArray(responseData)) {
-        return {
-          success: true,
-          data: { items: responseData, pagination: undefined },
-          message: "Success",
-        };
-      }
-
-      if (responseData?.items && Array.isArray(responseData.items)) {
-        return {
-          success: true,
-          data: {
-            items: responseData.items,
-            pagination: mapPagination(responseData.pagination),
-          },
-          message: responseData.message || "Success",
-        };
-      }
-
-      return {
-        success: false,
-        error: responseData?.message || "Lấy danh sách campaigns thất bại",
-        rawResponse: responseData,
-      };
-    };
-
-    const sanitizeParams = (inputParams = {}) => {
-      const allowedParams = {
-        searchTerm: inputParams.searchTerm,
-        sortColumn: inputParams.sortColumn,
-        sortOrder: inputParams.sortOrder,
-        status: inputParams.status,
-        campaignType: inputParams.campaignType,
-        campaignStatus: inputParams.campaignStatus,
-        partnerId: inputParams.partnerId,
-        page: inputParams.page,
-        pageSize: inputParams.pageSize,
-      };
-
-      return Object.fromEntries(
-        Object.entries(allowedParams).filter(
-          ([, value]) => value !== undefined && value !== null && value !== ""
-        )
-      );
-    };
-
-    const fetchPage = async (overrides = {}) => {
-      const sanitizedParams = sanitizeParams({
-        ...requestParams,
-        ...overrides,
-      });
-
-      const response = await api2.get("/campaigns", {
-        params: sanitizedParams,
-      });
-
-      // Log response để debug
-      console.log("Campaign List API Response:", response.data);
-
-      return normalizeResponse(response.data);
-    };
-
-    const initialResult = await fetchPage();
-
-    if (!initialResult.success || !fetchAll) {
-      return initialResult;
-    }
-
-    let pagination = initialResult.data?.pagination;
-    let allItems = [...(initialResult.data?.items || [])];
-
-    if (!pagination || !pagination.hasNextPage) {
-      return {
-        ...initialResult,
-        data: {
-          ...initialResult.data,
-          items: allItems,
-        },
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách chiến dịch thành công",
       };
     }
 
-    let currentPage = pagination.currentPage ?? requestParams.page ?? 1;
-    // Nếu API không trả pageSize, fallback về pageSize request hoặc mặc định 10
-    const effectivePageSize =
-      pagination.pageSize || requestParams.pageSize || 10;
+    if (responseData.code === 0) {
+      let items = [];
 
-    while (pagination?.hasNextPage) {
-      currentPage = (pagination.currentPage ?? currentPage) + 1;
-
-      const pageResult = await fetchPage({
-        page: currentPage,
-        pageSize: effectivePageSize,
-      });
-
-      if (!pageResult.success) {
-        return pageResult;
-      }
-
-      allItems = allItems.concat(pageResult.data?.items || []);
-      pagination = pageResult.data?.pagination || pagination;
-
-      if (!pagination?.hasNextPage) {
-        break;
-      }
-
-      if (
-        pagination?.totalPages &&
-        currentPage >= Number(pagination.totalPages)
+      if (Array.isArray(responseData.data)) {
+        items = responseData.data;
+      } else if (Array.isArray(responseData.data?.items)) {
+        items = responseData.data.items;
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
       ) {
-        break;
+        items = responseData.data.data;
       }
+
+      return {
+        success: true,
+        data: items,
+        pagination: {
+          currentPage: responseData.data?.currentPage,
+          pageSize: responseData.data?.pageSize,
+          totalRecords: responseData.data?.totalRecords,
+          totalPages: responseData.data?.totalPages,
+          hasNextPage: responseData.data?.hasNextPage,
+          hasPreviousPage: responseData.data?.hasPreviousPage,
+        },
+        message: responseData.message,
+      };
     }
 
     return {
-      success: true,
-      data: {
-        items: allItems,
-        pagination,
-      },
-      message: initialResult.message,
+      success: false,
+      error: responseData.message || "Không thể lấy danh sách chiến dịch",
     };
   } catch (error) {
-    console.error("Campaign List API Error:", error);
     return {
       success: false,
       error:
         error.response?.data?.message ||
         error.message ||
-        "Lấy danh sách campaigns thất bại",
+        "Không thể lấy danh sách chiến dịch",
       status: error.response?.status,
     };
   }

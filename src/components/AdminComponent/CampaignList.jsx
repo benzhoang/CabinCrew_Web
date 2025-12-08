@@ -33,7 +33,8 @@ const defaultCampaigns = [
 
 const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
   const getIcon = () => {
-    if (sortField !== field || !sortDirection) return <FaSort className="ms-1 text-gray-400" />;
+    if (sortField !== field || !sortDirection)
+      return <FaSort className="ms-1 text-gray-400" />;
     return sortDirection === "asc" ? (
       <FaSortUp className="ms-1 text-blue-600" />
     ) : (
@@ -41,13 +42,17 @@ const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
     );
   };
   return (
-    <button type="button" onClick={() => onSort(field)} className="flex items-center hover:text-gray-900">
+    <button
+      type="button"
+      onClick={() => onSort(field)}
+      className="flex items-center hover:text-gray-900"
+    >
       {label} {getIcon()}
     </button>
   );
 };
 
-const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
+const CampaignList = ({ campaigns = defaultCampaigns, onDelete }) => {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
 
@@ -79,7 +84,8 @@ const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
         // Sort by completion ratio, fallback to current if total is 0
         return total > 0 ? current / total : current;
       }
-      if (["startDate", "endDate"].includes(sortField)) return new Date(v).getTime();
+      if (["startDate", "endDate"].includes(sortField))
+        return new Date(v).getTime();
       return typeof v === "string" ? v.toLowerCase() : v;
     };
     copy.sort((a, b) => {
@@ -109,16 +115,40 @@ const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
           <tr className="bg-gray-50 text-left text-sm text-gray-600">
             <th className="px-5 py-3 font-semibold w-52">Campaign Name</th>
             <th className="px-5 py-3 font-semibold w-28">
-              <SortButton field="quantity" label="Quantity" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton
+                field="quantity"
+                label="Quantity"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
             </th>
             <th className="px-5 py-3 font-semibold w-40">
-              <SortButton field="startDate" label="Start Date" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton
+                field="startDate"
+                label="Start Date"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
             </th>
             <th className="px-5 py-3 font-semibold w-40">
-              <SortButton field="endDate" label="End Date" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton
+                field="endDate"
+                label="End Date"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
             </th>
             <th className="px-5 py-3 font-semibold w-60">
-              <SortButton field="airline" label="Airline" sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
+              <SortButton
+                field="airline"
+                label="Airline"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
             </th>
             <th className="px-5 py-3 font-semibold w-36">Status</th>
             <th className="px-5 py-3 w-24 text-right font-semibold">Actions</th>
@@ -126,12 +156,25 @@ const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
         </thead>
         <tbody>
           {sortedCampaigns.map((c, idx) => (
-            <tr key={c.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-              <td className="px-5 py-4 text-sm text-gray-800 truncate">{c.name}</td>
-              <td className="px-5 py-4 text-sm text-gray-700 truncate">{`${c.quantity?.current ?? 0}/${c.quantity?.total ?? 0}`}</td>
-              <td className="px-5 py-4 text-sm text-gray-700 truncate">{formatDate(c.startDate)}</td>
-              <td className="px-5 py-4 text-sm text-gray-700 truncate">{formatDate(c.endDate)}</td>
-              <td className="px-5 py-4 text-sm text-gray-700 truncate">{c.airline}</td>
+            <tr
+              key={c.id}
+              className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+            >
+              <td className="px-5 py-4 text-sm text-gray-800 truncate">
+                {c.name}
+              </td>
+              <td className="px-5 py-4 text-sm text-gray-700 truncate">{`${
+                c.quantity?.current ?? 0
+              }/${c.quantity?.total ?? 0}`}</td>
+              <td className="px-5 py-4 text-sm text-gray-700 truncate">
+                {formatDate(c.startDate)}
+              </td>
+              <td className="px-5 py-4 text-sm text-gray-700 truncate">
+                {formatDate(c.endDate)}
+              </td>
+              <td className="px-5 py-4 text-sm text-gray-700 truncate">
+                {c.airline}
+              </td>
               <td className="px-5 py-4 text-sm text-gray-700 truncate">
                 <span
                   className={
@@ -162,6 +205,4 @@ const CampaignTable = ({ campaigns = defaultCampaigns, onDelete }) => {
   );
 };
 
-export default CampaignTable;
-
-
+export default CampaignList;

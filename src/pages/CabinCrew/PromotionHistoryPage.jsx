@@ -1,39 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
-import { FaCheck, FaClock, FaEllipsisH, FaTimes } from "react-icons/fa";
+import {
+  FaCheck,
+  FaClock,
+  FaEllipsisH,
+  FaTimes,
+  FaSpinner,
+} from "react-icons/fa";
 import { getPromotionHistory } from "../../service/api2";
 
 // Định nghĩa 5 stage cố định (giống PromotionStagesPage)
 const hardcodedStages = [
   {
     id: 1,
-    name: "Kiểm tra hồ sơ",
-    nameEn: "Document Review",
-    keywords: ["screening", "sàng lọc", "document", "hồ sơ"],
+    name: "Screening",
+    nameEn: "Screening",
+    keywords: ["screening", "sàng lọc"],
   },
   {
     id: 2,
-    name: "Kiểm tra ngoại hình",
-    nameEn: "Physical Check",
-    keywords: ["appearance", "ngoại hình", "physical", "flight hours"],
+    name: "Flight Hours Confirmation",
+    nameEn: "Flight Hours Confirmation",
+    keywords: ["flight hours", "giờ bay", "confirmation", "xác nhận"],
   },
   {
     id: 3,
-    name: "Kiểm tra tiếng Anh",
-    nameEn: "English Test",
-    keywords: ["english", "tiếng anh", "test", "practical"],
+    name: "Practical Test",
+    nameEn: "Practical Test",
+    keywords: ["practical", "thực hành", "test"],
   },
   {
     id: 4,
-    name: "Phỏng vấn",
+    name: "Interview",
     nameEn: "Interview",
     keywords: ["interview", "phỏng vấn"],
   },
   {
     id: 5,
-    name: "Kết quả cuối cùng",
-    nameEn: "Final Result",
+    name: "Final",
+    nameEn: "Final",
     keywords: ["final", "cuối cùng", "kết thúc"],
   },
 ];
@@ -253,6 +259,31 @@ const PromotionHistoryPage = () => {
     );
   };
 
+  // Hàm chuyển đổi status của stage sang format status của application
+  const getStageStatusForColor = (stage) => {
+    if (!stage) return "pending";
+
+    const status = (stage.status || "").toLowerCase();
+
+    // Kiểm tra nếu stage bị failed
+    if (isStageFailed(stage)) {
+      return "rejected";
+    }
+
+    // Kiểm tra nếu stage đã completed
+    if (
+      status === "completed" ||
+      status === "passed" ||
+      status === "finished" ||
+      stage.completed
+    ) {
+      return "accepted";
+    }
+
+    // Mặc định là pending
+    return "pending";
+  };
+
   // Hàm lấy màu sắc cho giai đoạn (giống PromotionStagesPage)
   const getStageColor = (stage, currentStage, stageIndex) => {
     if (isStageFailed(stage)) {
@@ -289,29 +320,6 @@ const PromotionHistoryPage = () => {
     }
   };
 
-  // Hàm xử lý khi nhấn nút "Xem chi tiết"
-  const handleViewDetails = (application) => {
-    // Tạo campaign object từ application data để truyền vào ApplicationForm
-    const campaignData = {
-      id: application.id,
-      title: application.position,
-      company: application.company,
-      location: application.location,
-      description: application.description,
-      status: application.status,
-      appliedDate: application.appliedDate,
-    };
-
-    // Điều hướng đến ApplicationForm với state chứa campaign data
-
-    navigate("/cabin-crew/application/detail", {
-      state: {
-        campaign: campaignData,
-        isUpdate: true, // Flag để biết đây là chế độ cập nhật
-      },
-    });
-  };
-
   // Tính toán statistics
   const totalApplications = promotionHistory.length;
   const completedCount = promotionHistory.filter(
@@ -320,21 +328,6 @@ const PromotionHistoryPage = () => {
   const rejectedCount = promotionHistory.filter(
     (item) => item.status === "rejected"
   ).length;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen py-8 bg-white">
-        <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
-          <div className="py-12 text-center">
-            <div className="w-12 h-12 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-600">
-              {t("loading") || "Đang tải..."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen py-8 bg-gray-50">
@@ -444,187 +437,186 @@ const PromotionHistoryPage = () => {
               {t("promotion_history")}
             </h2>
           </div>
-          <div className="divide-y divide-gray-200">
-            {promotionHistory.map((application) => (
-              <div
-                key={application.id}
-                className="p-6 transition-colors hover:bg-gray-50"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {application.position}
-                      </h3>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                          application.status
-                        )}`}
-                      >
-                        {getStatusText(application)}
-                      </span>
-                    </div>
-                    <p className="mb-2 text-sm text-gray-600">
-                      {application.company}
-                    </p>
-                    <p className="mb-3 text-sm text-gray-500">
-                      {application.description}
-                    </p>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        {application.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        {t("applied_on")}:{" "}
-                        {new Date(application.appliedDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 ml-4">
-                    <button
-                      onClick={() => handleViewDetails(application)}
-                      className="px-4 py-2 text-sm font-medium text-blue-600 transition-colors rounded-lg bg-blue-50 hover:bg-blue-100"
-                    >
-                      {t("view_details")}
-                    </button>
-                    {application.status === "accepted" && (
-                      <button className="px-4 py-2 text-sm font-medium text-green-600 transition-colors rounded-lg bg-green-50 hover:bg-green-100">
-                        {t("accept_offer")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Hiển thị timeline cho các giai đoạn đã chấp thuận và không đạt yêu cầu */}
-                {(application.status === "accepted" ||
-                  application.status === "rejected") &&
-                  application.stages && (
-                    <div className="pt-6 mt-6 border-t border-gray-200">
-                      <h4 className="mb-4 text-sm font-medium text-gray-900">
-                        Tiến trình ứng tuyển
-                      </h4>
-
-                      {/* Progress Timeline */}
-                      <div className="relative">
-                        {/* Progress Line */}
-                        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
-                          <div
-                            className="h-full transition-all duration-500 bg-blue-500"
-                            style={{
-                              width: `${
-                                (application.currentStage /
-                                  application.stages.length) *
-                                100
-                              }%`,
-                            }}
-                          ></div>
-                        </div>
-
-                        {/* Stages */}
-                        <div className="relative flex justify-between">
-                          {application.stages.map((stage, index) => (
-                            <div
-                              key={stage.id}
-                              className="flex flex-col items-center"
-                            >
-                              {/* Stage Circle */}
-                              <div
-                                className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(
-                                  stage,
-                                  application.currentStage,
-                                  index
-                                )}`}
-                              >
-                                {getStageIcon(
-                                  stage,
-                                  application.currentStage,
-                                  index
-                                )}
-                              </div>
-
-                              {/* Stage Info */}
-                              <div className="mt-3 text-center max-w-24">
-                                <p className="text-xs font-medium text-gray-900">
-                                  {getStageName(stage)}
-                                </p>
-                                {stage.date && (
-                                  <p className="mt-1 text-xs text-gray-500">
-                                    {new Date(stage.date).toLocaleDateString()}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Current Status */}
-                      <div
-                        className={`mt-4 p-3 rounded-lg ${getStatusBgColor(
-                          application.status
-                        )}`}
-                      >
-                        <p
-                          className={`text-sm ${getStatusTextColor(
+          {loading ? (
+            <div className="py-12 text-center">
+              <div className="py-8 text-center text-gray-600">
+                Đang tải dữ liệu...
+              </div>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {promotionHistory.map((application) => (
+                <div
+                  key={application.id}
+                  className="p-6 transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {application.position}
+                        </h3>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                             application.status
                           )}`}
                         >
-                          <strong>Trạng thái hiện tại:</strong>{" "}
-                          {application.status === "rejected"
-                            ? `Không đạt ở ${getStageName(
-                                application.stages[
-                                  application.currentStage - 1
-                                ] || application.stages[0]
-                              )}`
-                            : application.stages[application.currentStage - 1]
-                                ?.completed
-                            ? `Hoàn thành ${getStageName(
-                                application.stages[application.currentStage - 1]
-                              )}`
-                            : `Đang trong giai đoạn ${getStageName(
-                                application.stages[
-                                  application.currentStage - 1
-                                ] || application.stages[0]
-                              )}`}
-                        </p>
+                          {getStatusText(application)}
+                        </span>
+                      </div>
+                      <p className="mb-2 text-sm text-gray-600">
+                        {application.company}
+                      </p>
+                      <p className="mb-3 text-sm text-gray-500">
+                        {application.description}
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          {application.location}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          {t("applied_on")}:{" "}
+                          {new Date(
+                            application.appliedDate
+                          ).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
-                  )}
-              </div>
-            ))}
-          </div>
+                  </div>
+
+                  {/* Hiển thị timeline cho các giai đoạn đã chấp thuận và không đạt yêu cầu */}
+                  {(application.status === "accepted" ||
+                    application.status === "rejected") &&
+                    application.stages && (
+                      <div className="pt-6 mt-6 border-t border-gray-200">
+                        <h4 className="mb-4 text-sm font-medium text-gray-900">
+                          Tiến trình ứng tuyển
+                        </h4>
+
+                        {/* Progress Timeline */}
+                        <div className="relative">
+                          {/* Progress Line */}
+                          <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
+                            <div
+                              className="h-full transition-all duration-500 bg-blue-500"
+                              style={{
+                                width: `${
+                                  (application.currentStage /
+                                    application.stages.length) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                          </div>
+
+                          {/* Stages */}
+                          <div className="relative flex justify-between">
+                            {application.stages.map((stage, index) => (
+                              <div
+                                key={stage.id}
+                                className="flex flex-col items-center"
+                              >
+                                {/* Stage Circle */}
+                                <div
+                                  className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(
+                                    stage,
+                                    application.currentStage,
+                                    index
+                                  )}`}
+                                >
+                                  {getStageIcon(
+                                    stage,
+                                    application.currentStage,
+                                    index
+                                  )}
+                                </div>
+
+                                {/* Stage Info */}
+                                <div className="mt-3 text-center max-w-24">
+                                  <p className="text-xs font-medium text-gray-900">
+                                    {getStageName(stage)}
+                                  </p>
+                                  {stage.date && (
+                                    <p className="mt-1 text-xs text-gray-500">
+                                      {new Date(
+                                        stage.date
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Current Status */}
+                        {(() => {
+                          const currentStage =
+                            application.stages[application.currentStage - 1] ||
+                            application.stages[0];
+                          const stageStatus =
+                            getStageStatusForColor(currentStage);
+                          return (
+                            <div
+                              className={`mt-4 p-3 rounded-lg ${getStatusBgColor(
+                                stageStatus
+                              )}`}
+                            >
+                              <p
+                                className={`text-sm ${getStatusTextColor(
+                                  stageStatus
+                                )}`}
+                              >
+                                <strong>Trạng thái hiện tại:</strong>{" "}
+                                {stageStatus === "rejected"
+                                  ? `Không đạt ở ${getStageName(currentStage)}`
+                                  : currentStage?.completed
+                                  ? `Hoàn thành ${getStageName(currentStage)}`
+                                  : `Đang trong giai đoạn ${getStageName(
+                                      currentStage
+                                    )}`}
+                              </p>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Empty State (if no applications) */}

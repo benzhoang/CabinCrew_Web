@@ -4,7 +4,6 @@ import { FaArrowsRotate } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { getAllUsers, disableAccount } from "../../service/api2";
 import ModalConfirm from "./ModalConfirm";
-import Loading from "../Loading";
 
 const StatusBadge = ({ value }) => {
   const isActive =
@@ -350,7 +349,13 @@ const AccountTable = ({
   };
 
   if (loading) {
-    return <Loading message="Đang tải dữ liệu..." />;
+    return (
+      <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
+        <div className="py-8 text-center text-gray-600">
+          Đang tải dữ liệu...
+        </div>
+      </div>
+    );
   }
 
   // Client-side sorting for "no" column

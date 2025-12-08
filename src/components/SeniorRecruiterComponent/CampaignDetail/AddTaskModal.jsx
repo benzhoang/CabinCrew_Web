@@ -60,8 +60,8 @@ const mapUserData = (users) => {
 const roundConfig = [
   {
     key: "screening",
-    title: "Vòng sàng lọc",
-    description: "Kiểm tra CV, kinh nghiệm và chứng chỉ cần thiết.",
+    title: "Vòng sàng lọc & hậu kiểm",
+    description: "Kiểm tra CV, kinh nghiệm và hậu kiểm tiếng Anh.",
     maxSelect: null, // No limit
     taskType: 1, // Screening
   },
