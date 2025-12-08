@@ -66,6 +66,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   const [notificationCount, setNotificationCount] = useState(0);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [refreshModalTrigger, setRefreshModalTrigger] = useState(0);
+  const [toastData, setToastData] = useState({ show: false, title: "", body: "" });
   const navigate = useNavigate();
 
   // Yêu cầu quyền thông báo khi lần đầu load
@@ -100,6 +101,13 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
       // Tăng badge
       setNotificationCount(prev => prev + 1);
       setRefreshModalTrigger(prev => prev + 1);
+
+      // Hiển thị toast nho nhỏ trong app để không cần reload
+      setToastData({
+        show: true,
+        title: notification.title || "Thông báo mới từ Cabin HR",
+        body: notification.body || notification.message || "Bạn có thông báo mới",
+      });
 
       // Hiển thị thông báo hệ thống (giống Zalo/Facebook)
       if ("Notification" in window) {
@@ -148,6 +156,13 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
       signalRService.stopConnection();
     };
   }, []);
+
+  // Tự ẩn toast sau 6s
+  useEffect(() => {
+    if (!toastData.show) return;
+    const timer = setTimeout(() => setToastData((prev) => ({ ...prev, show: false })), 6000);
+    return () => clearTimeout(timer);
+  }, [toastData.show]);
 
   // Nhận cập nhật số lượng chưa đọc từ modal
   const handleNotificationUpdate = (newCount) => {
@@ -237,6 +252,28 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
             onNotificationUpdate={handleNotificationUpdate}
             refreshTrigger={refreshModalTrigger}
           />,
+          document.body
+        )}
+
+      {/* Toast thông báo nhanh */}
+      {toastData.show &&
+        createPortal(
+          <div className="fixed bottom-6 right-6 z-50 max-w-xs w-full bg-slate-900 text-white shadow-xl rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/10 flex items-start gap-3">
+              <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">{toastData.title}</div>
+                <div className="text-xs text-slate-200 mt-1">{toastData.body}</div>
+              </div>
+              <button
+                onClick={() => setToastData((prev) => ({ ...prev, show: false }))}
+                className="text-slate-300 hover:text-white text-xs"
+                aria-label="Close notification"
+              >
+                ✕
+              </button>
+            </div>
+          </div>,
           document.body
         )}
     </aside>

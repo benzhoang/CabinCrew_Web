@@ -26,6 +26,91 @@ api.interceptors.request.use(
   }
 );
 
+// Dashboard APIs
+export const getCampaignsByAirlinePartner = async () => {
+  try {
+    const response = await api.get("/dashboard/campaigns-by-airline-partner");
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch campaigns by airline partner:", error);
+    return [];
+  }
+};
+
+export const getApplicationsByCampaignType = async () => {
+  try {
+    const response = await api.get("/dashboard/applications-by-campaign-type");
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch applications by campaign type:", error);
+    return [];
+  }
+};
+
+export const getCampaignsByMonth = async (year) => {
+  try {
+    const response = await api.get("/dashboard/campaigns-by-month", {
+      params: { year },
+    });
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch campaigns by month:", error);
+    return [];
+  }
+};
+
+export const getApplicationsByMonth = async (year) => {
+  try {
+    const response = await api.get("/dashboard/applications-by-month", {
+      params: { year },
+    });
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch applications by month:", error);
+    return [];
+  }
+};
+
+export const getUserHistoryByMonth = async (year) => {
+  try {
+    const response = await api.get("/dashboard/userhistory-by-month", {
+      params: { year },
+    });
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch user history by month:", error);
+    return [];
+  }
+};
+
+export const getTestsByTestType = async () => {
+  try {
+    const response = await api.get("/dashboard/tests-by-test-type");
+    const payload = response.data;
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  } catch (error) {
+    console.error("Failed to fetch tests by test type:", error);
+    return [];
+  }
+};
+
 // API đăng nhập
 export const login = async (username, password) => {
   try {
@@ -2158,6 +2243,90 @@ export const exportRoundUsers = async (roundId) => {
         error.response?.data?.message ||
         error.message ||
         "Không thể export danh sách users",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API import final review từ file Excel
+// POST /api/v1/rounds/{roundId}/import-final
+export const importFinalReview = async (roundId, file) => {
+  if (!roundId) {
+    return {
+      success: false,
+      error: "Thiếu roundId để import",
+    };
+  }
+
+  if (!file) {
+    return {
+      success: false,
+      error: "Thiếu file để import",
+    };
+  }
+
+  try {
+    // Tạo FormData để gửi file
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Lấy token từ localStorage
+    const token = localStorage.getItem("token");
+
+    // Tạo axios instance riêng cho upload file (cần Content-Type: multipart/form-data)
+    const response = await axios.post(
+      `${API_BASE_URL}/rounds/${roundId}/import-final`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        timeout: 60000, // 60 giây timeout cho upload file
+      }
+    );
+
+    const httpStatus = response.status;
+    const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const responseData = response.data || {};
+
+    const isBusinessSuccess =
+      responseData.code === 0 ||
+      responseData.code === 4 ||
+      responseData.errorCode === 0 ||
+      responseData.status?.toLowerCase() === "success" ||
+      isHttpSuccess;
+
+    if (isHttpSuccess && (isBusinessSuccess || !responseData.errorMessage)) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message:
+          responseData.message ||
+          "Import hậu kiểm thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          responseData.errorMessage ||
+          responseData.message ||
+          "Không thể import file Excel",
+        status: httpStatus,
+      };
+    }
+  } catch (error) {
+    console.error("Lỗi khi import final review:", error);
+    const errorData = error.response?.data;
+    const errorMessage =
+      errorData?.errorMessage ||
+      errorData?.message ||
+      error.message ||
+      "Không thể import file Excel";
+
+    return {
+      success: false,
+      error: errorMessage,
       status: error.response?.status,
     };
   }

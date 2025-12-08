@@ -202,7 +202,7 @@ const DirectorCampaign = () => {
     const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-    const [sortBy, setSortBy] = useState('name')
+    const [sortBy, setSortBy] = useState('idDesc')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
@@ -373,6 +373,8 @@ const DirectorCampaign = () => {
         // Sort campaigns
         const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
+                case 'idDesc':
+                    return (Number(b.id) || 0) - (Number(a.id) || 0)
                 case 'name':
                     return normalizeString(a.name).localeCompare(normalizeString(b.name))
                 case 'startDate':
@@ -538,6 +540,7 @@ const DirectorCampaign = () => {
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
+                            <option value="idDesc">Mới nhất (ID giảm dần)</option>
                             <option value="name">Tên chiến dịch</option>
                             <option value="startDate">Ngày bắt đầu</option>
                             <option value="endDate">Ngày kết thúc</option>
@@ -551,6 +554,16 @@ const DirectorCampaign = () => {
             {/* Status Filter Buttons */}
             <div className="flex items-center gap-3 flex-wrap">
                 <div className="inline-flex items-stretch gap-3 flex-wrap">
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('all')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'all'
+                            ? 'bg-slate-700 text-white border-slate-700'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Tất cả
+                    </button>
                     <button
                         type="button"
                         onClick={() => setStatusFilter('Pending')}
@@ -620,16 +633,6 @@ const DirectorCampaign = () => {
                             }`}
                     >
                         Bản nháp
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('all')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'all'
-                            ? 'bg-slate-700 text-white border-slate-700'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Tất cả
                     </button>
                 </div>
             </div>

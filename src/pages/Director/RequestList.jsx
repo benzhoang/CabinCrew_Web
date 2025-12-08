@@ -290,6 +290,15 @@ const RequestList = () => {
 
                     <div className="flex gap-3 flex-wrap">
                         <button
+                            onClick={() => setStatusFilter('all')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
+                                ? 'bg-slate-600 text-white border-slate-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                }`}
+                        >
+                            Tất cả
+                        </button>
+                        <button
                             onClick={() => setStatusFilter('pending_approval')}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending_approval'
                                 ? 'bg-yellow-600 text-white border-yellow-600'
@@ -315,15 +324,6 @@ const RequestList = () => {
                                 }`}
                         >
                             Đã được duyệt
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
-                                ? 'bg-slate-600 text-white border-slate-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                }`}
-                        >
-                            Tất cả
                         </button>
                     </div>
                 </div>

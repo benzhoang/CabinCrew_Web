@@ -426,12 +426,6 @@ const ExaminerCampaign = () => {
                     >
                       Xem chi tiết
                     </button>
-                    <button
-                      onClick={() => handleDelete(campaign.id)}
-                      className="px-3 py-1 text-sm text-white transition-colors bg-red-600 rounded-md hover:bg-red-700"
-                    >
-                      Xóa
-                    </button>
                   </div>
                 </div>
               </div>

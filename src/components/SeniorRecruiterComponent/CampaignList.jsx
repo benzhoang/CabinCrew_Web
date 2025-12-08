@@ -47,7 +47,7 @@ const StatusBadge = ({ status }) => {
       case "draft":
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: "Bản nháp",
+          text: "Đang lên kế hoạch",
         };
       case "rejected":
         return {
@@ -95,8 +95,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-      ? "bg-blue-100 text-blue-700 border-blue-200"
-      : "bg-gray-100 text-gray-600 border-gray-200";
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -341,66 +341,60 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("draft")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "draft"
-                ? "bg-gray-200 text-gray-700 border-gray-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "draft"
+              ? "bg-gray-200 text-gray-700 border-gray-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
-            Bản nháp
+            Đang lên kế hoạch
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "pending"
-                ? "bg-yellow-600 text-white border-yellow-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "pending"
+              ? "bg-yellow-600 text-white border-yellow-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Đang chờ duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "approved"
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "approved"
+              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Đã được duyệt
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "rejected"
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "rejected"
+              ? "bg-red-600 text-white border-red-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Bị từ chối
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "ongoing"
-                ? "bg-cyan-600 text-white border-cyan-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ongoing"
+              ? "bg-cyan-600 text-white border-cyan-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Đang diễn ra
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ended")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "ended"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ended"
+              ? "bg-green-600 text-white border-green-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Đã hoàn thành
           </button>

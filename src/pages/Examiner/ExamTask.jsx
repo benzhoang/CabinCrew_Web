@@ -423,15 +423,6 @@ const ExamTask = () => {
                                         </div>
                                     )}
                                 </div>
-
-                                <div className="flex items-center gap-2 ml-4">
-                                    <button
-                                        onClick={() => handleViewDetails(task)}
-                                        className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                                    >
-                                        Xem chi tiết
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     ))}
