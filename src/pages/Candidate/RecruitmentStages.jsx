@@ -349,24 +349,24 @@ const RecruitmentStages = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        Giai đoạn tuyển dụng
+                        {t('recruitment_stages_title')}
                     </h1>
                     <p className="text-gray-600">
-                        Theo dõi tiến trình ứng tuyển của bạn qua các giai đoạn
+                        {t('recruitment_stages_subtitle')}
                     </p>
                 </div>
 
                 {/* Recruitment Stages Section */}
                 <div className="bg-white rounded-lg shadow">
                     <div className="px-6 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900">Tiến trình ứng tuyển</h2>
-                        <p className="text-sm text-gray-600 mt-1">Theo dõi tiến trình ứng tuyển của bạn</p>
+                        <h2 className="text-lg font-semibold text-gray-900">{t('recruitment_progress_title')}</h2>
+                        <p className="text-sm text-gray-600 mt-1">{t('recruitment_progress_subtitle')}</p>
                     </div>
                     <div className="p-6">
                         {loading && (
                             <div className="text-center py-12">
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                <p className="mt-4 text-sm text-gray-600">Đang tải dữ liệu...</p>
+                                <p className="mt-4 text-sm text-gray-600">{t('loading_data')}</p>
                             </div>
                         )}
                         {error && !loading && (
@@ -374,8 +374,8 @@ const RecruitmentStages = () => {
                                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">Không có chiến dịch đang ứng tuyển</h3>
-                                <p className="mt-1 text-sm text-gray-500">{error}</p>
+                                <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_ongoing_campaign_title')}</h3>
+                                <p className="mt-1 text-sm text-gray-500">{t('no_ongoing_campaign_desc')}</p>
                             </div>
                         )}
                         {!loading && !error && recruitmentStages.map((application) => (
@@ -395,7 +395,7 @@ const RecruitmentStages = () => {
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                                 </svg>
-                                                <span className="font-medium">Đợt tuyển:</span>
+                                                <span className="font-medium">{t('application_round')}:</span>
                                                 <span>{application.roundName}</span>
                                             </div>
                                         )}
@@ -404,7 +404,7 @@ const RecruitmentStages = () => {
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                 </svg>
-                                                <span className="font-medium">Đối tác:</span>
+                                                <span className="font-medium">{t('partner_label')}:</span>
                                                 <span>{application.airlinePartner}</span>
                                             </div>
                                         )}
@@ -424,7 +424,7 @@ const RecruitmentStages = () => {
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                             </svg>
-                                            Ngày ứng tuyển: {application.participatedDate}
+                                            {t('applied_date')}: {application.participatedDate}
                                         </div>
                                     </div>
                                 </div>
@@ -458,7 +458,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/profile/${application.activityId || stage.activityId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                        Xem hồ sơ
+                                                    {t('view_profile')}
                                                     </button>
                                                 )}
                                                 {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
@@ -467,7 +467,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/appearance-result/${stage.activityId || stage.roundId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                        Xem kết quả
+                                                    {t('view_result')}
                                                     </button>
                                                 )}
                                                 {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
@@ -476,7 +476,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/interview-result/${stage.activityId || stage.roundId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                        Xem kết quả
+                                                    {t('view_result')}
                                                     </button>
                                                 )}
                                             </div>
@@ -548,7 +548,7 @@ const RecruitmentStages = () => {
                                 <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm text-yellow-800">
-                                            <strong>Trạng thái hiện tại:</strong> {
+                                            <strong>{t('current_status')}:</strong> {
                                                 application.stages.length > 0 && application.currentStage > 0 && application.currentStage <= application.stages.length
                                                     ? (() => {
                                                         const currentStageData = application.stages[application.currentStage - 1];
@@ -571,7 +571,7 @@ const RecruitmentStages = () => {
                                                     onClick={() => navigate(`/test/${application.id}`)}
                                                     className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 whitespace-nowrap"
                                                 >
-                                                    {t('take_english_test') || 'Kiểm tra tiếng Anh'}
+                                                    {t('english_test_cta')}
                                                 </button>
                                             )}
                                     </div>
@@ -587,11 +587,11 @@ const RecruitmentStages = () => {
                         <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">Chưa có đơn ứng tuyển</h3>
-                        <p className="mt-1 text-sm text-gray-500">Bạn chưa có đơn ứng tuyển nào để theo dõi tiến trình</p>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_applications_title')}</h3>
+                        <p className="mt-1 text-sm text-gray-500">{t('no_applications_desc')}</p>
                         <div className="mt-6">
                             <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                Tìm việc ngay
+                                {t('find_jobs_now')}
                             </button>
                         </div>
                     </div>

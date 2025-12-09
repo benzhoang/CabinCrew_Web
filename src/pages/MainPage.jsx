@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logoImage from "../images/Logo.png";
 import Loading from "../components/Loading";
 import { login as loginAPI } from "../service/api.js";
+import { t, onLangChange } from "../i18n";
 import { toast } from "react-toastify";
 
 const MainPage = () => {
@@ -14,9 +15,16 @@ const MainPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingMessageKey, setLoadingMessageKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [, forceRender] = useState(0);
   const loginTimeoutRef = useRef(null);
+
+  // Re-render when language changes
+  useEffect(() => {
+    const off = onLangChange(() => forceRender((v) => v + 1));
+    return () => off();
+  }, []);
 
   // Cleanup timeout khi component unmount
   useEffect(() => {
@@ -86,8 +94,8 @@ const MainPage = () => {
     if (route) {
       navigate(route);
     } else {
-      const errorMsg = `Role "${role}" không được hỗ trợ. Vui lòng liên hệ quản trị viên.`;
-      setErrorMessage(errorMsg);
+      const errorMsg = `${t("role_unsupported")}: ${role || ""}`;
+      setErrorMessage(errorMsg.trim());
       console.error("Unsupported role:", role);
     }
   };
@@ -107,7 +115,7 @@ const MainPage = () => {
 
     // Kiểm tra thông tin đăng nhập cơ bản
     if (!loginData.username || !loginData.password) {
-      const errorMsg = "Vui lòng điền đầy đủ thông tin đăng nhập";
+      const errorMsg = t("signin_missing_fields");
       setErrorMessage(errorMsg);
       return;
     }
@@ -119,13 +127,13 @@ const MainPage = () => {
 
     // Hiển thị loading
     setIsLoading(true);
-    setLoadingMessage("Đang xác thực thông tin đăng nhập...");
+    setLoadingMessageKey("loading_authenticating");
 
     // Tạo timeout 30 giây
     loginTimeoutRef.current = setTimeout(() => {
       setIsLoading(false);
-      setLoadingMessage("");
-      const errorMsg = "Lỗi đăng nhập. Vui lòng thử lại.";
+      setLoadingMessageKey("");
+      const errorMsg = t("signin_timeout_error");
       setErrorMessage(errorMsg);
       navigate("/");
       loginTimeoutRef.current = null;
@@ -153,8 +161,8 @@ const MainPage = () => {
             loginTimeoutRef.current = null;
           }
           setIsLoading(false);
-          setLoadingMessage("");
-          const errorMsg = "Không thể xác thực token. Vui lòng thử lại.";
+          setLoadingMessageKey("");
+          const errorMsg = t("signin_token_invalid");
           setErrorMessage(errorMsg);
           return;
         }
@@ -177,8 +185,8 @@ const MainPage = () => {
             loginTimeoutRef.current = null;
           }
           setIsLoading(false);
-          setLoadingMessage("");
-          const errorMsg = "Không thể xác định role của người dùng.";
+          setLoadingMessageKey("");
+          const errorMsg = t("signin_role_unknown");
           setErrorMessage(errorMsg);
           console.error("Decoded token:", decodedToken);
           return;
@@ -229,11 +237,11 @@ const MainPage = () => {
         window.dispatchEvent(new Event("auth-changed"));
 
         setIsLoading(false);
-        setLoadingMessage("");
+        setLoadingMessageKey("");
         setErrorMessage("");
 
         // Hiển thị toast thành công
-        toast.success("Đăng nhập thành công!");
+        toast.success(t("signin_success"));
 
         // Tự động điều hướng theo role
         navigateByRole(mappedRole);
@@ -243,8 +251,8 @@ const MainPage = () => {
           loginTimeoutRef.current = null;
         }
         setIsLoading(false);
-        setLoadingMessage("");
-        const errorMsg = result.error || "Thông tin đăng nhập không đúng";
+        setLoadingMessageKey("");
+        const errorMsg = result.error || t("signin_invalid_credentials");
         setErrorMessage(errorMsg);
       }
     } catch (error) {
@@ -253,8 +261,8 @@ const MainPage = () => {
         loginTimeoutRef.current = null;
       }
       setIsLoading(false);
-      setLoadingMessage("");
-      const errorMsg = "Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.";
+      setLoadingMessageKey("");
+      const errorMsg = t("signin_error_generic");
       setErrorMessage(errorMsg);
       console.error("Login error:", error);
     }
@@ -262,7 +270,11 @@ const MainPage = () => {
 
   return (
     <>
-      {isLoading && <Loading message={loadingMessage} />}
+      {isLoading && (
+        <Loading
+          message={loadingMessageKey ? t(loadingMessageKey) : undefined}
+        />
+      )}
       <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="w-full max-w-md">
           {/* Back to Home Button */}
@@ -281,7 +293,7 @@ const MainPage = () => {
               >
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
-              Quay trở lại trang chủ
+              {t("back_to_home")}
             </Link>
           </div>
 
@@ -293,10 +305,10 @@ const MainPage = () => {
               className="w-auto h-16 mx-auto mb-4"
             />
             <h1 className="mb-2 text-2xl font-bold text-gray-800">
-              SkyCabin Airlines
+              {t("mainpage_title")}
             </h1>
             <p className="text-gray-600">
-              Hệ thống tuyển dụng và nâng bậc nhân viên hàng không
+              {t("mainpage_subtitle")}
             </p>
           </div>
 
@@ -305,7 +317,7 @@ const MainPage = () => {
             {/* Header */}
             <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
               <h2 className="text-xl font-bold text-center text-white">
-                Đăng nhập hệ thống
+                {t("signin_title")}
               </h2>
             </div>
 
@@ -313,7 +325,7 @@ const MainPage = () => {
             <div className="p-8">
               <div className="mb-6">
                 <p className="text-center text-gray-600">
-                  Nhập thông tin đăng nhập để truy cập hệ thống
+                  {t("signin_prompt")}
                 </p>
               </div>
 
@@ -331,7 +343,7 @@ const MainPage = () => {
                     htmlFor="username"
                     className="block mb-2 text-sm font-medium text-gray-700"
                   >
-                    Tên đăng nhập
+                    {t("username_label")}
                   </label>
                   <input
                     id="username"
@@ -344,7 +356,7 @@ const MainPage = () => {
                       setErrorMessage("");
                     }}
                     className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nhập tên đăng nhập"
+                    placeholder={t("username_placeholder")}
                   />
                 </div>
 
@@ -354,7 +366,7 @@ const MainPage = () => {
                     htmlFor="password"
                     className="block mb-2 text-sm font-medium text-gray-700"
                   >
-                    Mật khẩu
+                    {t("password_label")}
                   </label>
                   <div className="relative">
                     <input
@@ -368,12 +380,12 @@ const MainPage = () => {
                         setErrorMessage("");
                       }}
                       className="w-full px-4 py-3 pr-12 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Nhập mật khẩu"
+                      placeholder={t("password_placeholder")}
                     />
                     <button
                       type="button"
                       aria-label={
-                        showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                        showPassword ? t("password_hide") : t("password_show")
                       }
                       onClick={() => setShowPassword((v) => !v)}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors duration-200 hover:text-gray-700"
@@ -421,7 +433,7 @@ const MainPage = () => {
                       htmlFor="remember-me"
                       className="block ml-2 text-sm text-gray-700"
                     >
-                      Nhớ đăng nhập
+                      {t("remember_me")}
                     </label>
                   </div>
                   <div className="text-sm">
@@ -429,7 +441,7 @@ const MainPage = () => {
                       to="/forgot-password"
                       className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-700"
                     >
-                      Quên mật khẩu?
+                      {t("forgot_password")}
                     </Link>
                   </div>
                 </div>
@@ -439,19 +451,19 @@ const MainPage = () => {
                   type="submit"
                   className="w-full px-6 py-3 font-semibold text-white transition-all duration-300 transform rounded-lg shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-xl"
                 >
-                  Đăng nhập
+                  {t("login_button")}
                 </button>
               </form>
 
               {/* Sign Up Link */}
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Chưa có tài khoản?{" "}
+                  {t("no_account")}{" "}
                   <Link
                     to="/signup"
                     className="font-medium text-blue-600 transition-colors duration-200 hover:text-blue-700"
                   >
-                    Đăng ký ngay
+                    {t("signup_now")}
                   </Link>
                 </p>
               </div>
@@ -460,7 +472,7 @@ const MainPage = () => {
 
           {/* Footer Info */}
           <div className="mt-8 text-sm text-center text-gray-500">
-            <p>© 2025 SkyCabin Airlines. Tất cả quyền được bảo lưu.</p>
+            <p>{t("copyright")}</p>
           </div>
         </div>
       </div>

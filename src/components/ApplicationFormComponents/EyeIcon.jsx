@@ -1,7 +1,7 @@
 import React from 'react'
 
 /**
- * Component hiển thị icon con mắt để xem mẫu
+ * Component hiển thị icon cảnh báo (dấu chấm than) để xem mẫu
  * @param {string} url - URL của ảnh mẫu cần mở
  * @param {string} title - Tooltip text khi hover
  * @param {string} className - CSS classes tùy chỉnh
@@ -17,12 +17,12 @@ const EyeIcon = ({ url, title = 'Xem mẫu', className = '' }) => {
         <button
             type="button"
             onClick={handleClick}
-            className={`inline-flex items-center justify-center w-5 h-5 text-blue-600 hover:text-blue-800 transition-colors ${className}`}
+            className={`inline-flex items-center justify-center w-5 h-5 text-red-600 hover:text-red-800 transition-colors ${className}`}
             title={title}
         >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3a9 9 0 110 18 9 9 0 010-18z" />
             </svg>
         </button>
     )

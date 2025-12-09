@@ -296,7 +296,7 @@ const Apply = () => {
                                     </div>
                                 )}
 
-                                {/* Recruitment Process */}
+                                {/* Recruitment Process
                                 <div className="mt-6">
                                     <h3 className="text-lg font-semibold text-slate-800 mb-4">🔄 Quy trình tuyển dụng / Recruitment Process</h3>
                                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -363,7 +363,7 @@ const Apply = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {/* Batches (đợt tuyển) */}
                                 <div className="mt-6">

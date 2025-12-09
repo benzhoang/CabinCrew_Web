@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
-import { onLangChange } from '../../i18n'
+import { t, onLangChange } from '../../i18n'
 import { getApplicationById, screeningApprove } from '../../service/api'
 
 const normalizeGender = (value) => {
@@ -270,67 +270,46 @@ const getStageIcon = (stage, currentStage, stageIndex, overallStatus) => {
     )
 }
 
-// Build timeline data for a single application based on candidate.currentRound & status
+// Build timeline data: các vòng trước luôn đánh dấu đạt, vòng cuối hiển thị trạng thái thực tế
 const buildTimelineForCandidate = (candidate) => {
     if (!candidate) return null
 
-    const overallStatus = candidate.status || 'pending'
+    const overallStatus = normalizeText(candidate.status || 'pending')
 
-    // Map currentRound (backend keys) to templateId used in defaultStageTemplates
-    const roundKey = normalizeText(candidate.currentRound || 'screening')
-    const roundToTemplateId = {
-        screening: 'screening',
-        'sang loc': 'screening',
-        grooming: 'appearance',
-        appearance: 'appearance',
-        test: 'english-listening',
-        'english-test': 'english-listening',
-        interview: 'interview',
-        final: 'final'
-    }
-
-    const currentTemplateId = roundToTemplateId[roundKey] || 'screening'
     const stages = defaultStageTemplates.map((template, index) => {
-        const isCurrent = template.id === currentTemplateId
-        const isBeforeCurrent = defaultStageTemplates.findIndex(t => t.id === template.id) <
-            defaultStageTemplates.findIndex(t => t.id === currentTemplateId)
+        const isFinal = template.id === 'final'
 
-        let completed = isBeforeCurrent
-        let statusText = 'Pending'
-
-        if (completed) {
-            statusText = 'Completed'
-        } else if (isCurrent) {
-            const lowerStatus = normalizeText(overallStatus)
-            if (['failed', 'rejected'].some(k => lowerStatus.includes(k))) {
-                statusText = 'Failed'
-            } else if (['passed', 'accepted', 'completed'].some(k => lowerStatus.includes(k))) {
-                statusText = 'Completed'
-                completed = true
-            } else {
-                statusText = 'In Progress'
+        // Các vòng trước final luôn coi là đã hoàn thành
+        if (!isFinal) {
+            return {
+                templateId: template.id,
+                name: template.name,
+                nameEn: template.nameEn,
+                completed: true,
+                isCurrent: false,
+                status: 'Completed',
+                date: null
             }
         }
+
+        // Vòng cuối: hiển thị theo trạng thái thực tế
+        const isPassed = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
+        const isFailed = ['failed', 'rejected'].some(k => overallStatus.includes(k))
 
         return {
             templateId: template.id,
             name: template.name,
             nameEn: template.nameEn,
-            completed,
-            isCurrent,
-            status: statusText,
+            completed: isPassed,
+            isCurrent: true,
+            status: isFailed ? 'Failed' : isPassed ? 'Completed' : 'In Progress',
             date: null
         }
     })
 
-    const currentStageIndex = Math.max(
-        1,
-        stages.findIndex((s) => s.isCurrent) + 1
-    )
-
     return {
         stages,
-        currentStage: currentStageIndex
+        currentStage: stages.length // luôn đặt ở vòng cuối để hiển thị nút trạng thái
     }
 }
 
@@ -423,7 +402,7 @@ const CandidateApplyDetail = () => {
         const statusConfig = {
             pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang diễn ra' },
             passed: { color: 'bg-green-100 text-green-800', text: 'Đã duyệt' },
-            failed: { color: 'bg-red-100 text-red-800', text: 'Từ chối' },
+            failed: { color: 'bg-red-100 text-red-800', text: 'Đã từ chối' },
         }
         const config = statusConfig[status] || statusConfig.pending
         return (
@@ -434,34 +413,34 @@ const CandidateApplyDetail = () => {
     }
 
     const formatDate = (dateString) => {
-        if (!dateString) return 'N/A'
+        if (!dateString) return '—'
         return new Date(dateString).toLocaleDateString('vi-VN')
     }
 
     const getWorkingExperienceText = (experience) => {
         const experienceMap = {
-            'no-experience': 'No experience',
-            'less-than-1-year': 'Less than 1 year',
-            '1-2-years': '1-2 years',
-            '3-5-years': '3-5 years'
+            'no-experience': 'Chưa có kinh nghiệm',
+            'less-than-1-year': 'Dưới 1 năm',
+            '1-2-years': '1-2 năm',
+            '3-5-years': '3-5 năm'
         }
-        return experienceMap[experience] || experience
+        return experienceMap[experience] || experience || '—'
     }
 
     const getBasePreferenceText = (preference) => {
         const preferenceMap = {
-            'flexible': 'Flexible base',
-            'cam-ranh': 'Cam Ranh City (CXR)',
-            'da-nang': 'Da Nang City (DAD)'
+            'flexible': 'Căn cứ linh hoạt',
+            'cam-ranh': 'Cam Ranh (CXR)',
+            'da-nang': 'Đà Nẵng (DAD)'
         }
-        return preferenceMap[preference] || preference
+        return preferenceMap[preference] || preference || '—'
     }
 
     const getRoundText = (round) => {
         const roundMap = {
             'screening': 'Vòng sàng lọc',
-            'grooming': 'Vòng grooming',
-            'test': 'Vòng kiểm tra',
+            'grooming': 'Vòng ngoại hình',
+            'test': 'Vòng kiểm tra tiếng Anh',
             'interview': 'Vòng phỏng vấn',
             'final': 'Kết quả cuối cùng'
         }
@@ -648,7 +627,7 @@ const CandidateApplyDetail = () => {
                                         <div
                                             className="absolute bg-gray-200"
                                             style={{
-                                                top: `${BASELINE_Y}px`,
+                                                top: `${BASELINE_Y - 7}px`, // căn giữa với tâm hình tròn (line dày 2px)
                                                 left: `${LINE_START_PERCENT}%`,
                                                 width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
                                                 height: '2px'
@@ -665,7 +644,7 @@ const CandidateApplyDetail = () => {
                                             className="absolute bg-gray-200"
                                             style={{
                                                 left: `${getAxisPercent('english-listening')}%`,
-                                                top: `${BASELINE_Y - BRANCH_OFFSET}px`,
+                                                top: `${BASELINE_Y - BRANCH_OFFSET - 1}px`, // căn giữa nhánh dọc với line 2px
                                                 height: `${BRANCH_OFFSET * 2}px`,
                                                 width: '2px',
                                                 transform: 'translateX(-50%)'
@@ -706,57 +685,30 @@ const CandidateApplyDetail = () => {
                     <div className="space-y-6">
                         {/* CV Section */}
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-slate-800 mb-4">CANDIDATE PROFILE</h3>
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">HỒ SƠ ỨNG VIÊN</h3>
 
                             {/* Profile Photo */}
                             <div className="text-center mb-6">
                                 <div className="w-32 h-40 mx-auto bg-slate-100 rounded-lg overflow-hidden mb-4 border-2 border-slate-300 shadow-sm">
                                     <img
-                                        src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
-                                        alt="Profile Photo 4x6"
+                                        src={getDocumentUrl(candidate?.documents?.profilePhoto) || 'https://via.placeholder.com/128x160/cccccc/666666?text=4x6'}
+                                        alt="Ảnh 4x6"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/128x160/cccccc/666666?text=Profile+Photo'
+                                            e.target.src = 'https://via.placeholder.com/128x160/cccccc/666666?text=4x6'
                                         }}
                                     />
                                 </div>
-                                <h4 className="text-xl font-bold text-slate-800">{candidate.fullName}</h4>
-                                <p className="text-slate-600">Cabin Crew Candidate</p>
+                                <p className="text-slate-600">Ứng viên Cabin Crew</p>
                                 <div className="mt-2">
                                     {getStatusBadge(candidate.status)}
-                                </div>
-                            </div>
-
-                            {/* Quick Info - Horizontal Layout */}
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Email</div>
-                                    <div className="font-medium text-slate-800 text-sm">{candidate.email}</div>
-                                </div>
-                                <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Phone</div>
-                                    <div className="font-medium text-slate-800 text-sm">{candidate.mobileNumber}</div>
-                                </div>
-                                <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Experience</div>
-                                    <div className="font-medium text-slate-800 text-sm">{getWorkingExperienceText(candidate.workingExperience)}</div>
-                                </div>
-                                <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Height/Weight</div>
-                                    <div className="font-medium text-slate-800 text-sm">
-                                        {(formatMeasurement(candidate.height, 'cm') || 'N/A')} / {(formatMeasurement(candidate.weight, 'kg') || 'N/A')}
-                                    </div>
-                                </div>
-                                <div className="bg-slate-50 p-3 rounded-lg">
-                                    <div className="text-slate-600 text-xs mb-1">Applied Date</div>
-                                    <div className="font-medium text-slate-800 text-sm">{formatDate(candidate.appliedDate)}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Uploaded Documents */}
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h3 className="text-lg font-semibold text-slate-800 mb-4">UPLOADED DOCUMENTS</h3>
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">TÀI LIỆU ĐÃ TẢI LÊN</h3>
 
                             <div className="space-y-4">
                                 {DOCUMENT_SECTIONS.map(section => {
@@ -783,11 +735,11 @@ const CandidateApplyDetail = () => {
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                             </svg>
-                                                            View
+                                                            Xem
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <span className="text-slate-500">No file uploaded</span>
+                                                    <span className="text-slate-500">Chưa có tệp</span>
                                                 )}
                                             </div>
                                         </div>
@@ -799,53 +751,53 @@ const CandidateApplyDetail = () => {
 
                     {/* Right Column - Application Form Details */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM DETAILS</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">Chi tiết đơn ứng tuyển</h2>
 
                         <div className="space-y-6">
                             {/* Personal Information */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Personal Information</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Thông tin cá nhân</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">1. Email address:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.email || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">1. Email:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.email || '—'}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.fullName || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">2. Họ và tên:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.fullName || '—'}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Date of Birth:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{formatDate(candidate.dateOfBirth) || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Ngày sinh:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{formatDate(candidate.dateOfBirth) || '—'}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Gender:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.gender === 'male' ? 'Male' : candidate.gender === 'female' ? 'Female' : 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Giới tính:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.gender === 'male' ? 'Nam' : candidate.gender === 'female' ? 'Nữ' : '—'}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Mobile number:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.mobileNumber || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Số điện thoại:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.mobileNumber || '—'}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Working experience:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getWorkingExperienceText(candidate.workingExperience) || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Kinh nghiệm làm việc:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{getWorkingExperienceText(candidate.workingExperience)}</p>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Chiều cao & cân nặng:</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
-                                                <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.height || 'N/A'}</p>
+                                                <label className="block text-xs text-slate-600 mb-1">Chiều cao (cm)</label>
+                                                <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.height || '—'}</p>
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-600 mb-1">Weight (kg)</label>
-                                                <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.weight || 'N/A'}</p>
+                                                <label className="block text-xs text-slate-600 mb-1">Cân nặng (kg)</label>
+                                                <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.weight || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -854,21 +806,21 @@ const CandidateApplyDetail = () => {
 
                             {/* English Certificate */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English Certificate</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Chứng chỉ tiếng Anh</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Certificate Number:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.englishCertificate || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Số chứng chỉ:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.englishCertificate || '—'}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Expire Date:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{formatDate(candidate.certificateExpireDate) || 'N/A'}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Ngày hết hạn:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{formatDate(candidate.certificateExpireDate) || '—'}</p>
                                     </div>
                                 </div>
                             </div>
                             {/* Recruiter Actions */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Recruiter Actions</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Thao tác duyệt hồ sơ</h3>
                                 {candidate?.currentRound === 'screening' && (
                                     <div className="flex flex-wrap gap-3">
                                         <button
@@ -876,14 +828,14 @@ const CandidateApplyDetail = () => {
                                             onClick={handleApprove}
                                             disabled={actionLoading}
                                         >
-                                            {actionLoading ? 'Đang xử lý...' : 'Approve Application'}
+                                            {actionLoading ? 'Đang xử lý...' : 'Duyệt hồ sơ'}
                                         </button>
                                         <button
                                             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             onClick={handleReject}
                                             disabled={actionLoading}
                                         >
-                                            {actionLoading ? 'Đang xử lý...' : 'Reject Application'}
+                                            {actionLoading ? 'Đang xử lý...' : 'Từ chối hồ sơ'}
                                         </button>
                                     </div>
                                 )}

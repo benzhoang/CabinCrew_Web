@@ -698,11 +698,6 @@ const ApplyList = ({
                     </option>
                   )}
                 </select>
-                {selectedRoundDateRange && (
-                  <div className="px-3 py-2 text-sm bg-slate-50 border rounded-md border-slate-300 text-slate-700 whitespace-nowrap">
-                    {selectedRoundDateRange}
-                  </div>
-                )}
               </div>
               <div className="relative w-full md:w-64">
                 <input
@@ -728,6 +723,14 @@ const ApplyList = ({
               </div>
             </div>
           </div>
+          {selectedRoundDateRange && (
+            <div className="mt-3 text-sm text-slate-600">
+              Thời gian vòng:{" "}
+              <span className="font-medium text-slate-800">
+                {selectedRoundDateRange}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="overflow-x-auto">

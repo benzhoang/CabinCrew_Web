@@ -119,13 +119,6 @@ const AppealModal = ({ isOpen, onClose, onConfirm, testSessionId }) => {
                                 {t('appeal_reason_helper') || 'Vui lòng mô tả chi tiết lý do bạn yêu cầu phúc khảo điểm thi này.'}
                             </p>
                         </div>
-
-                        {/* Lưu ý */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                            <p className="text-xs text-blue-800">
-                                <strong>{t('appeal_note') || 'Lưu ý:'}</strong> {t('appeal_note_detail') || 'Yêu cầu phúc khảo chỉ được xử lý trong vòng 7 ngày kể từ ngày công bố kết quả. Vui lòng kiểm tra email hoặc thông báo để nhận kết quả phúc khảo.'}
-                            </p>
-                        </div>
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">

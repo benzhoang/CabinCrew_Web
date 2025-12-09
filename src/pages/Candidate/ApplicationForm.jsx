@@ -753,7 +753,7 @@ const ApplicationForm = () => {
 
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">Đơn ứng tuyển</h2>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
@@ -867,9 +867,9 @@ const ApplicationForm = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">. {t('application_form_terms_conditions')}</label>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">7. {t('application_form_terms_conditions')}</label>
                                 <p className="text-sm text-slate-600 mb-3">
-                                    {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline">{t('application_form_privacy_policy')}</a>
+                                    {t('application_form_acknowledge_data')} <a href="#" className="text-blue-600 underline"> {t('application_form_privacy_policy')} </a>
                                     {t('application_form_for_recruitment')}
                                 </p>
                                 <div className="space-y-2">
