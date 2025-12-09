@@ -163,18 +163,26 @@ export const login = async (username, password) => {
 export const register = async (payload) => {
   try {
     const response = await api.post("/auth/registration", payload);
+    const { data, status } = response;
 
-    if (response.data.code === 0 && response.data.data) {
+    // Một số API trả code != 0 nhưng vẫn trả message "Created successfully".
+    // Ưu tiên success nếu HTTP status 200/201 hoặc code === 0.
+    const isSuccess =
+      status >= 200 && status < 300 ? true : data?.code === 0 && !!data?.data;
+
+    if (isSuccess) {
       return {
         success: true,
-        data: response.data.data,
-        message: response.data.message,
+        data: data?.data,
+        message: data?.message,
+        status,
       };
     }
 
     return {
       success: false,
-      error: response.data.message || "Đăng ký thất bại",
+      error: data?.message || "Đăng ký thất bại",
+      status,
     };
   } catch (error) {
     return {

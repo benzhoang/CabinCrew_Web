@@ -17,7 +17,7 @@ const transformTestData = (item) => {
     name: item.testName || item.name || "Đề thi chưa có tên",
     description: item.purpose || item.description || "Không có mô tả",
     duration: item.durationInMinutes || item.duration || 0,
-    totalQuestions: 0,
+    totalQuestions: item.totalQuestions || 0,
     createdAt: item.createdAt || new Date().toISOString(),
     status: getStatusFromTestType(item.testType),
     usageCount: 0,

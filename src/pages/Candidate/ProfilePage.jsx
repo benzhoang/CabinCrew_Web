@@ -70,6 +70,7 @@ const ProfilePage = () => {
         captcha: ''
     })
 
+    const PLACEHOLDER_PROFILE_PHOTO = 'https://via.placeholder.com/128x160/cccccc/666666?text=4x6'
     const [files, setFiles] = useState({
         applicationForm: null,
         profilePhoto: null,
@@ -78,6 +79,7 @@ const ProfilePage = () => {
         idCard: null,
         idCardBack: null
     })
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState(PLACEHOLDER_PROFILE_PHOTO)
 
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
@@ -89,6 +91,29 @@ const ProfilePage = () => {
     const [applicationId, setApplicationId] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
+
+    // Preview 4x6 avatar similar to recruiter view
+    useEffect(() => {
+        let objectUrl
+        const photo = files.profilePhoto
+
+        if (photo instanceof File) {
+            objectUrl = URL.createObjectURL(photo)
+            setProfilePhotoPreview(objectUrl)
+        } else if (photo?.url) {
+            setProfilePhotoPreview(photo.url)
+        } else if (typeof photo === 'string') {
+            setProfilePhotoPreview(photo)
+        } else {
+            setProfilePhotoPreview(PLACEHOLDER_PROFILE_PHOTO)
+        }
+
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl)
+            }
+        }
+    }, [files.profilePhoto])
 
     const generateCaptcha = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -559,15 +584,30 @@ const ProfilePage = () => {
                     </div>
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Document Uploads */}
+                    {/* Left Column - Avatar + Document Uploads */}
                     <div className="space-y-6">
+                        {/* Avatar Preview (4x6) */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">HỒ SƠ ỨNG VIÊN</h3>
+                            <div className="text-center">
+                                <div className="w-32 h-40 mx-auto bg-slate-100 rounded-lg overflow-hidden mb-4 border-2 border-slate-300 shadow-sm">
+                                    <img
+                                        src={profilePhotoPreview}
+                                        alt="Ảnh 4x6"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => { e.target.src = PLACEHOLDER_PROFILE_PHOTO }}
+                                    />
+                                </div>
+                                <p className="text-slate-600">Ứng viên Cabin Crew</p>
+                            </div>
+                        </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
                             <div className="space-y-4">
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-sm font-medium text-slate-700">
-                                            Form Job Application *
+                                            Hồ sơ ứng tuyển *
                                         </label>
                                         {files.applicationForm && isEditing && (
                                             <button
@@ -582,7 +622,6 @@ const ProfilePage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -678,7 +717,7 @@ const ProfilePage = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-sm font-medium text-slate-700">
-                                            Education Degree *
+                                            Bằng cấp *
                                         </label>
                                         {files.educationDegree && isEditing && (
                                             <button
@@ -693,7 +732,6 @@ const ProfilePage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -734,7 +772,7 @@ const ProfilePage = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-sm font-medium text-slate-700">
-                                            English Certificate *
+                                            Chứng chỉ tiếng Anh *
                                         </label>
                                         {files.englishCertificate && isEditing && (
                                             <button
@@ -749,7 +787,6 @@ const ProfilePage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -792,7 +829,7 @@ const ProfilePage = () => {
                                         <div>
                                             <div className="flex items-center justify-between mb-2">
                                                 <label className="block text-sm font-medium text-slate-700">
-                                                    Citizen identification card - Mặt trước *
+                                                    Căn cước công dân - Mặt trước *
                                                 </label>
                                                 {files.idCard && isEditing && (
                                                     <button
@@ -807,7 +844,6 @@ const ProfilePage = () => {
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
                                             <div className="relative">
                                                 <input
                                                     type="file"
@@ -848,7 +884,7 @@ const ProfilePage = () => {
                                         <div>
                                             <div className="flex items-center justify-between mb-2">
                                                 <label className="block text-sm font-medium text-slate-700">
-                                                    Citizen identification card - Mặt sau *
+                                                    Căn cước công dân - Mặt sau *
                                                 </label>
                                                 {files.idCardBack && isEditing && (
                                                     <button
@@ -863,7 +899,6 @@ const ProfilePage = () => {
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
                                             <div className="relative">
                                                 <input
                                                     type="file"
@@ -908,7 +943,7 @@ const ProfilePage = () => {
                     </div>
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">APPLICATION FORM DETAILS</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">Chi tiết hồ sơ ứng tuyển</h2>
                         <ProfileFormActions
                             formData={formData}
                             files={files}
@@ -926,10 +961,10 @@ const ProfilePage = () => {
                         >
                             {/* Personal Information */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Personal Information</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Thông tin cá nhân</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">1. Email address:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">1. Địa chỉ email:</label>
                                         <input
                                             type="email"
                                             name="email"
@@ -941,7 +976,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">2. Full name:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">2. Họ và tên:</label>
                                         <input
                                             type="text"
                                             name="fullName"
@@ -953,7 +988,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Date of Birth:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">3. Ngày sinh:</label>
                                         <input
                                             type="date"
                                             name="dateOfBirth"
@@ -965,7 +1000,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Gender:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">4. Giới tính:</label>
                                         <div className="flex gap-4">
                                             <label className="flex items-center">
                                                 <input
@@ -978,7 +1013,7 @@ const ProfilePage = () => {
                                                     className="mr-2"
                                                     required
                                                 />
-                                                Male
+                                                Nam
                                             </label>
                                             <label className="flex items-center">
                                                 <input
@@ -991,12 +1026,12 @@ const ProfilePage = () => {
                                                     className="mr-2"
                                                     required
                                                 />
-                                                Female
+                                                Nữ
                                             </label>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Mobile number:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">5. Số điện thoại:</label>
                                         <input
                                             type="tel"
                                             name="mobileNumber"
@@ -1008,67 +1043,71 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Working experience:</label>
-                                        <div className="space-y-2">
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="no-experience"
-                                                    checked={formData.workingExperience === 'no-experience'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                No experience
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="less-than-1-year"
-                                                    checked={formData.workingExperience === 'less-than-1-year'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                Less than 1 year
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="1-2-years"
-                                                    checked={formData.workingExperience === '1-2-years'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                1-2 years
-                                            </label>
-                                            <label className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="workingExperience"
-                                                    value="3-5-years"
-                                                    checked={formData.workingExperience === '3-5-years'}
-                                                    onChange={handleInputChange}
-                                                    disabled={!isEditing}
-                                                    className="mr-2"
-                                                    required
-                                                />
-                                                3-5 years
-                                            </label>
-                                        </div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Kinh nghiệm làm việc:</label>
+                                        {formData.workingExperience ? (
+                                            <div className="space-y-2">
+                                                <label className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="workingExperience"
+                                                        value="no-experience"
+                                                        checked={formData.workingExperience === 'no-experience'}
+                                                        onChange={handleInputChange}
+                                                        disabled={!isEditing}
+                                                        className="mr-2"
+                                                        required
+                                                    />
+                                                    Chưa có kinh nghiệm
+                                                </label>
+                                                <label className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="workingExperience"
+                                                        value="less-than-1-year"
+                                                        checked={formData.workingExperience === 'less-than-1-year'}
+                                                        onChange={handleInputChange}
+                                                        disabled={!isEditing}
+                                                        className="mr-2"
+                                                        required
+                                                    />
+                                                    Dưới 1 năm
+                                                </label>
+                                                <label className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="workingExperience"
+                                                        value="1-2-years"
+                                                        checked={formData.workingExperience === '1-2-years'}
+                                                        onChange={handleInputChange}
+                                                        disabled={!isEditing}
+                                                        className="mr-2"
+                                                        required
+                                                    />
+                                                    1-2 năm
+                                                </label>
+                                                <label className="flex items-center">
+                                                    <input
+                                                        type="radio"
+                                                        name="workingExperience"
+                                                        value="3-5-years"
+                                                        checked={formData.workingExperience === '3-5-years'}
+                                                        onChange={handleInputChange}
+                                                        disabled={!isEditing}
+                                                        className="mr-2"
+                                                        required
+                                                    />
+                                                    3-5 năm
+                                                </label>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-slate-500">—</p>
+                                        )}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Height & Weight:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Chiều cao & Cân nặng:</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
+                                                <label className="block text-xs text-slate-600 mb-1">Chiều cao (cm)</label>
                                                 <input
                                                     type="number"
                                                     name="height"
@@ -1081,7 +1120,7 @@ const ProfilePage = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-600 mb-1">Weight (kg)</label>
+                                                <label className="block text-xs text-slate-600 mb-1">Cân nặng (kg)</label>
                                                 <input
                                                     type="number"
                                                     name="weight"
@@ -1099,10 +1138,10 @@ const ProfilePage = () => {
                             </div>
                             {/* English Certificate */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English Certificate</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Chứng chỉ tiếng Anh</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Certificate Number:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Loại:</label>
                                         <input
                                             type="text"
                                             name="englishCertificate"
@@ -1115,7 +1154,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Expire Date:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Ngày hết hạn:</label>
                                         <input
                                             type="date"
                                             name="certificateExpireDate"
@@ -1130,11 +1169,11 @@ const ProfilePage = () => {
                             </div>
                             {/* Terms and Conditions */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Terms and Conditions</h3>
+                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Điều khoản và Điều kiện</h3>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Terms and Conditions:</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Xác nhận Điều khoản:</label>
                                     <p className="text-sm text-slate-600 mb-3">
-                                        I acknowledge that my data will be processed in accordance with the <a href="#" className="text-blue-600 underline">Privacy Policy</a> for recruitment purposes.
+                                        Tôi xác nhận dữ liệu của mình sẽ được xử lý theo <a href="#" className="text-blue-600 underline">Chính sách bảo mật</a> cho mục đích tuyển dụng.
                                     </p>
                                     <div className="space-y-2">
                                         <label className="flex items-center">
@@ -1148,7 +1187,7 @@ const ProfilePage = () => {
                                                 className="mr-2"
                                                 required
                                             />
-                                            Yes
+                                            Đồng ý
                                         </label>
                                         <label className="flex items-center">
                                             <input
@@ -1161,7 +1200,7 @@ const ProfilePage = () => {
                                                 className="mr-2"
                                                 required
                                             />
-                                            No
+                                            Không đồng ý
                                         </label>
                                     </div>
                                 </div>

@@ -50,10 +50,10 @@ const CreateTestPage = () => {
       setPreviewFile(
         file
           ? {
-              name: file.name,
-              size: (file.size / (1024 * 1024)).toFixed(2),
-              type: file.type || "Unknown type",
-            }
+            name: file.name,
+            size: (file.size / (1024 * 1024)).toFixed(2),
+            type: file.type || "Unknown type",
+          }
           : null
       );
     }
@@ -159,10 +159,10 @@ const CreateTestPage = () => {
       console.log("Creating test:", testData);
 
       if (result.success) {
-        toast.success(result.message || "Tạo đề thi thành công!");
+        toast.success("Tạo đề thi thành công!");
         navigate("/examiner/testing");
       } else {
-        toast.error(result.error || "Tạo đề thi thất bại. Vui lòng thử lại.");
+        toast.error("Tạo đề thi thất bại. Vui lòng thử lại.");
       }
     } catch (error) {
       console.error("Error creating test:", error);

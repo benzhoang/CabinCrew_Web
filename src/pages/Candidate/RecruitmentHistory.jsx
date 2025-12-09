@@ -251,12 +251,12 @@ const RecruitmentHistory = () => {
                     const data = Array.isArray(response.data) ? response.data : [];
                     setRecruitmentHistory(normalizeHistoryData(data));
                 } else {
-                    setError(response.error || 'Không thể tải lịch sử ứng tuyển');
+                    setError(response.error || t('recruitment_history_fetch_error'));
                     setRecruitmentHistory([]);
                 }
             } catch (err) {
                 if (!isMounted) return;
-                setError(err.message || 'Không thể tải lịch sử ứng tuyển');
+                setError(err.message || t('recruitment_history_fetch_error'));
                 setRecruitmentHistory([]);
             } finally {
                 if (isMounted) {
@@ -404,13 +404,13 @@ const RecruitmentHistory = () => {
 
                 {error && (
                     <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {error}
+                        {error || t('recruitment_history_fetch_error')}
                     </div>
                 )}
 
                 {loading && (
                     <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-                        Đang tải dữ liệu lịch sử ứng tuyển...
+                        {t('recruitment_history_loading')}
                     </div>
                 )}
 
@@ -454,7 +454,7 @@ const RecruitmentHistory = () => {
                                 </svg>
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Không hoàn thành</p>
+                                <p className="text-sm font-medium text-gray-600">{t('recruitment_history_failed_summary')}</p>
                                 <p className="text-2xl font-semibold text-gray-900">
                                     {recruitmentHistory.filter(item => item.status === 'rejected').length}
                                 </p>
@@ -511,7 +511,7 @@ const RecruitmentHistory = () => {
                                     {/* Hiển thị timeline cho các giai đoạn */}
                                     {hasStages && (
                                         <div className="mt-6 pt-6 border-t border-gray-200">
-                                            <h4 className="text-sm font-medium text-gray-900 mb-4">Lịch sử ứng tuyển</h4>
+                                            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('recruitment_history_timeline')}</h4>
 
                                             {/* Progress Timeline */}
                                             <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
@@ -542,7 +542,7 @@ const RecruitmentHistory = () => {
                                                                     onClick={() => navigate(`/appearance-result/${stage.activityId || stage.id || ''}`)}
                                                                     className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                                 >
-                                                                    Xem kết quả
+                                                                    {t('view_result')}
                                                                 </button>
                                                             )}
                                                             {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
@@ -551,7 +551,7 @@ const RecruitmentHistory = () => {
                                                                     onClick={() => navigate(`/interview-result/${stage.activityId || stage.id || ''}`)}
                                                                     className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                                 >
-                                                                    Xem kết quả
+                                                                    {t('view_result')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -629,11 +629,6 @@ const RecruitmentHistory = () => {
                         </svg>
                         <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_applications')}</h3>
                         <p className="mt-1 text-sm text-gray-500">{t('no_applications_desc')}</p>
-                        <div className="mt-6">
-                            <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                {t('browse_jobs')}
-                            </button>
-                        </div>
                     </div>
                 )}
             </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { t, onLangChange } from '../i18n';
 import { register } from '../service/api';
+import { toast } from 'react-toastify';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -75,8 +76,9 @@ const Signup = () => {
         try {
             const response = await register(payload);
             if (response.success) {
-                // On successful registration, navigate to OTP page
-                navigate('/otp');
+                // On successful registration, show toast and navigate to login
+                toast.success('Đăng ký thành công');
+                navigate('/login');
             } else {
                 // Display API error message
                 setError(response.error || t('registration_failed')); // Ensure 'registration_failed' is in i18n

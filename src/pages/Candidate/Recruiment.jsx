@@ -76,7 +76,6 @@ const transformCampaign = campaign => {
 const Recruiment = () => {
     const [search, setSearch] = useState('')
     const [airline, setAirline] = useState('all')
-    const [statusFilter, setStatusFilter] = useState('all') // all | active
     const [langVersion, setLangVersion] = useState(0)
     const [campaigns, setCampaigns] = useState([])
     const [isLoading, setIsLoading] = useState(false)
@@ -191,69 +190,49 @@ const Recruiment = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search])
 
-    // Reset về trang 1 khi thay đổi filter (airline và statusFilter là client-side filter nên không cần gọi lại API)
-    // Chỉ cần reset currentPage về 1 để hiển thị đúng
-
-    const baseCampaigns = useMemo(
-        () => (statusFilter === 'active' ? campaigns.filter(c => c.status === 'active') : campaigns),
-        [statusFilter, campaigns]
-    )
-
     const filtered = useMemo(() => {
-        let data = baseCampaigns
-        // Filter theo airline (search đã được xử lý ở API)
+        let data = campaigns
         if (airline !== 'all') {
             data = data.filter(c => c.airline === airline)
         }
         return data
-    }, [baseCampaigns, airline])
+    }, [campaigns, airline])
 
     const airlines = useMemo(() => {
-        const set = new Set(baseCampaigns.map(c => c.airline))
+        const set = new Set(campaigns.map(c => c.airline))
         return ['all', ...Array.from(set)]
-    }, [baseCampaigns])
+    }, [campaigns])
 
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold text-slate-800">{t('recruitment')}</h1>
-                    <p className="text-slate-600 mt-1">Khám phá các chiến dịch tuyển dụng đang diễn ra</p>
+                    <p className="text-slate-600 mt-1">{t('recruitment_subtitle')}</p>
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">{t('recruitment_search_label')}</label>
                             <input
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Tìm theo tên, Loại, hãng bay, địa điểm"
+                                placeholder={t('recruitment_search_placeholder')}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Hãng hàng không</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">{t('recruitment_airline_label')}</label>
                             <select
                                 value={airline}
                                 onChange={e => setAirline(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 {airlines.map(a => (
-                                    <option key={a} value={a}>{a === 'all' ? 'Tất cả' : a}</option>
+                                    <option key={a} value={a}>{a === 'all' ? t('recruitment_airline_all') : a}</option>
                                 ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
-                            <select
-                                value={statusFilter}
-                                onChange={e => setStatusFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="all">Tất cả</option>
-                                <option value="active">Đang diễn ra</option>
                             </select>
                         </div>
                     </div>
@@ -261,12 +240,12 @@ const Recruiment = () => {
 
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <span>{error}</span>
+                        <span>{error || t('recruitment_fetch_error')}</span>
                         <button
                             onClick={fetchCampaigns}
                             className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700"
                         >
-                            Thử lại
+                            {t('retry')}
                         </button>
                     </div>
                 )}
@@ -274,7 +253,7 @@ const Recruiment = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {isLoading && (
                         <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
-                            Đang tải danh sách chiến dịch...
+                            {t('loading_campaigns')}
                         </div>
                     )}
                     {!isLoading && filtered.map(c => (
@@ -289,20 +268,20 @@ const Recruiment = () => {
                                         </p>
                                     </div>
                                     <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                        {c.status === 'active' ? 'Đang diễn ra' : 'Đã kết thúc'}
+                                        {c.status === 'active' ? t('recruitment_status_active') : t('recruitment_status_inactive')}
                                     </span>
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                     <div>
-                                        <span className="text-slate-500">Loại</span>
+                                        <span className="text-slate-500">{t('campaign_type') || 'Loại'}</span>
                                         <p className="font-medium text-slate-800">{c.position}</p>
                                     </div>
                                     <div>
-                                        <span className="text-slate-500">Ngày bắt đầu</span>
+                                        <span className="text-slate-500">{t('start_date')}</span>
                                         <p className="font-medium text-slate-800">{c.startDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-slate-500">Ngày kết thúc</span>
+                                        <span className="text-slate-500">{t('end_date')}</span>
                                         <p className="font-medium text-slate-800">{c.endDate}</p>
                                     </div>
                                 </div>
@@ -319,7 +298,7 @@ const Recruiment = () => {
                                         onClick={() => navigate(`/apply/${c.id}`, { state: { campaign: c } })}
                                         className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
                                     >
-                                        Xem chi tiết
+                                        {t('view_details')}
                                     </button>
                                 </div>
                             </div>
@@ -329,7 +308,7 @@ const Recruiment = () => {
 
                 {!isLoading && filtered.length === 0 && !error && (
                     <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
-                        Không có chiến dịch phù hợp.
+                        {t('recruitment_no_campaigns')}
                     </div>
                 )}
 
@@ -345,10 +324,10 @@ const Recruiment = () => {
                             disabled={!pagination.hasPreviousPage || pagination.currentPage === 1}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
                         >
-                            Trước
+                            {t('pagination_prev')}
                         </button>
                         <span className="px-4 py-2 text-slate-700">
-                            Trang {pagination.currentPage} / {pagination.totalPages} ({pagination.totalRecords} chiến dịch)
+                            {t('pagination_page')} {pagination.currentPage} / {pagination.totalPages} ({pagination.totalRecords} {t('campaigns_label')})
                         </span>
                         <button
                             onClick={() => {
@@ -359,7 +338,7 @@ const Recruiment = () => {
                             disabled={!pagination.hasNextPage || pagination.currentPage >= pagination.totalPages}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
                         >
-                            Sau
+                            {t('pagination_next')}
                         </button>
                     </div>
                 )}
