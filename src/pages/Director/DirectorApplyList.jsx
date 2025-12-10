@@ -45,7 +45,7 @@ const DirectorApplyList = () => {
             const campaignRoundId = params.id || batchData?.batch?.id || batchData?.batch?.campaignRoundId || batchData?.campaignRoundId
 
             if (!campaignRoundId) {
-                console.warn('Không tìm thấy campaignRoundId')
+                console.warn('Campaign round ID not found')
                 return
             }
 
@@ -170,9 +170,9 @@ const DirectorApplyList = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            active: { color: 'bg-green-100 text-green-800', text: 'Đang hoạt động' },
-            completed: { color: 'bg-blue-100 text-blue-800', text: 'Hoàn thành' },
-            paused: { color: 'bg-yellow-100 text-yellow-800', text: 'Tạm dừng' }
+            active: { color: 'bg-green-100 text-green-800', text: 'Active' },
+            completed: { color: 'bg-blue-100 text-blue-800', text: 'Completed' },
+            paused: { color: 'bg-yellow-100 text-yellow-800', text: 'Paused' }
         }
         const config = statusConfig[status] || statusConfig.active
         return (
@@ -190,12 +190,12 @@ const DirectorApplyList = () => {
 
     const getBatchStatusCfg = (status) => {
         const map = {
-            ongoing: { text: 'Đang diễn ra', color: 'bg-green-100 text-green-700' },
-            completed: { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-700' },
-            planned: { text: 'Đã lên kế hoạch', color: 'bg-slate-100 text-slate-700' },
-            upcoming: { text: 'Sắp diễn ra', color: 'bg-yellow-100 text-yellow-800' },
-            paused: { text: 'Tạm dừng', color: 'bg-orange-100 text-orange-700' },
-            cancelled: { text: 'Hủy', color: 'bg-red-100 text-red-700' },
+            ongoing: { text: 'Ongoing', color: 'bg-green-100 text-green-700' },
+            completed: { text: 'Completed', color: 'bg-blue-100 text-blue-700' },
+            planned: { text: 'Planned', color: 'bg-slate-100 text-slate-700' },
+            upcoming: { text: 'Upcoming', color: 'bg-yellow-100 text-yellow-800' },
+            paused: { text: 'Paused', color: 'bg-orange-100 text-orange-700' },
+            cancelled: { text: 'Cancelled', color: 'bg-red-100 text-red-700' },
         }
         return map[status] || map.planned
     }
@@ -206,7 +206,7 @@ const DirectorApplyList = () => {
         const current = Number(campaign?.currentHires ?? 0)
         const target = campaign?.targetHires
         return [
-            { name: 'Đợt 1', time: `${campaign?.startDate || '—'} - ${campaign?.endDate || '—'}`, location: '—', method: 'Trực tiếp', owner: '—', status: 'ongoing', current, target, note: 'Phỏng vấn vòng 1' },
+            { name: 'Batch 1', time: `${campaign?.startDate || '—'} - ${campaign?.endDate || '—'}`, location: '—', method: 'In person', owner: '—', status: 'ongoing', current, target, note: 'Interview round 1' },
         ]
     }
 
@@ -261,12 +261,12 @@ const DirectorApplyList = () => {
 
     const getRoundText = (rounds) => {
         const map = {
-            screening: 'Vòng sàng lọc',
-            grooming: 'Vòng grooming',
-            test: 'Vòng kiểm tra',
-            interview: 'Vòng phỏng vấn'
+            screening: 'Screening round',
+            grooming: 'Grooming round',
+            test: 'Test round',
+            interview: 'Interview round'
         }
-        return map[rounds] || 'Vòng sàng lọc'
+        return map[rounds] || 'Screening round'
     }
 
     const getApplicantStatusBadge = (status) => {
@@ -274,10 +274,10 @@ const DirectorApplyList = () => {
         const normalizedStatus = status ? String(status).toLowerCase() : "";
 
         const statusConfig = {
-            ongoing: { color: "bg-blue-100 text-blue-800", text: "Đang diễn ra" },
-            passed: { color: "bg-green-100 text-green-800", text: "Đã đạt" },
-            failed: { color: "bg-red-100 text-red-800", text: "Không đạt" },
-            pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
+            ongoing: { color: "bg-blue-100 text-blue-800", text: "In progress" },
+            passed: { color: "bg-green-100 text-green-800", text: "Passed" },
+            failed: { color: "bg-red-100 text-red-800", text: "Failed" },
+            pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
         };
         const config = statusConfig[normalizedStatus] || statusConfig.pending;
         return (
@@ -326,11 +326,11 @@ const DirectorApplyList = () => {
             }
         }
 
-        // Fallback cho "Kết quả cuối cùng"
+        // Fallback for "final result"
         if (round === 'final') {
             return (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-800">
-                    Kết quả cuối cùng
+                    Final result
                 </span>
             )
         }
@@ -338,7 +338,7 @@ const DirectorApplyList = () => {
         // Fallback mặc định nếu không tìm thấy
         return (
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                {round || 'Chưa xác định'}
+                {round || 'Not specified'}
             </span>
         )
     }
@@ -349,7 +349,7 @@ const DirectorApplyList = () => {
     }
 
     const goBackToCampaigns = () => {
-        navigate('/recruiter/campaigns')
+        navigate('/director/campaigns')
     }
 
     if (isViewingBatch) {
@@ -369,8 +369,8 @@ const DirectorApplyList = () => {
                                 </svg>
                             </button>
                             <div>
-                                <h1 className="text-2xl md:text-3xl font-extrabold">Danh sách ứng viên - {campaignRoundData?.roundName || batchData?.batchName || 'Đợt tuyển dụng'}</h1>
-                                <p className="text-white/90 mt-1 text-sm">Sàng lọc và đánh giá ứng viên cho đợt tuyển dụng</p>
+                                <h1 className="text-2xl md:text-3xl font-extrabold">Applicants - {campaignRoundData?.roundName || batchData?.batchName || 'Hiring batch'}</h1>
+                                <p className="text-white/90 mt-1 text-sm">Screen and evaluate applicants for this batch</p>
                             </div>
                         </div>
                     </div>
@@ -379,35 +379,35 @@ const DirectorApplyList = () => {
                 <div className="max-w-7xl mx-auto px-6 py-8">
                     {/* Batch Info */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Thông tin đợt tuyển</h3>
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Batch information</h3>
                         {loadingRoundData ? (
                             <div className="text-center py-4">
-                                <p className="text-slate-500">Đang tải thông tin đợt tuyển...</p>
+                                <p className="text-slate-500">Loading batch information...</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <div>
-                                    <span className="text-sm text-slate-600">Tên đợt:</span>
+                                    <span className="text-sm text-slate-600">Batch name:</span>
                                     <p className="font-medium text-slate-800">{campaignRoundData?.roundName || batchData?.batchName || '—'}</p>
                                 </div>
                                 <div>
-                                    <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                    <span className="text-sm text-slate-600">Start date:</span>
                                     <p className="font-medium text-slate-800">
                                         {campaignRoundData?.startDate || batchData.batch?.time?.split(' - ')[0] || '—'}
                                     </p>
                                 </div>
                                 <div>
-                                    <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                    <span className="text-sm text-slate-600">End date:</span>
                                     <p className="font-medium text-slate-800">
                                         {campaignRoundData?.endDate || batchData.batch?.time?.split(' - ')[1] || '—'}
                                     </p>
                                 </div>
                                 <div>
-                                    <span className="text-sm text-slate-600">Mô tả:</span>
+                                    <span className="text-sm text-slate-600">Description:</span>
                                     <p className="font-medium text-slate-800">{campaignRoundData?.description || '—'}</p>
                                 </div>
                                 <div>
-                                    <span className="text-sm text-slate-600">Chỉ tiêu:</span>
+                                    <span className="text-sm text-slate-600">Target:</span>
                                     <p className="font-medium text-slate-800">
                                         {campaignRoundData
                                             ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0}`
@@ -422,10 +422,10 @@ const DirectorApplyList = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200">
                         <div className="p-6 border-b border-slate-200">
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                <h3 className="text-lg font-semibold text-slate-800">Danh sách ứng viên ({filteredApplicants.length})</h3>
+                                <h3 className="text-lg font-semibold text-slate-800">Applicants ({filteredApplicants.length})</h3>
                                 <div className="flex items-center gap-3 w-full md:w-auto">
                                     <div className="flex items-center gap-2">
-                                        <label className="text-sm text-slate-600">Vòng:</label>
+                                        <label className="text-sm text-slate-600">Round:</label>
                                         <select
                                             className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             value={roundFilter}
@@ -433,7 +433,7 @@ const DirectorApplyList = () => {
                                             disabled={loadingRoundData}
                                         >
                                             {loadingRoundData ? (
-                                                <option value="" disabled>Đang tải...</option>
+                                                <option value="" disabled>Loading...</option>
                                             ) : availableRounds.length > 0 ? (
                                                 availableRounds.map((round) => (
                                                     <option key={round.roundId} value={round.roundId}>
@@ -441,14 +441,14 @@ const DirectorApplyList = () => {
                                                     </option>
                                                 ))
                                             ) : (
-                                                <option value="" disabled>Chưa có dữ liệu vòng</option>
+                                                <option value="" disabled>No round data</option>
                                             )}
                                         </select>
                                     </div>
                                     <div className="relative md:w-64 w-full">
                                         <input
                                             type="text"
-                                            placeholder="Tìm theo tên, email, SĐT..."
+                                            placeholder="Search by name, email, phone..."
                                             className="w-full border border-slate-300 rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             value={applicantSearchTerm}
                                             onChange={(e) => setApplicantSearchTerm(e.target.value)}
@@ -464,19 +464,19 @@ const DirectorApplyList = () => {
                         <div className="overflow-x-auto">
                             {loadingParticipants ? (
                                 <div className="p-12 text-center">
-                                    <p className="text-slate-500">Đang tải danh sách ứng viên...</p>
+                                    <p className="text-slate-500">Loading applicants...</p>
                                 </div>
                             ) : (
                                 <table className="w-full">
                                     <thead className="bg-slate-50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ngày ứng tuyển</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Vòng</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Photo</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Applicant</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Applied date</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Round</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-200">
@@ -516,7 +516,7 @@ const DirectorApplyList = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                                                     <button
                                                         className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
-                                                        title="Xem chi tiết"
+                                                        title="View detail"
                                                         onClick={() =>
                                                             navigate(`/candidate/${applicant.activityId}`, {
                                                                 state: {
@@ -556,7 +556,7 @@ const DirectorApplyList = () => {
 
                         {!loadingParticipants && filteredApplicants.length === 0 && (
                             <div className="p-12 text-center">
-                                <p className="text-slate-500">Chưa có ứng viên nào cho đợt này</p>
+                                <p className="text-slate-500">No applicants for this batch yet</p>
                             </div>
                         )}
                     </div>

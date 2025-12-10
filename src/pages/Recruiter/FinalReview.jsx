@@ -34,7 +34,7 @@ const FinalReview = () => {
     useEffect(() => {
         if (!resolvedCampaignRoundId) {
             setFinalRoundId(null)
-            setFetchError('Không tìm thấy thông tin đợt tuyển để xác định vòng Final.')
+            setFetchError('Cannot find recruitment batch information to determine Final round.')
             return
         }
 
@@ -73,15 +73,15 @@ const FinalReview = () => {
                         setFinalRoundId(finalRound.roundId)
                     } else {
                         setFinalRoundId(null)
-                        setFetchError('Không tìm thấy vòng Final trong đợt tuyển này.')
+                        setFetchError('Could not find a Final round in this recruitment batch.')
                     }
                 } else {
                     setFinalRoundId(null)
-                    setFetchError(result.error || 'Không thể lấy thông tin đợt tuyển.')
+                    setFetchError(result.error || 'Unable to load recruitment batch information.')
                 }
             } catch (error) {
                 setFinalRoundId(null)
-                setFetchError(error.message || 'Không thể lấy thông tin đợt tuyển.')
+                setFetchError(error.message || 'Unable to load recruitment batch information.')
             } finally {
                 setLoadingRoundInfo(false)
             }
@@ -126,12 +126,12 @@ const FinalReview = () => {
                 } else {
                     setCandidates([])
                     setPagination(null)
-                    setFetchError(result.error || 'Không thể tải danh sách ứng viên.')
+                    setFetchError(result.error || 'Unable to load candidate list.')
                 }
             } catch (error) {
                 setCandidates([])
                 setPagination(null)
-                setFetchError(error.message || 'Không thể tải danh sách ứng viên.')
+                setFetchError(error.message || 'Unable to load candidate list.')
             } finally {
                 setLoadingCandidates(false)
             }
@@ -165,9 +165,9 @@ const FinalReview = () => {
     const getStatusBadge = (status) => {
         const normalized = status ? String(status).toLowerCase() : ''
         const statusConfig = {
-            passed: { color: 'bg-green-100 text-green-800', text: 'Đạt' },
-            failed: { color: 'bg-red-100 text-red-800', text: 'Không đạt' },
-            ongoing: { color: 'bg-blue-100 text-blue-800', text: 'Đang xử lý' }
+            passed: { color: 'bg-green-100 text-green-800', text: 'Passed' },
+            failed: { color: 'bg-red-100 text-red-800', text: 'Failed' },
+            ongoing: { color: 'bg-blue-100 text-blue-800', text: 'In progress' }
         }
         const config = statusConfig[normalized] || statusConfig.ongoing
         return (
@@ -181,18 +181,18 @@ const FinalReview = () => {
 
     const handleExport = async () => {
         if (!finalRoundId) {
-            window.alert('Không tìm thấy roundId để export.')
+            window.alert('Round ID not found to export.')
             return
         }
 
         try {
             const result = await exportRoundUsers(finalRoundId)
             if (!result?.success) {
-                window.alert(result?.error || 'Export danh sách users thất bại.')
+                window.alert(result?.error || 'Export users failed.')
             }
         } catch (error) {
             console.error('Lỗi khi gọi API export-users:', error)
-            window.alert('Đã xảy ra lỗi khi export danh sách users.')
+            window.alert('An error occurred while exporting users.')
         }
     }
 
@@ -201,7 +201,7 @@ const FinalReview = () => {
     }
 
     const handleBack = () => {
-        // Lấy campaignId từ state hoặc từ location.state
+        // Get campaignId from state or location.state
         const effectiveCampaignId = campaignId || location.state?.campaignId || batchData?.campaignId
         if (effectiveCampaignId) {
             navigate(`/recruiter/campaigns/${effectiveCampaignId}`, { state: batchData })
@@ -228,8 +228,8 @@ const FinalReview = () => {
                                 </svg>
                             </button>
                             <div>
-                                <h1 className="text-2xl md:text-3xl font-extrabold">Xét hậu kiểm</h1>
-                                <p className="text-white/90 mt-1 text-sm">Danh sách ứng viên đã có kết quả cuối cùng</p>
+                        <h1 className="text-2xl md:text-3xl font-extrabold">Final Review</h1>
+                        <p className="text-white/90 mt-1 text-sm">List of candidates with final results</p>
                             </div>
                         </div>
                     </div>
@@ -240,14 +240,14 @@ const FinalReview = () => {
                 {/* Batch Info */}
                 {batchData && (
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Thông tin đợt tuyển</h3>
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Batch information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <span className="text-sm text-slate-600">Tên đợt:</span>
+                                <span className="text-sm text-slate-600">Batch name:</span>
                                 <p className="font-medium text-slate-800">{batchData.name}</p>
                             </div>
                             <div>
-                                <span className="text-sm text-slate-600">Thời gian:</span>
+                                <span className="text-sm text-slate-600">Time:</span>
                                 <p className="font-medium text-slate-800">{batchData.time || '—'}</p>
                             </div>
                         </div>
@@ -258,15 +258,15 @@ const FinalReview = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <label className="text-sm text-slate-600">Lọc theo trạng thái:</label>
+                            <label className="text-sm text-slate-600">Filter by status:</label>
                             <select
                                 className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
-                                <option value="all">Tất cả</option>
-                                <option value="approved">Đã duyệt</option>
-                                <option value="rejected">Từ chối</option>
+                                <option value="all">All</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
                             </select>
                         </div>
 
@@ -274,7 +274,7 @@ const FinalReview = () => {
                             <div className="relative w-full md:w-64">
                                 <input
                                     type="text"
-                                    placeholder="Tìm theo tên, email, SĐT..."
+                                    placeholder="Search by name, email, phone..."
                                     className="w-full border border-slate-300 rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -319,13 +319,13 @@ const FinalReview = () => {
                     )}
                     <div className="p-6 border-b border-slate-200">
                         <h3 className="text-lg font-semibold text-slate-800">
-                            Danh sách ứng viên ({filteredCandidates.length})
+                            Candidate list ({filteredCandidates.length})
                         </h3>
                     </div>
 
                     {loadingCandidates ? (
                         <div className="p-12 text-center text-slate-500 text-sm">
-                            Đang tải danh sách ứng viên...
+                            Loading candidate list...
                         </div>
                     ) : (
                         <>
@@ -333,11 +333,11 @@ const FinalReview = () => {
                                 <table className="w-full">
                                     <thead className="bg-slate-50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ảnh 4x6</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ứng viên</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Liên hệ</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Photo 4x6</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Candidate</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-slate-200">
@@ -372,11 +372,11 @@ const FinalReview = () => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <button
                                                         className="text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded px-3 py-1 transition-colors"
-                                                        onClick={() => navigate(`/candidate/${candidate.activityId}`, {
+                                                        onClick={() => navigate(`/final-review/candidate/${candidate.activityId}`, {
                                                             state: { candidate, batchData }
                                                         })}
                                                     >
-                                                        Xem chi tiết
+                                                        View details
                                                     </button>
                                                 </td>
                                             </tr>
@@ -387,7 +387,7 @@ const FinalReview = () => {
 
                             {filteredCandidates.length === 0 && (
                                 <div className="p-12 text-center">
-                                    <p className="text-slate-500">Chưa có ứng viên nào đạt kết quả cuối cùng</p>
+                                    <p className="text-slate-500">No candidates have final results yet</p>
                                 </div>
                             )}
                         </>

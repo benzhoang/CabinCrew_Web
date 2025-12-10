@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import { toast } from 'react-toastify'
 import { getApplicationById, screeningApprove } from '../../service/api'
 
 const normalizeGender = (value) => {
@@ -271,47 +270,46 @@ const getStageIcon = (stage, currentStage, stageIndex, overallStatus) => {
     )
 }
 
-// Build timeline data: chỉ hiển thị trạng thái cho vòng Sàng lọc, các vòng khác để Pending (xám)
+// Build timeline data: các vòng trước luôn đánh dấu đạt, vòng cuối hiển thị trạng thái thực tế
 const buildTimelineForCandidate = (candidate) => {
     if (!candidate) return null
 
     const overallStatus = normalizeText(candidate.status || 'pending')
-    const isPassed = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
-    const isFailed = ['failed', 'rejected'].some(k => overallStatus.includes(k))
 
-    const screeningStatus = isFailed ? 'Failed' : isPassed ? 'Completed' : 'Pending'
+    const stages = defaultStageTemplates.map((template, index) => {
+        const isFinal = template.id === 'final'
 
-    const stages = defaultStageTemplates.map((template) => {
-        const isScreening = template.id === 'screening'
-
-        if (isScreening) {
+        // Các vòng trước final luôn coi là đã hoàn thành
+        if (!isFinal) {
             return {
                 templateId: template.id,
                 name: template.name,
                 nameEn: template.nameEn,
-                completed: isPassed,
-                isCurrent: !isPassed && !isFailed,
-                status: screeningStatus,
+                completed: true,
+                isCurrent: false,
+                status: 'Completed',
                 date: null
             }
         }
 
-        // Các vòng khác luôn ở trạng thái Pending (xám)
+        // Vòng cuối: hiển thị theo trạng thái thực tế
+        const isPassed = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
+        const isFailed = ['failed', 'rejected'].some(k => overallStatus.includes(k))
+
         return {
             templateId: template.id,
             name: template.name,
             nameEn: template.nameEn,
-            completed: false,
-            isCurrent: false,
-            status: 'Pending',
+            completed: isPassed,
+            isCurrent: true,
+            status: isFailed ? 'Failed' : isPassed ? 'Completed' : 'In Progress',
             date: null
         }
     })
 
-    // currentStage = 0 để không stage nào bị tô màu vàng "current"
     return {
         stages,
-        currentStage: 0
+        currentStage: stages.length // luôn đặt ở vòng cuối để hiển thị nút trạng thái
     }
 }
 
@@ -320,15 +318,12 @@ const CandidateApplyDetail = () => {
     const [loading, setLoading] = useState(true)
     const [actionLoading, setActionLoading] = useState(false)
     const [error, setError] = useState(null)
-    const [confirmAction, setConfirmAction] = useState(null) // 'approve' | 'reject' | null
     const [, setLangVersion] = useState(0)
     const navigate = useNavigate()
     const location = useLocation()
     const { id: routeApplicationId } = useParams()
     const candidateFromState = location.state?.candidate || null
     const applicationTimeline = buildTimelineForCandidate(candidate)
-    const normalizedStatus = normalizeText(candidate?.status)
-    const isOngoingStatus = ['pending', 'ongoing', 'in progress', 'processing'].some(s => normalizedStatus.includes(s) || normalizedStatus === s)
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
@@ -384,22 +379,23 @@ const CandidateApplyDetail = () => {
 
     const goBack = () => {
         // Quay về danh sách ứng viên với thông tin batch
-        const batchData = location.state?.batchData
-        // Lấy campaignRoundId từ nhiều nguồn có thể
+        const batchData = location.state?.batchData || location.state?.batch
+        // Lấy campaignRoundId từ nhiều nguồn có thể (KHÔNG dùng activityId)
         const campaignRoundId =
             batchData?.batch?.id ||
             batchData?.batch?.campaignRoundId ||
             batchData?.campaignRoundId ||
-            location.state?.campaignRoundId ||
-            candidate?.activityId // fallback nếu không có trong batchData
+            batchData?.id ||
+            location.state?.campaignRoundId
 
-        if (batchData && campaignRoundId) {
-            navigate(`/recruiter/applications/${campaignRoundId}`, { state: batchData })
-        } else if (campaignRoundId) {
-            navigate(`/recruiter/applications/${campaignRoundId}`)
+        if (campaignRoundId) {
+            // Luôn điều hướng về /recruiter/final-review/:id với campaignRoundId
+            navigate(`/recruiter/final-review/${campaignRoundId}`, {
+                state: batchData ? { batch: batchData } : undefined
+            })
         } else {
-            // Fallback nếu không có campaignRoundId
-            navigate(`/recruiter/applications/`)
+            // Fallback nếu không có campaignRoundId - về trang final-review chung
+            navigate(`/recruiter/final-review`)
         }
     }
 
@@ -474,7 +470,11 @@ const CandidateApplyDetail = () => {
 
     const handleApprove = async () => {
         if (!candidate?.activityId) {
-            toast.error('Activity ID not found. Please try again.')
+            alert('Activity ID not found. Please try again.')
+            return
+        }
+
+        if (!window.confirm('Are you sure you want to approve this application?')) {
             return
         }
 
@@ -482,7 +482,7 @@ const CandidateApplyDetail = () => {
         try {
             const result = await screeningApprove(candidate.activityId, 2) // 2 = Passed
             if (result.success) {
-                toast.success('Application approved successfully!')
+                alert(result.message || 'Application approved successfully!')
                 // Cập nhật trạng thái candidate
                 setCandidate(prev => ({
                     ...prev,
@@ -491,20 +491,23 @@ const CandidateApplyDetail = () => {
                 // Có thể navigate về trang trước hoặc reload
                 goBack()
             } else {
-                toast.error(result.error || 'Unable to approve application. Please try again.')
+                alert(result.error || 'Unable to approve application. Please try again.')
             }
         } catch (error) {
             console.error('Error approving application:', error)
-            toast.error('An error occurred while approving application. Please try again.')
+            alert('An error occurred while approving application. Please try again.')
         } finally {
             setActionLoading(false)
-            setConfirmAction(null)
         }
     }
 
     const handleReject = async () => {
         if (!candidate?.activityId) {
-            toast.error('Activity ID not found. Please try again.')
+            alert('Activity ID not found. Please try again.')
+            return
+        }
+
+        if (!window.confirm('Are you sure you want to reject this application?')) {
             return
         }
 
@@ -512,7 +515,7 @@ const CandidateApplyDetail = () => {
         try {
             const result = await screeningApprove(candidate.activityId, 3) // 3 = Failed
             if (result.success) {
-                toast.success('Application rejected successfully!')
+                alert(result.message || 'Application rejected successfully!')
                 // Cập nhật trạng thái candidate
                 setCandidate(prev => ({
                     ...prev,
@@ -521,14 +524,13 @@ const CandidateApplyDetail = () => {
                 // Có thể navigate về trang trước hoặc reload
                 goBack()
             } else {
-                toast.error(result.error || 'Unable to reject application. Please try again.')
+                alert(result.error || 'Unable to reject application. Please try again.')
             }
         } catch (error) {
             console.error('Error rejecting application:', error)
-            toast.error('An error occurred while rejecting application. Please try again.')
+            alert('An error occurred while rejecting application. Please try again.')
         } finally {
             setActionLoading(false)
-            setConfirmAction(null)
         }
     }
 
@@ -575,7 +577,7 @@ const CandidateApplyDetail = () => {
                         </button>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800">
-                                Candidate Profile - {candidate ? getRoundText(candidate.currentRound) : 'Screening'}
+                                Candidate Profile - Final
                             </h1>
                             <p className="text-slate-600">Detailed candidate information</p>
                         </div>
@@ -845,62 +847,9 @@ const CandidateApplyDetail = () => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Recruiter Actions */}
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">Application Review Actions</h3>
-                                {candidate?.currentRound === 'screening' && isOngoingStatus && (
-                                    <div className="flex flex-wrap gap-3">
-                                        <button
-                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            onClick={() => setConfirmAction('approve')}
-                                            disabled={actionLoading}
-                                        >
-                                            {actionLoading && confirmAction === 'approve' ? 'Processing...' : 'Approve Application'}
-                                        </button>
-                                        <button
-                                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            onClick={() => setConfirmAction('reject')}
-                                            disabled={actionLoading}
-                                        >
-                                            {actionLoading && confirmAction === 'reject' ? 'Processing...' : 'Reject Application'}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
-                {/* Confirm modal */}
-                {confirmAction && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-                        <div className="bg-white rounded-xl shadow-lg border border-slate-200 w-full max-w-md p-6">
-                            <h4 className="text-lg font-semibold text-slate-800 mb-2">
-                                {confirmAction === 'approve' ? 'Approve application' : 'Reject application'}
-                            </h4>
-                            <p className="text-sm text-slate-600 mb-6">
-                                {confirmAction === 'approve'
-                                    ? 'Are you sure you want to approve this application?'
-                                    : 'Are you sure you want to reject this application?'}
-                            </p>
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm"
-                                    onClick={() => setConfirmAction(null)}
-                                    disabled={actionLoading}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className={`px-4 py-2 rounded-lg text-sm text-white font-medium ${confirmAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    onClick={confirmAction === 'approve' ? handleApprove : handleReject}
-                                    disabled={actionLoading}
-                                >
-                                    {actionLoading ? 'Processing...' : 'Confirm'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     )

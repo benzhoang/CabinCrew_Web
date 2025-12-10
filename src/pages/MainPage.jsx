@@ -301,7 +301,7 @@ const MainPage = () => {
           <div className="mb-8 text-center">
             <img
               src={logoImage}
-              alt="SkyCabin Airlines"
+              alt="CabinCrew Airlines"
               className="w-auto h-16 mx-auto mb-4"
             />
             <h1 className="mb-2 text-2xl font-bold text-gray-800">

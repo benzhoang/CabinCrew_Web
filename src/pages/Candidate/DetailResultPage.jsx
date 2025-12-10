@@ -8,7 +8,7 @@ const formatDateTime = (value) => {
     if (Number.isNaN(date.getTime())) {
         return value
     }
-    return date.toLocaleString('vi-VN', {
+    return date.toLocaleString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -18,8 +18,8 @@ const formatDateTime = (value) => {
 }
 
 const getPassLabel = (flag) => {
-    if (flag === true) return 'Đạt'
-    if (flag === false) return 'Rớt'
+    if (flag === true) return 'Passed'
+    if (flag === false) return 'Failed'
     return '—'
 }
 
@@ -51,7 +51,7 @@ const DetailResultPage = () => {
 
     const fetchResult = useCallback(async () => {
         if (!id) {
-            setError('Không tìm thấy ID để tra cứu chi tiết phiếu chấm điểm.')
+            setError('ID not found for result detail lookup.')
             setLoading(false)
             return
         }
@@ -65,12 +65,12 @@ const DetailResultPage = () => {
                 setResult(response.data)
                 setError(null)
             } else {
-                setError(response.error || 'Không thể tải chi tiết phiếu chấm điểm.')
+                setError(response.error || 'Unable to load interview result detail.')
                 setResult(null)
             }
         } catch (err) {
             console.error('Load interview result detail error:', err)
-            setError('Đã xảy ra lỗi khi tải dữ liệu.')
+            setError('An error occurred while loading data.')
             setResult(null)
         } finally {
             setLoading(false)
@@ -115,15 +115,24 @@ const DetailResultPage = () => {
         fetchCriterias()
     }, [fetchCriterias])
 
-    const summaryItems = [
-        { label: 'Mã đánh giá', value: result?.evaluationId ?? '—' },
-        { label: 'Thí sinh', value: result?.candidate || '—' },
-        { label: 'Giám khảo', value: result?.examiner || '—' },
-        { label: 'Vòng tuyển', value: result?.roundName || '—' },
-        { label: 'Ngày đánh giá', value: formatDateTime(result?.evaluatedDate) },
-        { label: 'Điểm tổng', value: result?.finalScore !== undefined && result?.finalScore !== null ? result.finalScore : '—' },
-        { label: 'Kết quả', value: getPassLabel(result?.isPassed) }
-    ]
+    const summaryItems = useMemo(() => {
+        const resultBadgeClass =
+            result?.isPassed === true
+                ? 'bg-green-100 text-green-800'
+                : result?.isPassed === false
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-gray-100 text-gray-700'
+
+        return [
+            { label: 'Evaluation ID', value: result?.evaluationId ?? '—' },
+            { label: 'Candidate', value: result?.candidate || '—' },
+            { label: 'Examiner', value: result?.examiner || '—' },
+            { label: 'Round', value: result?.roundName || '—' },
+            { label: 'Evaluation date', value: formatDateTime(result?.evaluatedDate) },
+            { label: 'Total score', value: result?.finalScore !== undefined && result?.finalScore !== null ? result.finalScore : '—' },
+            { label: 'Result', value: getPassLabel(result?.isPassed), valueClass: resultBadgeClass, isBadge: true }
+        ]
+    }, [result])
 
     const interviewResults = Array.isArray(result?.interviewResults) ? result.interviewResults : []
 
@@ -170,7 +179,7 @@ const DetailResultPage = () => {
                             onClick={() => navigate(-1)}
                             className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
                         >
-                            Quay lại
+                            Back
                         </button>
                     </div>
                 </div>
@@ -179,7 +188,7 @@ const DetailResultPage = () => {
                     {loading && (
                         <div className="text-center py-16">
                             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600">Đang tải chi tiết phiếu chấm điểm...</p>
+                            <p className="mt-4 text-gray-600">Loading result details...</p>
                         </div>
                     )}
 
@@ -194,7 +203,7 @@ const DetailResultPage = () => {
                                 onClick={fetchResult}
                                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
                             >
-                                Thử lại
+                                Retry
                             </button>
                         </div>
                     )}
@@ -202,22 +211,19 @@ const DetailResultPage = () => {
                     {!loading && !error && result && (
                         <div className="space-y-8">
                             <section>
-                                <div className="flex flex-wrap items-center gap-3 mb-4">
-                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadge(result?.isPassed)}`}>
-                                        {getPassLabel(result?.isPassed)}
-                                    </span>
-                                    {result?.roundName && (
-                                        <span className="text-sm text-gray-500">Vòng: {result.roundName}</span>
-                                    )}
-                                    {result?.finalScore !== undefined && result?.finalScore !== null && (
-                                        <span className="text-sm font-medium text-gray-700">Điểm: {result.finalScore}</span>
-                                    )}
-                                </div>
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {summaryItems.map((item) => (
                                         <div key={item.label} className="bg-gray-50 rounded-lg p-4">
                                             <dt className="text-sm text-gray-500">{item.label}</dt>
-                                            <dd className="text-base font-semibold text-gray-900 mt-1">{item.value || '—'}</dd>
+                                            <dd className={`text-base font-semibold mt-1 ${item.isBadge ? 'inline-block' : 'text-gray-900'}`}>
+                                                {item.isBadge ? (
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${item.valueClass || 'bg-gray-100 text-gray-700'}`}>
+                                                        {item.value || '—'}
+                                                    </span>
+                                                ) : (
+                                                    <span className={item.valueClass || 'text-gray-900'}>{item.value || '—'}</span>
+                                                )}
+                                            </dd>
                                         </div>
                                     ))}
                                 </dl>
@@ -226,7 +232,7 @@ const DetailResultPage = () => {
                             {result?.comment && (
                                 <section>
                                     <div className="mb-6">
-                                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Nhận xét chung</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-1">General comments</h3>
                                         <p className="text-sm text-gray-600 whitespace-pre-wrap">
                                             {result.comment}
                                         </p>
@@ -236,7 +242,7 @@ const DetailResultPage = () => {
 
                             {criteriaGroups.length > 0 && (
                                 <section>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí đánh giá</h2>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Evaluation criteria details</h2>
                                     <div className="space-y-6">
                                         {criteriaGroups.map((group, groupIndex) => {
                                             const items = Array.isArray(group?.items) ? group.items : []
@@ -244,7 +250,7 @@ const DetailResultPage = () => {
                                                 <div key={`${group?.title || 'group'}-${groupIndex}`} className="overflow-hidden border border-gray-200 rounded-lg">
                                                     <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
                                                         <h3 className="text-lg font-semibold text-gray-800">
-                                                            {group?.title || `Nhóm ${groupIndex + 1}`}
+                                                            {group?.title || `Group ${groupIndex + 1}`}
                                                         </h3>
                                                         {group?.description && (
                                                             <p className="text-sm text-gray-600 mt-1">{group.description}</p>
@@ -254,13 +260,13 @@ const DetailResultPage = () => {
                                                         <thead className="bg-gray-50">
                                                             <tr>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                                    Tiêu chí
+                                                                    Criteria
                                                                 </th>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
-                                                                    Điểm
+                                                                    Score
                                                                 </th>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                                    Nhận xét
+                                                                    Comment
                                                                 </th>
                                                             </tr>
                                                         </thead>
@@ -294,7 +300,7 @@ const DetailResultPage = () => {
                                                             ) : (
                                                                 <tr>
                                                                     <td colSpan="3" className="px-4 py-4 text-center text-sm text-gray-500">
-                                                                        Không có tiêu chí trong nhóm này.
+                                                                        No criteria in this group.
                                                                     </td>
                                                                 </tr>
                                                             )}
@@ -313,9 +319,9 @@ const DetailResultPage = () => {
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu chí</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhận xét</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
@@ -343,14 +349,14 @@ const DetailResultPage = () => {
 
                             {unmatchedResults.length > 0 && criteriaGroups.length > 0 && (
                                 <section>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Tiêu chí khác</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Other criteria</h3>
                                     <div className="overflow-hidden border border-gray-200 rounded-lg">
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tiêu chí</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhận xét</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
@@ -379,7 +385,7 @@ const DetailResultPage = () => {
                                         <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
-                                        <p className="mt-2 text-sm font-medium text-gray-900">Chưa có chi tiết tiêu chí đánh giá</p>
+                                        <p className="mt-2 text-sm font-medium text-gray-900">No evaluation criteria details available</p>
                                     </div>
                                 </section>
                             )}

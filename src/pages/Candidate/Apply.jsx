@@ -5,6 +5,17 @@ import { getCampaignById, getOngoingCampaign } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 
+// Helper function to render HTML content safely
+const renderHTML = (htmlString) => {
+    if (!htmlString) return null
+    // Check if the string contains HTML tags
+    if (htmlString.includes('<ul>') || htmlString.includes('<li>') || htmlString.includes('<p>') || htmlString.includes('<br>')) {
+        return <div dangerouslySetInnerHTML={{ __html: htmlString }} />
+    }
+    // If no HTML tags, render as plain text with line breaks
+    return <div className="whitespace-pre-line">{htmlString}</div>
+}
+
 const Apply = () => {
     const navigate = useNavigate()
     const { id } = useParams() // Lấy campaign ID từ URL
@@ -66,7 +77,7 @@ const Apply = () => {
                             roundName: round.roundName || round.name || '',
                             time: `${round.startDate || ''} - ${round.endDate || ''}`,
                             location: round.location || '',
-                            method: round.method || 'Trực tiếp',
+                            method: round.method || 'Direct',
                             status: mapRoundStatus(round.status),
                             owner: round.owner || '',
                             description: round.description || '',
@@ -84,11 +95,11 @@ const Apply = () => {
                 console.log('Mapped Campaign:', mappedCampaign) // Debug log
                 setCampaign(mappedCampaign)
             } else {
-                setError(response.error || 'Không thể tải thông tin chiến dịch')
+                setError(response.error || 'Unable to load campaign information')
             }
         } catch (err) {
             console.error('Error fetching campaign:', err) // Debug log
-            setError(err.message || 'Đã xảy ra lỗi khi tải thông tin chiến dịch')
+            setError(err.message || 'An error occurred while loading campaign information')
         } finally {
             setIsLoading(false)
         }
@@ -230,23 +241,23 @@ const Apply = () => {
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
                         <div className="flex items-center justify-center gap-3">
                             <FiLoader className="w-6 h-6 animate-spin text-indigo-600" />
-                            <p className="text-gray-600">Đang tải thông tin chiến dịch...</p>
+                            <p className="text-gray-600">Loading campaign information...</p>
                         </div>
                     </div>
                 ) : error ? (
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
                         <p className="text-red-600 mb-4">{error}</p>
-                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Quay lại</button>
+                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Back</button>
                     </div>
                 ) : !campaign ? (
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                        <p className="text-gray-600 mb-4">Không tìm thấy thông tin chiến dịch.</p>
-                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Quay lại</button>
+                        <p className="text-gray-600 mb-4">Campaign information not found.</p>
+                        <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Back</button>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">Quay lại</button>
+                            <button onClick={() => navigate(-1)} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">Back</button>
                         </div>
                         {/* Header */}
                         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -259,26 +270,26 @@ const Apply = () => {
                                     </p>
                                 </div>
                                 <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                    {isCampaignActive(campaign) ? 'Đang diễn ra' : 'Đã kết thúc'}
+                                    {isCampaignActive(campaign) ? 'Ongoing' : 'Ended'}
                                 </span>
                             </div>
                             <div className="p-6">
                                 {/* Overview grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                    <Info label="Loại" value={campaign.position || '—'} />
-                                    <Info label="Hãng hàng không" value={campaign.airline || '—'} />
-                                    <Info label="Ngày bắt đầu" value={campaign.startDate || '—'} />
-                                    <Info label="Ngày kết thúc" value={campaign.endDate || '—'} />
-                                    <Info label="Chỉ tiêu" value={`${campaign.targetHires ?? '—'}`} />
+                                    <Info label="Type" value={campaign.position || '—'} />
+                                    <Info label="Airline" value={campaign.airline || '—'} />
+                                    <Info label="Start date" value={campaign.startDate || '—'} />
+                                    <Info label="End date" value={campaign.endDate || '—'} />
+                                    <Info label="Target" value={`${campaign.targetHires ?? '—'}`} />
                                 </div>
 
                                 {/* Job Description */}
                                 {campaign.jobDescription && (
                                     <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📋 Mô tả công việc / Job Description</h3>
+                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📋 Job Description</h3>
                                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <div className="text-sm text-slate-700 whitespace-pre-line">
-                                                {campaign.jobDescription}
+                                            <div className="text-sm text-slate-700">
+                                                {renderHTML(campaign.jobDescription)}
                                             </div>
                                         </div>
                                     </div>
@@ -287,10 +298,10 @@ const Apply = () => {
                                 {/* Job Requirements */}
                                 {campaign.jobRequirement && (
                                     <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📝 Yêu cầu công việc / Job Requirements</h3>
+                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📝 Job Requirements</h3>
                                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                            <div className="text-sm text-slate-700 whitespace-pre-line">
-                                                {campaign.jobRequirement}
+                                            <div className="text-sm text-slate-700">
+                                                {renderHTML(campaign.jobRequirement)}
                                             </div>
                                         </div>
                                     </div>
@@ -365,9 +376,9 @@ const Apply = () => {
                                     </div>
                                 </div> */}
 
-                                {/* Batches (đợt tuyển) */}
+                                {/* Batches (recruitment rounds) */}
                                 <div className="mt-6">
-                                    <div className="text-sm text-slate-600 mb-2">Kế hoạch các đợt tuyển</div>
+                                    <div className="text-sm text-slate-600 mb-2">Recruitment rounds schedule</div>
                                     {Array.isArray(campaign.batches) && campaign.batches.length > 0 ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {campaign.batches.map((b) => (
@@ -378,28 +389,28 @@ const Apply = () => {
                                                             b.status === 'ongoing' ? 'bg-green-100 text-green-700' :
                                                                 'bg-yellow-100 text-yellow-700'
                                                             }`}>
-                                                            {b.status === 'completed' ? 'Đã hoàn thành' :
-                                                                b.status === 'ongoing' ? 'Đang diễn ra' :
-                                                                    'Sắp diễn ra'}
+                                                            {b.status === 'completed' ? 'Completed' :
+                                                                b.status === 'ongoing' ? 'Ongoing' :
+                                                                    'Upcoming'}
                                                         </span>
                                                     </div>
                                                     <div className="p-4 space-y-4">
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                                            <InfoMini label="Thời gian" value={b.time || '—'} />
-                                                            <InfoMini label="Hình thức" value={b.method || '—'} />
-                                                            {b.owner && <InfoMini label="Phụ trách" value={b.owner} />}
-                                                            {b.slots && <InfoMini label="Số lượng tuyển" value={`${b.slots} người`} />}
-                                                            {b.applied !== undefined && <InfoMini label="Đã ứng tuyển" value={`${b.applied} người`} />}
+                                                            <InfoMini label="Time" value={b.time || '—'} />
+                                                            <InfoMini label="Method" value={b.method || '—'} />
+                                                            {b.owner && <InfoMini label="In charge" value={b.owner} />}
+                                                            {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} candidates`} />}
+                                                            {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} candidates`} />}
                                                         </div>
                                                         {b.description && (
                                                             <div className="text-xs">
-                                                                <div className="text-slate-500 mb-1">Mô tả</div>
+                                                                <div className="text-slate-500 mb-1">Description</div>
                                                                 <div className="text-slate-700 bg-slate-50 p-2 rounded border">{b.description}</div>
                                                             </div>
                                                         )}
                                                         {b.slots && b.applied !== undefined && (
                                                             <div className="text-xs">
-                                                                <div className="text-slate-500 mb-1">Tiến độ ứng tuyển</div>
+                                                                <div className="text-slate-500 mb-1">Application progress</div>
                                                                 <div className="bg-gray-200 rounded-full h-2">
                                                                     <div
                                                                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -420,7 +431,7 @@ const Apply = () => {
                                                                     : 'bg-green-600 hover:bg-green-700'
                                                                     }`}
                                                             >
-                                                                {isBatchApplied(b) ? 'Đã ứng tuyển' : 'Ứng tuyển ngay'}
+                                                                {isBatchApplied(b) ? 'Already applied' : 'Apply now'}
                                                             </button>
                                                         )}
                                                     </div>
@@ -429,7 +440,7 @@ const Apply = () => {
                                         </div>
                                     ) : (
                                         <div className="bg-white rounded-lg border border-slate-200 p-6 text-center">
-                                            <p className="text-slate-500 text-sm">Chưa có đợt tuyển nào được lên kế hoạch</p>
+                                            <p className="text-slate-500 text-sm">No recruitment rounds scheduled</p>
                                         </div>
                                     )}
                                 </div>

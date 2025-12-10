@@ -40,7 +40,7 @@ const ProfileFormActions = ({
 
         console.log('Updated form data:', formData)
         console.log('Updated files:', files)
-        alert('Đã cập nhật thông tin thành công!')
+        alert('Information updated successfully!')
     }, [files, formData, validateCaptcha])
 
     const handleSubmit = useCallback(async (e) => {
@@ -52,7 +52,7 @@ const ProfileFormActions = ({
             return
         }
         if (!applicationId) {
-            alert('Không tìm thấy mã hồ sơ. Vui lòng tải lại trang và thử lại.')
+            alert('Application ID not found. Please reload and try again.')
             return
         }
         const campaignRoundId = formData.campaignRoundId
@@ -62,14 +62,14 @@ const ProfileFormActions = ({
         try {
             const result = await submitExistingApplication(applicationId, campaignRoundId)
             if (result.success) {
-                alert(result.message || 'Đã nộp hồ sơ thành công!')
+                alert(result.message || 'Application submitted successfully!')
                 navigate('/profile')
             } else {
-                alert(result.error || 'Không thể nộp hồ sơ. Vui lòng thử lại.')
+                alert(result.error || 'Could not submit application. Please try again.')
             }
         } catch (error) {
             console.error('Submit application error:', error)
-            alert('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại sau.')
+            alert('An error occurred when submitting the application. Please try again later.')
         } finally {
             setIsSubmitting(false)
         }
@@ -92,7 +92,7 @@ const ProfileFormActions = ({
             return
         }
         if (!applicationId) {
-            alert('Không tìm thấy mã hồ sơ. Vui lòng tải lại trang và thử lại.')
+            alert('Application ID not found. Please reload and try again.')
             return
         }
 
@@ -120,15 +120,15 @@ const ProfileFormActions = ({
 
             const result = await updateApplication(applicationId, payload)
             if (result.success) {
-                alert(result.message || 'Đã cập nhật thông tin thành công!')
+                alert(result.message || 'Information updated successfully!')
                 setIsEditing(false)
                 setOriginalFormData(null)
             } else {
-                alert(result.error || 'Không thể cập nhật hồ sơ. Vui lòng thử lại.')
+                alert(result.error || 'Could not update application. Please try again.')
             }
         } catch (error) {
             console.error('Update application error:', error)
-            alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại sau.')
+            alert('An error occurred when updating the application. Please try again later.')
         } finally {
             setIsSaving(false)
         }
@@ -180,11 +180,10 @@ const ProfileFormActions = ({
                             type="button"
                             onClick={handleEditClick}
                             disabled={applicationStatus === 'passed'}
-                            className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg ${
-                                applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg ${applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
                         >
-                            Cập nhật thông tin
+                            Update information
                         </button>
                     </>
                 ) : (
@@ -194,17 +193,16 @@ const ProfileFormActions = ({
                             onClick={handleCancelClick}
                             className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
                         >
-                            Hủy
+                            Cancel
                         </button>
                         <button
                             type="button"
                             onClick={handleSaveClick}
                             disabled={isSaving || applicationStatus === 'passed'}
-                            className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${
-                                isSaving || applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
+                            className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${isSaving || applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
+                                }`}
                         >
-                            {isSaving ? 'Đang lưu...' : 'Lưu'}
+                            {isSaving ? 'Saving...' : 'Save'}
                         </button>
                     </>
                 )}

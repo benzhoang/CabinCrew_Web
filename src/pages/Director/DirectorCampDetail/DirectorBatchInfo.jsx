@@ -18,7 +18,7 @@ const formatDateForDisplay = (
       }
       return fallbackTime;
     }
-    return "—";
+    return "-";
   }
 
   try {
@@ -30,25 +30,25 @@ const formatDateForDisplay = (
     // Try to parse as Date
     const date = new Date(dateString);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString("vi-VN");
+      return date.toLocaleDateString("en-US");
     }
   } catch (e) {
     // If parsing fails, return the original string
-    return dateString.split(" ")[0] || "—";
+    return dateString.split(" ")[0] || "-";
   }
 
-  return dateString.split(" ")[0] || "—";
+  return dateString.split(" ")[0] || "-";
 };
 
 const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
-  // Kiểm tra xem đợt có đang "sắp diễn ra" không
+  // Check if batch is upcoming
   const isUpcoming = batch.status === "upcoming";
 
   const handleViewApplicants = () => {
-    // Không cho phép xem danh sách ứng viên nếu đợt đang "sắp diễn ra"
+    // Block viewing applicants if batch is upcoming
     if (isUpcoming) {
       return;
     }
@@ -74,24 +74,24 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <InfoMini
-            label="Thời gian bắt đầu"
+            label="Start time"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
           />
           <InfoMini
-            label="Thời gian kết thúc"
+            label="End time"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
-          <InfoMini label="Địa điểm" value={batch.location || "—"} />
-          <InfoMini label="Hình thức" value={batch.method || "—"} />
-          <InfoMini label="Phụ trách" value={batch.owner || "—"} />
+          <InfoMini label="Location" value={batch.location || "-"} />
+          <InfoMini label="Method" value={batch.method || "-"} />
+          <InfoMini label="Owner" value={batch.owner || "-"} />
           {batch.target !== undefined && batch.target !== null && (
-            <InfoMini label="Chỉ tiêu" value={batch.target.toString()} />
+            <InfoMini label="Target" value={batch.target.toString()} />
           )}
-          {batch.note && <InfoMini label="Ghi chú" value={batch.note} />}
+          {batch.note && <InfoMini label="Note" value={batch.note} />}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
-                label="Thực tế"
+                label="Actual"
                 value={batch.appliedCandidates?.toString() || "0"}
               />
             )}
@@ -100,48 +100,48 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
         {/* Applicant Statistics Dropdown */}
         {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
-          <div className="border-t border-slate-100 pt-3">
-            <button
-              onClick={() => setOpenStats(!openStats)}
-              className="w-full flex items-center justify-between text-xs text-slate-700 font-medium hover:text-blue-600 transition"
-            >
-              <span>Thống kê ứng viên</span>
-              <span>{openStats ? "▲" : "▼"}</span>
-            </button>
-            {openStats && (
-              <div className="mt-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {batch.totalApplicants !== undefined && (
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <div className="text-xs text-blue-600 mb-1">
-                        Lượt quan tâm
+            <div className="border-t border-slate-100 pt-3">
+              <button
+                onClick={() => setOpenStats(!openStats)}
+                className="w-full flex items-center justify-between text-xs text-slate-700 font-medium hover:text-blue-600 transition"
+              >
+                <span>Applicant stats</span>
+                <span>{openStats ? "^" : "v"}</span>
+              </button>
+              {openStats && (
+                <div className="mt-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {batch.totalApplicants !== undefined && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="text-xs text-blue-600 mb-1">
+                          Interested
+                        </div>
+                        <div className="text-lg font-bold text-blue-700">
+                          {batch.totalApplicants}
+                        </div>
                       </div>
-                      <div className="text-lg font-bold text-blue-700">
-                        {batch.totalApplicants}
+                    )}
+                    {batch.appliedCandidates !== undefined && (
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <div className="text-xs text-green-600 mb-1">
+                          Applied
+                        </div>
+                        <div className="text-lg font-bold text-green-700">
+                          {batch.appliedCandidates}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {batch.appliedCandidates !== undefined && (
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <div className="text-xs text-green-600 mb-1">
-                        Đã ứng tuyển
-                      </div>
-                      <div className="text-lg font-bold text-green-700">
-                        {batch.appliedCandidates}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
         {/* Recruitment Progress */}
         {batch.target !== undefined && (
           <div className="border-t border-slate-100 pt-3">
             <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
-              <span>Tiến độ tuyển dụng</span>
+              <span>Recruitment progress</span>
               <span>{percent}%</span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2">
@@ -158,15 +158,14 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
-                ? "Chưa thể xem danh sách ứng viên vì đợt chưa bắt đầu"
-                : "Xem danh sách ứng viên"
+                ? "Cannot view applicants because the batch has not started"
+                : "View applicants"
             }
           >
             <svg
@@ -182,7 +181,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            {isUpcoming ? "Chưa thể xem danh sách" : "Xem danh sách ứng viên"}
+            {isUpcoming ? "Cannot view list" : "View applicants"}
           </button>
         </div>
       </div>
@@ -190,12 +189,12 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
   );
 };
 
-// Format date từ API (có thể là "13/11/2025 00:00" hoặc ISO string)
+// Format date from API (e.g. "13/11/2025 00:00" or ISO)
 const formatDateFromAPI = (dateString) => {
   if (!dateString) return "";
   if (typeof dateString !== "string") return "";
 
-  // Nếu đã là format "dd/mm/yyyy HH:mm"
+  // If already "dd/mm/yyyy HH:mm"
   if (dateString.includes("/")) {
     // Convert "13/11/2025 00:00" to "2025-11-13"
     const parts = dateString.split(" ")[0].split("/");
@@ -207,7 +206,7 @@ const formatDateFromAPI = (dateString) => {
     }
   }
 
-  // Nếu là ISO string, giữ nguyên format
+  // If ISO string, keep date part
   if (dateString.includes("T") || dateString.includes("-")) {
     return dateString.split("T")[0];
   }
@@ -215,7 +214,7 @@ const formatDateFromAPI = (dateString) => {
   return dateString;
 };
 
-// Convert rounds từ API thành format cho component
+// Convert rounds from API to component format
 const convertRoundsToBatches = (rounds) => {
   if (!Array.isArray(rounds) || rounds.length === 0) {
     console.log("convertRoundsToBatches: No rounds data or empty array");
@@ -225,7 +224,7 @@ const convertRoundsToBatches = (rounds) => {
   console.log("convertRoundsToBatches: Converting rounds:", rounds);
 
   return rounds.map((round, index) => {
-    // Map status từ API sang status của component
+    // Map API status to component status
     const statusMap = {
       Upcoming: "upcoming",
       Ongoing: "ongoing",
@@ -250,12 +249,12 @@ const convertRoundsToBatches = (rounds) => {
 
     const batchData = {
       id: round.campaignRoundId || round.id || index,
-      name: round.roundName || round.name || `Đợt ${index + 1}`,
+      name: round.roundName || round.name || `Batch ${index + 1}`,
       startDate: startDate,
       endDate: endDate,
       time: timeString,
       location: round.location || "",
-      method: round.method || "Trực tiếp",
+      method: round.method || "In-person",
       owner: round.owner || "",
       status: mappedStatus,
       target: round.targetQuantity || round.target || 0,
@@ -272,12 +271,14 @@ const convertRoundsToBatches = (rounds) => {
 
 const DirectorBatchInfo = ({ campaign }) => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const navigate = useNavigate();
 
   const [currentBatches, setCurrentBatches] = useState(() => {
     console.log("DirectorBatchInfo: Initializing with campaign:", campaign);
-    // Ưu tiên dùng rounds từ campaign data
+    // Prefer rounds from campaign data
     if (
       campaign?.rounds &&
       Array.isArray(campaign.rounds) &&
@@ -289,7 +290,7 @@ const DirectorBatchInfo = ({ campaign }) => {
       );
       return convertRoundsToBatches(campaign.rounds);
     }
-    // Fallback: dùng batches nếu có
+    // Fallback: use batches if available
     if (Array.isArray(campaign?.batches) && campaign.batches.length > 0) {
       console.log(
         "DirectorBatchInfo: Found batches in campaign:",
@@ -297,12 +298,12 @@ const DirectorBatchInfo = ({ campaign }) => {
       );
       return campaign.batches;
     }
-    // Không có data, trả về mảng rỗng
+    // No data, return empty array
     console.log("DirectorBatchInfo: No rounds or batches found");
     return [];
   });
 
-  // Update khi campaign data thay đổi
+  // Update when campaign data changes
   useEffect(() => {
     console.log("DirectorBatchInfo: Campaign data changed:", campaign);
     if (campaign?.rounds && Array.isArray(campaign.rounds)) {
@@ -330,15 +331,15 @@ const DirectorBatchInfo = ({ campaign }) => {
 
   const getStatus = (status) => {
     const map = {
-      ongoing: { text: "Đang diễn ra", color: "bg-green-100 text-green-700" },
-      completed: { text: "Hoàn thành", color: "bg-blue-100 text-blue-700" },
+      ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
+      completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
       planned: {
-        text: "Đã lên kế hoạch",
+        text: "Planned",
         color: "bg-slate-100 text-slate-700",
       },
-      upcoming: { text: "Sắp diễn ra", color: "bg-yellow-100 text-yellow-800" },
-      paused: { text: "Tạm dừng", color: "bg-orange-100 text-orange-700" },
-      cancelled: { text: "Hủy", color: "bg-red-100 text-red-700" },
+      upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
+      paused: { text: "Paused", color: "bg-orange-100 text-orange-700" },
+      cancelled: { text: "Cancelled", color: "bg-red-100 text-red-700" },
     };
     return map[status] || map.planned;
   };
@@ -349,53 +350,49 @@ const DirectorBatchInfo = ({ campaign }) => {
     return Math.max(0, Math.min(100, p));
   };
 
-  // Kiểm tra xem campaign có status là "đang chờ duyệt" không
+  // Check if campaign is pending approval
   const isPendingApproval = () => {
     if (!campaign?.status) return false;
 
     const statusLower = String(campaign.status).toLowerCase().trim();
 
-    // Kiểm tra các giá trị status có thể có cho "đang chờ duyệt"
+    // Check various representations of pending approval
     return (
       statusLower === "pending" ||
       statusLower === "pending_approval" ||
       statusLower === "pending approval" ||
-      statusLower === "đang chờ duyệt" ||
-      statusLower === "chờ duyệt" ||
       statusLower === "waiting for approval" ||
       statusLower === "waiting"
     );
   };
 
-  const handleApprove = async () => {
+  const handleApproveConfirm = async () => {
     if (currentBatches.length === 0) {
-      toast.error("Chưa có đợt tuyển nào để duyệt!");
+      toast.error("No batch to approve yet!");
       return;
     }
 
-    // Lấy campaign ID
     const campaignId = campaign?.campaignId || campaign?.id;
     if (!campaignId) {
-      toast.error("Không tìm thấy ID chiến dịch!");
+      toast.error("Campaign ID not found!");
       return;
     }
 
     setIsApproving(true);
 
     try {
-      // Gọi API để duyệt campaign (status = 2 = Approved)
       const result = await updateCampaignStatus(campaignId, 2);
 
       if (result.success) {
-        toast.success(result.message || "Đã duyệt chiến dịch thành công!");
-        // Reload trang để cập nhật dữ liệu mới nhất
-        window.location.reload();
+        toast.success("Campaign approved successfully!");
+        setIsApproveModalOpen(false);
+        navigate("/director/campaigns/");
       } else {
-        toast.error(result.error || "Có lỗi xảy ra khi duyệt chiến dịch");
+        toast.error("Failed to approve campaign");
       }
     } catch (error) {
       console.error("Error approving campaign:", error);
-      toast.error("Có lỗi xảy ra khi duyệt chiến dịch");
+      toast.error("Error while approving campaign");
     } finally {
       setIsApproving(false);
     }
@@ -406,24 +403,24 @@ const DirectorBatchInfo = ({ campaign }) => {
   };
 
   const handleRejectSubmit = async (rejectReason) => {
-    // Lấy campaign ID
+    // Get campaign ID
     const campaignId = campaign?.campaignId || campaign?.id;
     if (!campaignId) {
-      toast.error("Không tìm thấy ID chiến dịch!");
+      toast.error("Campaign ID not found!");
       setIsRejectModalOpen(false);
       return;
     }
 
-    // Kiểm tra rejectReason
+    // Validate rejectReason
     if (!rejectReason || !rejectReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối!");
+      toast.error("Please enter a rejection reason!");
       return;
     }
 
     setIsRejecting(true);
 
     try {
-      // Gọi API để từ chối campaign (status = 3 = Rejected)
+      // Call API to reject campaign (status = 3 = Rejected)
       const result = await updateCampaignStatus(
         campaignId,
         3,
@@ -431,16 +428,16 @@ const DirectorBatchInfo = ({ campaign }) => {
       );
 
       if (result.success) {
-        toast.success(result.message || "Đã từ chối chiến dịch thành công!");
+        toast.success("Campaign rejected successfully!");
         setIsRejectModalOpen(false);
-        // Reload trang để cập nhật dữ liệu mới nhất
+        // Reload page to refresh data
         window.location.reload();
       } else {
-        toast.error(result.error || "Có lỗi xảy ra khi từ chối chiến dịch");
+        toast.error("Failed to reject campaign");
       }
     } catch (error) {
       console.error("Error rejecting campaign:", error);
-      toast.error("Có lỗi xảy ra khi từ chối chiến dịch");
+      toast.error("Error while rejecting campaign");
     } finally {
       setIsRejecting(false);
     }
@@ -449,11 +446,11 @@ const DirectorBatchInfo = ({ campaign }) => {
   return (
     <div className="mt-6">
       <div className="mb-2">
-        <div className="text-sm text-slate-600">Kế hoạch các đợt tuyển</div>
+        <div className="text-sm text-slate-600">Hiring batches plan</div>
       </div>
       {currentBatches.length === 0 ? (
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center text-slate-500 text-sm">
-          Chưa có đợt tuyển nào.
+          No batches yet.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -476,22 +473,21 @@ const DirectorBatchInfo = ({ campaign }) => {
         </div>
       )}
 
-      {/* Action Buttons at the bottom - chỉ hiển thị khi campaign đang chờ duyệt */}
+      {/* Action Buttons at the bottom - only show when campaign is pending approval */}
       {isPendingApproval() && (
         <div className="mt-6 flex gap-4 justify-end">
           <button
             onClick={handleReject}
             disabled={isRejecting || isApproving}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
-              isRejecting || isApproving
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
-            }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isRejecting || isApproving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
+              }`}
           >
             {isRejecting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Đang từ chối...
+                Rejecting...
               </>
             ) : (
               <>
@@ -508,23 +504,22 @@ const DirectorBatchInfo = ({ campaign }) => {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-                Từ chối
+                Reject
               </>
             )}
           </button>
           <button
-            onClick={handleApprove}
+            onClick={() => setIsApproveModalOpen(true)}
             disabled={isApproving || isRejecting}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
-              isApproving || isRejecting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
-            }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isApproving || isRejecting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
+              }`}
           >
             {isApproving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Đang duyệt...
+                Approving...
               </>
             ) : (
               <>
@@ -541,7 +536,7 @@ const DirectorBatchInfo = ({ campaign }) => {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                Duyệt
+                Approve
               </>
             )}
           </button>
@@ -553,8 +548,42 @@ const DirectorBatchInfo = ({ campaign }) => {
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
         onSubmit={handleRejectSubmit}
-        campaignTitle={campaign?.campaignName || campaign?.name || "Chiến dịch"}
+        campaignTitle={campaign?.campaignName || campaign?.name || "Campaign"}
       />
+
+      {/* Approve confirmation modal */}
+      {isApproveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200">
+              <h3 className="text-lg font-semibold text-slate-800">Approve campaign</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Are you sure you want to approve this campaign?
+              </p>
+            </div>
+            <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50">
+              <button
+                type="button"
+                onClick={() => setIsApproveModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isApproving}
+                onClick={handleApproveConfirm}
+                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isApproving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+                  }`}
+              >
+                {isApproving ? "Approving..." : "Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

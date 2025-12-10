@@ -1011,8 +1011,8 @@ const dictionaries = {
     cta_primary: "Apply now",
     cta_secondary: "Learn more",
     // MainPage
-    mainpage_title: "SkyCabin Airlines",
-    mainpage_subtitle: "Cabin Crew Recruitment and PromotionSystem",
+    mainpage_title: "CabinCrew Careers",
+    mainpage_subtitle: "Cabin Crew Recruitment and Promotion System",
     candidate_title: "Candidate",
     candidate_desc: "Find career opportunities",
     candidate_desc_detail: "Sign in to view available positions",
@@ -1151,7 +1151,7 @@ const dictionaries = {
     image_format_hint: "Image must be in PNG, JPG, JPEG, GIF, SVG format",
     save: "Save",
     cancel: "Cancel",
-    sidebar_testing: "Testing",
+    sidebar_testing: "Tests",
     all_exams: "All Exams",
     listening: "Listening",
     speaking: "Speaking",
@@ -1202,7 +1202,7 @@ const dictionaries = {
     exam_report_title: "Exam Report",
     speaking_exam_report_title: "Speaking Exam Report",
     speaking_exam_report_subtitle: "View your speaking exam report",
-    back_to_score_report: "Quay lại báo cáo điểm thi",
+    back_to_score_report: "Back to score report",
 
     // Cabin Crew - Interview Appointments
     interview_appointments_title: "Promotion interview appointments",
@@ -1222,7 +1222,7 @@ const listeners = new Set();
 
 export function getLang() {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === "en" || stored === "vi" ? stored : "vi";
+  return stored === "en" || stored === "vi" ? stored : "en";
 }
 
 export function setLang(nextLang) {

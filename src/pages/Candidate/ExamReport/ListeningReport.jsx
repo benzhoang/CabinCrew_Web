@@ -74,7 +74,9 @@ const ListeningReport = () => {
                         },
                         startTime: selectedSession.startTime,
                         endTime: selectedSession.endTime,
-                        status: selectedSession.status,
+                        status: selectedSession.status !== undefined ? selectedSession.status : false,
+                        isPassedOrFailed: selectedSession.isPassedOrFailed !== undefined ? selectedSession.isPassedOrFailed : false,
+                        canRequestEnquiry: selectedSession.canRequestEnquiry !== undefined ? selectedSession.canRequestEnquiry : false,
                         testSessionId: selectedSession.testSessionId,
                     };
 
@@ -158,6 +160,17 @@ const ListeningReport = () => {
     const finalTestType = finalExamInfo?.testType || "";
     const finalStartTime = apiData?.startTime || "";
     const finalEndTime = apiData?.endTime || "";
+
+    // Lấy các giá trị cho điều kiện hiển thị nút phúc khảo
+    const status = apiData?.status === true;
+    const isPassedOrFailed = apiData?.isPassedOrFailed === true;
+    const canRequestEnquiry = apiData?.canRequestEnquiry === true;
+
+    // Điều kiện hiển thị nút phúc khảo:
+    // - status = true (enable)
+    // - isPassedOrFailed = false (enable)
+    // - canRequestEnquiry = true (enable)
+    const canShowAppealButton = status && !isPassedOrFailed && canRequestEnquiry && !isAppealSubmitted;
 
     return (
         <div className="min-h-screen px-4 py-8 bg-gray-100">
@@ -330,9 +343,10 @@ const ListeningReport = () => {
                         onClick={handleBackToScoreReport}
                         className="px-8 py-3 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
-                        {t("back_to_score_report") || "Quay lại báo cáo điểm số"}
+                        {t("back_to_score_report") || "Back to Score Report"}
                     </button>
-                    {!isAppealSubmitted && (
+                    {/* Hiển thị nút phúc khảo dựa trên điều kiện: status=true, isPassedOrFailed=false, canRequestEnquiry=true */}
+                    {canShowAppealButton && (
                         <button
                             onClick={openAppealModal}
                             className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"
@@ -350,7 +364,7 @@ const ListeningReport = () => {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            {t("request_appeal") || "Yêu cầu phúc khảo"}
+                            {t("request_appeal") || "Request Appeal"}
                         </button>
                     )}
                     {isAppealSubmitted && (

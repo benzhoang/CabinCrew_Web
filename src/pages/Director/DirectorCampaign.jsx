@@ -4,79 +4,79 @@ import { t, onLangChange } from '../../i18n'
 import { getCampaigns } from '../../service/api'
 import { formatDate } from '../../config/formatDate.js'
 
-// StatusBadge component - hỗ trợ tất cả status từ API
+// StatusBadge component - supports all status values returned by the API
 const StatusBadge = ({ status }) => {
     const getStatusConfig = (status) => {
         const normalized = (status || '').toString().trim()
-        // Giữ nguyên case-sensitive để match chính xác với API
+        // Keep case-sensitive to match API exactly
         switch (normalized) {
             case 'Ongoing':
                 return {
                     className: 'bg-blue-100 text-blue-700 border-blue-200',
-                    text: 'Đang diễn ra',
+                    text: 'Ongoing',
                 }
             case 'Pending':
                 return {
                     className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-                    text: 'Đang chờ duyệt',
+                    text: 'Pending',
                 }
             case 'Approved':
                 return {
                     className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                    text: 'Đã được duyệt',
+                    text: 'Approved',
                 }
             case 'Rejected':
                 return {
                     className: 'bg-red-100 text-red-700 border-red-200',
-                    text: 'Đã từ chối',
+                    text: 'Rejected',
                 }
             case 'Upcoming':
                 return {
                     className: 'bg-purple-100 text-purple-700 border-purple-200',
-                    text: 'Sắp diễn ra',
+                    text: 'Upcoming',
                 }
             case 'Ended':
                 return {
                     className: 'bg-gray-100 text-gray-700 border-gray-200',
-                    text: 'Đã kết thúc',
+                    text: 'Ended',
                 }
             case 'Draft':
                 return {
                     className: 'bg-slate-100 text-slate-600 border-slate-200',
-                    text: 'Bản nháp',
+                    text: 'Planning',
                 }
-            // Fallback cho các giá trị cũ (lowercase) để tương thích ngược
+            // Backward compatibility for legacy lowercase values
             case 'ongoing':
             case 'active':
                 return {
                     className: 'bg-blue-100 text-blue-700 border-blue-200',
-                    text: 'Đang diễn ra',
+                    text: 'Ongoing',
                 }
             case 'pending':
                 return {
                     className: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-                    text: 'Đang chờ duyệt',
+                    text: 'Pending',
                 }
             case 'approved':
                 return {
                     className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                    text: 'Đã được duyệt',
+                    text: 'Approved',
                 }
             case 'rejected':
                 return {
                     className: 'bg-red-100 text-red-700 border-red-200',
-                    text: 'Đã từ chối',
+                    text: 'Rejected',
                 }
             case 'completed':
             case 'ended':
                 return {
                     className: 'bg-gray-100 text-gray-700 border-gray-200',
-                    text: 'Đã kết thúc',
+                    text: 'Ended',
                 }
             default:
                 return {
                     className: 'bg-gray-100 text-gray-600 border-gray-200',
-                    text: normalized || 'Không xác định',
+                    text: normalized || 'Unknown',
                 }
         }
     }
@@ -92,22 +92,22 @@ const StatusBadge = ({ status }) => {
     )
 }
 
-// Helper function to map campaignType to Vietnamese label
+// Helper function to map campaignType to English label
 const getCampaignTypeLabel = (campaignType) => {
     const normalized = (campaignType || '').toString().trim().toLowerCase()
     switch (normalized) {
         case 'recruitment':
         case 'tuyển dụng':
-            return 'Tuyển dụng'
+            return 'Recruitment'
         case 'promotion':
         case 'thăng bậc':
-            return 'Thăng bậc'
+            return 'Promotion'
         default:
-            return 'Không xác định'
+            return 'Unknown'
     }
 }
 
-// CampaignTypeBadge component giống CampaignList.jsx
+// CampaignTypeBadge component similar to CampaignList.jsx
 const CampaignTypeBadge = ({ type }) => {
     const label = getCampaignTypeLabel(type)
     const normalized = (type || '').toString().trim().toLowerCase()
@@ -127,7 +127,7 @@ const CampaignTypeBadge = ({ type }) => {
     )
 }
 
-// CampaignCard component giống CampaignList.jsx
+// CampaignCard component similar to CampaignList.jsx
 const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
     const navigate = useNavigate()
     const percent = useMemo(() => {
@@ -147,19 +147,19 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
 
                     <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
                         <div>
-                            <span className="text-gray-500">Thời gian bắt đầu:</span>{' '}
+                            <span className="text-gray-500">Start date:</span>{' '}
                             {formatDate(campaign.rawStartDate) || campaign.startDate}
                         </div>
                         <div>
-                            <span className="text-gray-500">Thời gian kết thúc:</span>{' '}
+                            <span className="text-gray-500">End date:</span>{' '}
                             {formatDate(campaign.rawEndDate) || campaign.endDate}
                         </div>
                         <div>
-                            <span className="text-gray-500">Loại chiến dịch:</span>{' '}
+                            <span className="text-gray-500">Campaign type:</span>{' '}
                             <CampaignTypeBadge type={campaign.position || campaign.campaignType} />
                         </div>
                         <div>
-                            <span className="text-gray-500">Trạng thái:</span>{' '}
+                            <span className="text-gray-500">Status:</span>{' '}
                             <StatusBadge status={campaign.status} />
                         </div>
                     </div>
@@ -170,7 +170,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                         className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         onClick={() => onViewDetails(campaign)}
                     >
-                        Xem chi tiết
+                        View details
                     </button>
                 </div>
             </div>
@@ -178,7 +178,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
             {campaign.targetHires > 0 && (
                 <div className="mt-4">
                     <div className="flex justify-between mb-1 text-sm text-slate-600">
-                        <span className="text-gray-500">Tiến độ tuyển dụng</span>{' '}
+                        <span className="text-gray-500">Hiring progress</span>{' '}
                         {campaign.currentHires}/{campaign.targetHires} ({percent}%)
                     </div>
                     <div className="h-2 overflow-hidden bg-gray-200 rounded-full">
@@ -210,7 +210,7 @@ const DirectorCampaign = () => {
     const [error, setError] = useState(null)
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 5, // Mỗi trang 5 campaign
+        pageSize: 5, // 5 campaigns per page
         totalRecords: 0,
         totalPages: 0,
         hasNextPage: false,
@@ -246,16 +246,16 @@ const DirectorCampaign = () => {
 
     const formatDateValue = (value) => {
         const date = parseDateValue(value)
-        if (!date) return value || 'Không xác định'
-        return date.toLocaleDateString('vi-VN')
+        if (!date) return value || 'Unknown'
+        return date.toLocaleDateString('en-US')
     }
 
-    // Giữ nguyên status từ API, không transform
+    // Preserve status from API without transforming
     const mapStatusValue = (status) => {
         if (!status) return 'Draft'
-        // Giữ nguyên status từ API (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft)
+        // Keep API statuses (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft)
         const statusStr = status.toString().trim()
-        // Chỉ normalize nếu là các giá trị cũ (lowercase) để tương thích ngược
+        // Normalize only old lowercase values for backward compatibility
         const normalized = statusStr.toLowerCase()
         if (['ongoing', 'inprogress', 'in_progress', 'active'].includes(normalized)) return 'Ongoing'
         if (['pending', 'waiting', 'reviewing'].includes(normalized)) return 'Pending'
@@ -264,11 +264,11 @@ const DirectorCampaign = () => {
         if (['ended', 'completed', 'done', 'finished', 'closed'].includes(normalized)) return 'Ended'
         if (['upcoming', 'scheduled'].includes(normalized)) return 'Upcoming'
         if (['draft'].includes(normalized)) return 'Draft'
-        // Nếu đã là format đúng từ API (PascalCase), giữ nguyên
+        // If already in correct API PascalCase, keep as-is
         if (['Upcoming', 'Ended', 'Ongoing', 'Rejected', 'Approved', 'Pending', 'Draft'].includes(statusStr)) {
             return statusStr
         }
-        // Mặc định
+        // Default
         return statusStr || 'Draft'
     }
 
@@ -278,9 +278,9 @@ const DirectorCampaign = () => {
 
         return {
             id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
-            name: item.name ?? item.campaignName ?? 'Chiến dịch chưa có tên',
-            position: item.position ?? item.role ?? item.campaignType ?? 'Không xác định',
-            department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Không xác định',
+            name: item.name ?? item.campaignName ?? 'Untitled campaign',
+            position: item.position ?? item.role ?? item.campaignType ?? 'Unknown',
+            department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Unknown',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
             endDate: formatDateValue(item.endDate),
@@ -298,7 +298,7 @@ const DirectorCampaign = () => {
             setIsLoading(true)
             setError(null)
             try {
-                const pageSize = 5 // Mỗi trang 5 campaign
+                const pageSize = 5 // 5 campaigns per page
                 const response = await getCampaigns({
                     page: page,
                     pageSize: pageSize
@@ -308,7 +308,7 @@ const DirectorCampaign = () => {
                     setCampaigns(normalizedCampaigns)
                     setFilteredCampaigns(normalizedCampaigns)
 
-                    // Lưu thông tin phân trang từ API nếu có
+                    // Save pagination info from API if provided
                     if (response.pagination) {
                         setPagination(prev => ({
                             ...prev,
@@ -316,7 +316,7 @@ const DirectorCampaign = () => {
                             pageSize: pageSize,
                         }))
                     } else {
-                        // Nếu API chưa trả pagination, fallback theo data hiện tại
+                        // Fallback pagination when API does not return it
                         setPagination(prev => ({
                             ...prev,
                             currentPage: page,
@@ -330,18 +330,18 @@ const DirectorCampaign = () => {
                 } else {
                     setCampaigns([])
                     setFilteredCampaigns([])
-                    setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                    setError(response.error || 'Unable to fetch campaigns')
                 }
             } catch (err) {
                 setCampaigns([])
                 setFilteredCampaigns([])
-                setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                setError(err.message || 'Unable to fetch campaigns')
             } finally {
                 setIsLoading(false)
             }
         }
 
-        // Lần đầu load sẽ là trang 1
+        // First load fetches page 1
         fetchCampaigns(1)
     }, [])
 
@@ -365,7 +365,7 @@ const DirectorCampaign = () => {
             filtered = filtered.filter(campaign => {
                 const campaignStatus = (campaign.status || '').toString().trim()
                 const filterStatus = statusFilter.toString().trim()
-                // So sánh case-insensitive
+                // Case-insensitive comparison
                 return campaignStatus.toLowerCase() === filterStatus.toLowerCase()
             })
         }
@@ -411,7 +411,7 @@ const DirectorCampaign = () => {
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) {
+        if (window.confirm('Are you sure you want to delete this campaign?')) {
             setCampaigns(campaigns.filter(campaign => campaign.id !== id))
         }
     }
@@ -420,11 +420,11 @@ const DirectorCampaign = () => {
         if (page === pagination.currentPage) return
         if (page < 1) return
         if (pagination.totalPages && page > pagination.totalPages) return
-        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+        // Allow page change only when a previous/next page exists
         if (page > pagination.currentPage && !pagination.hasNextPage) return
         if (page < pagination.currentPage && !pagination.hasPreviousPage) return
 
-        // Gọi lại API với trang mới
+        // Fetch the new page from API
         const fetchNewPage = async () => {
             setIsLoading(true)
             setError(null)
@@ -457,11 +457,11 @@ const DirectorCampaign = () => {
                         }))
                     }
                 } else {
-                    setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                    setError(response.error || 'Unable to fetch campaigns')
                     setCampaigns([])
                 }
             } catch (err) {
-                setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                setError(err.message || 'Unable to fetch campaigns')
                 setCampaigns([])
             } finally {
                 setIsLoading(false)
@@ -475,7 +475,7 @@ const DirectorCampaign = () => {
         return (
             <div className="flex flex-col gap-5 p-6">
                 <h2 className="mb-6 text-xl font-bold text-gray-800">
-                    Quản lý Chiến dịch
+                    Campaign Management
                 </h2>
                 <div className="py-8 text-center">
                     <div className="mb-2 text-red-600">{error}</div>
@@ -492,10 +492,10 @@ const DirectorCampaign = () => {
                                         setFilteredCampaigns(normalizedCampaigns)
                                         setError(null)
                                     } else {
-                                        setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                                        setError(response.error || 'Unable to fetch campaigns')
                                     }
                                 } catch (err) {
-                                    setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                                    setError(err.message || 'Unable to fetch campaigns')
                                 } finally {
                                     setIsLoading(false)
                                 }
@@ -504,7 +504,7 @@ const DirectorCampaign = () => {
                         }}
                         className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
-                        Thử lại
+                        Retry
                     </button>
                 </div>
             </div>
@@ -514,7 +514,7 @@ const DirectorCampaign = () => {
     return (
         <div className="flex flex-col gap-5 p-6">
             <h2 className="mb-6 text-xl font-bold text-gray-800">
-                Quản lý Chiến dịch ({filteredCampaigns.length})
+                Campaign Management ({filteredCampaigns.length})
             </h2>
 
             {/* Search and Filter */}
@@ -522,10 +522,10 @@ const DirectorCampaign = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Search Bar */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
                         <input
                             type="text"
-                            placeholder="Tìm theo tên, loại chiến dịch..."
+                            placeholder="Search by name or campaign type..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -534,18 +534,18 @@ const DirectorCampaign = () => {
 
                     {/* Sort Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Sắp xếp theo</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by</label>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="idDesc">Mới nhất (ID giảm dần)</option>
-                            <option value="name">Tên chiến dịch</option>
-                            <option value="startDate">Ngày bắt đầu</option>
-                            <option value="endDate">Ngày kết thúc</option>
-                            <option value="progress">Tiến độ</option>
-                            <option value="status">Trạng thái</option>
+                            <option value="idDesc">Newest (ID desc)</option>
+                            <option value="name">Campaign name</option>
+                            <option value="startDate">Start date</option>
+                            <option value="endDate">End date</option>
+                            <option value="progress">Progress</option>
+                            <option value="status">Status</option>
                         </select>
                     </div>
                 </div>
@@ -562,7 +562,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Tất cả
+                        All
                     </button>
                     <button
                         type="button"
@@ -572,7 +572,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đang chờ duyệt
+                        Pending
                     </button>
                     <button
                         type="button"
@@ -582,7 +582,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đã được duyệt
+                        Approved
                     </button>
                     <button
                         type="button"
@@ -592,7 +592,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đang diễn ra
+                        Ongoing
                     </button>
                     <button
                         type="button"
@@ -602,7 +602,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đã từ chối
+                        Rejected
                     </button>
                     <button
                         type="button"
@@ -612,7 +612,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Sắp diễn ra
+                        Upcoming
                     </button>
                     <button
                         type="button"
@@ -622,7 +622,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Đã kết thúc
+                        Ended
                     </button>
                     <button
                         type="button"
@@ -632,7 +632,7 @@ const DirectorCampaign = () => {
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Bản nháp
+                        Planning
                     </button>
                 </div>
             </div>
@@ -640,11 +640,11 @@ const DirectorCampaign = () => {
             {/* Campaign Cards */}
             {isLoading ? (
                 <div className="py-12 text-center">
-                    <p className="text-slate-500">Đang tải dữ liệu...</p>
+                    <p className="text-slate-500">Loading data...</p>
                 </div>
             ) : filteredCampaigns.length === 0 ? (
                 <div className="py-12 text-center">
-                    <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
+                    <p className="text-slate-500">No campaigns found</p>
                 </div>
             ) : (
                 <>
@@ -657,16 +657,16 @@ const DirectorCampaign = () => {
                         />
                     ))}
 
-                    {/* Phân trang */}
+                    {/* Pagination */}
                     <div className="mt-6 px-6 py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
                         <div className="text-sm text-slate-600">
-                            Trang <span className="font-semibold">{pagination.currentPage}</span>
+                            Page <span className="font-semibold">{pagination.currentPage}</span>
                             {pagination.totalPages ? (
                                 <> / <span className="font-semibold">{pagination.totalPages}</span></>
                             ) : null}
                             {typeof pagination.totalRecords === 'number' && (
                                 <span className="ml-2">
-                                    ({pagination.totalRecords} bản ghi)
+                                    ({pagination.totalRecords} records)
                                 </span>
                             )}
                         </div>
@@ -681,7 +681,7 @@ const DirectorCampaign = () => {
                                     : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                     }`}
                             >
-                                Trước
+                                Prev
                             </button>
 
                             <span className="text-sm text-slate-600">
@@ -697,20 +697,20 @@ const DirectorCampaign = () => {
                                     : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                     }`}
                             >
-                                Sau
+                                Next
                             </button>
                         </div>
                     </div>
                 </>
             )}
 
-            {/* Modal Chi tiết */}
+            {/* Detail modal */}
             {showModal && selectedCampaign && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-slate-200">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-slate-800">Chi tiết Chiến dịch</h3>
+                                <h3 className="text-xl font-semibold text-slate-800">Campaign details</h3>
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="text-slate-400 hover:text-slate-600"
@@ -730,41 +730,41 @@ const DirectorCampaign = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Loại chiến dịch:</span>
+                                        <span className="text-sm text-slate-600">Campaign type:</span>
                                         <div className="mt-1">
                                             <CampaignTypeBadge type={selectedCampaign.position || selectedCampaign.campaignType} />
                                         </div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Trạng thái:</span>
+                                        <span className="text-sm text-slate-600">Status:</span>
                                         <div className="mt-1"><StatusBadge status={selectedCampaign.status} /></div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                        <span className="text-sm text-slate-600">Start date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.startDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                        <span className="text-sm text-slate-600">End date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.endDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Mục tiêu tuyển dụng:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.targetHires} người</p>
+                                        <span className="text-sm text-slate-600">Hiring target:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.targetHires} people</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Đã tuyển:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.currentHires} người</p>
+                                        <span className="text-sm text-slate-600">Hired:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.currentHires} people</p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <span className="text-sm text-slate-600">Mô tả:</span>
-                                    <p className="text-slate-800 mt-1">{selectedCampaign.description || 'Không có mô tả'}</p>
+                                    <span className="text-sm text-slate-600">Description:</span>
+                                    <p className="text-slate-800 mt-1">{selectedCampaign.description || 'No description'}</p>
                                 </div>
 
                                 {selectedCampaign.requirements && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Yêu cầu:</span>
+                                        <span className="text-sm text-slate-600">Requirements:</span>
                                         <p className="text-slate-800 mt-1">{selectedCampaign.requirements}</p>
                                     </div>
                                 )}
@@ -772,7 +772,7 @@ const DirectorCampaign = () => {
                                 {/* Progress Bar */}
                                 {selectedCampaign.targetHires > 0 && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Tiến độ tuyển dụng:</span>
+                                        <span className="text-sm text-slate-600">Hiring progress:</span>
                                         <div className="mt-2">
                                             {(() => {
                                                 const current = Number(selectedCampaign.currentHires) || 0
@@ -781,7 +781,7 @@ const DirectorCampaign = () => {
                                                 return (
                                                     <>
                                                         <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                                            <span>{current}/{total} người</span>
+                                                            <span>{current}/{total} people</span>
                                                             <span>{percent}%</span>
                                                         </div>
                                                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -804,7 +804,7 @@ const DirectorCampaign = () => {
                                 onClick={() => setShowModal(false)}
                                 className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
                             >
-                                Đóng
+                                Close
                             </button>
                         </div>
                     </div>

@@ -21,7 +21,7 @@ const formatDateForDisplay = (dateString, fallbackTime = null, isEndDate = false
         // Try to parse as Date
         const date = new Date(dateString)
         if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('vi-VN')
+            return date.toLocaleDateString('en-US')
         }
     } catch (e) {
         // If parsing fails, return the original string
@@ -75,24 +75,22 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
             <div className="p-4 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <InfoMini
-                        label="Thời gian bắt đầu"
+                        label="Start Time"
                         value={formatDateForDisplay(batch.startDate, batch.time, false)}
                     />
                     <InfoMini
-                        label="Thời gian kết thúc"
+                        label="End Time"
                         value={formatDateForDisplay(batch.endDate, batch.time, true)}
                     />
-                    <InfoMini label="Địa điểm" value={batch.location || '—'} />
-                    <InfoMini label="Hình thức" value={batch.method || '—'} />
-                    <InfoMini label="Phụ trách" value={batch.owner || '—'} />
+                    <InfoMini label="Method" value={batch.method || '—'} />
                     {batch.target !== undefined && batch.target !== null && (
-                        <InfoMini label="Chỉ tiêu" value={batch.target.toString()} />
+                        <InfoMini label="Target" value={batch.target.toString()} />
                     )}
                     {batch.note && (
-                        <InfoMini label="Ghi chú" value={batch.note} />
+                        <InfoMini label="Note" value={batch.note} />
                     )}
                     {(batch.appliedCandidates !== undefined && batch.appliedCandidates !== null) && (
-                        <InfoMini label="Thực tế" value={batch.appliedCandidates?.toString() || '0'} />
+                        <InfoMini label="Actual" value={batch.appliedCandidates?.toString() || '0'} />
                     )}
                 </div>
 
@@ -103,7 +101,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                             onClick={() => setOpenStats(!openStats)}
                             className="w-full flex items-center justify-between text-xs text-slate-700 font-medium hover:text-blue-600 transition"
                         >
-                            <span>Thống kê ứng viên</span>
+                            <span>Applicant Statistics</span>
                             <span>{openStats ? '▲' : '▼'}</span>
                         </button>
                         {openStats && (
@@ -111,13 +109,13 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                                 <div className="grid grid-cols-2 gap-3">
                                     {batch.totalApplicants !== undefined && (
                                         <div className="bg-blue-50 rounded-lg p-3">
-                                            <div className="text-xs text-blue-600 mb-1">Lượt quan tâm</div>
+                                            <div className="text-xs text-blue-600 mb-1">Interested</div>
                                             <div className="text-lg font-bold text-blue-700">{batch.totalApplicants}</div>
                                         </div>
                                     )}
                                     {batch.appliedCandidates !== undefined && (
                                         <div className="bg-green-50 rounded-lg p-3">
-                                            <div className="text-xs text-green-600 mb-1">Đã ứng tuyển</div>
+                                            <div className="text-xs text-green-600 mb-1">Applied</div>
                                             <div className="text-lg font-bold text-green-700">{batch.appliedCandidates}</div>
                                         </div>
                                     )}
@@ -131,7 +129,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                 {batch.target !== undefined && (
                     <div className="border-t border-slate-100 pt-3">
                         <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
-                            <span>Tiến độ tuyển dụng</span>
+                            <span>Recruitment Progress</span>
                             <span>{percent}%</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-2">
@@ -149,24 +147,24 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                             ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-60'
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800'
                             }`}
-                        title={isUpcoming ? 'Chưa thể xem danh sách ứng viên vì đợt chưa bắt đầu' : 'Xem danh sách ứng viên'}
+                        title={isUpcoming ? 'Cannot view applicant list because batch has not started' : 'View applicant list'}
                     >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
-                        {isUpcoming ? 'Chưa thể xem danh sách' : 'Xem danh sách ứng viên'}
+                        {isUpcoming ? 'Cannot view list' : 'View Applicant List'}
                     </button>
 
                     {/* Post-Recruitment Review Button */}
                     <button
                         onClick={handleFinalReview}
                         className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
-                        title="Xét hậu kiểm ứng viên"
+                        title="Review applicants"
                     >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Xét hậu kiểm
+                        Final Review
                     </button>
                 </div>
             </div>
@@ -232,12 +230,12 @@ const convertRoundsToBatches = (rounds) => {
 
         const batchData = {
             id: round.campaignRoundId || round.id || index,
-            name: round.roundName || round.name || `Đợt ${index + 1}`,
+            name: round.roundName || round.name || `Batch ${index + 1}`,
             startDate: startDate,
             endDate: endDate,
             time: timeString,
             location: round.location || '',
-            method: round.method || 'Trực tiếp',
+            method: round.method || 'Direct',
             owner: round.owner || '',
             status: mappedStatus,
             target: round.targetQuantity || round.target || 0,
@@ -289,12 +287,12 @@ const BatchManagement = ({ campaign }) => {
 
     const getStatus = (status) => {
         const map = {
-            ongoing: { text: 'Đang diễn ra', color: 'bg-green-100 text-green-700' },
-            completed: { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-700' },
-            planned: { text: 'Đã kết thúc', color: 'bg-slate-100 text-slate-700' },
-            upcoming: { text: 'Sắp diễn ra', color: 'bg-yellow-100 text-yellow-800' },
-            paused: { text: 'Tạm dừng', color: 'bg-orange-100 text-orange-700' },
-            cancelled: { text: 'Hủy', color: 'bg-red-100 text-red-700' },
+            ongoing: { text: 'Ongoing', color: 'bg-green-100 text-green-700' },
+            completed: { text: 'Completed', color: 'bg-blue-100 text-blue-700' },
+            planned: { text: 'Ended', color: 'bg-slate-100 text-slate-700' },
+            upcoming: { text: 'Upcoming', color: 'bg-yellow-100 text-yellow-800' },
+            paused: { text: 'Paused', color: 'bg-orange-100 text-orange-700' },
+            cancelled: { text: 'Cancelled', color: 'bg-red-100 text-red-700' },
         }
         return map[status] || map.planned
     }
@@ -309,12 +307,12 @@ const BatchManagement = ({ campaign }) => {
         <div className="mt-6">
             <div className="mb-2">
                 <div className="text-sm text-slate-600">
-                    Kế hoạch các đợt tuyển
+                    Recruitment Batch Plan
                 </div>
             </div>
             {currentBatches.length === 0 ? (
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center text-slate-500 text-sm">
-                    Chưa có đợt tuyển nào.
+                    No recruitment batches yet.
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
