@@ -15,7 +15,7 @@ const SeniorRequestPage = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Tìm theo tên, vị trí, phòng ban..."
+                  placeholder="Search by name, position, department..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-100 h-10 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -27,9 +27,9 @@ const SeniorRequestPage = () => {
                 onChange={(e) => setCampaignTypeFilter(e.target.value)}
                 className="h-10 pl-3 pr-8 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
               >
-                <option value="all">Tất cả loại yêu cầu</option>
-                <option value="Recruitment">Tuyển dụng</option>
-                <option value="Promotion">Nâng bậc</option>
+                <option value="all">All request types</option>
+                <option value="Recruitment">Recruitment</option>
+                <option value="Promotion">Promotion</option>
               </select>
             </div>
           </div>

@@ -8,28 +8,60 @@ import {
   FiPause,
   FiEye,
   FiEyeOff,
-  FiUpload,
-  FiPlusCircle,
 } from "react-icons/fi";
-import { getTestById, getTestQuestions } from "../../service/api";
-import ImportQuestionModal from "./ModalTestQuestion/ImportQuestionModal";
-import CreateQuestionModal from "./ModalTestQuestion/CreateQuestionModal";
+import { getTestById, getTestQuestionsByTestId } from "../../service/api2";
 import { formatDate3 } from "../../config/formatDate";
 
 const TestTypeBadge = ({ testType }) => {
   if (!testType) return null;
+
+  // Handle both number and string testType
+  const normalizedType =
+    typeof testType === "number" ? testType : testType?.toLowerCase() || "";
+
   const map = {
-    1: { cls: "bg-cyan-100 text-cyan-700", text: "EnglishListening" },
-    2: { cls: "bg-pink-100 text-pink-700", text: "EnglishSpeaking" },
-    3: { cls: "bg-emerald-100 text-emerald-700", text: "Practical" },
+    1: {
+      cls: "bg-cyan-100 text-cyan-700 border-cyan-200",
+      text: "English Listening",
+    },
+    2: {
+      cls: "bg-pink-100 text-pink-700 border-pink-200",
+      text: "English Speaking",
+    },
+    3: { cls: "bg-gray-100 text-gray-700 border-gray-200", text: "Practical" },
   };
-  const cfg = map[testType] || {
-    cls: "bg-gray-100 text-gray-700",
-    text: testType,
-  };
+
+  // Handle string testType
+  let cfg;
+  if (typeof normalizedType === "number") {
+    cfg = map[normalizedType] || {
+      cls: "bg-gray-100 text-gray-700 border-gray-200",
+      text: testType,
+    };
+  } else {
+    if (
+      normalizedType.includes("listening") ||
+      normalizedType.includes("englishlistening")
+    ) {
+      cfg = map[1];
+    } else if (
+      normalizedType.includes("speaking") ||
+      normalizedType.includes("englishspeaking")
+    ) {
+      cfg = map[2];
+    } else if (normalizedType.includes("practical")) {
+      cfg = map[3];
+    } else {
+      cfg = {
+        cls: "bg-gray-100 text-gray-700 border-gray-200",
+        text: testType,
+      };
+    }
+  }
+
   return (
     <span
-      className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${cfg.cls}`}
+      className={`${cfg.cls} inline-block rounded-full border px-3 py-1 text-sm font-medium`}
     >
       {cfg.text}
     </span>
@@ -62,6 +94,8 @@ const AudioPlayer = ({ audioUrl }) => {
 
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
+
     const updateProgress = () => {
       const currentTime = audio.currentTime;
       const duration = audio.duration;
@@ -82,6 +116,7 @@ const AudioPlayer = ({ audioUrl }) => {
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
+    if (!audio) return;
     if (isPlaying) audio.pause();
     else audio.play();
     setIsPlaying(!isPlaying);
@@ -89,6 +124,7 @@ const AudioPlayer = ({ audioUrl }) => {
 
   const handleSeek = (e) => {
     const audio = audioRef.current;
+    if (!audio) return;
     const seekPercentage = e.target.value;
     const seekTime = (seekPercentage / 100) * audio.duration;
     audio.currentTime = seekTime;
@@ -144,7 +180,7 @@ const AudioPlayer = ({ audioUrl }) => {
   );
 };
 
-const TestDetailPage = () => {
+const AdminExamDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [testData, setTestData] = useState(null);
@@ -153,60 +189,67 @@ const TestDetailPage = () => {
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
   const [error, setError] = useState(null);
   const [showTestCode, setShowTestCode] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchTestDetail();
-    fetchTestQuestions();
-  }, [id]);
-
-  const fetchTestDetail = async () => {
+  const fetchTestDetail = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await getTestById(id);
-      if (response.success) setTestData(response.data);
-      else setError(response.error || "Không thể tải chi tiết đề thi");
+      if (response.success) {
+        setTestData(response.data);
+      } else {
+        setError(response.error || "Không thể tải chi tiết đề thi");
+      }
     } catch (err) {
       setError(err.message || "Đã xảy ra lỗi khi tải chi tiết đề thi");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchTestQuestions = useCallback(
-    async (forceRefresh = false) => {
-      setIsLoadingQuestions(true);
-      try {
-        // Dùng timestamp mạnh + random để chắc chắn bypass cache
-        const response = await getTestQuestions(id, {
-          forceRefresh: true,
-        });
+  const fetchTestQuestions = useCallback(async () => {
+    setIsLoadingQuestions(true);
+    try {
+      const response = await getTestQuestionsByTestId(id, {
+        forceRefresh: true,
+      });
 
-        if (response.success) {
-          setQuestionsData(response.data); // Cập nhật state mới hoàn toàn
-          console.log("Danh sách câu hỏi đã được làm mới:", response.data);
-        } else {
-          console.error("Lỗi khi tải câu hỏi:", response.error);
-        }
-      } catch (err) {
-        console.error("Exception khi fetch câu hỏi:", err);
-      } finally {
-        setIsLoadingQuestions(false);
+      if (response.success) {
+        setQuestionsData(response.data);
+        console.log("Danh sách câu hỏi đã được làm mới:", response.data);
+      } else {
+        console.error("Lỗi khi tải câu hỏi:", response.error);
       }
-    },
-    [id]
-  );
+    } catch (err) {
+      console.error("Exception khi fetch câu hỏi:", err);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  }, [id]);
 
-  const getTestCode = () => testData.joinCode || `TEST-${testData.testId}`;
+  useEffect(() => {
+    fetchTestDetail();
+    fetchTestQuestions();
+  }, [fetchTestDetail, fetchTestQuestions]);
+
+  const getTestCode = () => testData?.joinCode || `TEST-${testData?.testId}`;
   const obscureTestCode = () => "••••••";
 
   const toggleShowTestCode = () => setShowTestCode(!showTestCode);
 
-  const handleImportSuccess = useCallback(async () => {
-    await fetchTestQuestions(true);
-  }, [fetchTestQuestions]);
+  // Check if testType is English Listening
+  const isEnglishListening = () => {
+    if (!testData?.testType) return false;
+    const testType = testData.testType;
+    if (typeof testType === "number") {
+      return testType === 1;
+    }
+    const normalizedType = testType?.toLowerCase() || "";
+    return (
+      normalizedType.includes("listening") ||
+      normalizedType.includes("englishlistening")
+    );
+  };
 
   if (isLoading) {
     return (
@@ -222,7 +265,7 @@ const TestDetailPage = () => {
     return (
       <div className="p-6">
         <button
-          onClick={() => navigate("/examiner/testing")}
+          onClick={() => navigate("/admin/tests")}
           className="flex items-center gap-2 mb-4 text-gray-600"
         >
           <FiArrowLeft className="w-5 h-5" />
@@ -243,16 +286,8 @@ const TestDetailPage = () => {
     <div className="p-6">
       {/* HEADER */}
       <div className="mb-6">
-        <button
-          onClick={() => navigate("/examiner/testing")}
-          className="flex items-center gap-2 mb-4 text-gray-600 hover:text-gray-900"
-        >
-          <FiArrowLeft className="w-5 h-5" />
-          Quay lại danh sách đề thi
-        </button>
-
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-bold">{testData.testName}</h1>
               <TestTypeBadge testType={testData.testType} />
@@ -261,16 +296,10 @@ const TestDetailPage = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-indigo-700 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50"
+              onClick={() => navigate("/admin/tests")}
+              className="px-4 py-2 border border-slate-200 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
             >
-              <FiUpload /> Import
-            </button>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
-            >
-              <FiPlusCircle /> Tạo câu hỏi
+              Quay lại
             </button>
           </div>
         </div>
@@ -294,7 +323,8 @@ const TestDetailPage = () => {
             />
           </Section>
 
-          {testData.audioFileURL && (
+          {/* Show audio only for English Listening */}
+          {isEnglishListening() && testData.audioFileURL && (
             <Section title="File âm thanh">
               <AudioPlayer audioUrl={testData.audioFileURL} />
             </Section>
@@ -302,7 +332,11 @@ const TestDetailPage = () => {
 
           {/* QUESTIONS */}
           <Section
-            title={`Danh sách câu hỏi (${questionsData?.totalQuestions || 0})`}
+            title={`Danh sách câu hỏi (${
+              questionsData?.totalQuestions ||
+              questionsData?.questions?.length ||
+              0
+            })`}
           >
             {isLoadingQuestions ? (
               <div className="flex items-center justify-center py-8">
@@ -414,24 +448,8 @@ const TestDetailPage = () => {
           </Section>
         </div>
       </div>
-
-      {/* MODALS */}
-      <ImportQuestionModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        testId={id}
-        onSuccess={handleImportSuccess}
-      />
-
-      <CreateQuestionModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        testType={testData.testType}
-        testId={id}
-        onSuccess={() => fetchTestQuestions()}
-      />
     </div>
   );
 };
 
-export default TestDetailPage;
+export default AdminExamDetailPage;

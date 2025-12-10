@@ -7,8 +7,8 @@ import {
   getCampaignDetail,
   updateCampaignAndCreateRounds,
 } from "../../service/api2";
-import Loading from "../../components/Loading";
 import CreateRound from "../../components/SeniorRecruiterComponent/CreateCampaign/CreateRound";
+import ModalConfirm from "../../components/SeniorRecruiterComponent/ModalConfirm";
 
 const SeniorCreateCampaignPage = () => {
   const { id: campaignId } = useParams();
@@ -39,6 +39,7 @@ const SeniorCreateCampaignPage = () => {
   const [detailError, setDetailError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roundsData, setRoundsData] = useState([]); // State để lưu rounds data cho UI mới
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const navigate = useNavigate();
   const isRequestDataLocked = Boolean(campaignDetail);
   const createRoundRef = useRef(null);
@@ -76,11 +77,11 @@ const SeniorCreateCampaignPage = () => {
             jobRequirement: detailData.jobRequirement || "",
           }));
         } else {
-          setDetailError(result.error || "Không thể tải chi tiết yêu cầu");
+          setDetailError(result.error || "Cannot load campaign detail");
         }
       } catch (err) {
         if (!isMounted) return;
-        setDetailError(err.message || "Không thể tải chi tiết yêu cầu");
+        setDetailError(err.message || "Cannot load campaign detail");
       } finally {
         if (isMounted) {
           setIsLoadingDetail(false);
@@ -135,21 +136,21 @@ const SeniorCreateCampaignPage = () => {
     const newErrors = {};
 
     if (!formData.startDate) {
-      newErrors.startDate = "Ngày bắt đầu là bắt buộc";
+      newErrors.startDate = "Start date is required";
     }
     if (!formData.endDate) {
-      newErrors.endDate = "Ngày kết thúc là bắt buộc";
+      newErrors.endDate = "End date is required";
     }
     if (
       formData.startDate &&
       formData.endDate &&
       formData.startDate >= formData.endDate
     ) {
-      newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+      newErrors.endDate = "End date must be after start date";
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = "Mô tả nhu cầu là bắt buộc";
+      newErrors.description = "Description is required";
     }
 
     // Validate rounds using CreateRound component
@@ -172,7 +173,7 @@ const SeniorCreateCampaignPage = () => {
 
     // Validate form trước
     if (!validateForm()) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
+      toast.error("Please fill in all required information.");
       return;
     }
 
@@ -198,7 +199,7 @@ const SeniorCreateCampaignPage = () => {
       // Nếu không có rounds hợp lệ, không gửi request
       if (validRounds.length === 0) {
         toast.error(
-          "Không có đợt tuyển hợp lệ để lưu. Vui lòng kiểm tra lại thông tin."
+          "No valid rounds to save. Please check the information again."
         );
         setIsSubmitting(false);
         return;
@@ -223,19 +224,21 @@ const SeniorCreateCampaignPage = () => {
       console.log("API Response:", response);
 
       if (response.success) {
-        toast.success(response.message || "Cập nhật campaign thành công!");
+        toast.success("Create campaign successfully!");
 
         setTimeout(() => {
           navigate(`/senior-recruiter/campaigns`);
         }, 2000);
       } else {
         // Nếu API trả về error, không lưu rounds
-        toast.error(response.error || "Cập nhật campaign thất bại");
+        toast.error("Create campaign failed");
         console.error("API Error - Rounds were not saved:", response);
       }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      toast.error("Có lỗi xảy ra khi tạo campaign. Rounds không được lưu.");
+      toast.error(
+        "An error occurred while creating campaign. Rounds were not saved."
+      );
       // Không lưu rounds khi có exception
     } finally {
       setIsSubmitting(false);
@@ -243,21 +246,29 @@ const SeniorCreateCampaignPage = () => {
   };
 
   const handleCancel = () => {
-    if (
-      window.confirm("Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất.")
-    ) {
-      navigate("/senior-recruiter/campaigns");
-    }
+    setShowCancelModal(true);
   };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    navigate("/senior-recruiter/campaigns");
+  };
+
+  if (isLoadingDetail) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="text-gray-500">Loading campaign detail...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative p-6">
-      {isLoadingDetail && <Loading message="Đang tải thông tin yêu cầu..." />}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 mr-50">
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Tiêu đề *
+              Campaign Name *
             </label>
             <input
               type="text"
@@ -267,19 +278,19 @@ const SeniorCreateCampaignPage = () => {
               className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-slate-300 ${
                 isRequestDataLocked ? "bg-slate-100 cursor-not-allowed" : ""
               }`}
-              placeholder="Nhập tiêu đề yêu cầu tuyển dụng"
+              placeholder="Enter campaign name"
               disabled={isRequestDataLocked}
             />
           </div>
           <p className="mt-1 text-sm text-slate-600">
-            Đăng công khai tuyển dụng - Cabin Crew
+            Public recruitment - Cabin Crew
           </p>
         </div>
         <button
           onClick={() => navigate("/senior-recruiter/campaigns")}
           className="flex-shrink-0 px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
-          Quay lại
+          Back
         </button>
       </div>
 
@@ -297,21 +308,21 @@ const SeniorCreateCampaignPage = () => {
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500">
-                    Thông tin đề xuất
+                    Proposal information
                   </div>
                   <div className="font-semibold text-slate-800">
                     {campaignDetail?.partnerName
                       ? campaignDetail.partnerName
                       : isLoadingDetail
-                      ? "Đang tải..."
+                      ? "Loading..."
                       : "N/A"}
                   </div>
                 </div>
                 <div className="text-xs text-right text-slate-500">
-                  Mã số:{" "}
+                  Campaign ID:{" "}
                   {campaignDetail?.campaignId ||
                     campaignId ||
-                    (isLoadingDetail ? "Đang tải..." : "—")}
+                    (isLoadingDetail ? "Loading..." : "—")}
                 </div>
               </div>
 
@@ -319,7 +330,7 @@ const SeniorCreateCampaignPage = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Số lượng tuyển *
+                      Target quantity *
                     </label>
                     <input
                       type="number"
@@ -339,7 +350,7 @@ const SeniorCreateCampaignPage = () => {
 
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Ngày bắt đầu *
+                      Start date *
                     </label>
                     <input
                       type="date"
@@ -360,7 +371,7 @@ const SeniorCreateCampaignPage = () => {
 
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Ngày kết thúc *
+                      End date *
                     </label>
                     <input
                       type="date"
@@ -382,7 +393,7 @@ const SeniorCreateCampaignPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả chung *
+                    Description *
                   </label>
                   <textarea
                     name="description"
@@ -401,7 +412,7 @@ const SeniorCreateCampaignPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả công việc *
+                    Job description *
                   </label>
                   <div className={`rounded-md border border-slate-300`}>
                     <CKEditor
@@ -418,7 +429,7 @@ const SeniorCreateCampaignPage = () => {
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Yêu cầu công việc *
+                    Job requirement *
                   </label>
                   <div className={`rounded-md border border-slate-300`}>
                     <CKEditor
@@ -459,28 +470,30 @@ const SeniorCreateCampaignPage = () => {
             {/* Thông tin tổng kết */}
             <div className="bg-white border rounded-lg shadow-sm border-slate-200">
               <div className="px-5 py-4 font-semibold border-b border-slate-200 text-slate-800">
-                Tổng quan Campaign
+                Overview Campaign
               </div>
               <div className="p-5 space-y-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Tổng đợt tuyển:</span>
+                  <span className="text-slate-600">Total rounds:</span>
                   <span className="font-medium text-slate-800">
                     {formData.rounds.length}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Chỉ tiêu các đợt:</span>
+                  <span className="text-slate-600">
+                    Target quantity of each round:
+                  </span>
                   <span className="font-medium text-slate-800">
                     {formData.rounds.reduce(
                       (sum, round) =>
                         sum + (parseInt(round.targetQuantity, 10) || 0),
                       0
                     )}{" "}
-                    người
+                    people
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">Thời gian dự kiến:</span>
+                  <span className="text-slate-600">Expected time:</span>
                   <span className="font-medium text-slate-800">
                     {formData.startDate && formData.endDate
                       ? (() => {
@@ -489,9 +502,9 @@ const SeniorCreateCampaignPage = () => {
                           const diffTime = Math.abs(end - start);
                           const diffDays =
                             Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 để bao gồm cả ngày bắt đầu và kết thúc
-                          return `${diffDays} ngày`;
+                          return `${diffDays} days`;
                         })()
-                      : "Chưa xác định"}
+                      : "Not determined"}
                   </span>
                 </div>
               </div>
@@ -505,7 +518,7 @@ const SeniorCreateCampaignPage = () => {
                   onClick={handleCancel}
                   className="w-full px-4 py-2 font-medium transition-colors border rounded-md border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -517,13 +530,22 @@ const SeniorCreateCampaignPage = () => {
                       : "bg-red-600 hover:bg-red-700 text-white"
                   }`}
                 >
-                  {isSubmitting ? "Đang cập nhật..." : "Cập nhật Campaign"}
+                  {isSubmitting ? "Updating..." : "Update Campaign"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </form>
+      <ModalConfirm
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="Confirm cancel"
+        message="Are you sure you want to cancel? All information will be lost."
+        confirmText="Cancel"
+        cancelText="Back"
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { formatDateOnly } from "../../../config/formatDate";
+import { formatDate2 } from "../../../config/formatDate";
 import BatchInfo from "./BatchInfo";
 
 const PendingCampaignDetail = ({ campaign }) => {
@@ -14,7 +14,7 @@ const PendingCampaignDetail = ({ campaign }) => {
           <button
             onClick={() => navigate("/airline-partner/campaigns")}
             className="p-2 transition-colors rounded-lg hover:bg-slate-100"
-            title="Quay lại"
+            title="Back"
           >
             <svg
               className="w-5 h-5 text-slate-600"
@@ -34,7 +34,7 @@ const PendingCampaignDetail = ({ campaign }) => {
             <h1 className="text-2xl font-bold text-slate-800">
               {campaign?.campaignName || "N/A"}
             </h1>
-            <p className="text-slate-600">Chiến dịch đang chờ phê duyệt</p>
+            <p className="text-slate-600">Campaign is pending approval</p>
           </div>
         </div>
 
@@ -56,11 +56,10 @@ const PendingCampaignDetail = ({ campaign }) => {
             </svg>
             <div>
               <h3 className="font-semibold text-yellow-800">
-                Chiến dịch đang chờ phê duyệt
+                Campaign is pending approval
               </h3>
               <p className="mt-1 text-sm text-yellow-700">
-                Chiến dịch này cần được phê duyệt trước khi có thể bắt đầu tuyển
-                dụng.
+                Campaign needs to be approved before recruitment can begin.
               </p>
             </div>
           </div>
@@ -71,13 +70,13 @@ const PendingCampaignDetail = ({ campaign }) => {
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="space-y-1">
-            <div className="text-sm text-slate-500">Thông tin đề xuất</div>
+            <div className="text-sm text-slate-500">Proposal information</div>
             <div className="font-semibold text-slate-800">
               {campaign?.partnerName || "N/A"}
             </div>
           </div>
           <div className="text-xs text-right text-slate-500">
-            Mã số: {campaign?.campaignId || "N/A"}
+            Campaign ID: {campaign?.campaignId || "N/A"}
           </div>
         </div>
 
@@ -86,23 +85,23 @@ const PendingCampaignDetail = ({ campaign }) => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {(campaign?.campaignType?.toLowerCase() === "promotion" ||
                 campaign?.campaignType === "Promotion") && (
-                <Info label="Vị trí" value={"Chief Flight Attendant"} />
+                <Info label="Position" value={"Chief Flight Attendant"} />
               )}
               {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
                 campaign?.campaignType === "Recruitment") && (
-                <Info label="Vị trí" value={"Flight Attendant"} />
+                <Info label="Position" value={"Flight Attendant"} />
               )}
               <Info
-                label="Số lượng tuyển"
+                label="Target quantity"
                 value={`${campaign?.targetQuantity || 0}`}
               />
               <Info
-                label="Ngày bắt đầu"
-                value={formatDateOnly(campaign?.startDate) || "N/A"}
+                label="Start date"
+                value={formatDate2(campaign?.startDate) || "N/A"}
               />
               <Info
-                label="Ngày kết thúc"
-                value={formatDateOnly(campaign?.endDate) || "N/A"}
+                label="End date"
+                value={formatDate2(campaign?.endDate) || "N/A"}
               />
             </div>
 
@@ -110,7 +109,7 @@ const PendingCampaignDetail = ({ campaign }) => {
             {campaign?.jobDescription && (
               <div className="mt-6">
                 <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                  📋 Mô tả công việc / Job Description
+                  📋 Job description
                 </h3>
                 <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                   <div
@@ -127,7 +126,7 @@ const PendingCampaignDetail = ({ campaign }) => {
             {campaign?.jobRequirement && (
               <div className="mt-6">
                 <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                  📝 Yêu cầu công việc / Job Requirements
+                  📝 Job requirement
                 </h3>
                 <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                   <div

@@ -2,24 +2,16 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "../../images/Logo.png";
 import { FaBullhorn } from "react-icons/fa6";
 import { FaInfoCircle, FaSignOutAlt } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import { t, onLangChange } from "../../i18n";
 
 const SidebarSenior = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const [, setLangTick] = useState(0);
   const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
   const username = employeeData?.username;
   const role = employeeData?.role;
 
   const isActive = (path) => currentPath.startsWith(path);
-
-  useEffect(() => {
-    const off = onLangChange(() => setLangTick((v) => v + 1));
-    return () => off();
-  }, []);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -72,7 +64,7 @@ const SidebarSenior = () => {
                   : "text-gray-700 hover:text-blue-600"
               }
             >
-              {t("sidebar_request")}
+              Request
             </span>
           </Link>
         </li>
@@ -99,7 +91,7 @@ const SidebarSenior = () => {
                   : "text-gray-700 hover:text-blue-600"
               }
             >
-              {t("sidebar_campaign")}
+              Campaign
             </span>
           </Link>
         </li>
@@ -111,7 +103,7 @@ const SidebarSenior = () => {
             onClick={handleLogout}
           >
             <FaSignOutAlt className="mr-3" />
-            <span>{t("sidebar_logout")}</span>
+            <span>Logout</span>
           </button>
         </li>
       </ul>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCampaignDetail } from "../../service/api2";
-import { formatDateOnly } from "../../config/formatDate";
+import { formatDate2 } from "../../config/formatDate";
 import Loading from "../../components/Loading.jsx";
 
 const getRoundTime = (start, end) => {
-  const startLabel = formatDateOnly(start);
-  const endLabel = formatDateOnly(end);
+  const startLabel = formatDate2(start);
+  const endLabel = formatDate2(end);
   if (startLabel && endLabel) {
     return `${startLabel} - ${endLabel}`;
   }
@@ -69,27 +69,27 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
     jobRequirement: apiData.jobRequirement,
     batches: Array.isArray(rounds)
       ? rounds.map((round, index) => ({
-        campaignRoundId:
-          round.campaignRoundId || round.id || round.roundId || index,
-        name:
-          round.roundName || round.name || round.round || `Đợt ${index + 1}`,
-        roundName: round.roundName || round.name || "",
-        time: getRoundTime(round.startDate, round.endDate),
-        location: round.location || "",
-        method: round.method || "Trực tiếp",
-        status: mapRoundStatus(round.status),
-        owner: round.owner || "",
-        description: round.description || "",
-        slots: round.targetQuantity || round.slots || 0,
-        targetQuantity: round.targetQuantity || 0,
-        applied:
-          round.actualQuantiy !== undefined
-            ? round.actualQuantiy
-            : round.applied || 0,
-        actualQuantiy: round.actualQuantiy || 0,
-        startDate: round.startDate || "",
-        endDate: round.endDate || "",
-      }))
+          campaignRoundId:
+            round.campaignRoundId || round.id || round.roundId || index,
+          name:
+            round.roundName || round.name || round.round || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || "",
+          time: getRoundTime(round.startDate, round.endDate),
+          location: round.location || "",
+          method: round.method || "Trực tiếp",
+          status: mapRoundStatus(round.status),
+          owner: round.owner || "",
+          description: round.description || "",
+          slots: round.targetQuantity || round.slots || 0,
+          targetQuantity: round.targetQuantity || 0,
+          applied:
+            round.actualQuantiy !== undefined
+              ? round.actualQuantiy
+              : round.applied || 0,
+          actualQuantiy: round.actualQuantiy || 0,
+          startDate: round.startDate || "",
+          endDate: round.endDate || "",
+        }))
       : [],
     ...apiData,
   };
@@ -155,7 +155,7 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-            "Không thể tải thông tin chiến dịch, vui lòng thử lại."
+              "Không thể tải thông tin chiến dịch, vui lòng thử lại."
           );
         }
       } catch (err) {
@@ -168,7 +168,7 @@ const PromotionApplyPage = () => {
     fetchCampaign();
   }, [id]);
 
-  const formatDateLabel = (value) => formatDateOnly(value) || "—";
+  const formatDateLabel = (value) => formatDate2(value) || "—";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,10 +219,11 @@ const PromotionApplyPage = () => {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign)
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                    }`}
+                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
+                    isCampaignActive(campaign)
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
                 >
                   {isCampaignActive(campaign) ? "Đang diễn ra" : "Đã kết thúc"}
                 </span>
@@ -362,44 +363,45 @@ const PromotionApplyPage = () => {
                     {(Array.isArray(campaign.batches) && campaign.batches.length
                       ? campaign.batches
                       : [
-                        {
-                          name: "Đợt 1",
-                          time: `${campaign.startDate || "2025-10-01"} - ${campaign.endDate || "2025-10-15"
+                          {
+                            name: "Đợt 1",
+                            time: `${campaign.startDate || "2025-10-01"} - ${
+                              campaign.endDate || "2025-10-15"
                             }`,
-                          location: campaign.location || "Hà Nội",
-                          method: "Trực tiếp",
-                          status: "completed",
-                          owner: "HR Team A",
-                          description:
-                            "Tuyển dụng trực tiếp tại văn phòng Hà Nội",
-                          slots: 50,
-                          applied: 45,
-                        },
-                        {
-                          name: "Đợt 2",
-                          time: "2025-11-01 - 2025-11-20",
-                          location: "TP.HCM",
-                          method: "Trực tiếp + Online",
-                          status: "ongoing",
-                          owner: "HR Team B",
-                          description:
-                            "Tuyển dụng kết hợp trực tiếp và online tại TP.HCM",
-                          slots: 80,
-                          applied: 32,
-                        },
-                        {
-                          name: "Đợt 3",
-                          time: "2025-12-01 - 2025-12-15",
-                          location: "Đà Nẵng",
-                          method: "Online",
-                          status: "upcoming",
-                          owner: "HR Team C",
-                          description:
-                            "Tuyển dụng online cho khu vực miền Trung",
-                          slots: 30,
-                          applied: 0,
-                        },
-                      ]
+                            location: campaign.location || "Hà Nội",
+                            method: "Trực tiếp",
+                            status: "completed",
+                            owner: "HR Team A",
+                            description:
+                              "Tuyển dụng trực tiếp tại văn phòng Hà Nội",
+                            slots: 50,
+                            applied: 45,
+                          },
+                          {
+                            name: "Đợt 2",
+                            time: "2025-11-01 - 2025-11-20",
+                            location: "TP.HCM",
+                            method: "Trực tiếp + Online",
+                            status: "ongoing",
+                            owner: "HR Team B",
+                            description:
+                              "Tuyển dụng kết hợp trực tiếp và online tại TP.HCM",
+                            slots: 80,
+                            applied: 32,
+                          },
+                          {
+                            name: "Đợt 3",
+                            time: "2025-12-01 - 2025-12-15",
+                            location: "Đà Nẵng",
+                            method: "Online",
+                            status: "upcoming",
+                            owner: "HR Team C",
+                            description:
+                              "Tuyển dụng online cho khu vực miền Trung",
+                            slots: 30,
+                            applied: 0,
+                          },
+                        ]
                     ).map((b, i) => (
                       <div
                         key={i}
@@ -410,18 +412,19 @@ const PromotionApplyPage = () => {
                             {b.name}
                           </div>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${b.status === "completed"
-                              ? "bg-red-100 text-red-700"
-                              : b.status === "ongoing"
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              b.status === "completed"
+                                ? "bg-red-100 text-red-700"
+                                : b.status === "ongoing"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-yellow-100 text-yellow-700"
-                              }`}
+                            }`}
                           >
                             {b.status === "completed"
                               ? "Đã hoàn thành"
                               : b.status === "ongoing"
-                                ? "Đang diễn ra"
-                                : "Sắp diễn ra"}
+                              ? "Đang diễn ra"
+                              : "Sắp diễn ra"}
                           </span>
                         </div>
                         <div className="p-4 space-y-4">
@@ -486,9 +489,14 @@ const PromotionApplyPage = () => {
                           {b.status === "ongoing" && (
                             <button
                               onClick={() =>
-                                navigate(`/cabin-crew/application-form/${b.campaignRoundId || b.id || ''}`, {
-                                  state: { campaign: campaign, batch: b },
-                                })
+                                navigate(
+                                  `/cabin-crew/application-form/${
+                                    b.campaignRoundId || b.id || ""
+                                  }`,
+                                  {
+                                    state: { campaign: campaign, batch: b },
+                                  }
+                                )
                               }
                               className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
                             >

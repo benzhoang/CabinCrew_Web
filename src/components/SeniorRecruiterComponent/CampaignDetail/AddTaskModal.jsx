@@ -60,29 +60,29 @@ const mapUserData = (users) => {
 const roundConfig = [
   {
     key: "screening",
-    title: "Vòng sàng lọc & hậu kiểm",
-    description: "Kiểm tra CV, kinh nghiệm và hậu kiểm tiếng Anh.",
+    title: "Screening & English verification round",
+    description: "Check CV, experience and English verification.",
     maxSelect: null, // No limit
     taskType: 1, // Screening
   },
   {
     key: "appearance",
-    title: "Vòng ngoại hình",
-    description: "Đánh giá tiêu chuẩn ngoại hình và tác phong.",
+    title: "Appearance round",
+    description: "Evaluate appearance and behavior.",
     maxSelect: null, // No limit
     taskType: 4, // Appearance
   },
   {
     key: "assessment",
-    title: "Vòng kiểm tra",
-    description: "Tổ chức bài kiểm tra kỹ năng chuyên môn.",
+    title: "Test round",
+    description: "Organize technical skills test.",
     maxSelect: null, // No limit
     taskType: 3, // Assessment
   },
   {
     key: "interview",
-    title: "Vòng phỏng vấn",
-    description: "Phỏng vấn chuyên sâu với hội đồng 3 người.",
+    title: "Interview round",
+    description: "Interview with 3 members.",
     maxSelect: 3,
     taskType: 2, // Interview
   },
@@ -96,7 +96,7 @@ const getDefaultAssignments = () => ({
 });
 
 const getSelectLabel = (roundKey) =>
-  roundKey === "screening" ? "Chọn recruiter" : "Chọn examiner";
+  roundKey === "screening" ? "Select recruiter" : "Select examiner";
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
   const [assignments, setAssignments] = useState(getDefaultAssignments);
@@ -201,16 +201,18 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
     const newErrors = {};
 
     if (!assignments.screening || assignments.screening.length === 0) {
-      newErrors.screening = "Vui lòng chọn người phụ trách vòng sàng lọc.";
+      newErrors.screening =
+        "Please select the recruiter for the screening and English verification round.";
     }
     if (!assignments.appearance || assignments.appearance.length === 0) {
-      newErrors.appearance = "Vui lòng chọn người phụ trách vòng ngoại hình.";
+      newErrors.appearance =
+        "Please select the recruitor for the appearance round.";
     }
     if (!assignments.assessment || assignments.assessment.length === 0) {
-      newErrors.assessment = "Vui lòng chọn người phụ trách vòng kiểm tra.";
+      newErrors.assessment = "Please select the examiner for the test round.";
     }
     if (assignments.interview.length !== 3) {
-      newErrors.interview = "Vui lòng chọn đủ 3 người cho vòng phỏng vấn.";
+      newErrors.interview = "Please select 3 people for the interview round.";
     }
 
     setErrors(newErrors);
@@ -244,7 +246,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       const campaignId = campaignIdRaw ? Number(campaignIdRaw) : null;
 
       if (!campaignId || isNaN(campaignId)) {
-        toast.error("Không tìm thấy ID chiến dịch hợp lệ");
+        toast.error("Invalid campaign ID");
         setIsSubmitting(false);
         return;
       }
@@ -272,7 +274,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
       });
 
       // Gọi API assignCampaignUsers
-      console.log("Data gửi đi:", {
+      console.log("Data sent:", {
         campaignId: campaignId,
         assignments: assignmentsArray,
       });
@@ -296,17 +298,13 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
 
         resetForm();
         onClose();
-        toast.success(result.message || "Giao việc thành công!");
+        toast.success("Task assignment successful!");
       } else {
-        toast.error(result.error || "Có lỗi xảy ra khi giao việc");
+        toast.error("Error when assigning task");
       }
     } catch (error) {
       console.error("Error submitting approval:", error);
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Có lỗi xảy ra khi giao việc"
-      );
+      toast.error("Error when assigning task");
     } finally {
       setIsSubmitting(false);
     }
@@ -347,16 +345,16 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
           <div className="text-left">
             <p className="text-sm font-medium text-slate-800">
               {loadingUsers
-                ? "Đang tải..."
+                ? "Loading..."
                 : isMulti || isUnlimited
                 ? selectedCount > 0
-                  ? `${selectedCount} người đã chọn`
+                  ? `${selectedCount} people selected`
                   : selectLabel
                 : assignments[roundKey]?.name || selectLabel}
             </p>
             {!isUnlimited && (
               <p className="text-xs text-slate-500">
-                {isInterview ? "Tối đa 3 người" : ""}
+                {isInterview ? "Maximum 3 people" : ""}
               </p>
             )}
           </div>
@@ -381,7 +379,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
           <div className="absolute z-10 w-full mt-2 overflow-y-auto bg-white border shadow-xl border-slate-200 rounded-xl max-h-64">
             {userOptions.length === 0 ? (
               <div className="px-4 py-3 text-sm text-center text-slate-500">
-                Không có dữ liệu
+                No data
               </div>
             ) : (
               userOptions.map((user) => {
@@ -426,7 +424,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                         <div className="mt-2 space-y-1">
                           <p className="text-xs text-slate-600">
                             <span className="font-medium">
-                              Số lượng chiến dịch:
+                              Number of campaigns:
                             </span>{" "}
                             {user.count}
                           </p>
@@ -522,16 +520,17 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
         <div className="px-8 py-6 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50">
           <div className="flex items-start justify-between gap-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Giao việc</h2>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Assign tasks
+              </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Phân công nhân viên phụ trách từng vòng tuyển dụng của chiến
-                dịch
+                Assign employees to each recruitment round of the campaign
               </p>
             </div>
             <button
               onClick={handleClose}
               className="p-2 transition-all duration-200 rounded-full text-slate-500 hover:text-slate-700 hover:bg-white/50"
-              title="Đóng"
+              title="Close"
             >
               <svg
                 className="w-5 h-5"
@@ -571,11 +570,12 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">
-                    Phân bổ nhiệm vụ cho từng vòng
+                    Assign tasks to each round
                   </h3>
                   <p className="mt-1 text-sm text-slate-600">
-                    Mỗi vòng cần chọn đúng số lượng nhân viên yêu cầu. Vòng
-                    phỏng vấn cần đủ 3 người để đảm bảo hội đồng.
+                    Each round needs to select the correct number of employees.
+                    The interview round needs to select 3 people to ensure the
+                    committee.
                   </p>
                 </div>
               </div>
@@ -591,7 +591,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs tracking-wide uppercase text-slate-400">
-                      Nhiệm vụ
+                      Task
                     </p>
                     <h3 className="text-lg font-semibold text-slate-900">
                       {round.title}
@@ -602,7 +602,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                   </div>
                   {round.maxSelect !== null && (
                     <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
-                      {round.maxSelect === 3 ? "3 người" : ""}
+                      {round.maxSelect === 3 ? "3 people" : ""}
                     </span>
                   )}
                 </div>
@@ -616,14 +616,14 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                     assignments[round.key].length > 0 && (
                       <div className="mt-4">
                         <label className="block mb-2 text-sm font-medium text-slate-700">
-                          Ghi chú
+                          Note
                         </label>
                         <textarea
                           value={taskDescriptions[round.key]}
                           onChange={(e) =>
                             handleDescriptionChange(round.key, e.target.value)
                           }
-                          placeholder="Nhập ghi chú cho nhiệm vụ này..."
+                          placeholder="Enter note for this task..."
                           rows={3}
                           className="w-full px-4 py-3 text-sm border rounded-lg resize-none border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                         />
@@ -659,7 +659,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
@@ -673,7 +673,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                  Đang giao...
+                  Assigning...
                 </>
               ) : (
                 <>
@@ -690,7 +690,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  Xong
+                  Done
                 </>
               )}
             </button>

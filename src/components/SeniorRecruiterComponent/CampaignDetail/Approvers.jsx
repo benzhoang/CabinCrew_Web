@@ -4,14 +4,14 @@ const Approvers = ({ reviewedBy }) => {
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="px-5 py-4 font-semibold border-b border-slate-200 text-slate-800">
-        Người xét duyệt
+        Approvers
       </div>
       <div className="p-5 space-y-4">
         <div className="flex items-center gap-3">
           <div className="rounded-full h-9 w-9 bg-slate-200" />
           <div className="flex-1">
             <div className="text-sm font-medium text-slate-800">
-              {reviewedBy || "Chưa có người xét duyệt"}
+              {reviewedBy || "No one has reviewed yet"}
             </div>
           </div>
           {reviewedBy && (

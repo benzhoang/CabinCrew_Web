@@ -142,10 +142,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
 
       if (result.success) {
         // Show success toast
-        toast.success(
-          result.message ||
-            `Tạo tài khoản ${roleName.toLowerCase()} thành công!`
-        );
+        toast.success(`Create ${roleName.toLowerCase()} account successfully!`);
         // Call the onSubmit callback if provided
         if (onSubmit) {
           onSubmit(result.data);
@@ -165,14 +162,12 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
         }, 100);
       } else {
         // Show error toast
-        toast.error(result.error || "Tạo tài khoản thất bại");
+        toast.error(`Create ${roleName.toLowerCase()} account failed`);
       }
-    } catch (error) {
+    } catch {
       // Show error toast
       toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Đã xảy ra lỗi khi tạo tài khoản"
+        `An error occurred while creating ${roleName.toLowerCase()} account`
       );
     } finally {
       setIsSubmitting(false);

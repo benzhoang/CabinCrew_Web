@@ -925,27 +925,61 @@ export const createTest = async (testData, audioFile) => {
 };
 
 // API lấy danh sách tests
-export const getTests = async (page = 1, pageSize = 10) => {
+export const getTests = async (page = 1, pageSize = 10, params = {}) => {
   try {
+    const requestParams = {
+      page: page,
+      pageSize: pageSize,
+      ...params,
+    };
+
     const response = await api2.get("/tests", {
-      params: {
-        page: page,
-        pageSize: pageSize,
-      },
+      params: requestParams,
     });
 
     console.log("Raw API Response:", response.data);
 
-    if (response.data.code === 0 && response.data.data) {
+    const responseData = response.data;
+
+    if (Array.isArray(responseData)) {
       return {
         success: true,
-        data: response.data.data,
-        message: response.data.message,
+        data: responseData,
+        message: "Lấy danh sách đề thi thành công",
+      };
+    }
+
+    if (responseData.code === 0) {
+      let items = [];
+
+      if (Array.isArray(responseData.data)) {
+        items = responseData.data;
+      } else if (Array.isArray(responseData.data?.items)) {
+        items = responseData.data.items;
+      } else if (
+        responseData.data?.data &&
+        Array.isArray(responseData.data.data)
+      ) {
+        items = responseData.data.data;
+      }
+
+      return {
+        success: true,
+        data: items,
+        pagination: {
+          currentPage: responseData.data?.currentPage,
+          pageSize: responseData.data?.pageSize,
+          totalRecords: responseData.data?.totalRecords,
+          totalPages: responseData.data?.totalPages,
+          hasNextPage: responseData.data?.hasNextPage,
+          hasPreviousPage: responseData.data?.hasPreviousPage,
+        },
+        message: responseData.message || "Lấy danh sách đề thi thành công",
       };
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy danh sách đề thi",
+        error: responseData.message || "Không thể lấy danh sách đề thi",
       };
     }
   } catch (error) {

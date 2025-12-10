@@ -45,27 +45,27 @@ const StatusBadge = ({ status }) => {
       case "ongoing":
         return {
           className: "bg-cyan-100 text-cyan-700 border-cyan-200",
-          text: "Đang diễn ra",
+          text: "Ongoing",
         };
       case "pending":
         return {
           className: "bg-yellow-100 text-yellow-700 border-yellow-200",
-          text: "Đang chờ duyệt",
+          text: "Pending",
         };
       case "ended":
         return {
           className: "bg-green-100 text-green-700 border-green-200",
-          text: "Đã hoàn thành",
+          text: "Ended",
         };
       case "approved":
         return {
           className: "bg-emerald-100 text-emerald-700 border-emerald-200",
-          text: "Đã được duyệt",
+          text: "Approved",
         };
       default:
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: "Không xác định",
+          text: "Unknown",
         };
     }
   };
@@ -84,11 +84,11 @@ const StatusBadge = ({ status }) => {
 const getCampaignTypeLabel = (campaignType) => {
   switch (campaignType) {
     case "recruitment":
-      return "Tuyển dụng";
+      return "Recruitment";
     case "promotion":
-      return "Thăng bậc";
+      return "Promotion";
     default:
-      return "Không xác định";
+      return "Unknown";
   }
 };
 
@@ -112,11 +112,6 @@ const CampaignTypeBadge = ({ type }) => {
 
 const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate();
-  const percent = useMemo(() => {
-    const { current = 0, total = 0 } = campaign.progress || {};
-    if (!total) return 0;
-    return Math.min(100, Math.round((current / total) * 100));
-  }, [campaign]);
 
   return (
     <div className="p-5 bg-white border border-gray-200 rounded-xl">
@@ -128,30 +123,30 @@ const CampaignCard = ({ campaign }) => {
 
           <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
             <div>
-              <span className="text-gray-500">Thời gian bắt đầu:</span>{" "}
+              <span className="text-gray-500">Start Date:</span>{" "}
               {formatDate(campaign.startDate) || "-"}
             </div>
             <div>
-              <span className="text-gray-500">Thời gian kết thúc:</span>{" "}
+              <span className="text-gray-500">End Date:</span>{" "}
               {formatDate(campaign.endDate) || "-"}
             </div>
             <div>
-              <span className="text-gray-500">Loại chiến dịch:</span>{" "}
+              <span className="text-gray-500">Campaign Type:</span>{" "}
               <CampaignTypeBadge type={campaign.campaignType} />
             </div>
             <div>
-              <span className="text-gray-500">Trạng thái:</span>{" "}
+              <span className="text-gray-500">Status:</span>{" "}
               <StatusBadge status={campaign.status} />
             </div>
             {campaign.campaignType === "promotion" && (
               <div className="mt-2">
-                <span className="text-gray-500">Vị trí:</span>{" "}
+                <span className="text-gray-500">Position:</span>{" "}
                 <span>Chief Flight Attendant</span>
               </div>
             )}
             {campaign.campaignType === "recruitment" && (
               <div className="mt-2">
-                <span className="text-gray-500">Vị trí:</span>{" "}
+                <span className="text-gray-500">Position:</span>{" "}
                 <span>Flight Attendant</span>
               </div>
             )}
@@ -165,26 +160,12 @@ const CampaignCard = ({ campaign }) => {
               navigate(`/airline-partner/campaigns/${campaign.id}`)
             }
           >
-            Xem chi tiết
+            View Details
           </button>
         </div>
       </div>
 
-      <div className="mt-4">
-        <div className="flex justify-between mb-1 text-sm text-slate-600">
-          <span className="text-gray-500">Tiến độ tuyển dụng</span>{" "}
-          {campaign.progress?.current ?? 0}/{campaign.progress?.total ?? 0} (
-          {percent}%)
-        </div>
-        <div className="h-2 overflow-hidden bg-gray-200 rounded-full">
-          <div
-            className="h-full bg-blue-600"
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-      </div>
-
-      <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
+      <p className="mt-5 text-sm text-gray-600">{campaign.description}</p>
     </div>
   );
 };
@@ -232,7 +213,8 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         // Map API data to component structure
         const mappedCampaigns = result.data.map((item) => ({
           id: item.campaignId || item.id || item.campaignID || item.Id,
-          title: item.campaignName || item.name || "Chiến dịch chưa có tên",
+          title:
+            item.campaignName || item.name || "Campaign name not available",
           description: item.description || "",
           startDate: convertDateFormat(item.startDate),
           endDate: convertDateFormat(item.endDate),
@@ -266,12 +248,14 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         console.error("Error fetching campaigns:", result.error);
         console.error("Result:", result);
         setCampaigns([]);
-        setError(result.error || "Không thể tải danh sách chiến dịch");
+        setError(result.error || "Cannot load campaign list");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setCampaigns([]);
-      setError(error.message || "Đã xảy ra lỗi khi tải danh sách chiến dịch");
+      setError(
+        error.message || "An error occurred while loading the campaign list"
+      );
     } finally {
       if (showLoading || isInitialLoad) {
         setLoading(false);
@@ -318,11 +302,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   if (loading) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">
-          Danh sách chiến dịch
-        </h2>
+        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
         <div className="py-12 text-center">
-          <p className="text-slate-500">Đang tải dữ liệu...</p>
+          <p className="text-slate-500">Loading data...</p>
         </div>
       </div>
     );
@@ -331,9 +313,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   if (error) {
     return (
       <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">
-          Danh sách chiến dịch
-        </h2>
+        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
         <div className="py-8 text-center">
           <div className="mb-2 text-red-600">{error}</div>
           <button
@@ -342,7 +322,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             }}
             className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            Thử lại
+            Try Again
           </button>
         </div>
       </div>
@@ -352,7 +332,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Danh sách chiến dịch (
+        Campaign List (
         {typeof pagination.totalRecords === "number" &&
         pagination.totalRecords > 0
           ? pagination.totalRecords
@@ -370,7 +350,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Đang chờ duyệt
+            Pending
           </button>
           <button
             type="button"
@@ -381,7 +361,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Đã được duyệt
+            Approved
           </button>
           <button
             type="button"
@@ -392,7 +372,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Đang diễn ra
+            Ongoing
           </button>
           <button
             type="button"
@@ -403,12 +383,12 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Đã hoàn thành
+            Ended
           </button>
         </div>
       </div>
       {filtered.length === 0 ? (
-        <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
+        <div className="py-10 text-center text-gray-500">No data found</div>
       ) : (
         <>
           {filtered.map((c) => (
@@ -434,7 +414,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
               </>
             ) : null}
             {typeof pagination.totalRecords === "number" && (
-              <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+              <span className="ml-2">({pagination.totalRecords} records)</span>
             )}
           </div>
 
@@ -449,7 +429,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
             >
-              Trước
+              Previous
             </button>
 
             <span className="text-sm text-slate-600">
@@ -466,7 +446,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
             >
-              Sau
+              Next
             </button>
           </div>
         </div>

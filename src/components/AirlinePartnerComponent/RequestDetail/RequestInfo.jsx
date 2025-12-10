@@ -1,4 +1,4 @@
-import { convertDateFormat, formatDate } from "../../config/formatDate.js";
+import { convertDateFormat, formatDate } from "../../../config/formatDate.js";
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start gap-3">
