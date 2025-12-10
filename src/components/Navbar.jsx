@@ -100,7 +100,7 @@ const Navbar = () => {
 
           {/* Lang + Auth Buttons / User */}
           <div className="hidden lg:flex items-center space-x-4">
-            <button
+            {/* <button
               onClick={toggleLang}
               className="px-2 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
               aria-label="Toggle language"
@@ -111,7 +111,7 @@ const Navbar = () => {
                 alt="flag"
                 className="w-6 h-6 rounded-sm shadow-sm"
               />
-            </button>
+            </button> */}
             {user ? (
               <div className="relative text-white">
                 <button

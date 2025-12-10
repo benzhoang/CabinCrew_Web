@@ -93,6 +93,7 @@ import ExaminerTestSessionDetail from "./pages/Examiner/ExaminerDetail/ExaminerT
 import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestReportPage";
 import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
 import ApplicationFormPage from "./pages/CabinCrew/ApplicationFormPage";
+import FinalApplyDetail from "./pages/Recruiter/FinalApplyDetail";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -328,6 +329,17 @@ function App() {
               <SidebarRecruiter />
               <main className="flex-1 overflow-auto">
                 <FinalReview />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/final-review/candidate/:id"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <SidebarRecruiter />
+              <main className="flex-1 overflow-auto">
+                <FinalApplyDetail />
               </main>
             </div>
           }

@@ -1477,6 +1477,23 @@ export const getTestQuestions = async (testId, options = {}) => {
   }
 };
 
+// Lấy danh sách loại đề thi
+export const getTestTypes = async () => {
+  try {
+    const response = await api.get("/test-types");
+    const payload = response.data;
+    // API format: { code, message, data: [{ testTypeId, testTypeName }] }
+    const list = Array.isArray(payload?.data) ? payload.data : [];
+    return list.map((item) => ({
+      id: item.testTypeId,
+      name: item.testTypeName,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch test types:", error);
+    return [];
+  }
+};
+
 // API cập nhật test theo ID
 export const updateTest = async (testId, testData) => {
   try {

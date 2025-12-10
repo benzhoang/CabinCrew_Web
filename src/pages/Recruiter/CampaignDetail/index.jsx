@@ -22,19 +22,19 @@ const CampaignDetail = () => {
     const goBack = () => navigate('/recruiter/campaigns')
 
     return (
-        <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">
-                        {campaign?.name || 'Tuyển dụng Tiếp viên hàng không 2024'}
-                    </h1>
-                    <p className="text-slate-600 mt-1 text-sm">{campaign?.position || 'Flight Attendant'} - {campaign?.department || 'Cabin Crew'}</p>
+        <div className="w-full min-h-screen p-6">
+            <div className="max-w-full">
+                <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                        <h1 className="text-2xl font-bold text-slate-800 mb-2">
+                            {campaign?.name || 'Tuyển dụng Tiếp viên hàng không 2024'}
+                        </h1>
+                        <p className="text-slate-600 mt-1 text-sm">{campaign?.position || 'Flight Attendant'} - {campaign?.department || 'Cabin Crew'}</p>
+                    </div>
+                    <button onClick={goBack} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 ml-4 shrink-0">Back</button>
                 </div>
-                <button onClick={goBack} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700">Quay lại</button>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
+                <div className="w-full">
                     <DetailInfo campaign={campaign} />
                 </div>
 

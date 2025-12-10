@@ -86,14 +86,17 @@ const ScoreReport = () => {
                         };
                     });
 
+                    // Lọc chỉ lấy các bài thi đã hoàn thành (hasCompleted === true)
+                    const completedTests = mappedTests.filter(test => test.hasCompleted === true);
+
                     // Sắp xếp theo roundStartDate (mới nhất trước)
-                    mappedTests.sort((a, b) => {
+                    completedTests.sort((a, b) => {
                         const dateA = new Date(a.roundStartDate || 0);
                         const dateB = new Date(b.roundStartDate || 0);
                         return dateB - dateA;
                     });
 
-                    setTests(mappedTests);
+                    setTests(completedTests);
                 } else {
                     setError(result.error || 'Không thể tải danh sách đề thi');
                     setTests([]);

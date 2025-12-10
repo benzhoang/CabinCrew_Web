@@ -54,7 +54,7 @@ const Tasks = () => {
 
     const formatDateValue = (value) => {
         const date = parseDateValue(value)
-        if (!date) return value || 'Không xác định'
+        if (!date) return value || 'Unknown'
         return date.toLocaleDateString('vi-VN', {
             year: 'numeric',
             month: '2-digit',
@@ -66,7 +66,7 @@ const Tasks = () => {
 
     const formatDateOnly = (value) => {
         const date = parseDateValue(value)
-        if (!date) return value || 'Không xác định'
+        if (!date) return value || 'Unknown'
         return date.toLocaleDateString('vi-VN')
     }
 
@@ -105,7 +105,7 @@ const Tasks = () => {
                             description: description,
                             startDate: startDate,
                             endDate: endDate,
-                            task: assignment.task || 'Không xác định',
+                            task: assignment.task || 'Unknown',
                             taskDescription: assignment.taskDescription || assignment.description || '',
                             status: mapStatusValue(assignment.status),
                             assignedAt: assignment.assignedAt,
@@ -150,13 +150,13 @@ const Tasks = () => {
                     setAllTasks([])
                     setFilteredTasks([])
                     setDisplayedTasks([])
-                    setError(response.error || 'Không thể lấy danh sách công việc')
+                    setError(response.error || 'Unable to fetch tasks')
                 }
             } catch (err) {
                 setAllTasks([])
                 setFilteredTasks([])
                 setDisplayedTasks([])
-                setError(err.message || 'Không thể lấy danh sách công việc')
+                setError(err.message || 'Unable to fetch tasks')
             } finally {
                 setIsLoading(false)
             }
@@ -305,10 +305,10 @@ const Tasks = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            assigned: { color: 'bg-yellow-100 text-yellow-800', text: 'Đã giao' },
-            inProgress: { color: 'bg-blue-100 text-blue-800', text: 'Đang thực hiện' },
-            completed: { color: 'bg-green-100 text-green-800', text: 'Đã hoàn thành' },
-            cancelled: { color: 'bg-red-100 text-red-700', text: 'Đã hủy' }
+            assigned: { color: 'bg-yellow-100 text-yellow-800', text: 'Assigned' },
+            inProgress: { color: 'bg-blue-100 text-blue-800', text: 'In progress' },
+            completed: { color: 'bg-green-100 text-green-800', text: 'Completed' },
+            cancelled: { color: 'bg-red-100 text-red-700', text: 'Cancelled' }
         }
         const config = statusConfig[status] || statusConfig.assigned
         return (
@@ -334,8 +334,8 @@ const Tasks = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Công Việc Được Giao</h2>
-                        <p className="text-slate-600">Danh sách các công việc được giao cho bạn</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Assigned Tasks</h2>
+                        <p className="text-slate-600">List of tasks assigned to you</p>
                     </div>
                 </div>
             </div>
@@ -345,10 +345,10 @@ const Tasks = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Search Bar */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
                         <input
                             type="text"
-                            placeholder="Tìm theo tên chiến dịch, công việc..."
+                            placeholder="Search by campaign name, task..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -357,13 +357,13 @@ const Tasks = () => {
 
                     {/* Task Type Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Loại công việc</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Task type</label>
                         <select
                             value={taskFilter}
                             onChange={(e) => setTaskFilter(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="all">Tất cả loại công việc</option>
+                            <option value="all">All task types</option>
                             {getUniqueTaskTypes().map(taskType => (
                                 <option key={taskType} value={taskType}>{taskType}</option>
                             ))}
@@ -372,16 +372,16 @@ const Tasks = () => {
 
                     {/* Sort Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Sắp xếp theo</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by</label>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="assignedAt">Ngày giao (mới nhất)</option>
-                            <option value="campaignName">Tên chiến dịch</option>
-                            <option value="task">Loại công việc</option>
-                            <option value="status">Trạng thái</option>
+                            <option value="assignedAt">Assigned date (newest)</option>
+                            <option value="campaignName">Campaign name</option>
+                            <option value="task">Task type</option>
+                            <option value="status">Status</option>
                         </select>
                     </div>
                 </div>
@@ -391,7 +391,7 @@ const Tasks = () => {
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Công Việc ({filteredTasks.length})</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">Task List ({filteredTasks.length})</h3>
                     </div>
 
                     {/* Status Filter Buttons */}
@@ -403,7 +403,7 @@ const Tasks = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                                 }`}
                         >
-                            Tất cả
+                            All
                         </button>
                         <button
                             onClick={() => setStatusFilter('assigned')}
@@ -412,7 +412,7 @@ const Tasks = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
                                 }`}
                         >
-                            Đã giao
+                            Assigned
                         </button>
                         <button
                             onClick={() => setStatusFilter('inProgress')}
@@ -421,7 +421,7 @@ const Tasks = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
                                 }`}
                         >
-                            Đang thực hiện
+                            In progress
                         </button>
                         <button
                             onClick={() => setStatusFilter('completed')}
@@ -430,7 +430,7 @@ const Tasks = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
                                 }`}
                         >
-                            Đã hoàn thành
+                            Completed
                         </button>
                         <button
                             onClick={() => setStatusFilter('cancelled')}
@@ -439,7 +439,7 @@ const Tasks = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-red-50'
                                 }`}
                         >
-                            Đã hủy
+                            Cancelled
                         </button>
                     </div>
                 </div>
@@ -447,7 +447,7 @@ const Tasks = () => {
                 <div className="divide-y divide-slate-200">
                     {isLoading && (
                         <div className="p-6 text-center text-slate-500">
-                            Đang tải danh sách công việc...
+                            Loading task list...
                         </div>
                     )}
 
@@ -459,7 +459,7 @@ const Tasks = () => {
 
                     {!isLoading && !error && displayedTasks.length === 0 && (
                         <div className="p-6 text-center text-slate-500">
-                            Không có công việc nào được giao
+                            No tasks assigned
                         </div>
                     )}
 
@@ -476,15 +476,15 @@ const Tasks = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
-                                            <span className="text-sm text-slate-600">Công việc:</span>
+                                            <span className="text-sm text-slate-600">Task:</span>
                                             <p className="font-medium text-slate-800">{task.task}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Trạng thái:</span>
+                                            <span className="text-sm text-slate-600">Status:</span>
                                             <div className="mt-1">{getStatusBadge(task.status)}</div>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Ngày giao:</span>
+                                            <span className="text-sm text-slate-600">Assigned at:</span>
                                             <p className="font-medium text-slate-800">{formatDateValue(task.assignedAt)}</p>
                                         </div>
                                     </div>
@@ -492,58 +492,49 @@ const Tasks = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
                                         {task.taskDescription && (
                                             <div>
-                                                <span className="text-sm text-slate-600">Mô tả công việc:</span>
+                                                <span className="text-sm text-slate-600">Task description:</span>
                                                 <p className="text-slate-800">{task.taskDescription}</p>
                                             </div>
                                         )}
                                         <div>
-                                            <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                            <span className="text-sm text-slate-600">Start date:</span>
                                             <p className="font-medium text-slate-800">{formatDateOnly(task.startDate)}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                            <span className="text-sm text-slate-600">End date:</span>
                                             <p className="font-medium text-slate-800">{formatDateOnly(task.endDate)}</p>
                                         </div>
                                     </div>
 
                                     {task.completedAt && (
                                         <div className="mb-2">
-                                            <span className="text-sm text-slate-600">Hoàn thành lúc:</span>
+                                            <span className="text-sm text-slate-600">Completed at:</span>
                                             <p className="font-medium text-green-600">{formatDateValue(task.completedAt)}</p>
                                         </div>
                                     )}
 
                                     {task.assignedBy && (
                                         <div className="mb-2">
-                                            <span className="text-sm text-slate-600">Giao bởi:</span>
+                                            <span className="text-sm text-slate-600">Assigned by:</span>
                                             <p className="font-medium text-slate-800">{task.assignedBy}</p>
                                         </div>
                                     )}
-                                </div>
-
-                                <div className="flex items-center gap-2 ml-4">
-                                    <button
-                                        onClick={() => handleViewDetails(task)}
-                                        className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                                    >
-                                        Xem chi tiết
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     ))}
 
-                    {/* Phân trang */}
+                    {/* Pagination */}
                     {(pagination.totalPages > 0 || pagination.totalPages === undefined) && getPageNumbers().length > 0 && (
                         <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                             <div className="text-sm text-slate-600">
-                                Trang <span className="font-semibold">{pagination.currentPage || 1}</span>
+                                Page <span className="font-semibold">{pagination.currentPage || 1}</span>
                                 {pagination.totalPages ? (
                                     <> / <span className="font-semibold">{pagination.totalPages}</span></>
                                 ) : null}
                                 {typeof pagination.totalRecords === 'number' && pagination.totalRecords > 0 && (
                                     <span className="ml-2">
-                                        ({pagination.totalRecords} bản ghi)
+                                        ({pagination.totalRecords} records)
                                     </span>
                                 )}
                             </div>
@@ -558,7 +549,7 @@ const Tasks = () => {
                                         : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                         }`}
                                 >
-                                    Trước
+                                    Prev
                                 </button>
 
                                 {getPageNumbers().map((pageNum, index) => {
@@ -595,7 +586,7 @@ const Tasks = () => {
                                         : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                         }`}
                                 >
-                                    Sau
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -603,13 +594,13 @@ const Tasks = () => {
                 </div>
             </div>
 
-            {/* Modal Chi tiết */}
+            {/* Detail Modal */}
             {showModal && selectedTask && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-slate-200">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-slate-800">Chi tiết Công Việc</h3>
+                                <h3 className="text-xl font-semibold text-slate-800">Task details</h3>
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="text-slate-400 hover:text-slate-600"
@@ -629,55 +620,55 @@ const Tasks = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Công việc:</span>
+                                        <span className="text-sm text-slate-600">Task:</span>
                                         <p className="font-medium text-slate-800">{selectedTask.task}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Trạng thái:</span>
+                                        <span className="text-sm text-slate-600">Status:</span>
                                         <div className="mt-1">{getStatusBadge(selectedTask.status)}</div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Ngày giao:</span>
+                                        <span className="text-sm text-slate-600">Assigned at:</span>
                                         <p className="font-medium text-slate-800">{formatDateValue(selectedTask.assignedAt)}</p>
                                     </div>
                                     {selectedTask.completedAt && (
                                         <div>
-                                            <span className="text-sm text-slate-600">Hoàn thành lúc:</span>
+                                            <span className="text-sm text-slate-600">Completed at:</span>
                                             <p className="font-medium text-green-600">{formatDateValue(selectedTask.completedAt)}</p>
                                         </div>
                                     )}
                                     <div>
-                                        <span className="text-sm text-slate-600">Giao bởi:</span>
+                                        <span className="text-sm text-slate-600">Assigned by:</span>
                                         <p className="font-medium text-slate-800">{selectedTask.assignedBy}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Mã chiến dịch:</span>
+                                        <span className="text-sm text-slate-600">Campaign ID:</span>
                                         <p className="font-medium text-slate-800">{selectedTask.campaignId}</p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <span className="text-sm text-slate-600">Thời gian chiến dịch:</span>
+                                    <span className="text-sm text-slate-600">Campaign timeline:</span>
                                     <p className="font-medium text-slate-800">{formatDateOnly(selectedTask.startDate)} - {formatDateOnly(selectedTask.endDate)}</p>
                                 </div>
 
                                 {selectedTask.description && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Mô tả chiến dịch:</span>
-                                        <p className="text-slate-800 mt-1">{selectedTask.description || 'Không có mô tả'}</p>
+                                        <span className="text-sm text-slate-600">Campaign description:</span>
+                                        <p className="text-slate-800 mt-1">{selectedTask.description || 'No description'}</p>
                                     </div>
                                 )}
 
                                 {selectedTask.taskDescription && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Mô tả công việc:</span>
+                                        <span className="text-sm text-slate-600">Task description:</span>
                                         <p className="text-slate-800 mt-1">{selectedTask.taskDescription}</p>
                                     </div>
                                 )}
 
                                 {selectedTask.notes && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Ghi chú:</span>
+                                        <span className="text-sm text-slate-600">Notes:</span>
                                         <p className="text-slate-800 mt-1">{selectedTask.notes}</p>
                                     </div>
                                 )}
@@ -689,7 +680,7 @@ const Tasks = () => {
                                 onClick={() => setShowModal(false)}
                                 className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
                             >
-                                Đóng
+                                Close
                             </button>
                         </div>
                     </div>

@@ -8,7 +8,7 @@ const formatDateTime = (value) => {
     if (Number.isNaN(date.getTime())) {
         return value
     }
-    return date.toLocaleString('vi-VN', {
+    return date.toLocaleString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -18,8 +18,8 @@ const formatDateTime = (value) => {
 }
 
 const getPassLabel = (flag) => {
-    if (flag === true) return 'Đạt'
-    if (flag === false) return 'Rớt'
+    if (flag === true) return 'Passed'
+    if (flag === false) return 'Failed'
     return '—'
 }
 
@@ -50,7 +50,7 @@ const AppearanceResultPage = () => {
 
     const fetchResult = useCallback(async () => {
         if (!activityId) {
-            setError('Không tìm thấy mã hoạt động để tra cứu kết quả.')
+            setError('Activity ID not found for result lookup.')
             setLoading(false)
             return
         }
@@ -72,12 +72,12 @@ const AppearanceResultPage = () => {
                 setResult(resultResponse.data)
                 setError(null)
             } else {
-                setError(resultResponse.error || 'Không thể tải kết quả kiểm tra ngoại hình.')
+                setError(resultResponse.error || 'Unable to load appearance check result.')
                 setResult(null)
             }
         } catch (err) {
             console.error('Load appearance result error:', err)
-            setError('Đã xảy ra lỗi khi tải dữ liệu.')
+            setError('An error occurred while loading data.')
             setResult(null)
         } finally {
             setLoading(false)
@@ -171,7 +171,7 @@ const AppearanceResultPage = () => {
         const groups = {}
         criteriaList.forEach((criteria, index) => {
             const criteriaInfo = getCriteriaInfo(criteria)
-            const title = criteriaInfo.title || 'Khác'
+            const title = criteriaInfo.title || 'Others'
             if (!groups[title]) {
                 groups[title] = []
             }
@@ -180,14 +180,24 @@ const AppearanceResultPage = () => {
         return groups
     }, [criteriaList, getCriteriaInfo])
 
-    const summaryItems = useMemo(() => ([
-        { label: 'Mã đánh giá', value: result?.evaluationId ?? '—' },
-        { label: 'Thí sinh', value: result?.candidate || '—' },
-        { label: 'Giám khảo', value: result?.examiner || '—' },
-        { label: 'Vòng tuyển', value: result?.roundName || '—' },
-        { label: 'Ngày đánh giá', value: formatDateTime(result?.evaluatedDate) },
-        { label: 'Kết quả tổng', value: getPassLabel(result?.isPassed) }
-    ]), [result])
+    const summaryItems = useMemo(() => {
+        const overallValue = getPassLabel(result?.isPassed)
+        const overallBadge =
+            result?.isPassed === true
+                ? 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-50 text-green-700 border border-green-200'
+                : result?.isPassed === false
+                    ? 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200'
+                    : 'inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200'
+
+        return [
+            { label: 'Evaluation ID', value: result?.evaluationId ?? '—' },
+            { label: 'Candidate', value: result?.candidate || '—' },
+            { label: 'Examiner', value: result?.examiner || '—' },
+            { label: 'Round', value: result?.roundName || '—' },
+            { label: 'Evaluation date', value: formatDateTime(result?.evaluatedDate) },
+            { label: 'Overall result', value: overallValue, badgeClass: overallBadge }
+        ]
+    }, [result])
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
@@ -199,7 +209,7 @@ const AppearanceResultPage = () => {
                             onClick={() => navigate(-1)}
                             className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
                         >
-                            Quay lại
+                            Back
                         </button>
                     </div>
                 </div>
@@ -208,7 +218,7 @@ const AppearanceResultPage = () => {
                     {loading && (
                         <div className="text-center py-16">
                             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                            <p className="mt-4 text-gray-600">Đang tải kết quả...</p>
+                            <p className="mt-4 text-gray-600">Loading results...</p>
                         </div>
                     )}
 
@@ -223,7 +233,7 @@ const AppearanceResultPage = () => {
                                 onClick={fetchResult}
                                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
                             >
-                                Thử lại
+                                Retry
                             </button>
                         </div>
                     )}
@@ -231,19 +241,17 @@ const AppearanceResultPage = () => {
                     {!loading && !error && result && (
                         <div className="space-y-8">
                             <section>
-                                <div className="flex flex-wrap items-center gap-3 mb-4">
-                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadge(result?.isPassed)}`}>
-                                        {getPassLabel(result?.isPassed)}
-                                    </span>
-                                    {result?.roundName && (
-                                        <span className="text-sm text-gray-500">Vòng: {result.roundName}</span>
-                                    )}
-                                </div>
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {summaryItems.map((item) => (
                                         <div key={item.label} className="bg-gray-50 rounded-lg p-4">
                                             <dt className="text-sm text-gray-500">{item.label}</dt>
-                                            <dd className="text-base font-semibold text-gray-900 mt-1">{item.value || '—'}</dd>
+                                            <dd className="mt-2">
+                                                {item.badgeClass ? (
+                                                    <span className={item.badgeClass}>{item.value || '—'}</span>
+                                                ) : (
+                                                    <span className="text-base font-semibold text-gray-900">{item.value || '—'}</span>
+                                                )}
+                                            </dd>
                                         </div>
                                     ))}
                                 </dl>
@@ -252,12 +260,12 @@ const AppearanceResultPage = () => {
                             {criteriaList.length > 0 && (
                                 <section>
                                     <div className="mb-6">
-                                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Nhận xét chung</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700 mb-1">General comments</h3>
                                         <p className="text-sm text-gray-600 whitespace-pre-wrap">
                                             {result?.comment || result?.generalComment || result?.note || result?.notes || '—'}
                                         </p>
                                     </div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Chi tiết tiêu chí</h2>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Criteria details</h2>
                                     <div className="space-y-6">
                                         {Object.entries(groupedCriteria).map(([title, criteriaGroup]) => (
                                             <div key={title} className="space-y-3">
@@ -271,10 +279,10 @@ const AppearanceResultPage = () => {
                                                         <thead className="bg-gray-50">
                                                             <tr>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                                    Tiêu chí
+                                                                    Criteria
                                                                 </th>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                                    Kết quả
+                                                                    Result
                                                                 </th>
                                                             </tr>
                                                         </thead>

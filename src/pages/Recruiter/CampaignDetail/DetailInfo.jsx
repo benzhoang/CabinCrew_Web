@@ -139,17 +139,17 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
             setCampaignData(normalizedApiData);
             setError(null);
           } else {
-            setError(result.error || "Không thể tải thông tin chiến dịch");
+            setError(result.error || "Unable to load campaign information");
           }
         } catch (err) {
           console.error("DetailInfo - Error fetching campaign:", err);
-          setError(err.message || "Đã xảy ra lỗi khi tải thông tin chiến dịch");
+          setError(err.message || "An error occurred while loading campaign information");
         } finally {
           setLoading(false);
         }
       } else {
         setLoading(false);
-        setError("Không tìm thấy ID chiến dịch");
+        setError("Campaign ID not found");
       }
     };
 
@@ -206,7 +206,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Đang tải thông tin chiến dịch...</div>
+        <div className="text-gray-500">Loading campaign information...</div>
       </div>
     );
   }
@@ -222,7 +222,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   if (!campaignData) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Không có dữ liệu chiến dịch</div>
+        <div className="text-gray-500">No campaign data available</div>
       </div>
     );
   }
@@ -237,7 +237,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
       const normalizedRounds = campaign.rounds.map((round, index) => {
         return {
           campaignRoundId: round.campaignRoundId || round.id || index + 1,
-          roundName: round.roundName || round.name || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || `Batch ${index + 1}`,
           description: round.description || "",
           targetQuantity: round.targetQuantity || round.target || 0,
           actualQuantity: round.actualQuantity || round.actualQuantiy || 0, // Handle typo in API
@@ -245,7 +245,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           startDate: round.startDate || "",
           endDate: round.endDate || "",
           location: round.location || "",
-          method: round.method || "Trực tiếp",
+          method: round.method || "Direct",
           owner: round.owner || "",
           totalApplicants: round.totalApplicants || 0,
         };
@@ -284,9 +284,9 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   const formatCampaignType = (type) => {
     if (!type) return "";
     const typeMap = {
-      Promotion: "Thăng bậc",
-      Recruitment: "Tuyển dụng",
-      Replacement: "Thay thế",
+      Promotion: "Promotion",
+      Recruitment: "Recruitment",
+      Replacement: "Replacement",
     };
     return typeMap[type] || type;
   };
@@ -297,7 +297,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
       return "";
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
-    return num.toLocaleString("vi-VN") + " người";
+    return num.toLocaleString("en-US") + " people";
   };
 
   // Lấy campaignType từ nhiều field name có thể
@@ -337,31 +337,37 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
     return quantity;
   };
 
+  // Helper function to render HTML content safely
+  const renderHTML = (htmlString) => {
+    if (!htmlString) return null;
+    return { __html: htmlString };
+  };
+
   return (
     <div className="w-full h-full">
       <div className="grid grid-cols-1 gap-5">
-        <Section title="Thông tin đề xuất">
+        <Section title="Campaign Information">
           <div className="space-y-4">
             <div className="font-medium text-gray-900">
               {data.campaignName || data.name || ""}
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <InfoRow label="Mô tả" value={data.description || ""} />
+              <InfoRow label="Description" value={data.description || ""} />
               <InfoRow
-                label="Loại chiến dịch"
+                label="Campaign Type"
                 value={formatCampaignType(getCampaignType())}
               />
-              <InfoRow label="Trạng thái" value={data.status || ""} />
+              <InfoRow label="Status" value={data.status || ""} />
               <InfoRow
-                label="Số lượng tuyển"
+                label="Target Quantity"
                 value={formatTargetQuantity(getTargetQuantity())}
               />
               <InfoRow
-                label="Ngày bắt đầu"
+                label="Start Date"
                 value={formatDateFromAPI(data.startDate) || ""}
               />
               <InfoRow
-                label="Ngày kết thúc"
+                label="End Date"
                 value={formatDateFromAPI(data.endDate) || ""}
               />
             </div>
@@ -370,13 +376,17 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           {/* Job Description */}
           {data.jobDescription && (
             <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📋 Mô tả công việc / Job Description
+              <h3 className="mb-4 text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Job Description
               </h3>
               <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <div className="text-sm whitespace-pre-line text-slate-700">
-                  {data.jobDescription}
-                </div>
+                <div
+                  className="text-sm text-slate-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_li]:ml-2"
+                  dangerouslySetInnerHTML={renderHTML(data.jobDescription)}
+                />
               </div>
             </div>
           )}
@@ -384,13 +394,17 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           {/* Job Requirements */}
           {data.jobRequirement && (
             <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📝 Yêu cầu công việc / Job Requirements
+              <h3 className="mb-4 text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Job Requirements
               </h3>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                <div className="text-sm whitespace-pre-line text-slate-700">
-                  {data.jobRequirement}
-                </div>
+                <div
+                  className="text-sm text-slate-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_li]:ml-2"
+                  dangerouslySetInnerHTML={renderHTML(data.jobRequirement)}
+                />
               </div>
             </div>
           )}

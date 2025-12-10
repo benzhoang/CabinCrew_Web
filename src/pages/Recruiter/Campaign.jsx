@@ -4,9 +4,9 @@ import { t, onLangChange } from '../../i18n'
 import { getMyCampaigns } from '../../service/api'
 
 const Campaign = () => {
-    const [allCampaigns, setAllCampaigns] = useState([]) // Lưu tất cả campaigns từ API
-    const [filteredCampaigns, setFilteredCampaigns] = useState([]) // Campaigns sau khi filter/sort
-    const [displayedCampaigns, setDisplayedCampaigns] = useState([]) // Campaigns hiển thị trên trang hiện tại (5 items)
+    const [allCampaigns, setAllCampaigns] = useState([]) // Store all campaigns from API
+    const [filteredCampaigns, setFilteredCampaigns] = useState([]) // Campaigns after filtering/sorting
+    const [displayedCampaigns, setDisplayedCampaigns] = useState([]) // Campaigns displayed on current page (5 items)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
     const [sortBy, setSortBy] = useState('idDesc')
@@ -17,7 +17,7 @@ const Campaign = () => {
     const [error, setError] = useState(null)
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 5, // Mỗi trang 5 campaign
+        pageSize: 5, // 5 campaigns per page
         totalRecords: 0,
         totalPages: 0,
         hasNextPage: false,
@@ -53,8 +53,8 @@ const Campaign = () => {
 
     const formatDateValue = (value) => {
         const date = parseDateValue(value)
-        if (!date) return value || 'Không xác định'
-        return date.toLocaleDateString('vi-VN')
+        if (!date) return value || 'Undetermined'
+        return date.toLocaleDateString('en-US')
     }
 
     const mapStatusValue = (status) => {
@@ -71,9 +71,9 @@ const Campaign = () => {
 
         return {
             id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
-            name: item.name ?? item.campaignName ?? 'Chiến dịch chưa có tên',
-            position: item.position ?? item.role ?? item.campaignType ?? 'Không xác định',
-            department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Không xác định',
+            name: item.name ?? item.campaignName ?? 'Unnamed Campaign',
+            position: item.position ?? item.role ?? item.campaignType ?? 'Undetermined',
+            department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Undetermined',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
             endDate: formatDateValue(item.endDate),
@@ -91,13 +91,13 @@ const Campaign = () => {
             setIsLoading(true)
             setError(null)
             try {
-                // Lấy tất cả campaigns từ API (không phân trang ở server)
+                // Get all campaigns from API (no server-side pagination)
                 const response = await getMyCampaigns({})
                 if (response.success && Array.isArray(response.data)) {
                     const normalizedCampaigns = response.data.map(transformCampaignData)
                     setAllCampaigns(normalizedCampaigns)
 
-                    // Tính toán phân trang dựa trên tổng số campaigns
+                    // Calculate pagination based on total number of campaigns
                     const pageSize = 5
                     const totalRecords = normalizedCampaigns.length
                     const totalPages = Math.ceil(totalRecords / pageSize) || 1
@@ -115,26 +115,26 @@ const Campaign = () => {
                     setAllCampaigns([])
                     setFilteredCampaigns([])
                     setDisplayedCampaigns([])
-                    setError(response.error || 'Không thể lấy danh sách chiến dịch')
+                    setError(response.error || 'Unable to fetch campaign list')
                 }
             } catch (err) {
                 setAllCampaigns([])
                 setFilteredCampaigns([])
                 setDisplayedCampaigns([])
-                setError(err.message || 'Không thể lấy danh sách chiến dịch')
+                setError(err.message || 'Unable to fetch campaign list')
             } finally {
                 setIsLoading(false)
             }
         }
 
-        // Lần đầu load sẽ lấy tất cả campaigns
+        // First load will get all campaigns
         fetchCampaigns()
     }, [])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
     const normalizeStatus = (value) => normalizeString(value)
 
-    // Filter và sort campaigns
+    // Filter and sort campaigns
     useEffect(() => {
         let filtered = allCampaigns
 
@@ -179,15 +179,15 @@ const Campaign = () => {
 
         setFilteredCampaigns(sorted)
 
-        // Cập nhật pagination dựa trên số lượng filtered campaigns
-        // Reset về trang 1 khi filter/search/sort thay đổi
+        // Update pagination based on number of filtered campaigns
+        // Reset to page 1 when filter/search/sort changes
         const pageSize = 5
         const totalRecords = sorted.length
         const totalPages = Math.ceil(totalRecords / pageSize) || 1
 
         setPagination(prev => ({
             ...prev,
-            currentPage: 1, // Reset về trang 1 khi filter thay đổi
+            currentPage: 1, // Reset to page 1 when filter changes
             totalRecords: totalRecords,
             totalPages: totalPages,
             hasNextPage: totalPages > 1,
@@ -195,7 +195,7 @@ const Campaign = () => {
         }))
     }, [allCampaigns, searchTerm, statusFilter, sortBy])
 
-    // Áp dụng client-side pagination trên filteredCampaigns
+    // Apply client-side pagination on filteredCampaigns
     useEffect(() => {
         const pageSize = pagination.pageSize || 5
         const currentPage = pagination.currentPage || 1
@@ -210,7 +210,7 @@ const Campaign = () => {
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) {
+        if (window.confirm('Are you sure you want to delete this campaign?')) {
             setAllCampaigns(allCampaigns.filter(campaign => campaign.id !== id))
         }
     }
@@ -220,7 +220,7 @@ const Campaign = () => {
         if (page < 1) return
         if (pagination.totalPages && page > pagination.totalPages) return
 
-        // Chỉ cập nhật trang hiện tại (client-side pagination)
+        // Only update current page (client-side pagination)
         setPagination(prev => ({
             ...prev,
             currentPage: page,
@@ -229,7 +229,7 @@ const Campaign = () => {
         }))
     }
 
-    // Hàm tính toán các số trang cần hiển thị
+    // Function to calculate page numbers to display
     const getPageNumbers = () => {
         const currentPage = pagination.currentPage || 1
         const totalPages = pagination.totalPages || 1
@@ -241,28 +241,28 @@ const Campaign = () => {
         const pageNumbers = []
 
         if (totalPages <= 7) {
-            // Nếu tổng số trang <= 7, hiển thị tất cả
+            // If total pages <= 7, display all
             for (let i = 1; i <= totalPages; i++) {
                 pageNumbers.push(i)
             }
         } else {
-            // Nếu tổng số trang > 7, hiển thị thông minh
+            // If total pages > 7, display smartly
             if (currentPage <= 4) {
-                // Gần đầu: 1, 2, 3, 4, 5, ..., totalPages
+                // Near start: 1, 2, 3, 4, 5, ..., totalPages
                 for (let i = 1; i <= 5; i++) {
                     pageNumbers.push(i)
                 }
                 pageNumbers.push('...')
                 pageNumbers.push(totalPages)
             } else if (currentPage >= totalPages - 3) {
-                // Gần cuối: 1, ..., totalPages-4, totalPages-3, totalPages-2, totalPages-1, totalPages
+                // Near end: 1, ..., totalPages-4, totalPages-3, totalPages-2, totalPages-1, totalPages
                 pageNumbers.push(1)
                 pageNumbers.push('...')
                 for (let i = totalPages - 4; i <= totalPages; i++) {
                     pageNumbers.push(i)
                 }
             } else {
-                // Ở giữa: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
+                // In middle: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
                 pageNumbers.push(1)
                 pageNumbers.push('...')
                 for (let i = currentPage - 1; i <= currentPage + 1; i++) {
@@ -278,9 +278,9 @@ const Campaign = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            ongoing: { color: 'bg-green-100 text-green-800', text: 'Đang diễn ra' },
-            completed: { color: 'bg-blue-100 text-blue-800', text: 'Đã hoàn thành' },
-            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ diễn ra' }
+            ongoing: { color: 'bg-green-100 text-green-800', text: 'Ongoing' },
+            completed: { color: 'bg-blue-100 text-blue-800', text: 'Completed' },
+            pending: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' }
         }
         const config = statusConfig[normalizeStatus(status)] || statusConfig.ongoing
         return (
@@ -306,8 +306,8 @@ const Campaign = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Chiến dịch</h2>
-                        <p className="text-slate-600">Quản lý các chiến dịch tuyển dụng và kế hoạch nhân sự</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Campaign Management</h2>
+                        <p className="text-slate-600">Manage recruitment campaigns and human resource plans</p>
                     </div>
                 </div>
             </div>
@@ -317,10 +317,10 @@ const Campaign = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Search Bar */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Tìm kiếm</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
                         <input
                             type="text"
-                            placeholder="Tìm theo tên, vị trí..."
+                            placeholder="Search by name, position..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -329,18 +329,18 @@ const Campaign = () => {
 
                     {/* Sort Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Sắp xếp theo</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by</label>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="idDesc">Mới nhất (ID giảm dần)</option>
-                            <option value="name">Tên chiến dịch</option>
-                            <option value="startDate">Ngày bắt đầu</option>
-                            <option value="endDate">Ngày kết thúc</option>
-                            <option value="progress">Tiến độ</option>
-                            <option value="status">Trạng thái</option>
+                            <option value="idDesc">Latest (ID descending)</option>
+                            <option value="name">Campaign Name</option>
+                            <option value="startDate">Start Date</option>
+                            <option value="endDate">End Date</option>
+                            <option value="progress">Progress</option>
+                            <option value="status">Status</option>
                         </select>
                     </div>
                 </div>
@@ -350,7 +350,7 @@ const Campaign = () => {
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">Campaign List ({filteredCampaigns.length})</h3>
                     </div>
 
                     {/* Status Filter Buttons */}
@@ -362,7 +362,7 @@ const Campaign = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                                 }`}
                         >
-                            Tất cả
+                            All
                         </button>
                         <button
                             onClick={() => setStatusFilter('ongoing')}
@@ -371,7 +371,7 @@ const Campaign = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
                                 }`}
                         >
-                            Đang diễn ra
+                            Ongoing
                         </button>
                         <button
                             onClick={() => setStatusFilter('pending')}
@@ -380,7 +380,7 @@ const Campaign = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
                                 }`}
                         >
-                            Đang chờ diễn ra
+                            Pending
                         </button>
                         <button
                             onClick={() => setStatusFilter('completed')}
@@ -389,7 +389,7 @@ const Campaign = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
                                 }`}
                         >
-                            Đã hoàn thành
+                            Completed
                         </button>
                     </div>
                 </div>
@@ -397,7 +397,7 @@ const Campaign = () => {
                 <div className="divide-y divide-slate-200">
                     {isLoading && (
                         <div className="p-6 text-center text-slate-500">
-                            Đang tải danh sách chiến dịch...
+                            Loading campaign list...
                         </div>
                     )}
 
@@ -409,7 +409,7 @@ const Campaign = () => {
 
                     {!isLoading && !error && displayedCampaigns.length === 0 && (
                         <div className="p-6 text-center text-slate-500">
-                            Không có chiến dịch nào
+                            No campaigns found
                         </div>
                     )}
 
@@ -423,19 +423,19 @@ const Campaign = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                                         <div>
-                                            <span className="text-sm text-slate-600">Vị trí:</span>
-                                            <p className="font-medium text-slate-800">{campaign.position || 'Không xác định'}</p>
+                                            <span className="text-sm text-slate-600">Position:</span>
+                                            <p className="font-medium text-slate-800">{campaign.position || 'Undetermined'}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Trạng thái:</span>
+                                            <span className="text-sm text-slate-600">Status:</span>
                                             <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                            <span className="text-sm text-slate-600">Start Date:</span>
                                             <p className="font-medium text-slate-800">{campaign.startDate}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                            <span className="text-sm text-slate-600">End Date:</span>
                                             <p className="font-medium text-slate-800">{campaign.endDate}</p>
                                         </div>
                                     </div>
@@ -444,7 +444,7 @@ const Campaign = () => {
                                     {hasProgressData(campaign) && (
                                         <div className="mb-3">
                                             <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                                <span>Tiến độ tuyển dụng</span>
+                                                <span>Recruitment Progress</span>
                                                 <span>{campaign.currentHires}/{campaign.targetHires} ({getProgressPercentage(campaign.currentHires, campaign.targetHires)}%)</span>
                                             </div>
                                             <div className="w-full bg-slate-200 rounded-full h-2">
@@ -464,24 +464,24 @@ const Campaign = () => {
                                         onClick={() => handleViewDetails(campaign)}
                                         className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                                     >
-                                        Xem chi tiết
+                                        View Details
                                     </button>
                                 </div>
                             </div>
                         </div>
                     ))}
 
-                    {/* Phân trang */}
+                    {/* Pagination */}
                     {(pagination.totalPages > 0 || pagination.totalPages === undefined) && getPageNumbers().length > 0 && (
                         <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                             <div className="text-sm text-slate-600">
-                                Trang <span className="font-semibold">{pagination.currentPage || 1}</span>
+                                Page <span className="font-semibold">{pagination.currentPage || 1}</span>
                                 {pagination.totalPages ? (
                                     <> / <span className="font-semibold">{pagination.totalPages}</span></>
                                 ) : null}
                                 {typeof pagination.totalRecords === 'number' && pagination.totalRecords > 0 && (
                                     <span className="ml-2">
-                                        ({pagination.totalRecords} bản ghi)
+                                        ({pagination.totalRecords} records)
                                     </span>
                                 )}
                             </div>
@@ -496,7 +496,7 @@ const Campaign = () => {
                                         : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                         }`}
                                 >
-                                    Trước
+                                    Previous
                                 </button>
 
                                 {getPageNumbers().map((pageNum, index) => {
@@ -533,7 +533,7 @@ const Campaign = () => {
                                         : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                         }`}
                                 >
-                                    Sau
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -541,13 +541,13 @@ const Campaign = () => {
                 </div>
             </div>
 
-            {/* Modal Chi tiết */}
+            {/* Details Modal */}
             {showModal && selectedCampaign && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-slate-200">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-slate-800">Chi tiết Chiến dịch</h3>
+                                <h3 className="text-xl font-semibold text-slate-800">Campaign Details</h3>
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="text-slate-400 hover:text-slate-600"
@@ -567,39 +567,39 @@ const Campaign = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Vị trí:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.position || 'Không xác định'}</p>
+                                        <span className="text-sm text-slate-600">Position:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.position || 'Undetermined'}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Trạng thái:</span>
+                                        <span className="text-sm text-slate-600">Status:</span>
                                         <div className="mt-1">{getStatusBadge(selectedCampaign.status)}</div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                                        <span className="text-sm text-slate-600">Start Date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.startDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                                        <span className="text-sm text-slate-600">End Date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.endDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Mục tiêu tuyển dụng:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.targetHires} người</p>
+                                        <span className="text-sm text-slate-600">Recruitment Target:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.targetHires} people</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Đã tuyển:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.currentHires} người</p>
+                                        <span className="text-sm text-slate-600">Hired:</span>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.currentHires} people</p>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <span className="text-sm text-slate-600">Mô tả:</span>
-                                    <p className="text-slate-800 mt-1">{selectedCampaign.description || 'Không có mô tả'}</p>
+                                    <span className="text-sm text-slate-600">Description:</span>
+                                    <p className="text-slate-800 mt-1">{selectedCampaign.description || 'No description'}</p>
                                 </div>
 
                                 {selectedCampaign.requirements && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Yêu cầu:</span>
+                                        <span className="text-sm text-slate-600">Requirements:</span>
                                         <p className="text-slate-800 mt-1">{selectedCampaign.requirements}</p>
                                     </div>
                                 )}
@@ -607,10 +607,10 @@ const Campaign = () => {
                                 {/* Progress Bar */}
                                 {hasProgressData(selectedCampaign) && (
                                     <div>
-                                        <span className="text-sm text-slate-600">Tiến độ tuyển dụng:</span>
+                                        <span className="text-sm text-slate-600">Recruitment Progress:</span>
                                         <div className="mt-2">
                                             <div className="flex justify-between text-sm text-slate-600 mb-1">
-                                                <span>{selectedCampaign.currentHires}/{selectedCampaign.targetHires} người</span>
+                                                <span>{selectedCampaign.currentHires}/{selectedCampaign.targetHires} people</span>
                                                 <span>{getProgressPercentage(selectedCampaign.currentHires, selectedCampaign.targetHires)}%</span>
                                             </div>
                                             <div className="w-full bg-slate-200 rounded-full h-3">
@@ -630,7 +630,7 @@ const Campaign = () => {
                                 onClick={() => setShowModal(false)}
                                 className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
                             >
-                                Đóng
+                                Close
                             </button>
                         </div>
                     </div>

@@ -60,9 +60,9 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
     const newErrors = {};
 
     if (!rejectReason.trim()) {
-      newErrors.reason = "Vui lòng nhập lý do từ chối";
+      newErrors.reason = "Please enter a rejection reason";
     } else if (rejectReason.trim().length < 10) {
-      newErrors.reason = "Lý do từ chối phải có ít nhất 10 ký tự";
+      newErrors.reason = "Rejection reason must be at least 10 characters";
     }
 
     setErrors(newErrors);
@@ -90,7 +90,7 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
       onClose();
     } catch (error) {
       console.error("Error rejecting campaign:", error);
-      toast.error("Có lỗi xảy ra khi từ chối đề xuất");
+      toast.error("An error occurred while rejecting the proposal");
     } finally {
       setIsSubmitting(false);
     }
@@ -116,18 +116,18 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-red-50 to-orange-50">
           <div>
             <h2 className="text-lg font-semibold text-slate-800">
-              Từ chối đề xuất
+              Reject proposal
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {campaignTitle
-                ? `Đề xuất: ${campaignTitle}`
-                : "Vui lòng nhập lý do từ chối đề xuất này"}
+                ? `Proposal: ${campaignTitle}`
+                : "Please provide a reason for rejecting this proposal"}
             </p>
           </div>
           <button
             onClick={handleClose}
             className="p-2 transition-all duration-200 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-            title="Đóng"
+            title="Close"
           >
             <svg
               className="w-5 h-5"
@@ -148,23 +148,22 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
         <form onSubmit={handleSubmit} className="p-6 bg-slate-50/30">
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Lý do từ chối <span className="text-red-500">*</span>
+              Rejection reason <span className="text-red-500">*</span>
             </label>
             <textarea
               name="reason"
               value={rejectReason}
               onChange={handleInputChange}
               rows="6"
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none ${
-                errors.reason ? "border-red-300" : "border-slate-300"
-              }`}
-              placeholder="Vui lòng nhập lý do từ chối đề xuất này (tối thiểu 10 ký tự)..."
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none ${errors.reason ? "border-red-300" : "border-slate-300"
+                }`}
+              placeholder="Please enter the rejection reason (minimum 10 characters)..."
             />
             {errors.reason && (
               <p className="mt-1 text-sm text-red-600">{errors.reason}</p>
             )}
             <p className="mt-1 text-xs text-slate-500">
-              Đã nhập: {rejectReason.length} ký tự
+              Entered: {rejectReason.length} characters
             </p>
           </div>
 
@@ -187,21 +186,20 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                isSubmitting
-                  ? "bg-slate-400 cursor-not-allowed text-white"
-                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02]"
-              }`}
+              className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${isSubmitting
+                ? "bg-slate-400 cursor-not-allowed text-white"
+                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-md hover:shadow-lg transform hover:scale-[1.02]"
+                }`}
             >
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                  Đang gửi...
+                  Sending...
                 </>
               ) : (
                 <>
@@ -218,7 +216,7 @@ const RejectCampaignModal = ({ isOpen, onClose, onSubmit, campaignTitle }) => {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  Gửi
+                  Submit
                 </>
               )}
             </button>

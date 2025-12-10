@@ -8,7 +8,7 @@ const formatDateTime = (value) => {
     if (Number.isNaN(date.getTime())) {
         return value
     }
-    return date.toLocaleString('vi-VN', {
+    return date.toLocaleString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -18,8 +18,8 @@ const formatDateTime = (value) => {
 }
 
 const getPassLabel = (flag) => {
-    if (flag === true) return 'Đạt'
-    if (flag === false) return 'Rớt'
+    if (flag === true) return 'Passed'
+    if (flag === false) return 'Failed'
     return '—'
 }
 
@@ -49,7 +49,7 @@ const InterviewResultPage = () => {
 
     const fetchResults = useCallback(async () => {
         if (!activityId) {
-            setError('Không tìm thấy mã hoạt động để tra cứu kết quả.')
+            setError('Activity ID not found for result lookup.')
             setLoading(false)
             return
         }
@@ -60,17 +60,17 @@ const InterviewResultPage = () => {
             const response = await getInterviewResults(activityId)
 
             if (response.success) {
-                // Đảm bảo data là một mảng
+                // Ensure data is an array
                 const dataArray = Array.isArray(response.data) ? response.data : []
                 setResults(dataArray)
                 setError(null)
             } else {
-                setError(response.error || 'Không thể tải danh sách kết quả phỏng vấn.')
+                setError(response.error || 'Unable to load interview results.')
                 setResults([])
             }
         } catch (err) {
             console.error('Load interview results error:', err)
-            setError('Đã xảy ra lỗi khi tải dữ liệu.')
+            setError('An error occurred while loading data.')
             setResults([])
         } finally {
             setLoading(false)
@@ -85,13 +85,13 @@ const InterviewResultPage = () => {
         <div className="min-h-screen bg-gray-50 py-6">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-4 flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">Kết quả phỏng vấn</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Interview results</h1>
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
                         className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
                     >
-                        Quay lại
+                        Back
                     </button>
                 </div>
 
@@ -99,7 +99,7 @@ const InterviewResultPage = () => {
                     {loading && (
                         <div className="text-center py-12">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <p className="mt-3 text-sm text-gray-600">Đang tải...</p>
+                            <p className="mt-3 text-sm text-gray-600">Loading...</p>
                         </div>
                     )}
 
@@ -114,7 +114,7 @@ const InterviewResultPage = () => {
                                 onClick={fetchResults}
                                 className="mt-3 px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
                             >
-                                Thử lại
+                                Retry
                             </button>
                         </div>
                     )}
@@ -126,8 +126,8 @@ const InterviewResultPage = () => {
                                     <svg className="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                    <p className="mt-2 text-sm font-medium text-gray-900">Chưa có kết quả phỏng vấn</p>
-                                    <p className="mt-1 text-xs text-gray-500">Không tìm thấy kết quả phỏng vấn nào cho hoạt động này.</p>
+                                    <p className="mt-2 text-sm font-medium text-gray-900">No interview results</p>
+                                    <p className="mt-1 text-xs text-gray-500">No interview results found for this activity.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
@@ -139,10 +139,10 @@ const InterviewResultPage = () => {
                                                         {getPassLabel(result?.isPassed)}
                                                     </span>
                                                     {result?.roundName && (
-                                                        <span className="text-xs text-gray-500">Vòng: {result.roundName}</span>
+                                                        <span className="text-xs text-gray-500">Round: {result.roundName}</span>
                                                     )}
                                                     {result?.finalScore !== undefined && result?.finalScore !== null && (
-                                                        <span className="text-xs font-medium text-gray-700">Điểm: {result.finalScore}</span>
+                                                        <span className="text-xs font-medium text-gray-700">Score: {result.finalScore}</span>
                                                     )}
                                                 </div>
                                                 <button
@@ -150,25 +150,25 @@ const InterviewResultPage = () => {
                                                     onClick={() => navigate(`/detail-result/${result.evaluationId}`)}
                                                     className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
                                                 >
-                                                    Xem chi tiết →
+                                                    View details →
                                                 </button>
                                             </div>
 
                                             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                                 <div className="bg-gray-50 rounded p-2">
-                                                    <dt className="text-xs text-gray-500">Mã đánh giá</dt>
+                                                    <dt className="text-xs text-gray-500">Evaluation ID</dt>
                                                     <dd className="text-sm font-semibold text-gray-900 mt-0.5">{result?.evaluationId ?? '—'}</dd>
                                                 </div>
                                                 <div className="bg-gray-50 rounded p-2">
-                                                    <dt className="text-xs text-gray-500">Thí sinh</dt>
+                                                    <dt className="text-xs text-gray-500">Candidate</dt>
                                                     <dd className="text-sm font-semibold text-gray-900 mt-0.5 truncate">{result?.candidate || '—'}</dd>
                                                 </div>
                                                 <div className="bg-gray-50 rounded p-2">
-                                                    <dt className="text-xs text-gray-500">Giám khảo</dt>
+                                                    <dt className="text-xs text-gray-500">Examiner</dt>
                                                     <dd className="text-sm font-semibold text-gray-900 mt-0.5 truncate">{result?.examiner || '—'}</dd>
                                                 </div>
                                                 <div className="bg-gray-50 rounded p-2">
-                                                    <dt className="text-xs text-gray-500">Ngày đánh giá</dt>
+                                                    <dt className="text-xs text-gray-500">Evaluation date</dt>
                                                     <dd className="text-sm font-semibold text-gray-900 mt-0.5">{formatDateTime(result?.evaluatedDate)}</dd>
                                                 </div>
                                             </dl>

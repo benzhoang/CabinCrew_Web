@@ -13,7 +13,7 @@ const RequestList = () => {
     const [error, setError] = useState(null)
     const [pagination, setPagination] = useState({
         currentPage: 1,
-        pageSize: 5, // Mỗi trang 5 request
+        pageSize: 5, // 5 requests per page
         totalRecords: 0,
         totalPages: 0,
         hasNextPage: false,
@@ -33,50 +33,50 @@ const RequestList = () => {
             try {
                 const result = await getCampaignRequests(page, pagination.pageSize)
                 if (result.success) {
-                    // Hàm normalize status từ API
+                    // Normalize status from API
                     const normalizeStatus = (status) => {
                         if (!status) return 'pending_approval'
 
-                        // Nếu là số
+                        // If numeric
                         if (typeof status === 'number') {
                             if (status === 2) return 'approved'
                             if (status === 3) return 'rejected'
-                            return 'pending_approval' // 1 hoặc các giá trị khác
+                            return 'pending_approval' // 1 or other values
                         }
 
-                        // Nếu là string, chuyển về chữ thường và xử lý
+                        // If string, lowercase then handle
                         const statusLower = String(status).toLowerCase().trim()
 
-                        // Xử lý các format khác nhau
+                        // Handle various formats
                         if (statusLower === 'approved' || statusLower === 'approve') return 'approved'
                         if (statusLower === 'rejected' || statusLower === 'reject') return 'rejected'
                         if (statusLower === 'pending' || statusLower === 'pending_approval' || statusLower === 'pending approval') return 'pending_approval'
 
-                        // Mặc định
+                        // Default
                         return 'pending_approval'
                     }
 
-                    // Map dữ liệu từ API response sang format component đang dùng
+                    // Map API response data to component format
                     const mappedCampaigns = (result.data || []).map(item => ({
                         id: item.requestId,
                         name: item.campaignName || 'N/A',
                         description: item.description || '',
                         targetQuantity: item.targetQuantity || 0,
                         requestType: item.requestType || '',
-                        status: normalizeStatus(item.status), // Normalize status từ API
+                        status: normalizeStatus(item.status), // Normalize status from API
                         rejectReason: item.rejectReason || '',
                         approvedAt: item.approvedAt || '',
                         rejectedAt: item.rejectedAt || '',
                         partnerName: item.partnerName || '',
                         directorName: item.directorName || '',
                         createdAt: item.createdAt || '',
-                        // Map các field cũ để tương thích
+                        // Map legacy fields for compatibility
                         position: item.requestType || '',
                         department: item.partnerName || '',
                     }))
                     setCampaigns(mappedCampaigns)
 
-                    // Lưu thông tin phân trang từ API nếu có
+                    // Save pagination info from API if provided
                     if (result.pagination) {
                         setPagination(prev => ({
                             ...prev,
@@ -84,7 +84,7 @@ const RequestList = () => {
                             pageSize: pagination.pageSize || 5,
                         }))
                     } else {
-                        // Nếu API chưa trả pagination, fallback theo data hiện tại
+                        // Fallback when API does not return pagination
                         setPagination(prev => ({
                             ...prev,
                             currentPage: page,
@@ -96,19 +96,19 @@ const RequestList = () => {
                         }))
                     }
                 } else {
-                    setError(result.error || 'Không thể tải danh sách campaign')
+                    setError(result.error || 'Unable to load campaign list')
                     setCampaigns([])
                 }
             } catch (err) {
                 console.error('Error fetching campaigns:', err)
-                setError('Đã xảy ra lỗi khi tải dữ liệu: ' + (err.message || 'Unknown error'))
+                setError('An error occurred while loading data: ' + (err.message || 'Unknown error'))
                 setCampaigns([])
             } finally {
                 setLoading(false)
             }
         }
 
-        // Lần đầu load sẽ là trang 1
+        // First load will be page 1
         fetchCampaigns(1)
     }, [])
 
@@ -137,11 +137,11 @@ const RequestList = () => {
         if (page === pagination.currentPage) return
         if (page < 1) return
         if (pagination.totalPages && page > pagination.totalPages) return
-        // Chỉ cho phép đổi trang nếu có previous/next tương ứng
+        // Only allow switching when previous/next exists
         if (page > pagination.currentPage && !pagination.hasNextPage) return
         if (page < pagination.currentPage && !pagination.hasPreviousPage) return
 
-        // Gọi lại API với trang mới
+        // Fetch new page
         const fetchNewPage = async () => {
             setLoading(true)
             setError(null)
@@ -184,12 +184,12 @@ const RequestList = () => {
                         }))
                     }
                 } else {
-                    setError(result.error || 'Không thể tải danh sách campaign')
+                    setError(result.error || 'Unable to load campaign list')
                     setCampaigns([])
                 }
             } catch (err) {
                 console.error('Error fetching campaigns:', err)
-                setError('Đã xảy ra lỗi khi tải dữ liệu: ' + (err.message || 'Unknown error'))
+                setError('An error occurred while loading data: ' + (err.message || 'Unknown error'))
                 setCampaigns([])
             } finally {
                 setLoading(false)
@@ -200,41 +200,41 @@ const RequestList = () => {
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa chiến dịch này?')) {
+        if (window.confirm('Are you sure you want to delete this campaign?')) {
             // TODO: Implement delete API call when available
             setCampaigns(campaigns.filter(campaign => campaign.id !== id))
         }
     }
 
-    // Hàm normalize status từ API (có thể là số, string với chữ hoa/thường) sang format UI
+    // Normalize status from API (number or string) to UI format
     const normalizeStatus = (status) => {
         if (!status) return 'pending_approval'
 
-        // Nếu là số
+        // If numeric
         if (typeof status === 'number') {
             if (status === 2) return 'approved'
             if (status === 3) return 'rejected'
-            return 'pending_approval' // 1 hoặc các giá trị khác
+            return 'pending_approval' // 1 or other values
         }
 
-        // Nếu là string, chuyển về chữ thường và xử lý
+        // If string, lowercase then handle
         const statusLower = String(status).toLowerCase().trim()
 
-        // Xử lý các format khác nhau
+        // Handle various formats
         if (statusLower === 'approved' || statusLower === 'approve') return 'approved'
         if (statusLower === 'rejected' || statusLower === 'reject') return 'rejected'
         if (statusLower === 'pending' || statusLower === 'pending_approval' || statusLower === 'pending approval') return 'pending_approval'
 
-        // Mặc định
+        // Default
         return 'pending_approval'
     }
 
     const getStatusBadge = (status) => {
         const normalizedStatus = normalizeStatus(status)
         const statusConfig = {
-            pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Đang chờ duyệt' },
-            rejected: { color: 'bg-red-100 text-red-800', text: 'Bị từ chối' },
-            approved: { color: 'bg-green-100 text-green-800', text: 'Đã được duyệt' }
+            pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending approval' },
+            rejected: { color: 'bg-red-100 text-red-800', text: 'Rejected' },
+            approved: { color: 'bg-green-100 text-green-800', text: 'Approved' }
         }
         const config = statusConfig[normalizedStatus] || statusConfig.pending_approval
         return (
@@ -248,7 +248,7 @@ const RequestList = () => {
         return (
             <div className="p-6">
                 <div className="flex justify-center items-center h-64">
-                    <p className="text-slate-600">Đang tải dữ liệu...</p>
+                    <p className="text-slate-600">Loading data...</p>
                 </div>
             </div>
         )
@@ -258,7 +258,7 @@ const RequestList = () => {
         return (
             <div className="p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-800">Lỗi: {error}</p>
+                    <p className="text-red-800">Error: {error}</p>
                 </div>
             </div>
         )
@@ -269,8 +269,8 @@ const RequestList = () => {
             <div className="mb-6">
                 <div className="flex justify-between items-start mb-2">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Quản lý Chiến dịch Tổng thể</h2>
-                        <p className="text-slate-600">Quản lý và giám sát các chiến dịch tuyển dụng toàn hệ thống</p>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-2">Campaign Management</h2>
+                        <p className="text-slate-600">Manage and monitor recruitment campaigns across the system</p>
                     </div>
                 </div>
             </div>
@@ -278,10 +278,10 @@ const RequestList = () => {
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800">Danh sách Chiến dịch ({filteredCampaigns.length})</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">Campaign List ({filteredCampaigns.length})</h3>
                         <input
                             type="text"
-                            placeholder="Tìm kiếm..."
+                            placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-64 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -296,7 +296,7 @@ const RequestList = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                                 }`}
                         >
-                            Tất cả
+                            All
                         </button>
                         <button
                             onClick={() => setStatusFilter('pending_approval')}
@@ -305,7 +305,7 @@ const RequestList = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
                                 }`}
                         >
-                            Đang chờ duyệt
+                            Pending approval
                         </button>
                         <button
                             onClick={() => setStatusFilter('rejected')}
@@ -314,7 +314,7 @@ const RequestList = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-red-50'
                                 }`}
                         >
-                            Bị từ chối
+                            Rejected
                         </button>
                         <button
                             onClick={() => setStatusFilter('approved')}
@@ -323,7 +323,7 @@ const RequestList = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
                                 }`}
                         >
-                            Đã được duyệt
+                            Approved
                         </button>
                     </div>
                 </div>
@@ -339,22 +339,22 @@ const RequestList = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
-                                            <span className="text-sm text-slate-600">Loại yêu cầu:</span>
+                                            <span className="text-sm text-slate-600">Request type:</span>
                                             <p className="font-medium text-slate-800">{campaign.requestType || 'N/A'}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Số lượng mục tiêu:</span>
+                                            <span className="text-sm text-slate-600">Target quantity:</span>
                                             <p className="font-medium text-slate-800">{campaign.targetQuantity || 0}</p>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Trạng thái:</span>
+                                            <span className="text-sm text-slate-600">Status:</span>
                                             <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         {campaign.partnerName ? (
                                             <div>
-                                                <span className="text-sm text-slate-600">Đối tác:</span>
+                                                <span className="text-sm text-slate-600">Partner:</span>
                                                 <p className="font-medium text-slate-800">{campaign.partnerName}</p>
                                             </div>
                                         ) : (
@@ -362,16 +362,16 @@ const RequestList = () => {
                                         )}
                                         {campaign.directorName && (
                                             <div>
-                                                <span className="text-sm text-slate-600">Giám đốc:</span>
+                                                <span className="text-sm text-slate-600">Director:</span>
                                                 <p className="font-medium text-slate-800">{campaign.directorName}</p>
                                             </div>
                                         )}
                                     </div>
                                     {campaign.createdAt && (
                                         <div className="mb-2">
-                                            <span className="text-sm text-slate-600">Ngày tạo:</span>
+                                            <span className="text-sm text-slate-600">Created at:</span>
                                             <p className="font-medium text-slate-800">
-                                                {new Date(campaign.createdAt).toLocaleDateString('vi-VN')}
+                                                {new Date(campaign.createdAt).toLocaleDateString('en-US')}
                                             </p>
                                         </div>
                                     )}
@@ -386,7 +386,7 @@ const RequestList = () => {
                                         onClick={() => handleViewDetails(campaign)}
                                         className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                                     >
-                                        Xem chi tiết
+                                        View details
                                     </button>
                                 </div>
                             </div>
@@ -396,20 +396,20 @@ const RequestList = () => {
 
                 {filteredCampaigns.length === 0 && (
                     <div className="p-12 text-center">
-                        <p className="text-slate-500">Không tìm thấy chiến dịch nào</p>
+                        <p className="text-slate-500">No campaigns found</p>
                     </div>
                 )}
 
-                {/* Phân trang */}
+                {/* Pagination */}
                 <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                     <div className="text-sm text-slate-600">
-                        Trang <span className="font-semibold">{pagination.currentPage}</span>
+                        Page <span className="font-semibold">{pagination.currentPage}</span>
                         {pagination.totalPages ? (
                             <> / <span className="font-semibold">{pagination.totalPages}</span></>
                         ) : null}
                         {typeof pagination.totalRecords === 'number' && (
                             <span className="ml-2">
-                                ({pagination.totalRecords} bản ghi)
+                                ({pagination.totalRecords} records)
                             </span>
                         )}
                     </div>
@@ -424,7 +424,7 @@ const RequestList = () => {
                                 : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                 }`}
                         >
-                            Trước
+                            Prev
                         </button>
 
                         <span className="text-sm text-slate-600">
@@ -440,7 +440,7 @@ const RequestList = () => {
                                 : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                 }`}
                         >
-                            Sau
+                            Next
                         </button>
                     </div>
                 </div>

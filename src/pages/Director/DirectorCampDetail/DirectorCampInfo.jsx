@@ -36,18 +36,20 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
 
   useEffect(() => {
     const fetchCampaignData = async () => {
-      // Ưu tiên sử dụng campaign từ props hoặc state
+      // Prefer campaign from props or state first
       if (campaign || state?.campaign) {
         const campaignFromProps = campaign || state?.campaign;
 
-        // Log campaign từ props/state
+        // Log campaign from props/state
         console.log(
           "DetailInfo - Campaign from props/state:",
           campaignFromProps
         );
         console.log("DetailInfo - Has rounds:", !!campaignFromProps?.rounds);
 
-        // Đảm bảo rounds là array (nếu có) - tạo copy mới để tránh mutate
+        // Ensure rounds is an array (if exists) - create a copy to avoid mutate
+        // Ensure rounds is an array (if exists) - create a copy to avoid mutate
+        // Ensure rounds is an array (if exists) - create a copy to avoid mutate
         let normalizedCampaign = campaignFromProps;
         if (
           campaignFromProps &&
@@ -67,7 +69,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
 
         setCampaignData(normalizedCampaign);
 
-        // Nếu rounds đang trống, tiếp tục gọi API theo id để lấy rounds chuẩn theo Swagger
+        // If rounds are empty, fetch by id to hydrate rounds from API
         const effectiveId =
           normalizedCampaign?.campaignId || normalizedCampaign?.id || id;
         if (
@@ -83,11 +85,11 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             const result = await getCampaignById(effectiveId);
             if (result.success) {
               let apiData = result.data;
-              // Đảm bảo rounds là array
+              // Ensure rounds is an array
               if (apiData && !Array.isArray(apiData.rounds) && apiData.rounds) {
                 apiData = { ...apiData, rounds: [apiData.rounds] };
               }
-              // Trộn dữ liệu: giữ thông tin hiện có, ưu tiên rounds từ API
+              // Merge data: keep existing info, prefer rounds from API
               const merged = {
                 ...normalizedCampaign,
                 ...apiData,
@@ -109,7 +111,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
         return;
       }
 
-      // Nếu không có campaign từ props/state, fetch từ API bằng ID
+      // If no campaign from props/state, fetch by ID from API
       if (id) {
         try {
           setLoading(true);
@@ -117,7 +119,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           if (result.success) {
             const apiData = result.data;
 
-            // Log API response để debug
+            // Log API response for debugging
             console.log("DetailInfo - API Response:", apiData);
             console.log(
               "DetailInfo - API Response has rounds:",
@@ -127,7 +129,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
               console.log("DetailInfo - API Rounds:", apiData.rounds);
             }
 
-            // Đảm bảo rounds là array (nếu có) - tạo copy mới để tránh mutate
+            // Ensure rounds is an array (if present) - create copy to avoid mutate
             let normalizedApiData = apiData;
             if (
               apiData &&
@@ -148,24 +150,24 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             setCampaignData(normalizedApiData);
             setError(null);
           } else {
-            setError(result.error || "Không thể tải thông tin chiến dịch");
+            setError(result.error || "Unable to load campaign information");
           }
         } catch (err) {
           console.error("DetailInfo - Error fetching campaign:", err);
-          setError(err.message || "Đã xảy ra lỗi khi tải thông tin chiến dịch");
+          setError(err.message || "An error occurred while loading campaign information");
         } finally {
           setLoading(false);
         }
       } else {
         setLoading(false);
-        setError("Không tìm thấy ID chiến dịch");
+        setError("Campaign ID not found");
       }
     };
 
     fetchCampaignData();
   }, [id, campaign, state?.campaign]);
 
-  // Debug: Log data để kiểm tra (chỉ log một lần khi data thay đổi)
+  // Debug: log data when it changes (once per change)
   useEffect(() => {
     if (campaignData) {
       console.log("DetailInfo - Campaign Data:", campaignData);
@@ -215,7 +217,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Đang tải thông tin chiến dịch...</div>
+        <div className="text-gray-500">Loading campaign information...</div>
       </div>
     );
   }
@@ -231,22 +233,22 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   if (!campaignData) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Không có dữ liệu chiến dịch</div>
+        <div className="text-gray-500">No campaign data</div>
       </div>
     );
   }
 
-  // Normalize và validate rounds data từ API
+  // Normalize and validate rounds data from API
   const normalizeRoundsData = (campaign) => {
     if (!campaign) return campaign;
 
-    // Nếu đã có rounds và là array, giữ nguyên
+    // If rounds already exist and are array, keep them
     if (campaign.rounds && Array.isArray(campaign.rounds)) {
-      // Validate và normalize từng round
+      // Validate and normalize each round
       const normalizedRounds = campaign.rounds.map((round, index) => {
         return {
           campaignRoundId: round.campaignRoundId || round.id || index + 1,
-          roundName: round.roundName || round.name || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || `Batch ${index + 1}`,
           description: round.description || "",
           targetQuantity: round.targetQuantity || round.target || 0,
           actualQuantity: round.actualQuantity || round.actualQuantiy || 0, // Handle typo in API
@@ -254,7 +256,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           startDate: round.startDate || "",
           endDate: round.endDate || "",
           location: round.location || "",
-          method: round.method || "Trực tiếp",
+          method: round.method || "In-person",
           owner: round.owner || "",
           totalApplicants: round.totalApplicants || 0,
         };
@@ -266,7 +268,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       };
     }
 
-    // Nếu không có rounds, trả về campaign với rounds là empty array
+    // If no rounds, return campaign with empty rounds array
     if (!campaign.rounds) {
       return {
         ...campaign,
@@ -279,46 +281,46 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
 
   const data = normalizeRoundsData(campaignData);
 
-  // Format date từ API (có thể là "11/12/2025 00:00" hoặc ISO string)
+  // Format date from API (e.g. "11/12/2025 00:00" or ISO string)
   const formatDateFromAPI = (dateString) => {
     if (!dateString) return "";
-    // Nếu đã là format "dd/mm/yyyy HH:mm", chỉ lấy phần date
+    // If already "dd/mm/yyyy HH:mm", only keep date part
     if (dateString.includes("/")) {
       return dateString.split(" ")[0];
     }
     return formatDate(dateString);
   };
 
-  // Format campaignType để hiển thị - kiểm tra nhiều field name
+  // Format campaignType for display - check multiple field names
   const formatCampaignType = (type) => {
     if (!type) return "";
     const typeMap = {
-      Promotion: "Thăng bậc",
-      Recruitment: "Tuyển dụng",
-      Replacement: "Thay thế",
+      Promotion: "Promotion",
+      Recruitment: "Recruitment",
+      Replacement: "Replacement",
     };
     return typeMap[type] || type;
   };
 
-  // Format targetQuantity để hiển thị - kiểm tra nhiều field name
+  // Format targetQuantity for display - check multiple field names
   const formatTargetQuantity = (quantity) => {
     if (quantity === null || quantity === undefined || quantity === "")
       return "";
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
-    return num.toLocaleString("vi-VN") + " người";
+    return num.toLocaleString("en-US") + " people";
   };
 
-  // Lấy campaignType từ nhiều field name có thể
-  // Lưu ý: data từ props/state đã được transform (campaignType → position)
-  //        data từ API có format gốc (campaignType)
+  // Get campaignType from multiple possible field names
+  // Note: props/state data might be transformed (campaignType -> position)
+  //       API data keeps original format (campaignType)
   const getCampaignType = () => {
     if (!data) return "";
 
-    // Kiểm tra tất cả các field name có thể (bao gồm cả format đã transform)
+    // Check all possible field names (including transformed ones)
     const type =
-      data.campaignType || // Format gốc từ API
-      data.position || // Format đã transform từ Campaign.jsx
+      data.campaignType || // Original from API
+      data.position || // Transformed from Campaign.jsx
       data.campaign_type ||
       data.type ||
       data.campaignTypeName ||
@@ -327,16 +329,16 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
     return type;
   };
 
-  // Lấy targetQuantity từ nhiều field name có thể
-  // Lưu ý: data từ props/state đã được transform (targetQuantity → targetHires)
-  //        data từ API có format gốc (targetQuantity)
+  // Get targetQuantity from multiple possible field names
+  // Note: props/state data might be transformed (targetQuantity -> targetHires)
+  //       API data keeps original format (targetQuantity)
   const getTargetQuantity = () => {
     if (!data) return "";
 
-    // Kiểm tra tất cả các field name có thể (bao gồm cả format đã transform)
+    // Check all possible field names (including transformed ones)
     const quantity =
-      data.targetQuantity || // Format gốc từ API
-      data.targetHires || // Format đã transform từ Campaign.jsx
+      data.targetQuantity || // Original from API
+      data.targetHires || // Transformed from Campaign.jsx
       data.target_quantity ||
       data.quantity ||
       data.target ||
@@ -349,28 +351,28 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   return (
     <div className="w-full h-full">
       <div className="grid grid-cols-1 gap-5">
-        <Section title="Thông tin đề xuất">
+        <Section title="Proposal information">
           <div className="space-y-4">
             <div className="font-medium text-gray-900">
               {data.campaignName || data.name || ""}
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <InfoRow label="Mô tả" value={data.description || ""} />
+              <InfoRow label="Description" value={data.description || ""} />
               <InfoRow
-                label="Loại chiến dịch"
+                label="Campaign type"
                 value={formatCampaignType(getCampaignType())}
               />
-              <InfoRow label="Trạng thái" value={data.status || ""} />
+              <InfoRow label="Status" value={data.status || ""} />
               <InfoRow
-                label="Số lượng tuyển"
+                label="Target quantity"
                 value={formatTargetQuantity(getTargetQuantity())}
               />
               <InfoRow
-                label="Ngày bắt đầu"
+                label="Start date"
                 value={formatDateFromAPI(data.startDate) || ""}
               />
               <InfoRow
-                label="Ngày kết thúc"
+                label="End date"
                 value={formatDateFromAPI(data.endDate) || ""}
               />
             </div>
@@ -380,7 +382,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           {data.jobDescription && (
             <div className="mt-6">
               <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📋 Mô tả công việc / Job Description
+                Job Description
               </h3>
               <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                 <div
@@ -397,7 +399,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           {data.jobRequirement && (
             <div className="mt-6">
               <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                📝 Yêu cầu công việc / Job Requirements
+                Job Requirements
               </h3>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <div

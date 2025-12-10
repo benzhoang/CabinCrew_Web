@@ -23,7 +23,7 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
             // Kiểm tra định dạng file
             const isExcelFile = selectedFile.name.endsWith('.xlsx') || selectedFile.name.endsWith('.xls')
             if (!isExcelFile) {
-                toast.error('Vui lòng chọn đúng định dạng Excel (.xlsx hoặc .xls)')
+                toast.error('Please select an Excel file (.xlsx or .xls)')
                 // Reset input
                 if (inputRef.current) {
                     inputRef.current.value = ''
@@ -39,12 +39,12 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
 
     const handleSubmit = async () => {
         if (!roundId) {
-            toast.error('Không tìm thấy roundId để import')
+            toast.error('Round ID not found to import')
             return
         }
 
         if (!file) {
-            toast.error('Vui lòng chọn file để import')
+            toast.error('Please choose a file to import')
             return
         }
 
@@ -53,7 +53,7 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
             const result = await importFinalReview(roundId, file)
 
             if (result.success) {
-                toast.success('Successfully')
+                toast.success('Upload successfully')
                 setFile(null)
                 // Reset input
                 if (inputRef.current) {
@@ -69,11 +69,11 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
                     }
                 })
             } else {
-                toast.error(result.error || 'Không thể import file Excel')
+                toast.error(result.error || 'Cannot import the Excel file')
             }
         } catch (error) {
             console.error('Lỗi khi import:', error)
-            toast.error('Đã xảy ra lỗi khi import file')
+            toast.error('An error occurred while importing the file')
         } finally {
             setLoading(false)
         }
@@ -92,16 +92,16 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white w-full max-w-xl rounded-xl shadow-lg border border-slate-200">
                 <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-slate-800">Nộp hồ sơ văn bản hậu kiểm</h3>
+                    <h3 className="text-lg font-semibold text-slate-800">Submit post-audit documents</h3>
                     <button onClick={handleCancel} className="text-slate-500 hover:text-slate-700">
                         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 <div className="px-6 py-5 space-y-4">
-                    <p className="text-sm text-slate-600">Hãy chọn file Excel (.xlsx hoặc .xls) chứa các văn bản hậu kiểm.</p>
+                    <p className="text-sm text-slate-600">Please select the Excel file (.xlsx or .xls) containing the post-audit documents.</p>
                     <div className="flex items-center gap-3">
-                        <button onClick={handlePickFile} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Chọn file</button>
-                        <span className="text-sm text-slate-500">{file ? file.name : 'Chưa chọn file'}</span>
+                        <button onClick={handlePickFile} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Choose file</button>
+                        <span className="text-sm text-slate-500">{file ? file.name : 'File not selected'}</span>
                     </div>
                     <input
                         type="file"
@@ -135,9 +135,9 @@ const ImportHauKiemModal = ({ open, onClose, roundId, campaignRoundId, campaignI
                     )}
                 </div>
                 <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
-                    <button onClick={handleCancel} disabled={loading} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed">Hủy</button>
+                    <button onClick={handleCancel} disabled={loading} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm disabled:opacity-50 disabled:cursor-not-allowed">Cancel</button>
                     <button onClick={handleSubmit} disabled={!file || loading} className={`px-4 py-2 rounded-lg text-sm text-white font-medium ${!file || loading ? 'bg-slate-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
-                        {loading ? 'Đang xử lý...' : 'Nộp'}
+                        {loading ? 'Processing...' : 'Submit'}
                     </button>
                 </div>
             </div>
