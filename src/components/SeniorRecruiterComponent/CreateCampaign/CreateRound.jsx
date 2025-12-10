@@ -435,7 +435,7 @@ const CreateRound = forwardRef(
       const newRounds = [
         ...rounds,
         {
-          roundName: `Đợt ${rounds.length + 1}`,
+          roundName: `Round ${rounds.length + 1}`,
           roundStartDate: "",
           roundEndDate: "",
           targetQuantity: "",
@@ -468,11 +468,11 @@ const CreateRound = forwardRef(
           if (round.roundStartDate) {
             if (round.roundStartDate < startDateToValidate) {
               newErrors[`rounds.${index}.roundStartDate`] =
-                "Ngày bắt đầu đợt phải nằm trong khoảng ngày chiến dịch";
+                "Start date of round must be within the campaign date range";
             }
             if (round.roundStartDate > endDateToValidate) {
               newErrors[`rounds.${index}.roundStartDate`] =
-                "Ngày bắt đầu đợt không được vượt quá ngày kết thúc chiến dịch";
+                "Start date of round must be before the end date of campaign";
             }
 
             // Từ đợt 2 trở đi, ngày bắt đầu phải >= ngày kết thúc đợt trước
@@ -481,7 +481,7 @@ const CreateRound = forwardRef(
               if (previousRound.roundEndDate) {
                 if (round.roundStartDate < previousRound.roundEndDate) {
                   newErrors[`rounds.${index}.roundStartDate`] =
-                    "Ngày bắt đầu đợt này phải sau hoặc bằng ngày kết thúc đợt trước";
+                    "Start date of round must be after or equal to the end date of previous round";
                 }
               }
             }
@@ -491,11 +491,11 @@ const CreateRound = forwardRef(
           if (round.roundEndDate) {
             if (round.roundEndDate < startDateToValidate) {
               newErrors[`rounds.${index}.roundEndDate`] =
-                "Ngày kết thúc đợt phải nằm trong khoảng ngày chiến dịch";
+                "End date of round must be within the campaign date range";
             }
             if (round.roundEndDate > endDateToValidate) {
               newErrors[`rounds.${index}.roundEndDate`] =
-                "Ngày kết thúc đợt không được vượt quá ngày kết thúc chiến dịch";
+                "End date of round must be before the end date of campaign";
             }
 
             // Ngày kết thúc phải >= ngày bắt đầu của đợt
@@ -504,7 +504,7 @@ const CreateRound = forwardRef(
               round.roundEndDate < round.roundStartDate
             ) {
               newErrors[`rounds.${index}.roundEndDate`] =
-                "Ngày kết thúc đợt phải sau hoặc bằng ngày bắt đầu đợt";
+                "End date of round must be after or equal to the start date of round";
             }
           }
         });
@@ -512,15 +512,15 @@ const CreateRound = forwardRef(
 
       roundsToValidate.forEach((round, index) => {
         if (!round.roundName || !round.roundName.trim()) {
-          newErrors[`rounds.${index}.roundName`] = "Tên đợt là bắt buộc";
+          newErrors[`rounds.${index}.roundName`] = "Round name is required";
         }
         if (!round.roundStartDate) {
           newErrors[`rounds.${index}.roundStartDate`] =
-            "Thời gian bắt đầu là bắt buộc";
+            "Start date of round is required";
         }
         if (!round.roundEndDate) {
           newErrors[`rounds.${index}.roundEndDate`] =
-            "Thời gian kết thúc là bắt buộc";
+            "End date of round is required";
         }
         if (
           round.roundStartDate &&
@@ -528,14 +528,15 @@ const CreateRound = forwardRef(
           round.roundStartDate >= round.roundEndDate
         ) {
           newErrors[`rounds.${index}.roundEndDate`] =
-            "Thời gian kết thúc phải sau thời gian bắt đầu";
+            "End date of round must be after the start date of round";
         }
         if (!round.targetQuantity || parseInt(round.targetQuantity, 10) <= 0) {
           newErrors[`rounds.${index}.targetQuantity`] =
-            "Chỉ tiêu phải lớn hơn 0 cho mỗi đợt";
+            "Target quantity must be greater than 0 for each round";
         }
         if (!round.description.trim()) {
-          newErrors[`rounds.${index}.description`] = "Mô tả đợt là bắt buộc";
+          newErrors[`rounds.${index}.description`] =
+            "Description of round is required";
         }
       });
 
@@ -544,12 +545,12 @@ const CreateRound = forwardRef(
 
     const validateRoundTargets = () => {
       if (campaignTarget <= 0) {
-        toast.error("Vui lòng nhập chỉ tiêu campaign hợp lệ.");
+        toast.error("Please enter a valid campaign target quantity.");
         return false;
       }
 
       if (rounds.length === 0) {
-        toast.error("Cần ít nhất một đợt tuyển.");
+        toast.error("At least one round is required.");
         return false;
       }
 
@@ -704,7 +705,7 @@ const CreateRound = forwardRef(
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="font-semibold text-slate-800">
-            Kế hoạch các đợt tuyển
+            Recruitment rounds plan
           </div>
           <button
             type="button"
@@ -712,7 +713,7 @@ const CreateRound = forwardRef(
             className={`px-3 py-1 text-sm text-white rounded-md bg-blue-600 hover:bg-blue-700
                   `}
           >
-            + Thêm đợt
+            + Add round
           </button>
         </div>
 
@@ -721,7 +722,7 @@ const CreateRound = forwardRef(
             {rounds.map((round, index) => (
               <div
                 key={index}
-                className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200 pb-10"
+                className="pb-10 overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
                   <div className="flex items-center gap-3">
@@ -734,7 +735,7 @@ const CreateRound = forwardRef(
                         onClick={() => removeRound(index)}
                         className="text-xs text-red-600 hover:text-red-800"
                       >
-                        ✕ Xóa
+                        ✕ Delete
                       </button>
                     )}
                   </div>
@@ -744,7 +745,7 @@ const CreateRound = forwardRef(
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Tên đợt *
+                        Round name *
                       </label>
                       <input
                         type="text"
@@ -767,7 +768,7 @@ const CreateRound = forwardRef(
                     </div>
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Thời gian bắt đầu *
+                        Start date *
                       </label>
                       <input
                         type="date"
@@ -799,7 +800,7 @@ const CreateRound = forwardRef(
                     </div>
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Thời gian kết thúc *
+                        End date *
                       </label>
                       <input
                         type="date"
@@ -833,7 +834,7 @@ const CreateRound = forwardRef(
 
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Chỉ tiêu *
+                        Target quantity *
                       </label>
                       <input
                         type="number"
@@ -863,7 +864,7 @@ const CreateRound = forwardRef(
 
                     <div className="sm:col-span-2">
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Mô tả
+                        Description
                       </label>
                       <textarea
                         value={round.description}
@@ -1090,7 +1091,7 @@ const CreateRound = forwardRef(
                         return (
                           <div
                             key={`${round.campaignRoundId}-${roundIndex}`}
-                            className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200 mx-4"
+                            className="mx-4 overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
                           >
                             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
                               <div className="flex items-center gap-3">
@@ -1104,7 +1105,7 @@ const CreateRound = forwardRef(
                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                   <label className="block mb-1 text-sm font-medium text-slate-700">
-                                    Ngày bắt đầu
+                                    Start date
                                   </label>
                                   <input
                                     type="date"
@@ -1121,7 +1122,7 @@ const CreateRound = forwardRef(
                                         newStartDate >= currentEndDate
                                       ) {
                                         toast.error(
-                                          `Ngày bắt đầu phải trước ngày kết thúc của cùng vòng này. Vui lòng chọn ngày khác.`
+                                          `Start date must be before the end date of this round. Please select a different date.`
                                         );
                                         return;
                                       }
@@ -1134,7 +1135,7 @@ const CreateRound = forwardRef(
                                           newStartDate <= previousRound.endDate
                                         ) {
                                           toast.error(
-                                            `Ngày bắt đầu của vòng này phải sau ngày kết thúc của vòng trước (${previousRound.roundName}). Vui lòng chọn ngày khác.`
+                                            `Start date of this round must be after the end date of previous round (${previousRound.roundName}). Please select a different date.`
                                           );
                                           return;
                                         }
@@ -1151,7 +1152,7 @@ const CreateRound = forwardRef(
 
                                       if (hasOverlap) {
                                         toast.error(
-                                          `Ngày bắt đầu này trùng với khoảng thời gian của round khác trong đợt này. Vui lòng chọn ngày khác.`
+                                          `Start date overlaps with the time range of another round in this campaign. Please select a different date.`
                                         );
                                         return;
                                       }
@@ -1227,7 +1228,7 @@ const CreateRound = forwardRef(
                                 </div>
                                 <div>
                                   <label className="block mb-1 text-sm font-medium text-slate-700">
-                                    Ngày kết thúc
+                                    End date
                                   </label>
                                   <input
                                     type="date"
@@ -1258,7 +1259,7 @@ const CreateRound = forwardRef(
                                         newEndDate <= currentStartDate
                                       ) {
                                         toast.error(
-                                          `Ngày kết thúc phải sau ngày bắt đầu của cùng vòng này. Vui lòng chọn ngày khác.`
+                                          `End date must be after the start date of this round. Please select a different date.`
                                         );
                                         return;
                                       }
@@ -1274,7 +1275,7 @@ const CreateRound = forwardRef(
 
                                       if (hasOverlap) {
                                         toast.error(
-                                          `Ngày kết thúc này trùng với khoảng thời gian của round khác trong đợt này. Vui lòng chọn ngày khác.`
+                                          `End date overlaps with the time range of another round in this campaign. Please select a different date.`
                                         );
                                         return;
                                       }

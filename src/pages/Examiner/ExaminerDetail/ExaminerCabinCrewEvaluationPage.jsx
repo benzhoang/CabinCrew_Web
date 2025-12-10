@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../../i18n";
 import { getInterviewCriteriasPromotion } from "../../../service/api2";
 import Loading from "../../../components/Loading";
+import { toast } from "react-toastify";
 
 const ExaminerCabinCrewEvaluationPage = () => {
   const location = useLocation();
@@ -166,7 +167,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
       candidateId: id || candidate?.id,
     };
     console.log("Submitting evaluation...", evaluationData);
-    alert("Đã gửi đánh giá thành công!");
+    toast.success("Đã gửi đánh giá thành công!");
     navigate("/examiner/applications", { state: batchData });
   };
 
@@ -218,10 +219,10 @@ const ExaminerCabinCrewEvaluationPage = () => {
               </button>
               <div>
                 <h1 className="text-2xl font-extrabold md:text-3xl">
-                  Đánh giá tiếp viên
+                  Evaluate Cabin Crew
                 </h1>
                 <p className="mt-1 text-sm text-white/90">
-                  Đánh giá tiêu chí phỏng vấn cho tiếp viên
+                  Evaluate interview criteria for cabin crew
                 </p>
               </div>
             </div>
@@ -251,7 +252,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                 />
               </svg>
               <div className="flex flex-col">
-                <span className="text-xs text-white/80">Thời gian còn lại</span>
+                <span className="text-xs text-white/80">Time remaining</span>
                 <span
                   className={`text-2xl font-bold tracking-wider ${
                     isTimerExpired
@@ -273,7 +274,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
         {/* Candidate Information */}
         <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
           <h2 className="mb-4 text-xl font-semibold text-slate-800">
-            Thông tin Tiếp viên
+            Cabin Crew Information
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-center gap-4">
@@ -298,7 +299,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                 <p className="text-sm text-slate-600">
                   {candidate.position || "Flight Attendant"}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">Ảnh 4x6</p>
+                <p className="mt-1 text-xs text-slate-500">4x6 photo</p>
               </div>
             </div>
             <div>
@@ -309,7 +310,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
             </div>
             <div>
               <span className="block mb-1 text-sm text-slate-600">
-                Số điện thoại:
+                Phone number:
               </span>
               <p className="font-medium text-slate-800">
                 {candidate.phone || "—"}
@@ -317,44 +318,10 @@ const ExaminerCabinCrewEvaluationPage = () => {
             </div>
             <div>
               <span className="block mb-1 text-sm text-slate-600">
-                Ngày ứng tuyển:
+                Application date:
               </span>
               <p className="font-medium text-slate-800">
                 {candidate.appliedDate || "—"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Học vấn:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.education || "—"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Kinh nghiệm:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.experience || "—"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Ngôn ngữ:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.languages && Array.isArray(candidate.languages)
-                  ? candidate.languages.join(", ")
-                  : candidate.languages || "Tiếng Việt"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Đợt tuyển:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.batchName || batchData?.batchName || "—"}
               </p>
             </div>
           </div>
@@ -465,7 +432,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                                   )
                                 }
                                 className="w-full px-2 py-1 text-sm border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Ghi chú..."
+                                placeholder="Enter comments/remarks..."
                               />
                             </td>
                           </tr>
@@ -477,7 +444,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                           colSpan="3"
                           className="px-4 py-3 text-center text-slate-500"
                         >
-                          Không có tiêu chí nào
+                          No criteria found
                         </td>
                       </tr>
                     )}
@@ -489,7 +456,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
         ) : (
           <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
             <p className="text-center text-slate-500">
-              Không có dữ liệu tiêu chí đánh giá
+              No evaluation criteria data
             </p>
           </div>
         )}
@@ -501,7 +468,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
               Comments/Remarks
             </label>
             <textarea
-              placeholder="Ghi chú tổng quan về ứng viên..."
+              placeholder="Enter general comments/remarks about the candidate..."
               value={generalComments}
               onChange={(e) => setGeneralComments(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -516,13 +483,13 @@ const ExaminerCabinCrewEvaluationPage = () => {
             onClick={() => navigate(-1)}
             className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
           >
-            Hủy
+            Cancel
           </button>
           <button
             onClick={handleSubmit}
             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            Gửi đánh giá
+            Submit
           </button>
         </div>
       </div>

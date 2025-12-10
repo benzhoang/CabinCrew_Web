@@ -15,7 +15,7 @@ const SeniorCampaignPage = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Tìm theo tên, vị trí, phòng ban..."
+                  placeholder="Search by name, position, department..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="h-10 pl-3 text-sm border border-gray-300 rounded-lg w-100 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -27,9 +27,9 @@ const SeniorCampaignPage = () => {
                 onChange={(e) => setCampaignTypeFilter(e.target.value)}
                 className="h-10 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               >
-                <option value="all">Tất cả loại chiến dịch</option>
-                <option value="recruitment">Tuyển dụng</option>
-                <option value="promotion">Nâng bậc</option>
+                <option value="all">All campaign types</option>
+                <option value="recruitment">Recruitment</option>
+                <option value="promotion">Promotion</option>
               </select>
             </div>
           </div>

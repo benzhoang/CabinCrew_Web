@@ -1,9 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import RequestInfo from "../../components/AirlinePartnerComponent/RequestInfo";
+import RequestInfo from "../../components/AirlinePartnerComponent/RequestDetail/RequestInfo";
+import PendingRequestDetail from "../../components/AirlinePartnerComponent/RequestDetail/PendingRequestDetail";
 import { getCampaignRequestDetail } from "../../service/api2.js";
-import Loading from "../../components/Loading.jsx";
-import { toast } from "react-toastify";
 
 const AirlineRequestDetailPage = () => {
   const navigate = useNavigate();
@@ -11,14 +10,12 @@ const AirlineRequestDetailPage = () => {
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [title, setTitle] = useState("");
 
   // Fetch request detail from API
   useEffect(() => {
     const fetchRequestDetail = async () => {
       if (!id) {
-        setError("Không tìm thấy ID yêu cầu");
+        setError("Request ID not found");
         setLoading(false);
         return;
       }
@@ -30,12 +27,11 @@ const AirlineRequestDetailPage = () => {
 
         if (result.success && result.data) {
           setRequest(result.data);
-          setTitle(result.data.campaignName || "");
         } else {
-          setError(result.error || "Lỗi khi tải chi tiết yêu cầu");
+          setError(result.error || "Error loading request detail");
         }
       } catch (err) {
-        setError(err.message || "Lỗi khi tải chi tiết yêu cầu");
+        setError(err.message || "Error loading request detail");
       } finally {
         setLoading(false);
       }
@@ -44,38 +40,18 @@ const AirlineRequestDetailPage = () => {
     fetchRequestDetail();
   }, [id]);
 
-  const handleEditTitle = () => {
-    setIsEditingTitle(true);
-  };
-
-  const handleSaveTitle = () => {
-    // TODO: Implement save logic
-    console.log("Saving title:", title);
-    setIsEditingTitle(false);
-    toast.success("Đã cập nhật tiêu đề!");
-  };
-
-  const handleCancelEditTitle = () => {
-    setTitle(request?.campaignName || "");
-    setIsEditingTitle(false);
-  };
-
-  const handleTitleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSaveTitle();
-    } else if (e.key === "Escape") {
-      handleCancelEditTitle();
-    }
-  };
-
   if (loading) {
-    return <Loading message="Đang tải dữ liệu..." />;
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="text-gray-500">Loading request data...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="text-red-600">Lỗi: {error}</div>
+        <div className="text-red-600">Error: {error}</div>
       </div>
     );
   }
@@ -83,106 +59,38 @@ const AirlineRequestDetailPage = () => {
   if (!request) {
     return (
       <div className="flex items-center justify-center py-10">
-        <div className="text-gray-500">Không tìm thấy dữ liệu</div>
+        <div className="text-gray-500">No data found</div>
       </div>
     );
+  }
+
+  // Kiểm tra nếu request đang chờ phê duyệt (pending)
+  const status = request.status?.toLowerCase() || "";
+  if (status === "pending") {
+    return <PendingRequestDetail request={request} />;
   }
 
   return (
     <div className="w-full h-full">
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-4">
-          {isEditingTitle ? (
-            <div className="flex items-center gap-3 mb-2">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={handleTitleKeyPress}
-                className="text-2xl font-bold text-slate-800 mb-2 bg-transparent border-b-2 border-red-600 focus:outline-none focus:border-red-800"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveTitle}
-                  className="text-green-600 hover:text-green-800 p-1 hover:bg-green-50 rounded"
-                  title="Lưu"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={handleCancelEditTitle}
-                  className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
-                  title="Hủy"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-2">
-                {request.campaignName || "N/A"}
-                <button
-                  onClick={handleEditTitle}
-                  className="text-blue-600 hover:text-blue-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Chỉnh sửa tiêu đề"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-              </h1>
-              <p className="text-slate-600 mt-1 text-sm">
-                Mã yêu cầu: {request.requestId || "N/A"}
-              </p>
-            </div>
-          )}
+        <div>
+          <h1 className="mb-2 text-2xl font-bold text-slate-800">
+            {request.campaignName || "N/A"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Request ID: {request.requestId || "N/A"}
+          </p>
         </div>
         <button
           onClick={() => navigate("/airline-partner/requests")}
-          className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700"
+          className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
-          Quay lại
+          Back
         </button>
       </div>
 
       <div className="space-y-5">
-        <RequestInfo />
+        <RequestInfo data={request} />
       </div>
     </div>
   );

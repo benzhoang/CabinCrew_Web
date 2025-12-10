@@ -9,14 +9,14 @@ export const formatDate = (isoString) => {
 };
 
 // Helper function to format date without time (from "DD/MM/YYYY HH:mm" to "DD/MM/YYYY")
-export const formatDateOnly = (dateString) => {
+export const formatDate2 = (dateString) => {
   if (!dateString) return "N/A";
   // If dateString contains time, split and take only date part
   const datePart = dateString.split(" ")[0];
   return datePart;
 };
 
-export const formatDateTime = (isoString) => {
+export const formatDate3 = (isoString) => {
   if (!isoString) return "";
   const date = new Date(isoString);
   if (Number.isNaN(date.getTime())) return isoString;

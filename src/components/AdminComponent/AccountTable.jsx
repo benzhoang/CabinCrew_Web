@@ -300,8 +300,8 @@ const AccountTable = ({
       if (result.success) {
         const successMessage =
           actionType === "enable"
-            ? result.message || "Kích hoạt lại tài khoản thành công"
-            : result.message || "Vô hiệu hóa tài khoản thành công";
+            ? result.message || "Reactivate account successfully"
+            : result.message || "Disable account successfully";
         toast.success(successMessage);
 
         // Call onDelete callback if provided (for backward compatibility)
@@ -318,8 +318,8 @@ const AccountTable = ({
       } else {
         const errorMessage =
           actionType === "enable"
-            ? result.error || "Kích hoạt lại tài khoản thất bại"
-            : result.error || "Vô hiệu hóa tài khoản thất bại";
+            ? result.error || "Reactivate account failed"
+            : result.error || "Disable account failed";
         toast.error(errorMessage);
       }
     } catch (error) {
@@ -327,10 +327,10 @@ const AccountTable = ({
         actionType === "enable"
           ? error.response?.data?.message ||
             error.message ||
-            "Đã xảy ra lỗi khi kích hoạt lại tài khoản"
+            "Error when reactivating account"
           : error.response?.data?.message ||
             error.message ||
-            "Đã xảy ra lỗi khi vô hiệu hóa tài khoản";
+            "Error when disabling account";
       toast.error(errorMessage);
     } finally {
       if (actionType === "enable") {
@@ -351,9 +351,7 @@ const AccountTable = ({
   if (loading) {
     return (
       <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
-        <div className="py-8 text-center text-gray-600">
-          Đang tải dữ liệu...
-        </div>
+        <div className="py-8 text-center text-gray-600">Loading data...</div>
       </div>
     );
   }

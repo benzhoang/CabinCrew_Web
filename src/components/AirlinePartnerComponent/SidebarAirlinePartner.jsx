@@ -1,25 +1,17 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "../../images/Logo.png";
 import { FaBullhorn } from "react-icons/fa6";
-import { FaInfoCircle, FaSignOutAlt } from "react-icons/fa";
-import { t, onLangChange } from "../../i18n";
-import { useEffect, useState } from "react";
+import { FaClipboardCheck, FaInfoCircle, FaSignOutAlt } from "react-icons/fa";
 
 const SidebarAirlinePartner = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const [, setLangTick] = useState(0);
   const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
   const username = employeeData?.username;
   const role = employeeData?.role;
 
   const isActive = (path) => currentPath.startsWith(path);
-
-  useEffect(() => {
-    const off = onLangChange(() => setLangTick((v) => v + 1));
-    return () => off();
-  }, []);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -72,7 +64,7 @@ const SidebarAirlinePartner = () => {
                   : "text-gray-700 hover:text-blue-600"
               }
             >
-              {t("sidebar_request")}
+              Request
             </span>
           </Link>
         </li>
@@ -99,7 +91,34 @@ const SidebarAirlinePartner = () => {
                   : "text-gray-700 hover:text-blue-600"
               }
             >
-              {t("sidebar_campaign")}
+              Campaign
+            </span>
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/airline-partner/criteria"
+            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
+              isActive("/airline-partner/criteria")
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
+          >
+            <FaClipboardCheck
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                isActive("/airline-partner/criteria")
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
+            />
+            <span
+              className={
+                isActive("/airline-partner/criteria")
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
+              }
+            >
+              Criteria
             </span>
           </Link>
         </li>
@@ -110,7 +129,7 @@ const SidebarAirlinePartner = () => {
             onClick={handleLogout}
           >
             <FaSignOutAlt className="mr-3" />
-            <span>{t("sidebar_logout")}</span>
+            <span>Logout</span>
           </button>
         </li>
       </ul>

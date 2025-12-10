@@ -51,7 +51,7 @@ const HeaderAdmin = ({ toggleSidebar }) => {
                 className="flex items-center w-full px-4 py-2 text-left text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600"
               >
                 <FaSignOutAlt className="mr-3" />
-                <span>Log out</span>
+                <span>Logout</span>
               </button>
             </div>
           </div>

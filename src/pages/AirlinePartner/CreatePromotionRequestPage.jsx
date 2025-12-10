@@ -14,6 +14,7 @@ const CreatePromotionRequestPage = () => {
     jobDescription: "",
     jobRequirement: "",
     requestType: 2,
+    dueDate: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -36,7 +37,7 @@ const CreatePromotionRequestPage = () => {
     airlineDisplayNames[normalizedDisplayName] || displayName;
 
   const requestTypeLabels = {
-    2: "Thăng bậc",
+    2: "Promotion",
   };
 
   const handleInputChange = (e) => {
@@ -72,19 +73,29 @@ const CreatePromotionRequestPage = () => {
     const newErrors = {};
 
     if (!formData.campaignName.trim()) {
-      newErrors.campaignName = "Tên chiến dịch là bắt buộc";
+      newErrors.campaignName = "Campaign name is required";
     }
     if (!formData.targetQuantity || parseInt(formData.targetQuantity) <= 0) {
-      newErrors.targetQuantity = "Số lượng mục tiêu phải lớn hơn 0";
+      newErrors.targetQuantity = "Target quantity must be greater than 0";
     }
     if (!formData.description.trim()) {
-      newErrors.description = "Mô tả chung là bắt buộc";
+      newErrors.description = "Description is required";
     }
     if (!formData.jobDescription.trim()) {
-      newErrors.jobDescription = "Mô tả công việc là bắt buộc";
+      newErrors.jobDescription = "Job description is required";
     }
     if (!formData.jobRequirement.trim()) {
-      newErrors.jobRequirement = "Yêu cầu công việc là bắt buộc";
+      newErrors.jobRequirement = "Job requirement is required";
+    }
+    if (!formData.dueDate) {
+      newErrors.dueDate = "Due date is required";
+    } else {
+      const selectedDate = new Date(formData.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) {
+        newErrors.dueDate = "Due date must be in the future";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -111,6 +122,7 @@ const CreatePromotionRequestPage = () => {
       jobRequirement: formData.jobRequirement,
       targetQuantity: Number.isNaN(parsedQuantity) ? 0 : parsedQuantity,
       requestType: Number(formData.requestType),
+      dueDate: formData.dueDate,
     };
 
     try {
@@ -118,14 +130,14 @@ const CreatePromotionRequestPage = () => {
       console.log("Creating campaign:", payload);
 
       if (response.success) {
-        toast.success(response.message || "Tạo yêu cầu thành công!");
+        toast.success("Create promotion request successfully!");
         navigate("/airline-partner/requests");
       } else {
-        throw new Error(response.error || "Tạo yêu cầu thất bại");
+        throw new Error("Create promotion request failed");
       }
     } catch (error) {
       console.error("Error creating campaign:", error);
-      toast.error(error.message || "Có lỗi xảy ra khi tạo campaign");
+      toast.error("An error occurred while creating promotion request");
     } finally {
       setIsSubmitting(false);
     }
@@ -142,36 +154,36 @@ const CreatePromotionRequestPage = () => {
 
   return (
     <div className="p-6">
-      <div className="relative mb-4">
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => navigate("/airline-partner/requests")}
-            className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
-          >
-            Quay lại
-          </button>
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-full lg:w-2/3">
+          <div className="mb-4">
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Campaign Name *
+            </label>
+            <input
+              type="text"
+              name="campaignName"
+              value={formData.campaignName}
+              onChange={handleInputChange}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.campaignName ? "border-red-300" : "border-slate-300"
+              }`}
+              placeholder="Enter campaign name"
+            />
+            {errors.campaignName && (
+              <p className="mt-1 text-sm text-red-600">{errors.campaignName}</p>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-slate-600">
+            Public promotion campaign - Cabin Crew
+          </p>
         </div>
-        <div className="mb-4">
-          <label className="block mb-2 text-sm font-medium text-slate-700">
-            Tiêu đề *
-          </label>
-          <input
-            type="text"
-            name="campaignName"
-            value={formData.campaignName}
-            onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              errors.campaignName ? "border-red-300" : "border-slate-300"
-            }`}
-            placeholder="Nhập tiêu đề yêu cầu nâng bậc"
-          />
-          {errors.campaignName && (
-            <p className="mt-1 text-sm text-red-600">{errors.campaignName}</p>
-          )}
-        </div>
-        <p className="mt-1 text-sm text-slate-600">
-          Đăng công khai nâng bậc - Cabin Crew
-        </p>
+        <button
+          onClick={() => navigate("/airline-partner/requests")}
+          className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
+        >
+          Back
+        </button>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -182,7 +194,7 @@ const CreatePromotionRequestPage = () => {
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500">
-                    Thông tin đề xuất
+                    Proposal information
                   </div>
                   <div className="font-semibold text-slate-800">
                     {formattedDisplayName}
@@ -194,7 +206,7 @@ const CreatePromotionRequestPage = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Số lượng tuyển *
+                      Number of promotion *
                     </label>
                     <input
                       type="number"
@@ -207,7 +219,7 @@ const CreatePromotionRequestPage = () => {
                           ? "border-red-300"
                           : "border-slate-300"
                       }`}
-                      placeholder="Nhập số lượng cần tuyển"
+                      placeholder="Enter number of promotion"
                     />
                     {errors.targetQuantity && (
                       <p className="mt-1 text-sm text-red-600">
@@ -217,7 +229,7 @@ const CreatePromotionRequestPage = () => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Loại yêu cầu
+                      Request type
                     </label>
                     <input
                       type="text"
@@ -230,11 +242,31 @@ const CreatePromotionRequestPage = () => {
                       className="w-full px-3 py-2 border rounded-md border-slate-300 bg-slate-50 text-slate-600"
                     />
                   </div>
+                  <div>
+                    <label className="block mb-2 text-sm font-medium text-slate-700">
+                      Due date *
+                    </label>
+                    <input
+                      type="date"
+                      name="dueDate"
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      min={new Date().toISOString().split("T")[0]}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.dueDate ? "border-red-300" : "border-slate-300"
+                      }`}
+                    />
+                    {errors.dueDate && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.dueDate}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả chung *
+                    Description *
                   </label>
                   <textarea
                     name="description"
@@ -244,7 +276,7 @@ const CreatePromotionRequestPage = () => {
                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                       errors.description ? "border-red-300" : "border-slate-300"
                     }`}
-                    placeholder="Mô tả chung về chiến dịch..."
+                    placeholder="Enter description"
                   />
                   {errors.description && (
                     <p className="mt-1 text-sm text-red-600">
@@ -255,7 +287,7 @@ const CreatePromotionRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Mô tả công việc *
+                    Job description *
                   </label>
                   <div
                     className={`rounded-md border ${
@@ -270,7 +302,7 @@ const CreatePromotionRequestPage = () => {
                       onChange={(_, editor) =>
                         handleEditorChange("jobDescription", editor.getData())
                       }
-                      config={{ placeholder: "Mô tả chi tiết về công việc..." }}
+                      config={{ placeholder: "Enter job description" }}
                     />
                   </div>
                   {errors.jobDescription && (
@@ -282,7 +314,7 @@ const CreatePromotionRequestPage = () => {
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Yêu cầu công việc *
+                    Job requirement *
                   </label>
                   <div
                     className={`rounded-md border ${
@@ -298,7 +330,7 @@ const CreatePromotionRequestPage = () => {
                         handleEditorChange("jobRequirement", editor.getData())
                       }
                       config={{
-                        placeholder: "Liệt kê các yêu cầu cho ứng viên...",
+                        placeholder: "Enter job requirement",
                       }}
                     />
                   </div>
@@ -322,7 +354,7 @@ const CreatePromotionRequestPage = () => {
                   onClick={handleCancel}
                   className="w-full px-4 py-2 font-medium transition-colors border rounded-md border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -333,7 +365,7 @@ const CreatePromotionRequestPage = () => {
                       : "bg-red-600 hover:bg-red-700 text-white"
                   }`}
                 >
-                  {isSubmitting ? "Đang tạo..." : "Tạo yêu cầu"}
+                  {isSubmitting ? "Creating..." : "Create request"}
                 </button>
               </div>
             </div>
@@ -344,10 +376,10 @@ const CreatePromotionRequestPage = () => {
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
         onConfirm={handleConfirmCancel}
-        title="Xác nhận hủy"
-        message="Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất."
-        confirmText="Hủy"
-        cancelText="Quay lại"
+        title="Confirm cancel"
+        message="Are you sure you want to cancel? All information will be lost."
+        confirmText="Cancel"
+        cancelText="Back"
       />
     </div>
   );

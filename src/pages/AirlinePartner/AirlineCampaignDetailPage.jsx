@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCampaignDetail } from "../../service/api2";
-import Loading from "../../components/Loading";
 import BatchInfo from "../../components/AirlinePartnerComponent/CampaignDetail/BatchInfo";
 import CampaignInfo from "../../components/AirlinePartnerComponent/CampaignDetail/CampaignInfo";
 import PendingCampaignDetail from "../../components/AirlinePartnerComponent/CampaignDetail/PendingCampaignDetail";
@@ -17,7 +16,7 @@ const AirlineCampaignDetailPage = () => {
   useEffect(() => {
     const fetchCampaignDetail = async () => {
       if (!id) {
-        setError("Không tìm thấy ID chiến dịch");
+        setError("Campaign ID not found");
         setLoading(false);
         return;
       }
@@ -30,10 +29,10 @@ const AirlineCampaignDetailPage = () => {
         if (result.success && result.data) {
           setCampaignData(result.data);
         } else {
-          setError(result.error || "Lỗi khi tải chi tiết chiến dịch");
+          setError(result.error || "Error loading campaign detail");
         }
       } catch (err) {
-        setError(err.message || "Lỗi khi tải chi tiết chiến dịch");
+        setError(err.message || "Error loading campaign detail");
       } finally {
         setLoading(false);
       }
@@ -43,13 +42,17 @@ const AirlineCampaignDetailPage = () => {
   }, [id]);
 
   if (loading) {
-    return <Loading message="Đang tải dữ liệu..." />;
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="text-gray-500">Loading campaign data...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="flex items-center justify-center p-6">
-        <div className="text-red-600">Lỗi: {error}</div>
+        <div className="text-red-600">Error: {error}</div>
       </div>
     );
   }
@@ -57,7 +60,7 @@ const AirlineCampaignDetailPage = () => {
   if (!campaignData) {
     return (
       <div className="flex items-center justify-center p-6">
-        <div className="text-gray-500">Không tìm thấy dữ liệu</div>
+        <div className="text-gray-500">Data not found</div>
       </div>
     );
   }
@@ -85,7 +88,7 @@ const AirlineCampaignDetailPage = () => {
           onClick={goBack}
           className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
-          Quay lại
+          Back
         </button>
       </div>
 

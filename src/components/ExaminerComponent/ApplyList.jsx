@@ -2,7 +2,11 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaRegEye, FaFilePen, FaArrowRight } from "react-icons/fa6";
 import TestListModal from "./TestListModal";
-import { getRoundParticipants, moveToInterview, getTestSessionsByType } from "../../service/api2";
+import {
+  getRoundParticipants,
+  moveToInterview,
+  getTestSessionsByType,
+} from "../../service/api2";
 import { formatDate } from "../../config/formatDate";
 import { toast } from "react-toastify";
 
@@ -97,8 +101,12 @@ const ApplyList = ({
   // Tính toán dateRange từ round được chọn
   const selectedRoundDateRange = useMemo(() => {
     if (!activeRoundForTests) return null;
-    const startDate = activeRoundForTests.startDate ? formatDate(activeRoundForTests.startDate) : "";
-    const endDate = activeRoundForTests.endDate ? formatDate(activeRoundForTests.endDate) : "";
+    const startDate = activeRoundForTests.startDate
+      ? formatDate(activeRoundForTests.startDate)
+      : "";
+    const endDate = activeRoundForTests.endDate
+      ? formatDate(activeRoundForTests.endDate)
+      : "";
     if (startDate && endDate) {
       return `${startDate} - ${endDate}`;
     }
@@ -256,7 +264,12 @@ const ApplyList = ({
       const totalScore = session.totalScore;
       // Kiểm tra nếu totalScore là null, undefined, hoặc không phải là số hợp lệ
       // Coi 0 cũng là "không điểm" vì có thể API trả về 0 khi chưa chấm điểm
-      if (totalScore === null || totalScore === undefined || totalScore === "" || totalScore === 0) {
+      if (
+        totalScore === null ||
+        totalScore === undefined ||
+        totalScore === "" ||
+        totalScore === 0
+      ) {
         scoreMap.set(userId, false);
       } else {
         // Kiểm tra xem có phải là số hợp lệ không
@@ -283,7 +296,12 @@ const ApplyList = ({
     });
 
     return hasUnscored;
-  }, [testSessions, filteredApplicants, getCurrentTestType, loadingTestSessions]);
+  }, [
+    testSessions,
+    filteredApplicants,
+    getCurrentTestType,
+    loadingTestSessions,
+  ]);
 
   // Tính toán message xác nhận cho modal
   const confirmMessage = useMemo(() => {
@@ -615,8 +633,8 @@ const ApplyList = ({
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                    activeRoundForTests?.testId === 0 ||
-                    activeRoundForTests?.testId === null ? (
+                  activeRoundForTests?.testId === 0 ||
+                  activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -635,41 +653,46 @@ const ApplyList = ({
                       </button>
                       {/* Chỉ hiển thị nút Xét duyệt khi không có participant nào chưa có điểm (cho English Speaking Test) */}
                       {(() => {
-                        const isSpeakingTest = getCurrentTestType === "speaking";
-                        const shouldHideButton = isSpeakingTest && hasUnscoredParticipants;
+                        const isSpeakingTest =
+                          getCurrentTestType === "speaking";
+                        const shouldHideButton =
+                          isSpeakingTest && hasUnscoredParticipants;
 
                         // Debug log để kiểm tra
                         if (isSpeakingTest) {
-                          console.log("🔍 English Speaking Test - Button visibility:", {
-                            isSpeakingTest,
-                            hasUnscoredParticipants,
-                            shouldHideButton,
-                            testSessionsCount: testSessions.length,
-                            participantsCount: filteredApplicants.length,
-                            loadingTestSessions,
-                            testSessions: testSessions.map(s => ({
-                              userId: s.userId,
-                              totalScore: s.totalScore,
-                              totalScoreType: typeof s.totalScore
-                            })),
-                            participants: filteredApplicants.map(a => ({
-                              userId: a.userId || a.id,
-                              name: a.name
-                            }))
-                          });
+                          console.log(
+                            "🔍 English Speaking Test - Button visibility:",
+                            {
+                              isSpeakingTest,
+                              hasUnscoredParticipants,
+                              shouldHideButton,
+                              testSessionsCount: testSessions.length,
+                              participantsCount: filteredApplicants.length,
+                              loadingTestSessions,
+                              testSessions: testSessions.map((s) => ({
+                                userId: s.userId,
+                                totalScore: s.totalScore,
+                                totalScoreType: typeof s.totalScore,
+                              })),
+                              participants: filteredApplicants.map((a) => ({
+                                userId: a.userId || a.id,
+                                name: a.name,
+                              })),
+                            }
+                          );
                         }
 
                         return !shouldHideButton;
                       })() && (
-                          <button
-                            onClick={openConfirmMoveModal}
-                            disabled={isMovingToInterview}
-                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <FaArrowRight className="w-5 h-5" />
-                            {isMovingToInterview ? "Đang chuyển..." : "Xét duyệt"}
-                          </button>
-                        )}
+                        <button
+                          onClick={openConfirmMoveModal}
+                          disabled={isMovingToInterview}
+                          className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FaArrowRight className="w-5 h-5" />
+                          {isMovingToInterview ? "Đang chuyển..." : "Xét duyệt"}
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -811,9 +834,9 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                        applicant.roundName ||
-                        applicant.round ||
-                        "screening",
+                          applicant.roundName ||
+                          applicant.round ||
+                          "screening",
                         applicant
                       )}
                     </td>

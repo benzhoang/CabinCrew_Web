@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDateOnly } from "../../../config/formatDate";
+import { formatDate2 } from "../../../config/formatDate";
 import BatchManagement from "./BatchManagement";
 
 const DetailInfo = ({ campaign, onCreateBatch }) => {
@@ -7,13 +7,13 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
         <div className="space-y-1">
-          <div className="text-sm text-slate-500">Thông tin đề xuất</div>
+          <div className="text-sm text-slate-500">Proposal information</div>
           <div className="font-semibold text-slate-800">
             {campaign?.partnerName || "N/A"}
           </div>
         </div>
         <div className="text-xs text-right text-slate-500">
-          Mã số: {campaign?.campaignId || campaign?.id || "N/A"}
+          Campaign ID: {campaign?.campaignId || campaign?.id || "N/A"}
         </div>
       </div>
 
@@ -22,25 +22,25 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(campaign?.campaignType?.toLowerCase() === "promotion" ||
               campaign?.campaignType === "Promotion") && (
-              <Info label="Vị trí" value={"Chief Flight Attendant"} />
+              <Info label="Position" value={"Chief Flight Attendant"} />
             )}
             {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
               campaign?.campaignType === "Recruitment") && (
-              <Info label="Vị trí" value={"Flight Attendant"} />
+              <Info label="Position" value={"Flight Attendant"} />
             )}
             <Info
-              label="Số lượng tuyển"
+              label="Target quantity"
               value={`${
                 campaign?.targetQuantity || campaign?.targetHires || 0
               }`}
             />
             <Info
-              label="Ngày bắt đầu"
-              value={formatDateOnly(campaign?.startDate) || "N/A"}
+              label="Start date"
+              value={formatDate2(campaign?.startDate) || "N/A"}
             />
             <Info
-              label="Ngày kết thúc"
-              value={formatDateOnly(campaign?.endDate) || "N/A"}
+              label="End date"
+              value={formatDate2(campaign?.endDate) || "N/A"}
             />
           </div>
 
@@ -48,7 +48,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           {campaign?.jobDescription && (
             <div className="mt-6">
               <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                📋 Mô tả công việc / Job Description
+                📋 Job description
               </h3>
               <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                 <div
@@ -65,7 +65,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           {campaign?.jobRequirement && (
             <div className="mt-6">
               <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                📝 Yêu cầu công việc / Job Requirements
+                📝 Job requirements
               </h3>
               <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                 <div

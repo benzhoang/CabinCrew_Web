@@ -81,7 +81,6 @@ import ExaminerListPage from "./pages/Admin/ExaminerListPage";
 import TestingPage from "./pages/Examiner/TestingPage";
 import TestDetailPage from "./pages/Examiner/TestDetailPage";
 import CreatePromotionRequestPage from "./pages/AirlinePartner/CreatePromotionRequestPage";
-import CreateCampaignRequestPage from "./pages/AirlinePartner/CreateCampaignRequestPage";
 import CreateTestPage from "./pages/Examiner/CreateTestPage";
 import ExamTask from "./pages/Examiner/ExamTask";
 import ExaminerCabinCrewEvaluationPage from "./pages/Examiner/ExaminerDetail/ExaminerCabinCrewEvaluationPage";
@@ -94,6 +93,12 @@ import PracticalTestReportPage from "./pages/CabinCrew/TestReport/PracticalTestR
 import ScoreReportPage from "./pages/CabinCrew/TestReport/ScoreReportPage";
 import ApplicationFormPage from "./pages/CabinCrew/ApplicationFormPage";
 import FinalApplyDetail from "./pages/Recruiter/FinalApplyDetail";
+import CreateRecruitmentRequestPage from "./pages/AirlinePartner/CreateRecruitmentRequestPage";
+import ExamListPage from "./pages/Admin/ExamListPage";
+import AdminExamDetailPage from "./pages/Admin/AdminExamDetailPage";
+import AdminCampaignDetailPage from "./pages/Admin/AdminCampaignDetailPage";
+import AdminApplyListPage from "./pages/Admin/AdminApplyListPage";
+import AirlineCriteriaPage from "./pages/AirlinePartner/AirlineCriteriaPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -440,6 +445,38 @@ function App() {
             </AdminLayout>
           }
         />
+        <Route
+          path="/admin/campaigns/:id"
+          element={
+            <AdminLayout>
+              <AdminCampaignDetailPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/campaigns/:id/applications/:campaignRoundId"
+          element={
+            <AdminLayout>
+              <AdminApplyListPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/tests"
+          element={
+            <AdminLayout>
+              <ExamListPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/tests/:id"
+          element={
+            <AdminLayout>
+              <AdminExamDetailPage />
+            </AdminLayout>
+          }
+        />
       </Routes>
 
       {/* Airline Partner Routes */}
@@ -477,10 +514,10 @@ function App() {
           }
         />
         <Route
-          path="/airline-partner/requests/campaign/create"
+          path="/airline-partner/requests/recruitment/create"
           element={
             <AirlinePartnerLayout>
-              <CreateCampaignRequestPage />
+              <CreateRecruitmentRequestPage />
             </AirlinePartnerLayout>
           }
         />
@@ -505,6 +542,14 @@ function App() {
           element={
             <AirlinePartnerLayout>
               <AirlineRequestDetailPage />
+            </AirlinePartnerLayout>
+          }
+        />
+        <Route
+          path="/airline-partner/criteria"
+          element={
+            <AirlinePartnerLayout>
+              <AirlineCriteriaPage />
             </AirlinePartnerLayout>
           }
         />

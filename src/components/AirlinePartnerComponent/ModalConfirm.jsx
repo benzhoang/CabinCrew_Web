@@ -4,10 +4,10 @@ const ModalConfirm = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Xác nhận xóa",
-  message = "Bạn có chắc chắn muốn xóa mục này?",
-  confirmText = "Xóa",
-  cancelText = "Hủy",
+  title = "Confirm delete",
+  message = "Are you sure you want to delete this item?",
+  confirmText = "Delete",
+  cancelText = "Cancel",
   isLoading = false,
 }) => {
   if (!isOpen) return null;
