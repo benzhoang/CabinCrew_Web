@@ -202,7 +202,7 @@ const DirectorCampaign = () => {
     const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-    const [sortBy, setSortBy] = useState('idDesc')
+    const [sortBy, setSortBy] = useState('startDateDesc')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
     const [langVersion, setLangVersion] = useState(0)
@@ -373,31 +373,16 @@ const DirectorCampaign = () => {
         // Sort campaigns
         const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
-                case 'idDesc':
-                    return (Number(b.id) || 0) - (Number(a.id) || 0)
-                case 'name':
-                    return normalizeString(a.name).localeCompare(normalizeString(b.name))
-                case 'startDate':
-                    return (parseDateValue(a.rawStartDate) || 0) - (parseDateValue(b.rawStartDate) || 0)
-                case 'endDate':
-                    return (parseDateValue(a.rawEndDate) || 0) - (parseDateValue(b.rawEndDate) || 0)
-                case 'progress':
-                    const progressA = ((Number(a.currentHires) || 0) / (Number(a.targetHires) || 1)) * 100
-                    const progressB = ((Number(b.currentHires) || 0) / (Number(b.targetHires) || 1)) * 100
-                    return progressB - progressA
-                case 'status':
-                    const statusOrder = {
-                        'Pending': 1,
-                        'Approved': 2,
-                        'Rejected': 3,
-                        'Draft': 4,
-                        'Upcoming': 5,
-                        'Ongoing': 6,
-                        'Ended': 7
-                    }
-                    const statusA = statusOrder[a.status] || statusOrder[normalizeStatus(a.status)] || 8
-                    const statusB = statusOrder[b.status] || statusOrder[normalizeStatus(b.status)] || 8
-                    return statusA - statusB
+                case 'startDateDesc': {
+                    const dateA = parseDateValue(a.rawStartDate) || 0
+                    const dateB = parseDateValue(b.rawStartDate) || 0
+                    return dateB - dateA // newest first
+                }
+                case 'startDateAsc': {
+                    const dateA = parseDateValue(a.rawStartDate) || 0
+                    const dateB = parseDateValue(b.rawStartDate) || 0
+                    return dateA - dateB // oldest first
+                }
                 default:
                     return 0
             }
@@ -534,18 +519,14 @@ const DirectorCampaign = () => {
 
                     {/* Sort Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by assigned date</label>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
-                            <option value="idDesc">Newest (ID desc)</option>
-                            <option value="name">Campaign name</option>
-                            <option value="startDate">Start date</option>
-                            <option value="endDate">End date</option>
-                            <option value="progress">Progress</option>
-                            <option value="status">Status</option>
+                            <option value="startDateDesc">Newest first</option>
+                            <option value="startDateAsc">Oldest first</option>
                         </select>
                     </div>
                 </div>
