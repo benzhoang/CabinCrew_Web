@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getCampaignDetail } from "../../service/api2";
 import { formatDate2 } from "../../config/formatDate";
-import Loading from "../../components/Loading.jsx";
 
 const getRoundTime = (start, end) => {
   const startLabel = formatDate2(start);
@@ -155,11 +154,13 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-              "Không thể tải thông tin chiến dịch, vui lòng thử lại."
+              "Cannot load campaign information, please try again."
           );
         }
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi tải thông tin chiến dịch.");
+        setError(
+          err.message || "An error occurred while loading campaign information."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -170,28 +171,34 @@ const PromotionApplyPage = () => {
 
   const formatDateLabel = (value) => formatDate2(value) || "—";
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="text-gray-500">Loading campaign information...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl px-4 py-8 mx-auto">
-        {isLoading ? (
-          <Loading message="Đang tải thông tin..." />
-        ) : error ? (
+        {error ? (
           <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
             <p className="mb-4 text-red-600">{error}</p>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/cabin-crew/promotion")}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
-              Quay lại
+              Back
             </button>
           </div>
         ) : !campaign ? (
           <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
             <p className="mb-4 text-gray-600">
-              Không tìm thấy thông tin chiến dịch.
+              Cannot find campaign information.
             </p>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/cabin-crew/promotion")}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
               Quay lại
@@ -201,10 +208,10 @@ const PromotionApplyPage = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/cabin-crew/promotion")}
                 className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
               >
-                Quay lại
+                Back
               </button>
             </div>
             <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
@@ -225,14 +232,14 @@ const PromotionApplyPage = () => {
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {isCampaignActive(campaign) ? "Đang diễn ra" : "Đã kết thúc"}
+                  {isCampaignActive(campaign) ? "Ongoing" : "Ended"}
                 </span>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  <Info label="Vị trí" value={"Chief Flight Attendant"} />
+                  <Info label="Position" value={"Chief Flight Attendant"} />
                   <Info
-                    label="Loại"
+                    label="Type"
                     value={
                       campaign.position ||
                       campaign.campaignType ||
@@ -240,20 +247,17 @@ const PromotionApplyPage = () => {
                       "—"
                     }
                   />
+                  <Info label="Airline" value={campaign.airline || "—"} />
                   <Info
-                    label="Hãng hàng không"
-                    value={campaign.airline || "—"}
-                  />
-                  <Info
-                    label="Ngày bắt đầu"
+                    label="Start Date"
                     value={formatDateLabel(campaign.startDate)}
                   />
                   <Info
-                    label="Ngày kết thúc"
+                    label="End Date"
                     value={formatDateLabel(campaign.endDate)}
                   />
                   <Info
-                    label="Chỉ tiêu"
+                    label="Target quantity"
                     value={`${campaign.targetHires ?? "—"}`}
                   />
                 </div>
@@ -261,11 +265,11 @@ const PromotionApplyPage = () => {
                 {campaign.jobDescription && (
                   <div className="mt-6">
                     <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                      📋 Mô tả công việc / Job Description
+                      📋 Job description
                     </h3>
                     <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                       <div
-                        className="job-description-content text-sm text-slate-700 whitespace-pre-line"
+                        className="text-sm whitespace-pre-line job-description-content text-slate-700"
                         dangerouslySetInnerHTML={{
                           __html: campaign.jobDescription || "N/A",
                         }}
@@ -277,11 +281,11 @@ const PromotionApplyPage = () => {
                 {campaign.jobRequirement && (
                   <div className="mt-6">
                     <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                      📝 Yêu cầu công việc / Job Requirements
+                      📝 Job requirements
                     </h3>
                     <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                       <div
-                        className="job-requirement-content text-sm text-slate-700 whitespace-pre-line"
+                        className="text-sm whitespace-pre-line job-requirement-content text-slate-700"
                         dangerouslySetInnerHTML={{
                           __html: campaign.jobRequirement || "N/A",
                         }}
@@ -293,7 +297,7 @@ const PromotionApplyPage = () => {
                 {/* Recruitment Process */}
                 <div className="mt-6">
                   <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                    🔄 Quy trình tuyển dụng / Recruitment Process
+                    🔄 Recruitment process
                   </h3>
                   <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
                     <div className="space-y-4">
@@ -357,7 +361,7 @@ const PromotionApplyPage = () => {
                 {/* Batches (đợt tuyển) - dùng fallback nếu không có */}
                 <div className="mt-6">
                   <div className="mb-2 text-sm text-slate-600">
-                    Kế hoạch các đợt tuyển
+                    Recruitment schedule
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {(Array.isArray(campaign.batches) && campaign.batches.length
@@ -429,58 +433,31 @@ const PromotionApplyPage = () => {
                         </div>
                         <div className="p-4 space-y-4">
                           <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-                            <InfoMini label="Thời gian" value={b.time || "—"} />
-                            <InfoMini
-                              label="Địa điểm"
-                              value={b.location || "—"}
-                            />
-                            <InfoMini
-                              label="Hình thức"
-                              value={b.method || "—"}
-                            />
+                            <InfoMini label="Time" value={b.time || "—"} />
+                            <InfoMini label="Method" value={b.method || "—"} />
                             {b.owner && (
-                              <InfoMini label="Phụ trách" value={b.owner} />
+                              <InfoMini label="Owner" value={b.owner} />
                             )}
                             {b.slots && (
                               <InfoMini
-                                label="Số lượng tuyển"
-                                value={`${b.slots} người`}
+                                label="Number of recruits"
+                                value={`${b.slots} people`}
                               />
                             )}
                             {b.applied !== undefined && (
                               <InfoMini
-                                label="Đã ứng tuyển"
+                                label="Applied"
                                 value={`${b.applied} người`}
                               />
                             )}
                           </div>
                           {b.description && (
                             <div className="text-xs">
-                              <div className="mb-1 text-slate-500">Mô tả</div>
+                              <div className="mb-1 text-slate-500">
+                                Description
+                              </div>
                               <div className="p-2 border rounded text-slate-700 bg-slate-50">
                                 {b.description}
-                              </div>
-                            </div>
-                          )}
-                          {b.slots && b.applied !== undefined && (
-                            <div className="text-xs">
-                              <div className="mb-1 text-slate-500">
-                                Tiến độ ứng tuyển
-                              </div>
-                              <div className="h-2 bg-gray-200 rounded-full">
-                                <div
-                                  className="h-2 transition-all duration-300 bg-blue-600 rounded-full"
-                                  style={{
-                                    width: `${Math.min(
-                                      (b.applied / b.slots) * 100,
-                                      100
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="mt-1 text-slate-600">
-                                {b.applied}/{b.slots} (
-                                {Math.round((b.applied / b.slots) * 100)}%)
                               </div>
                             </div>
                           )}
@@ -500,7 +477,7 @@ const PromotionApplyPage = () => {
                               }
                               className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
                             >
-                              Ứng tuyển ngay
+                              Apply now
                             </button>
                           )}
                         </div>

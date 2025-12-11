@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import {
   getCampaignDetail,
   updateCampaignAndCreateRounds,
+  getRoundTypes,
 } from "../../service/api2";
 import CreateRound from "../../components/SeniorRecruiterComponent/CreateCampaign/CreateRound";
 import ModalConfirm from "../../components/SeniorRecruiterComponent/ModalConfirm";
@@ -39,6 +40,7 @@ const SeniorCreateCampaignPage = () => {
   const [detailError, setDetailError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roundsData, setRoundsData] = useState([]); // State để lưu rounds data cho UI mới
+  const [roundTypes, setRoundTypes] = useState([]); // State để lưu round types từ API
   const [showCancelModal, setShowCancelModal] = useState(false);
   const navigate = useNavigate();
   const isRequestDataLocked = Boolean(campaignDetail);
@@ -76,6 +78,15 @@ const SeniorCreateCampaignPage = () => {
             jobDescription: detailData.jobDescription || "",
             jobRequirement: detailData.jobRequirement || "",
           }));
+
+          // Fetch round types based on campaign type
+          const campaignType = detailData.campaignType;
+          // Convert campaignType string to number: "Recruitment" -> 1, "Promotion" -> 2
+          const typeNumber = campaignType === "Promotion" ? 2 : 1;
+          const roundTypesResult = await getRoundTypes(typeNumber);
+          if (roundTypesResult.success && roundTypesResult.data) {
+            setRoundTypes(roundTypesResult.data);
+          }
         } else {
           setDetailError(result.error || "Cannot load campaign detail");
         }
@@ -462,6 +473,7 @@ const SeniorCreateCampaignPage = () => {
               endDate={formData.endDate}
               todayString={todayString}
               campaignTarget={parseInt(formData.targetQuantity, 10) || 0}
+              roundTypes={roundTypes}
             />
           </div>
 

@@ -129,7 +129,7 @@ const SearchableDropdown = ({
               ))
             ) : (
               <div className="px-4 py-2 text-sm text-gray-500">
-                Không tìm thấy kết quả
+                No results found
               </div>
             )}
           </div>
@@ -520,9 +520,7 @@ const SettingsPage = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             {t("user_profile")}
           </h1>
-          <p className="mt-2 text-gray-600">
-            Quản lý thông tin cá nhân của bạn
-          </p>
+          <p className="mt-2 text-gray-600">Manage your personal information</p>
         </div>
 
         {/* CV Layout - 2 Columns */}
@@ -592,7 +590,7 @@ const SettingsPage = () => {
                   />
                 </div>
                 <h2 className="mt-4 text-xl font-bold text-gray-900">
-                  {formData.fullname || "Tên đầy đủ"}
+                  {formData.fullname || "Full name"}
                 </h2>
                 <p className="text-gray-600">{formData.role || "Vai trò"}</p>
               </div>
@@ -716,7 +714,7 @@ const SettingsPage = () => {
                           value={formData.age}
                           readOnly
                           className="w-full px-3 py-2 text-sm text-gray-500 border rounded-lg cursor-not-allowed bg-gray-50"
-                          placeholder="Tự động tính"
+                          placeholder="Automatically calculated"
                         />
                       </div>
                     </div>
@@ -864,7 +862,7 @@ const SettingsPage = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        Đã được cập nhật
+                        Updated
                       </span>
                     ) : (
                       <span className="inline-flex items-center px-2 py-1 ml-2 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
@@ -879,7 +877,7 @@ const SettingsPage = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        Chưa có vai trò
+                        No role
                       </span>
                     )}
                   </label>
@@ -893,7 +891,7 @@ const SettingsPage = () => {
                     >
                       <option value="">
                         {formData.role ||
-                          "Vai trò sẽ được cập nhật tự động khi ứng tuyển thành công"}
+                          "Role will be updated automatically when you successfully apply for a position"}
                       </option>
                       {formData.role && (
                         <option value={formData.role}>{formData.role}</option>
@@ -929,8 +927,8 @@ const SettingsPage = () => {
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Vai trò sẽ được cập nhật tự động khi bạn ứng tuyển thành
-                    công vào một vị trí
+                    Role will be updated automatically when you successfully
+                    apply for a position
                   </p>
                 </div>
               </div>
@@ -978,7 +976,7 @@ const SettingsPage = () => {
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                       errors.address ? "border-red-500" : "border-gray-300"
                     }`}
-                    placeholder="123 Nguyễn Văn A"
+                    placeholder="123 Nguyen Van A"
                   />
                   {errors.address && (
                     <p className="mt-1 text-sm text-red-500">
@@ -1008,7 +1006,7 @@ const SettingsPage = () => {
                       }}
                       placeholder={t("select_city")}
                       error={!!errors.city}
-                      label="thành phố/tỉnh"
+                      label="city/province"
                     />
                     {errors.city && (
                       <p className="mt-1 text-sm text-red-500">{errors.city}</p>
@@ -1035,7 +1033,7 @@ const SettingsPage = () => {
                       placeholder={t("select_ward")}
                       disabled={!formData.city}
                       error={!!errors.ward}
-                      label="phường/xã"
+                      label="ward/commune"
                     />
                     {errors.ward && (
                       <p className="mt-1 text-sm text-red-500">{errors.ward}</p>
@@ -1056,7 +1054,7 @@ const SettingsPage = () => {
                   {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin"></div>
-                      Đang cập nhật...
+                      Updating...
                     </>
                   ) : (
                     <>

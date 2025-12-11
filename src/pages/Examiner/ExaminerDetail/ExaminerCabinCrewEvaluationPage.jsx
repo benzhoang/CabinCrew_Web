@@ -1,36 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { onLangChange } from "../../../i18n";
-import { getInterviewCriteriasPromotion } from "../../../service/api2";
-import Loading from "../../../components/Loading";
+import {
+  getInterviewCriteriasPromotion,
+  submitInterviewResult,
+  getInterviewResults,
+} from "../../../service/api2";
 import { toast } from "react-toastify";
 
 const ExaminerCabinCrewEvaluationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams();
   const [, setLangVersion] = useState(0);
 
   // Get candidate and batch data from location state
   const candidate = location.state?.candidate || location.state;
   const batchData = location.state?.batchData;
 
-  // Interview Scorecard header info
-  const [headerInfo, setHeaderInfo] = useState({
-    date: new Date().toISOString().split("T")[0],
-    applicantName: "",
-    department: "",
-    position: candidate?.position || "",
-    availabilityDate: "",
-  });
-
   // Evaluation criteria state - dynamically initialized from API
   const [evaluations, setEvaluations] = useState({});
 
-  const [result] = useState(""); // PASS, FAIL, or RESERVED
   const [generalComments, setGeneralComments] = useState("");
   const [isLoadingCriteria, setIsLoadingCriteria] = useState(false);
   const [criteriaData, setCriteriaData] = useState(null);
+  const [submittedCount, setSubmittedCount] = useState(0); // Number of times already evaluated
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [checkingCount, setCheckingCount] = useState(true); // Checking submitted count
 
   // Countdown timer state (30 minutes = 1800 seconds)
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes in seconds
@@ -50,16 +45,21 @@ const ExaminerCabinCrewEvaluationPage = () => {
         if (response.success) {
           setCriteriaData(response.data);
           // Initialize evaluations state from API data
+          // Filter interviewCriteriaItemId from 18 to 27
           const initialEvaluations = {};
           if (Array.isArray(response.data)) {
             response.data.forEach((section) => {
               if (Array.isArray(section.items)) {
                 section.items.forEach((item) => {
-                  initialEvaluations[item.interviewCriteriaItemId] = {
-                    score: 1,
-                    comment: "",
-                    criteria: item.criteria,
-                  };
+                  const criteriaId = item.interviewCriteriaItemId;
+                  // Only include criteria with ID from 18 to 27
+                  if (criteriaId >= 18 && criteriaId <= 27) {
+                    initialEvaluations[criteriaId] = {
+                      score: 1,
+                      comment: "",
+                      criteria: item.criteria,
+                    };
+                  }
                 });
               }
             });
@@ -67,9 +67,11 @@ const ExaminerCabinCrewEvaluationPage = () => {
           setEvaluations(initialEvaluations);
         } else {
           console.error("Error fetching criteria:", response.error);
+          toast.error(response.error || "Failed to load evaluation criteria");
         }
       } catch (error) {
         console.error("Error fetching criteria:", error);
+        toast.error("Failed to load evaluation criteria");
       } finally {
         setIsLoadingCriteria(false);
       }
@@ -78,15 +80,31 @@ const ExaminerCabinCrewEvaluationPage = () => {
     fetchCriteria();
   }, []);
 
+  // Check submitted count
   useEffect(() => {
-    if (candidate) {
-      setHeaderInfo((prev) => ({
-        ...prev,
-        applicantName: candidate.name || "",
-        position: candidate.position || prev.position,
-      }));
-    }
-  }, [candidate]);
+    const checkSubmittedCount = async () => {
+      if (!candidate?.activityId) {
+        setCheckingCount(false);
+        return;
+      }
+
+      try {
+        const response = await getInterviewResults(candidate.activityId);
+        if (response.success && Array.isArray(response.data)) {
+          setSubmittedCount(response.data.length);
+        } else {
+          setSubmittedCount(0);
+        }
+      } catch (error) {
+        console.error("Error checking submitted count:", error);
+        setSubmittedCount(0);
+      } finally {
+        setCheckingCount(false);
+      }
+    };
+
+    checkSubmittedCount();
+  }, [candidate?.activityId]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -110,11 +128,6 @@ const ExaminerCabinCrewEvaluationPage = () => {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
-  // Calculate total score
-  const totalScore = Object.values(evaluations).reduce((sum, criterion) => {
-    return sum + (criterion.score || 0);
-  }, 0);
-
   const handleScoreChange = (criteriaItemId, score) => {
     setEvaluations((prev) => ({
       ...prev,
@@ -135,61 +148,102 @@ const ExaminerCabinCrewEvaluationPage = () => {
     }));
   };
 
-  const _handleHeaderInfoChange = (key, value) => {
-    setHeaderInfo((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const formatEvaluationsForSubmit = () => {
+    return Object.entries(evaluations)
+      .filter(([criteriaId]) => {
+        const id = Number(criteriaId);
+        return id >= 18 && id <= 27;
+      })
+      .map(([criterionId, value]) => {
+        const parsedId = Number(criterionId);
+        return {
+          interviewCriteriaItemId: Number.isNaN(parsedId)
+            ? criterionId
+            : parsedId,
+          score: value?.score || 0,
+          comment: value?.comment || "",
+        };
+      });
   };
 
-  const _handleSave = () => {
-    // Save evaluation logic here
-    const evaluationData = {
-      headerInfo,
-      evaluations,
-      totalScore,
-      result,
-      generalComments,
-      candidateId: id || candidate?.id,
-    };
-    console.log("Evaluation Data:", evaluationData);
-    alert("Đã lưu đánh giá thành công!");
-  };
+  const handleSubmit = async () => {
+    // Check if already submitted 3 times
+    if (submittedCount >= 3) {
+      toast.error("Already evaluated 3 times. Cannot submit more evaluations.");
+      return;
+    }
 
-  const handleSubmit = () => {
-    // Submit evaluation logic here
-    const evaluationData = {
-      headerInfo,
-      evaluations,
-      totalScore,
-      result,
-      generalComments,
-      candidateId: id || candidate?.id,
-    };
-    console.log("Submitting evaluation...", evaluationData);
-    toast.success("Đã gửi đánh giá thành công!");
-    navigate("/examiner/applications", { state: batchData });
+    // Check activityId
+    const activityId = candidate?.activityId;
+    if (!activityId) {
+      toast.error("Activity ID not found. Please try again.");
+      return;
+    }
+
+    // Type is 2 for Promotion
+    const type = 2;
+
+    // Prepare data to submit
+    const choices = formatEvaluationsForSubmit();
+
+    if (choices.length === 0) {
+      toast.error("Please evaluate at least one criterion.");
+      return;
+    }
+
+    setLoadingSubmit(true);
+    try {
+      const response = await submitInterviewResult({
+        activityId: activityId,
+        comment: generalComments || "",
+        type: type,
+        choices: choices,
+      });
+
+      if (response.success) {
+        // Show appropriate message for evaluation submission
+        toast.success("Evaluation submitted successfully!");
+        // Increment submitted count
+        const newCount = submittedCount + 1;
+        setSubmittedCount(newCount);
+        // If not yet 3 times, navigate back to list
+        if (newCount < 3) {
+          if (batchData) {
+            navigate("/examiner/applications", { state: batchData });
+          } else {
+            navigate(-1); // Go back to previous page
+          }
+        }
+        // If already 3 times, button will automatically hide (no need to reload)
+      } else {
+        toast.error(
+          response.error || "Failed to submit evaluation. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error submitting evaluation:", error);
+      toast.error(
+        "An error occurred while submitting evaluation. Please try again."
+      );
+    } finally {
+      setLoadingSubmit(false);
+    }
   };
 
   if (!candidate) {
     return (
       <div className="p-6">
         <div className="p-6 bg-white border rounded-lg shadow-sm border-slate-200">
-          <p className="text-slate-500">Không tìm thấy thông tin tiếp viên</p>
+          <p className="text-slate-500">Cabin crew information not found</p>
           <button
             onClick={() => navigate("/examiner/applications")}
             className="px-4 py-2 mt-4 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            Quay lại
+            Go back
           </button>
         </div>
       </div>
     );
-  }
-
-  // Show loading while fetching criteria
-  if (isLoadingCriteria) {
-    return <Loading message="Đang tải tiêu chí đánh giá..." />;
   }
 
   return (
@@ -355,41 +409,69 @@ const ExaminerCabinCrewEvaluationPage = () => {
         </div>
 
         {/* Dynamic Assessment Sections from API */}
-        {criteriaData &&
-        Array.isArray(criteriaData) &&
-        criteriaData.length > 0 ? (
-          criteriaData.map((section, sectionIndex) => (
-            <div
-              key={sectionIndex}
-              className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200"
-            >
-              <h2 className="mb-4 text-xl font-semibold text-slate-800">
-                {section.title || `Section ${sectionIndex + 1}`}
-              </h2>
+        {isLoadingCriteria ? (
+          <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">
+                  Loading evaluation criteria...
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Please wait a moment.
+                </p>
+              </div>
+              <div className="w-6 h-6 border-2 border-blue-500 rounded-full border-t-transparent animate-spin" />
+            </div>
+          </div>
+        ) : criteriaData &&
+          Array.isArray(criteriaData) &&
+          criteriaData.length > 0 ? (
+          criteriaData.map((section, sectionIndex) => {
+            // Filter items to only show interviewCriteriaItemId from 18 to 27
+            const filteredItems =
+              section.items && Array.isArray(section.items)
+                ? section.items.filter(
+                    (item) =>
+                      item.interviewCriteriaItemId >= 18 &&
+                      item.interviewCriteriaItemId <= 27
+                  )
+                : [];
 
-              <div className="overflow-x-auto">
-                <table className="w-full table-fixed">
-                  <colgroup>
-                    <col className="w-[45%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[40%]" />
-                  </colgroup>
-                  <thead>
-                    <tr className="border-b border-slate-300">
-                      <th className="px-4 py-3 text-sm font-semibold text-left text-slate-700">
-                        Criteria
-                      </th>
-                      <th className="px-4 py-3 text-sm font-semibold text-center text-slate-700">
-                        Assessment Score
-                      </th>
-                      <th className="px-4 py-3 text-sm font-semibold text-left text-slate-700">
-                        Comments / Remarks
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {section.items && Array.isArray(section.items) ? (
-                      section.items.map((item, itemIndex) => {
+            if (filteredItems.length === 0) {
+              return null;
+            }
+
+            return (
+              <div
+                key={sectionIndex}
+                className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200"
+              >
+                <h2 className="mb-4 text-xl font-semibold text-slate-800">
+                  {section.title || `Section ${sectionIndex + 1}`}
+                </h2>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full table-fixed">
+                    <colgroup>
+                      <col className="w-[45%]" />
+                      <col className="w-[15%]" />
+                      <col className="w-[40%]" />
+                    </colgroup>
+                    <thead>
+                      <tr className="border-b border-slate-300">
+                        <th className="px-4 py-3 text-sm font-semibold text-left text-slate-700">
+                          Criteria
+                        </th>
+                        <th className="px-4 py-3 text-sm font-semibold text-center text-slate-700">
+                          Assessment Score
+                        </th>
+                        <th className="px-4 py-3 text-sm font-semibold text-left text-slate-700">
+                          Comments / Remarks
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredItems.map((item, itemIndex) => {
                         const criteriaId = item.interviewCriteriaItemId;
                         const evaluation = evaluations[criteriaId] || {
                           score: 1,
@@ -437,22 +519,13 @@ const ExaminerCabinCrewEvaluationPage = () => {
                             </td>
                           </tr>
                         );
-                      })
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan="3"
-                          className="px-4 py-3 text-center text-slate-500"
-                        >
-                          No criteria found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
             <p className="text-center text-slate-500">
@@ -479,18 +552,20 @@ const ExaminerCabinCrewEvaluationPage = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Submit
-          </button>
+          {!checkingCount && submittedCount < 3 && (
+            <button
+              onClick={handleSubmit}
+              disabled={loadingSubmit}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingSubmit ? "Submitting..." : "Submit Evaluation"}
+            </button>
+          )}
+          {!checkingCount && submittedCount >= 3 && (
+            <div className="px-6 py-2.5 bg-slate-100 text-slate-500 rounded-lg font-medium">
+              Already evaluated 3 times
+            </div>
+          )}
         </div>
       </div>
     </div>

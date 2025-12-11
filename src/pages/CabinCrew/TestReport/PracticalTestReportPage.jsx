@@ -82,12 +82,12 @@ const PracticalTestReportPage = () => {
           setApiData(mappedData);
           setIsLoading(false);
         } else {
-          setError(result.error || "Không tìm thấy kết quả bài thi");
+          setError(result.error || "Cannot find test result");
           setIsLoading(false);
         }
       } catch (err) {
         console.error("Error loading practical sessions:", err);
-        setError("Không thể tải kết quả bài thi");
+        setError("Cannot load test result");
         setIsLoading(false);
       }
     };
@@ -112,8 +112,7 @@ const PracticalTestReportPage = () => {
     setIsAppealSubmitted(true);
     setIsAppealModalOpen(false);
     toast.success(
-      t("appeal_submitted_success") ||
-        "Yêu cầu phúc khảo đã được gửi thành công!"
+      t("appeal_submitted_success") || "Appeal request submitted successfully!"
     );
   };
 
@@ -122,8 +121,7 @@ const PracticalTestReportPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600">{t("loading") || "Đang tải..."}</p>
+          <p className="text-gray-600">{t("loading") || "Loading..."}</p>
         </div>
       </div>
     );
@@ -135,13 +133,13 @@ const PracticalTestReportPage = () => {
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
-            {error || t("no_test_data") || "Không có dữ liệu bài thi"}
+            {error || t("no_test_data") || "No test data"}
           </p>
           <button
             onClick={handleBackToScoreReport}
             className="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            {t("back") || "Quay lại"}
+            {t("back") || "Back"}
           </button>
         </div>
       </div>
@@ -165,12 +163,12 @@ const PracticalTestReportPage = () => {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-800">
-            {"Báo cáo kết quả bài thi"}
+            {"Test result report"}
           </h1>
           <p className="text-gray-600">
             {finalTestName ||
               t("exam_report_subtitle") ||
-              "Xem chi tiết kết quả bài thi của bạn"}
+              "View your test result details"}
           </p>
         </div>
 
@@ -197,7 +195,7 @@ const PracticalTestReportPage = () => {
                       {finalUserFullName && (
                         <div>
                           <label className="block mb-1 text-xs font-medium text-gray-500">
-                            {t("full_name") || "Họ và tên"}
+                            {t("full_name") || "Full name"}
                           </label>
                           <p className="text-base font-semibold text-gray-800">
                             {finalUserFullName}
@@ -237,7 +235,7 @@ const PracticalTestReportPage = () => {
                     {finalTestName && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("test_name") || "Tên bài thi"}
+                          {t("test_name") || "Test name"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
                           {finalTestName}
@@ -248,7 +246,7 @@ const PracticalTestReportPage = () => {
                     {finalTestType && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("test_type") || "Loại bài thi"}
+                          {t("test_type") || "Test type"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
                           {finalTestType}
@@ -266,7 +264,7 @@ const PracticalTestReportPage = () => {
                     {finalStartTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("start_time") || "Thời gian bắt đầu"}
+                          {t("start_time") || "Start time"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {new Date(finalStartTime).toLocaleString("vi-VN", {
@@ -284,7 +282,7 @@ const PracticalTestReportPage = () => {
                     {finalEndTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("end_time") || "Thời gian kết thúc"}
+                          {t("end_time") || "End time"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {new Date(finalEndTime).toLocaleString("vi-VN", {
@@ -302,7 +300,7 @@ const PracticalTestReportPage = () => {
                     {finalStartTime && finalEndTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("time_spent") || "Thời gian làm bài"}
+                          {t("time_spent") || "Time spent"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {(() => {
@@ -334,7 +332,7 @@ const PracticalTestReportPage = () => {
             onClick={handleBackToScoreReport}
             className="px-8 py-3 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            {"Quay lại báo cáo điểm số"}
+            {"Back to score report"}
           </button>
           {!isAppealSubmitted && (
             <button
@@ -354,7 +352,7 @@ const PracticalTestReportPage = () => {
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              {t("request_appeal") || "Yêu cầu phúc khảo"}
+              {t("request_appeal") || "Request appeal"}
             </button>
           )}
           {isAppealSubmitted && (
@@ -372,7 +370,7 @@ const PracticalTestReportPage = () => {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              {t("appeal_submitted") || "Đã gửi yêu cầu phúc khảo"}
+              {t("appeal_submitted") || "Appeal submitted"}
             </div>
           )}
         </div>

@@ -820,8 +820,8 @@ export const getTestTypes = async () => {
         responseData?.data && Array.isArray(responseData.data)
           ? responseData.data
           : Array.isArray(responseData)
-            ? responseData
-            : null;
+          ? responseData
+          : null;
 
       if (list) {
         return {
@@ -1872,51 +1872,295 @@ export const getPromotionHistory = async () => {
   }
 };
 
-// API cập nhật startDate và endDate cho một round cụ thể - PUT /api/v1/rounds/{id}/dates
-export const updateRoundDates = async (roundId, startDate, endDate) => {
-  try {
-    // Validate roundId
-    const roundIdNum =
-      typeof roundId === "string" ? parseInt(roundId, 10) : Number(roundId);
-    if (!roundIdNum || Number.isNaN(roundIdNum) || roundIdNum <= 0) {
-      return {
-        success: false,
-        error: "Round ID không hợp lệ",
-      };
-    }
+// // API cập nhật startDate và endDate cho một round cụ thể - PUT /api/v1/rounds/{id}/dates
+// export const updateRoundDates = async (roundId, startDate, endDate) => {
+//   try {
+//     // Validate roundId
+//     const roundIdNum =
+//       typeof roundId === "string" ? parseInt(roundId, 10) : Number(roundId);
+//     if (!roundIdNum || Number.isNaN(roundIdNum) || roundIdNum <= 0) {
+//       return {
+//         success: false,
+//         error: "Round ID không hợp lệ",
+//       };
+//     }
 
-    // Tạo payload theo format API (ISO 8601 format string)
-    const payload = {
-      startDate: startDate,
-      endDate: endDate,
+//     // Tạo payload theo format API (ISO 8601 format string)
+//     const payload = {
+//       startDate: startDate,
+//       endDate: endDate,
+//     };
+
+//     const response = await api2.put(`/rounds/${roundIdNum}/dates`, payload);
+
+//     // Kiểm tra response: API trả về status 200 và response body là boolean true
+//     const isSuccess = response.status === 200 && response.data === true;
+
+//     if (isSuccess) {
+//       return {
+//         success: true,
+//         data: response.data,
+//         message: "Cập nhật dates thành công",
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         error: "Cập nhật dates thất bại",
+//         responseData: response.data,
+//         status: response.status,
+//       };
+//     }
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error:
+//         error.response?.data?.message ||
+//         error.message ||
+//         "Cập nhật dates cho round thất bại",
+//       status: error.response?.status,
+//     };
+//   }
+// };
+
+// API submit Interview Result
+// Body: { activityId: number, comment: string, type: number (1: Recruitment, 2: Promotion), choices: [{ score: number, comment: string, interviewCriteriaItemId: number }] }
+export const submitInterviewResult = async (payload) => {
+  if (!payload) {
+    return {
+      success: false,
+      error: "Thiếu dữ liệu để gửi kết quả phỏng vấn",
     };
+  }
 
-    const response = await api2.put(`/rounds/${roundIdNum}/dates`, payload);
+  if (!payload.activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để gửi kết quả phỏng vấn",
+    };
+  }
 
-    // Kiểm tra response: API trả về status 200 và response body là boolean true
-    const isSuccess = response.status === 200 && response.data === true;
+  if (payload.type === undefined || payload.type === null) {
+    return {
+      success: false,
+      error:
+        "Thiếu type để gửi kết quả phỏng vấn (1: Recruitment, 2: Promotion)",
+    };
+  }
 
-    if (isSuccess) {
+  if (!Array.isArray(payload.choices)) {
+    return {
+      success: false,
+      error: "Thiếu choices (mảng các lựa chọn) để gửi kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api2.post("/interview-results", {
+      activityId: Number(payload.activityId),
+      comment: payload.comment || "",
+      type: Number(payload.type),
+      choices: payload.choices.map((choice) => ({
+        score: Number(choice.score) || 0,
+        comment: choice.comment || "",
+        interviewCriteriaItemId: Number(choice.interviewCriteriaItemId) || 0,
+      })),
+    });
+
+    const responseData = response.data;
+
+    // Code 0 or 2 both indicate success (2 = CREATED_SUCCESS)
+    if (responseData?.code === 0 || responseData?.code === 2) {
       return {
         success: true,
-        data: response.data,
-        message: "Cập nhật dates thành công",
-      };
-    } else {
-      return {
-        success: false,
-        error: "Cập nhật dates thất bại",
-        responseData: response.data,
-        status: response.status,
+        data: responseData.data || null,
+        message: responseData.message || "Gửi kết quả phỏng vấn thành công",
       };
     }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể gửi kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể gửi kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách Interview Result Forms
+export const getInterviewResults = async (activityId) => {
+  if (!activityId) {
+    return {
+      success: false,
+      error: "Thiếu activityId để truy xuất kết quả phỏng vấn",
+    };
+  }
+
+  try {
+    const response = await api2.get("/interview-results", {
+      params: {
+        activityId: activityId,
+      },
+    });
+    const responseData = response.data;
+
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || [],
+        message: responseData.message,
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Không thể lấy danh sách kết quả phỏng vấn",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy tất cả requirement items theo requirement ID - GET /api/v1/requirements/{id}/requirement-items
+export const getRequirementItems = async (id) => {
+  try {
+    // Validate id
+    const idNum = typeof id === "string" ? parseInt(id, 10) : Number(id);
+    if (!idNum || Number.isNaN(idNum) || idNum <= 0) {
+      return {
+        success: false,
+        error: "Requirement ID không hợp lệ",
+      };
+    }
+
+    const response = await api2.get(`/requirements/${idNum}/requirement-items`);
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message:
+          responseData.message || "Lấy danh sách requirement items thành công",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách requirement items thành công",
+      };
+    }
+
+    // Trường hợp data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message:
+          responseData.message || "Lấy danh sách requirement items thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message || "Lấy danh sách requirement items thất bại",
+    };
   } catch (error) {
     return {
       success: false,
       error:
         error.response?.data?.message ||
         error.message ||
-        "Cập nhật dates cho round thất bại",
+        "Lấy danh sách requirement items thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy tất cả round types theo campaign type - GET /api/v1/round-types
+export const getRoundTypes = async (type) => {
+  try {
+    const params = {};
+
+    // Nếu có type parameter, validate và thêm vào params
+    if (type !== undefined && type !== null) {
+      const typeNum =
+        typeof type === "string" ? parseInt(type, 10) : Number(type);
+
+      if (!Number.isNaN(typeNum) && typeNum > 0) {
+        params.type = typeNum;
+      }
+    }
+
+    const response = await api2.get("/round-types", {
+      params: Object.keys(params).length > 0 ? params : undefined,
+    });
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy danh sách round types thành công",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Lấy danh sách round types thành công",
+      };
+    }
+
+    // Trường hợp data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Lấy danh sách round types thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Lấy danh sách round types thất bại",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy danh sách round types thất bại",
       status: error.response?.status,
     };
   }

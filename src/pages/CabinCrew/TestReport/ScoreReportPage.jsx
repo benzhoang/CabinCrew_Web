@@ -17,7 +17,7 @@ const ScoreReportPage = () => {
         console.log("=== getMyTests result ===", result);
 
         if (result?.status === 401) {
-          setError("Vui lòng đăng nhập để xem điểm thi của bạn.");
+          setError("Please login to view your test scores.");
           setTests([]);
           return;
         }
@@ -38,7 +38,7 @@ const ScoreReportPage = () => {
 
             return {
               id: test.testId,
-              name: test.testName || "Đề thi",
+              name: test.testName || "Test",
               code: test.joinCode || "",
               duration: test.durationInMinutes || 0,
               type: examType,
@@ -54,15 +54,15 @@ const ScoreReportPage = () => {
 
           setTests(mappedTests);
         } else {
-          setError(result.error || "Không thể tải danh sách đề thi");
+          setError(result.error || "Cannot load test list");
           setTests([]);
         }
       } catch (err) {
         const status = err?.response?.status;
         if (status === 401) {
-          setError("Vui lòng đăng nhập để xem điểm thi của bạn.");
+          setError("Please login to view your test scores.");
         } else {
-          setError(err.message || "Không thể tải danh sách đề thi");
+          setError(err.message || "Cannot load test list");
         }
         setTests([]);
       } finally {
@@ -111,8 +111,7 @@ const ScoreReportPage = () => {
       <div className="min-h-screen py-8 bg-white">
         <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
           <div className="py-12 text-center">
-            <div className="w-12 h-12 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-600">Đang tải danh sách đề thi...</p>
+            <p className="mt-4 text-gray-600">Loading test list...</p>
           </div>
         </div>
       </div>
@@ -125,9 +124,9 @@ const ScoreReportPage = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            Xem điểm thi
+            View test scores
           </h1>
-          <p className="text-gray-600">Xem điểm thi của bạn</p>
+          <p className="text-gray-600">View your test scores</p>
         </div>
 
         {error && (
@@ -153,10 +152,10 @@ const ScoreReportPage = () => {
               />
             </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">
-              Chưa có đề thi nào
+              No test found
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              Bạn chưa có đề thi nào trong danh sách
+              You have no tests in the list
             </p>
           </div>
         ) : (
@@ -195,7 +194,7 @@ const ScoreReportPage = () => {
                               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                           </svg>
-                          <span>Thời gian: {test.duration} phút</span>
+                          <span>Time: {test.duration} minutes</span>
                         </div>
                         {test.roundStartDate && (
                           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -213,7 +212,7 @@ const ScoreReportPage = () => {
                               />
                             </svg>
                             <span>
-                              Ngày bắt đầu: {formatDate(test.roundStartDate)}
+                              Start date: {formatDate(test.roundStartDate)}
                             </span>
                           </div>
                         )}
@@ -244,7 +243,7 @@ const ScoreReportPage = () => {
                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                           />
                         </svg>
-                        Xem chi tiết
+                        View details
                       </button>
                     </div>
                   </div>

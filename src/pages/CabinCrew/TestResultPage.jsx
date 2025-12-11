@@ -94,7 +94,7 @@ const TestResultPage = () => {
             setIsLoading(false);
           } else {
             // Không có dữ liệu từ API, chuyển về trang test
-            setError("Không tìm thấy kết quả bài thi");
+            setError("Cannot find test results");
             setTimeout(() => {
               navigate("/cabin-crew/tests");
             }, 2000);
@@ -106,7 +106,7 @@ const TestResultPage = () => {
         if (location.state && score !== undefined) {
           setIsLoading(false);
         } else {
-          setError("Không thể tải kết quả bài thi");
+          setError("Cannot load test results");
           setTimeout(() => {
             navigate("/cabin-crew/tests");
           }, 2000);
@@ -171,8 +171,7 @@ const TestResultPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600">{t("loading") || "Đang tải..."}</p>
+          <p className="text-gray-600">{t("loading") || "Loading..."}</p>
         </div>
       </div>
     );
@@ -184,9 +183,7 @@ const TestResultPage = () => {
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="mb-4 text-gray-600">
-            {error ||
-              t("no_test_data") ||
-              "Không có dữ liệu bài thi. Đang chuyển hướng..."}
+            {error || t("no_test_data") || "No test data. Redirecting..."}
           </p>
         </div>
       </div>
@@ -199,12 +196,12 @@ const TestResultPage = () => {
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-800">
-            {t("exam_result_title") || "Kết quả bài thi"}
+            {t("exam_result_title") || "Test result"}
           </h1>
           <p className="text-gray-600">
             {finalExamInfo?.testName ||
               t("exam_result_subtitle") ||
-              "Xem chi tiết kết quả bài thi của bạn"}
+              "View detailed test results"}
           </p>
         </div>
 
@@ -245,7 +242,7 @@ const TestResultPage = () => {
                     {finalUserFullName && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("full_name") || "Họ và tên"}
+                          {t("full_name") || "Full name"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
                           {finalUserFullName}
@@ -274,7 +271,7 @@ const TestResultPage = () => {
                     {finalTestName && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("test_name") || "Tên bài thi"}
+                          {t("test_name") || "Test name"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
                           {finalTestName}
@@ -285,7 +282,7 @@ const TestResultPage = () => {
                     {finalTestType && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("test_type") || "Loại bài thi"}
+                          {t("test_type") || "Test type"}
                         </label>
                         <p className="text-base font-semibold text-gray-800">
                           {finalTestType}
@@ -303,7 +300,7 @@ const TestResultPage = () => {
                     {finalStartTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("start_time") || "Thời gian bắt đầu"}
+                          {t("start_time") || "Start time"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {new Date(finalStartTime).toLocaleString("vi-VN", {
@@ -321,7 +318,7 @@ const TestResultPage = () => {
                     {finalEndTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("end_time") || "Thời gian kết thúc"}
+                          {t("end_time") || "End time"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {new Date(finalEndTime).toLocaleString("vi-VN", {
@@ -339,7 +336,7 @@ const TestResultPage = () => {
                     {finalStartTime && finalEndTime && (
                       <div>
                         <label className="block mb-1 text-xs font-medium text-gray-500">
-                          {t("time_spent") || "Thời gian làm bài"}
+                          {t("time_spent") || "Time spent"}
                         </label>
                         <p className="text-sm font-semibold text-gray-800">
                           {(() => {
@@ -417,7 +414,7 @@ const TestResultPage = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="mb-2 font-semibold text-gray-800">
-                          {t("question") || "Câu hỏi"} {index + 1}:{" "}
+                          {t("question") || "Question"} {index + 1}:{" "}
                           {question.question}
                         </div>
                         <div className="space-y-2">
@@ -445,11 +442,11 @@ const TestResultPage = () => {
                                   <span className="ml-auto font-semibold">
                                     {isCorrect ? (
                                       <span className="text-green-600">
-                                        ✓ {t("your_answer") || "Đáp án của bạn"}
+                                        ✓ {t("your_answer") || "Your answer"}
                                       </span>
                                     ) : (
                                       <span className="text-red-600">
-                                        ✗ {t("your_answer") || "Đáp án của bạn"}
+                                        ✗ {t("your_answer") || "Your answer"}
                                       </span>
                                     )}
                                   </span>
@@ -462,15 +459,15 @@ const TestResultPage = () => {
                       <div className="ml-4">
                         {isCorrect ? (
                           <span className="px-3 py-1 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
-                            ✓ {t("correct") || "Đúng"}
+                            ✓ {t("correct") || "Correct"}
                           </span>
                         ) : isAnswered ? (
                           <span className="px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                            ✗ {t("incorrect") || "Sai"}
+                            ✗ {t("incorrect") || "Incorrect"}
                           </span>
                         ) : (
                           <span className="px-3 py-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
-                            {t("not_answered") || "Chưa trả lời"}
+                            {t("not_answered") || "Not answered"}
                           </span>
                         )}
                       </div>
@@ -488,7 +485,7 @@ const TestResultPage = () => {
             onClick={handleBackToTest}
             className="px-8 py-3 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            {t("back_to_test_list") || "Quay lại danh sách bài thi"}
+            {t("back_to_test_list") || "Back to test list"}
           </button>
         </div>
       </div>
