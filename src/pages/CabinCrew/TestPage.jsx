@@ -40,13 +40,13 @@ const TestPage = () => {
       }
 
       if (!testId) {
-        toast.error("Thiếu thông tin đề thi. Vui lòng thử lại.");
+        toast.error("Missing exam information. Please try again later.");
         navigate(`/cabin-crew/tests/${campaignId}`);
         return;
       }
 
       if (!joinCode) {
-        toast.error("Thiếu mã đề thi. Vui lòng quay lại danh sách đề thi.");
+        toast.error("Missing exam code. Please return to the exam list.");
         navigate(`/cabin-crew/tests/${campaignId}`);
         return;
       }
@@ -99,12 +99,12 @@ const TestPage = () => {
             setTimeRemaining(data.durationInMinutes * 60);
           }
         } else {
-          toast.error(result?.error || "Không thể tải câu hỏi đề thi");
+          toast.error(result?.error || "Cannot load the exam questions");
           navigate(`/cabin-crew/tests/${testId}`);
         }
       } catch (error) {
         console.error("Error fetch exam questions:", error);
-        toast.error("Đã xảy ra lỗi khi tải câu hỏi đề thi");
+        toast.error("An error occurred while loading the exam questions");
         navigate(`/cabin-crew/tests/${testIdFromParams || ""}`);
       } finally {
         setIsLoadingQuestions(false);
@@ -187,9 +187,8 @@ const TestPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">
-            {t("loading") || "Đang tải câu hỏi..."}
+            {t("loading") || "Loading questions..."}
           </p>
         </div>
       </div>
@@ -201,7 +200,7 @@ const TestPage = () => {
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="text-gray-600">
-            {t("no_questions") || "Không có câu hỏi để hiển thị."}
+            {t("no_questions") || "No questions to display."}
           </p>
         </div>
       </div>
@@ -219,7 +218,7 @@ const TestPage = () => {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-800">
-                    {t("question") || "Câu hỏi"} {currentQuestionIndex + 1} /{" "}
+                    {t("question") || "Question"} {currentQuestionIndex + 1} /{" "}
                     {totalQuestions}
                   </h2>
                   <div className="flex items-center gap-3">
@@ -232,8 +231,8 @@ const TestPage = () => {
                       }`}
                       title={
                         markedQuestions.has(currentQuestion.id)
-                          ? t("unmark_question") || "Bỏ đánh dấu"
-                          : t("mark_question") || "Đánh dấu câu hỏi"
+                          ? t("unmark_question") || "Unmark question"
+                          : t("mark_question") || "Mark question"
                       }
                     >
                       <svg
@@ -256,8 +255,8 @@ const TestPage = () => {
                     </button>
                     <span className="text-sm text-gray-500">
                       {currentAnswer
-                        ? t("answered") || "Đã trả lời"
-                        : t("not_answered") || "Chưa trả lời"}
+                        ? t("answered") || "Answered"
+                        : t("not_answered") || "Not answered"}
                     </span>
                   </div>
                 </div>
@@ -314,14 +313,14 @@ const TestPage = () => {
                   disabled={currentQuestionIndex === 0}
                   className="px-6 py-2 text-gray-700 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("previous") || "Câu trước"}
+                  {t("previous") || "Previous question"}
                 </button>
                 <button
                   onClick={handleNext}
                   disabled={currentQuestionIndex === totalQuestions - 1}
                   className="px-6 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("next") || "Câu sau"}
+                  {t("next") || "Next question"}
                 </button>
               </div>
             </div>
@@ -333,7 +332,7 @@ const TestPage = () => {
               {/* Thời gian */}
               <div className="mb-6">
                 <h3 className="mb-2 text-sm font-semibold text-gray-700">
-                  {t("time_remaining") || "Thời gian còn lại"}
+                  {t("time_remaining") || "Time remaining"}
                 </h3>
                 <div
                   className={`text-2xl font-bold ${
@@ -347,7 +346,7 @@ const TestPage = () => {
               {/* Thanh tiến trình */}
               <div className="mb-6">
                 <h3 className="mb-2 text-sm font-semibold text-gray-700">
-                  {t("progress") || "Tiến trình"}
+                  {t("progress") || "Progress"}
                 </h3>
                 <div className="w-full h-3 bg-gray-200 rounded-full">
                   <div
@@ -357,14 +356,14 @@ const TestPage = () => {
                 </div>
                 <p className="mt-1 text-xs text-center text-gray-500">
                   {answeredCount} / {totalQuestions}{" "}
-                  {t("questions") || "câu hỏi"} {t("answered") || "đã trả lời"}
+                  {t("questions") || "questions"} {t("answered") || "answered"}
                 </p>
               </div>
 
               {/* Danh sách số câu hỏi */}
               <div>
                 <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                  {t("question_list") || "Danh sách câu hỏi"}
+                  {t("question_list") || "Question list"}
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
                   {questions.map((question, index) => {
@@ -416,8 +415,8 @@ const TestPage = () => {
                 }`}
               >
                 {hasSubmitted
-                  ? t("submitted") || "Đã nộp bài"
-                  : t("submit_exam") || "Nộp bài"}
+                  ? t("submitted") || "Submitted"
+                  : t("submit_exam") || "Submit exam"}
               </button>
             </div>
           </div>

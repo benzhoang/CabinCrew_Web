@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logoImage from "../../images/Logo.png";
-import { t, getLang, setLang, onLangChange } from "../../i18n";
-import flagVI from "../../assets/flags/vi.svg";
-import flagGB from "../../assets/flags/gb.svg";
+import { t /* , getLang, setLang, onLangChange */ } from "../../i18n";
+// import flagVI from "../../assets/flags/vi.svg";
+// import flagGB from "../../assets/flags/gb.svg";
 
 const NavbarCabinCrew = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [lang, setLangState] = useState(getLang());
+  // const [lang, setLangState] = useState(getLang());
   const [user, setUser] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const off = onLangChange((l) => setLangState(l));
-    return () => off();
-  }, []);
+  // useEffect(() => {
+  //   const off = onLangChange((l) => setLangState(l));
+  //   return () => off();
+  // }, []);
 
   useEffect(() => {
     const readUser = () => {
@@ -32,9 +32,9 @@ const NavbarCabinCrew = () => {
     };
   }, []);
 
-  const toggleLang = () => {
-    setLang(lang === "vi" ? "en" : "vi");
-  };
+  // const toggleLang = () => {
+  //   setLang(lang === "vi" ? "en" : "vi");
+  // };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -78,12 +78,12 @@ const NavbarCabinCrew = () => {
             >
               {t("promotion")}
             </Link>
-            <Link
+            {/* <Link
               to="/cabin-crew/interview-appointments"
               className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
             >
               {t("appointment")}
-            </Link>
+            </Link> */}
             <Link
               to="/cabin-crew/score-report"
               className="px-3 py-2 transition-all duration-300 rounded-lg nav-link hover:bg-white/10"
@@ -100,7 +100,7 @@ const NavbarCabinCrew = () => {
 
           {/* Lang + Auth Buttons / User */}
           <div className="items-center hidden space-x-4 lg:flex">
-            <button
+            {/* <button
               onClick={toggleLang}
               className="px-2 py-2 text-white transition-all duration-300 rounded-lg bg-white/10 hover:bg-white/20"
               aria-label="Toggle language"
@@ -111,7 +111,7 @@ const NavbarCabinCrew = () => {
                 alt="flag"
                 className="w-6 h-6 rounded-sm shadow-sm"
               />
-            </button>
+            </button> */}
             {user ? (
               <div className="relative text-white">
                 <button
@@ -259,13 +259,13 @@ const NavbarCabinCrew = () => {
               >
                 {t("recruitment")}
               </Link>
-              <Link
+              {/* <Link
                 to="/appointment"
                 className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {t("appointment")}
-              </Link>
+              </Link> */}
               <Link
                 to="/score-report"
                 className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
@@ -288,7 +288,7 @@ const NavbarCabinCrew = () => {
                 {t("contact")}
               </Link>
               <div className="pt-4 mt-4 space-y-2 border-t border-white/20">
-                <button
+                {/* <button
                   onClick={() => {
                     toggleLang();
                     setIsMenuOpen(false);
@@ -303,7 +303,7 @@ const NavbarCabinCrew = () => {
                     />
                     <span>({t("language")})</span>
                   </span>
-                </button>
+                </button> */}
                 {user ? (
                   <div className="flex items-center justify-between px-2 text-white">
                     <div className="flex items-center gap-3">

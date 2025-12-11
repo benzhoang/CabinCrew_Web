@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { t, onLangChange } from "../../i18n";
 import { getMyTests } from "../../service/api2.js";
-import Loading from "../../components/Loading.jsx";
 
 const TestListPage = () => {
   const navigate = useNavigate();
@@ -36,12 +35,12 @@ const TestListPage = () => {
           }
           setTests(testsData);
         } else {
-          toast.error(response.error || "Không thể tải danh sách đề thi");
+          toast.error(response.error || "Cannot load the exam list");
           setTests([]);
         }
       } catch (error) {
         console.error("Error fetching tests:", error);
-        toast.error("Có lỗi xảy ra khi tải danh sách đề thi");
+        toast.error("An error occurred while loading the exam list");
         setTests([]);
       } finally {
         setIsLoadingTests(false);
@@ -82,7 +81,7 @@ const TestListPage = () => {
     // Validate password
     if (!password.trim()) {
       toast.error(
-        t("exam_password_required") || "Vui lòng nhập mật khẩu đề thi"
+        t("exam_password_required") || "Please enter the exam password"
       );
       return;
     }
@@ -93,7 +92,7 @@ const TestListPage = () => {
     const selectedTest = tests.find((test) => test.testId === testId);
 
     if (!selectedTest) {
-      toast.error("Không tìm thấy đề thi");
+      toast.error("Exam not found");
       setIsLoading({ ...isLoading, [testId]: false });
       return;
     }
@@ -128,6 +127,14 @@ const TestListPage = () => {
     }, 1000);
   };
 
+  if (isLoadingTests) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="text-gray-500">Loading exam list...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen px-4 py-12 bg-blue-100 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -152,29 +159,27 @@ const TestListPage = () => {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Quay lại
+              Back
             </button>
           </div>
 
           {/* Title Section */}
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-800">
-              {t("exam_list_title") || "Danh sách đề thi"}
+              {t("exam_list_title") || "Exam list"}
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               {t("exam_list_subtitle") ||
-                "Chọn đề thi và nhập mật khẩu để bắt đầu làm bài"}
+                "Select an exam and enter the password to start the exam"}
             </p>
           </div>
         </div>
 
         {/* Exam List */}
-        {isLoadingTests ? (
-          <Loading message="Đang tải danh sách..." />
-        ) : tests.length === 0 ? (
+        {tests.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-gray-600">
-              {t("no_tests_available") || "Không có đề thi nào"}
+              {t("no_tests_available") || "No exams available"}
             </p>
           </div>
         ) : (
@@ -193,23 +198,23 @@ const TestListPage = () => {
                           {test.testName}
                         </h3>
                         {test.hasCompleted && (
-                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                            {t("completed") || "Đã hoàn thành"}
+                          <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                            {t("completed") || "Completed"}
                           </span>
                         )}
                       </div>
                       <p className="mb-4 text-sm text-gray-600">
-                        Đề thi Practical - Round {test.roundId}
+                        Practical exam - Round {test.roundId}
                       </p>
                       <div className="flex items-center gap-6 text-sm text-gray-700">
                         <div>
-                          <span>Thời gian </span>
+                          <span>Time </span>
                           <span className="font-semibold">
-                            {test.durationInMinutes} phút
+                            {test.durationInMinutes} minutes
                           </span>
                         </div>
                         <div>
-                          <span>Điểm tối đa </span>
+                          <span>Maximum score </span>
                           <span className="font-semibold">{test.maxScore}</span>
                         </div>
                       </div>
@@ -217,16 +222,17 @@ const TestListPage = () => {
                     <button
                       onClick={() => toggleDropdown(test.testId)}
                       disabled={test.hasCompleted}
-                      className={`px-6 py-3 ml-4 font-medium text-white transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap ${test.hasCompleted
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-800 hover:bg-blue-900"
-                        }`}
+                      className={`px-6 py-3 ml-4 font-medium text-white transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap ${
+                        test.hasCompleted
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-800 hover:bg-blue-900"
+                      }`}
                     >
                       {test.hasCompleted
-                        ? t("completed") || "Đã hoàn thành"
+                        ? t("completed") || "Completed"
                         : expandedExamId === test.testId
-                          ? t("close") || "Đóng"
-                          : t("enter_exam") || "Vào làm bài"}
+                        ? t("close") || "Close"
+                        : t("enter_exam") || "Enter exam"}
                     </button>
                   </div>
                 </div>
@@ -240,7 +246,7 @@ const TestListPage = () => {
                           htmlFor={`password-${test.testId}`}
                           className="block mb-2 text-sm font-medium text-gray-700"
                         >
-                          {t("exam_password_label") || "Mật khẩu đề thi"}
+                          {t("exam_password_label") || "Exam password"}
                         </label>
                         <input
                           id={`password-${test.testId}`}
@@ -257,7 +263,7 @@ const TestListPage = () => {
                           className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder={
                             t("exam_password_placeholder") ||
-                            "Nhập mật khẩu đề thi"
+                            "Enter the exam password"
                           }
                           autoFocus
                         />
@@ -270,10 +276,10 @@ const TestListPage = () => {
                         {isLoading[test.testId] ? (
                           <div className="flex items-center">
                             <div className="w-4 h-4 mr-2 border-b-2 border-white rounded-full animate-spin"></div>
-                            {t("loading") || "Đang xử lý..."}
+                            {t("loading") || "Processing..."}
                           </div>
                         ) : (
-                          t("confirm") || "Xác nhận"
+                          t("confirm") || "Confirm"
                         )}
                       </button>
                     </div>

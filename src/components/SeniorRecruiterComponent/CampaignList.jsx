@@ -6,12 +6,14 @@ import { formatDate, convertDateFormat } from "../../config/formatDate.js";
 // Helper function to map API status to component status
 const mapStatus = (status) => {
   const statusMap = {
-    Draft: "draft",
+    Planning: "planning",
     Pending: "pending",
     Approved: "approved",
     Rejected: "rejected",
     Ongoing: "ongoing",
     Ended: "ended",
+    Cancelled: "cancelled",
+    Upcoming: "upcoming",
   };
   return statusMap[status] || status.toLowerCase();
 };
@@ -59,10 +61,10 @@ const StatusBadge = ({ status }) => {
           className: "bg-green-100 text-green-700 border-green-200",
           text: "Ended",
         };
-      case "draft":
+      case "planning":
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: "Draft",
+          text: "Planning",
         };
       case "rejected":
         return {
@@ -73,6 +75,16 @@ const StatusBadge = ({ status }) => {
         return {
           className: "bg-emerald-100 text-emerald-700 border-emerald-200",
           text: "Approved",
+        };
+      case "upcoming":
+        return {
+          className: "bg-sky-100 text-sky-700 border-sky-200",
+          text: "Upcoming",
+        };
+      case "cancelled":
+        return {
+          className: "bg-slate-200 text-slate-700 border-slate-300",
+          text: "Cancelled",
         };
       default:
         return {
@@ -198,7 +210,7 @@ const CampaignCard = ({ campaign }) => {
 };
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("draft");
+  const [selectedStatus, setSelectedStatus] = useState("planning");
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -367,14 +379,14 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         <div className="inline-flex items-stretch gap-3">
           <button
             type="button"
-            onClick={() => setSelectedStatus("draft")}
+            onClick={() => setSelectedStatus("planning")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "draft"
+              selectedStatus === "planning"
                 ? "bg-gray-200 text-gray-700 border-gray-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Draft
+            Planning
           </button>
           <button
             type="button"
@@ -411,6 +423,17 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
+            onClick={() => setSelectedStatus("upcoming")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "upcoming"
+                ? "bg-sky-100 text-sky-700 border-sky-200"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Upcoming
+          </button>
+          <button
+            type="button"
             onClick={() => setSelectedStatus("ongoing")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "ongoing"
@@ -431,10 +454,21 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           >
             Ended
           </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("cancelled")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "cancelled"
+                ? "bg-slate-200 text-slate-700 border-slate-300"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Cancelled
+          </button>
         </div>
       </div>
       {filtered.length === 0 ? (
-        <div className="py-10 text-center text-gray-500">Không có dữ liệu</div>
+        <div className="py-10 text-center text-gray-500">No data found</div>
       ) : (
         <>
           {filtered.map((c) => (
@@ -449,7 +483,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         pagination.hasPreviousPage ||
         (typeof pagination.totalRecords === "number" &&
           pagination.totalRecords > 0)) && (
-        <div className="mt-6 px-6 py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+        <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border rounded-lg border-slate-200">
           <div className="text-sm text-slate-600">
             Page <span className="font-semibold">{pagination.currentPage}</span>
             {pagination.totalPages ? (

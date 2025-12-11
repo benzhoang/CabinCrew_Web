@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+// import { CKEditor } from "@ckeditor/ckeditor5-react";
+// import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
-import { createCampaignRequest } from "../../service/api2";
+import {
+  createCampaignRequest,
+  getRequirementItems,
+  getRoundTypes,
+} from "../../service/api2";
 import ModalConfirm from "../../components/AirlinePartnerComponent/ModalConfirm";
 
 const CreatePromotionRequestPage = () => {
@@ -20,6 +24,10 @@ const CreatePromotionRequestPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
   const navigate = useNavigate();
   const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
   const displayName = employeeData?.displayName;
@@ -40,6 +48,69 @@ const CreatePromotionRequestPage = () => {
     2: "Promotion",
   };
 
+  // Fetch requirement items based on requestType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!formData.requestType) return;
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(formData.requestType);
+        if (response.success && response.data) {
+          // Handle different response structures
+          if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            setRequirementItems(response.data.requirementItems);
+          } else if (Array.isArray(response.data)) {
+            setRequirementItems(response.data);
+          } else {
+            setRequirementItems([]);
+          }
+        } else {
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching requirement items:", error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [formData.requestType]);
+
+  // Fetch round types based on requestType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!formData.requestType) return;
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(formData.requestType);
+        if (response.success && response.data) {
+          // Handle different response structures
+          if (Array.isArray(response.data)) {
+            setRoundTypes(response.data);
+          } else {
+            setRoundTypes([]);
+          }
+        } else {
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error("Error fetching round types:", error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [formData.requestType]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -55,19 +126,19 @@ const CreatePromotionRequestPage = () => {
     }
   };
 
-  const handleEditorChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  // const handleEditorChange = (field, value) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
 
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
-    }
-  };
+  //   if (errors[field]) {
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       [field]: "",
+  //     }));
+  //   }
+  // };
 
   const validateForm = () => {
     const newErrors = {};
@@ -206,7 +277,7 @@ const CreatePromotionRequestPage = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Number of promotion *
+                      Target quantity *
                     </label>
                     <input
                       type="number"
@@ -219,7 +290,7 @@ const CreatePromotionRequestPage = () => {
                           ? "border-red-300"
                           : "border-slate-300"
                       }`}
-                      placeholder="Enter number of promotion"
+                      placeholder="Enter target quantity"
                     />
                     {errors.targetQuantity && (
                       <p className="mt-1 text-sm text-red-600">
@@ -287,9 +358,9 @@ const CreatePromotionRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Job description *
+                    Requirements *
                   </label>
-                  <div
+                  {/* <div
                     className={`rounded-md border ${
                       errors.jobDescription
                         ? "border-red-300"
@@ -309,14 +380,60 @@ const CreatePromotionRequestPage = () => {
                     <p className="mt-1 text-sm text-red-600">
                       {errors.jobDescription}
                     </p>
+                  )} */}
+                  <div
+                    className={`rounded-md border p-4 bg-slate-50 ${
+                      errors.jobDescription
+                        ? "border-red-300"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    {isLoadingRequirements ? (
+                      <div className="text-sm text-slate-500">
+                        Loading requirements...
+                      </div>
+                    ) : requirementItems.length > 0 ? (
+                      <ul className="space-y-2">
+                        {requirementItems.map((item) => (
+                          <li
+                            key={item.requirementItemId}
+                            className="flex items-start"
+                          >
+                            <span className="mr-2 text-blue-600">•</span>
+                            <span className="text-sm text-slate-700">
+                              <span className="font-medium">{item.title}</span>
+                              {item.description && (
+                                <span className="text-slate-600">
+                                  {" : "}
+                                  {item.description}
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        No requirements available
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500 italic">
+                    If you want to change this content, please contact the
+                    admin.
+                  </p>
+                  {errors.jobDescription && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.jobDescription}
+                    </p>
                   )}
                 </div>
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Job requirement *
+                    Promotion process *
                   </label>
-                  <div
+                  {/* <div
                     className={`rounded-md border ${
                       errors.jobRequirement
                         ? "border-red-300"
@@ -334,6 +451,65 @@ const CreatePromotionRequestPage = () => {
                       }}
                     />
                   </div>
+                  {errors.jobRequirement && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.jobRequirement}
+                    </p>
+                  )} */}
+                  <div
+                    className={`rounded-md border p-4 bg-slate-50 ${
+                      errors.jobRequirement
+                        ? "border-red-300"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    {isLoadingRoundTypes ? (
+                      <div className="text-sm text-slate-500">
+                        Loading promotion process...
+                      </div>
+                    ) : roundTypes.length > 0 ? (
+                      <div className="space-y-3">
+                        {roundTypes.map((roundType, index) => (
+                          <div
+                            key={roundType.roundTypeId}
+                            className="flex items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm mr-3 flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-slate-800">
+                                {roundType.roundTypeName}
+                              </div>
+                            </div>
+                            <div className="ml-2 text-slate-400">
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        No promotion process available
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500 italic">
+                    If you want to change this content, please contact the
+                    admin.
+                  </p>
                   {errors.jobRequirement && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.jobRequirement}

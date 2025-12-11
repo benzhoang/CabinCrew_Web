@@ -2,33 +2,29 @@ import React, { useEffect, useImperativeHandle, forwardRef } from "react";
 import { toast } from "react-toastify";
 
 // Helper functions
-const getRoundNameByIndex = (index, campaignType) => {
-  const recruitmentRounds = [
-    "Screening",
-    "Appearance",
-    "English Listening Test",
-    "English Speaking Test",
-    "Interview",
-    "Final",
-  ];
+const getRoundNameByIndex = (index, campaignType, roundTypes = []) => {
+  // Filter round types to ensure they have valid data
+  const filteredRoundTypes = roundTypes.filter(
+    (rt) => rt.roundTypeId && rt.roundTypeName
+  );
 
-  const promotionRounds = [
-    "Screening",
-    "Flight Hours Confirmation",
-    "Practical Test",
-    "Interview",
-    "Final",
-  ];
-
-  if (campaignType === "Recruitment") {
-    return recruitmentRounds[index] || `Round ${index + 1}`;
-  } else if (campaignType === "Promotion") {
-    return promotionRounds[index] || `Round ${index + 1}`;
+  // If we have round types from API, use them
+  // Note: roundTypes is already filtered by campaign type from the API call
+  if (filteredRoundTypes.length > 0 && index < filteredRoundTypes.length) {
+    return filteredRoundTypes[index].roundTypeName;
   }
+
+  // Fallback to default if no API data
   return `Round ${index + 1}`;
 };
 
-const getRoundsCountByCampaignType = (campaignType) => {
+const getRoundsCountByCampaignType = (campaignType, roundTypes = []) => {
+  // If we have round types from API, use the count
+  if (roundTypes.length > 0) {
+    return roundTypes.length;
+  }
+
+  // Fallback to default counts
   if (campaignType === "Recruitment") {
     return 6; // Screening, Appearance, English Listening Test, English Speaking Test, Interview, Final
   } else if (campaignType === "Promotion") {
@@ -51,6 +47,7 @@ const CreateRound = forwardRef(
       endDate,
       todayString,
       campaignTarget,
+      roundTypes = [],
     },
     ref
   ) => {
@@ -58,10 +55,13 @@ const CreateRound = forwardRef(
     useEffect(() => {
       rounds.forEach((round, index) => {
         const campaignType = campaignDetail?.campaignType || "Recruitment";
-        const roundsCount = getRoundsCountByCampaignType(campaignType);
+        const roundsCount = getRoundsCountByCampaignType(
+          campaignType,
+          roundTypes
+        );
         const expectedRoundNames = Array.from(
           { length: roundsCount },
-          (_, idx) => getRoundNameByIndex(idx, campaignType)
+          (_, idx) => getRoundNameByIndex(idx, campaignType, roundTypes)
         );
 
         if (round.roundStartDate || round.roundEndDate) {
@@ -215,7 +215,7 @@ const CreateRound = forwardRef(
           });
         }
       });
-    }, [rounds, campaignDetail?.campaignType, setRoundsData]);
+    }, [rounds, campaignDetail?.campaignType, roundTypes, setRoundsData]);
 
     const handleRoundChange = (index, field, value) => {
       let updatedRound = null;
@@ -268,10 +268,13 @@ const CreateRound = forwardRef(
         updatedRound
       ) {
         const campaignType = campaignDetail?.campaignType || "Recruitment";
-        const roundsCount = getRoundsCountByCampaignType(campaignType);
+        const roundsCount = getRoundsCountByCampaignType(
+          campaignType,
+          roundTypes
+        );
         const expectedRoundNames = Array.from(
           { length: roundsCount },
-          (_, idx) => getRoundNameByIndex(idx, campaignType)
+          (_, idx) => getRoundNameByIndex(idx, campaignType, roundTypes)
         );
 
         setRoundsData((prevRoundsData) => {
@@ -638,10 +641,13 @@ const CreateRound = forwardRef(
 
           let roundDates = [];
           const campaignType = campaignDetail?.campaignType || "Recruitment";
-          const roundsCount = getRoundsCountByCampaignType(campaignType);
+          const roundsCount = getRoundsCountByCampaignType(
+            campaignType,
+            roundTypes
+          );
           const expectedRoundNames = Array.from(
             { length: roundsCount },
-            (_, idx) => getRoundNameByIndex(idx, campaignType)
+            (_, idx) => getRoundNameByIndex(idx, campaignType, roundTypes)
           );
 
           let relatedRounds = [];
@@ -892,11 +898,14 @@ const CreateRound = forwardRef(
                 {(() => {
                   const campaignType =
                     campaignDetail?.campaignType || "Recruitment";
-                  const roundsCount =
-                    getRoundsCountByCampaignType(campaignType);
+                  const roundsCount = getRoundsCountByCampaignType(
+                    campaignType,
+                    roundTypes
+                  );
                   const expectedRoundNames = Array.from(
                     { length: roundsCount },
-                    (_, idx) => getRoundNameByIndex(idx, campaignType)
+                    (_, idx) =>
+                      getRoundNameByIndex(idx, campaignType, roundTypes)
                   );
 
                   let relatedRounds = [];

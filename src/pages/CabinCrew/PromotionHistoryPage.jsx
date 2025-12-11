@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
-import {
-  FaCheck,
-  FaClock,
-  FaEllipsisH,
-  FaTimes,
-  FaSpinner,
-} from "react-icons/fa";
+import { FaCheck, FaClock, FaEllipsisH } from "react-icons/fa";
 import { getPromotionHistory } from "../../service/api2";
 
 // Định nghĩa 5 stage cố định (giống PromotionStagesPage)
@@ -147,7 +141,7 @@ const PromotionHistoryPage = () => {
             }
 
             let status = "pending";
-            let statusText = "Đang xem xét";
+            let statusText = "Under review";
             let statusTextEn = "Under Review";
 
             if (item.roundStatus) {
@@ -158,22 +152,22 @@ const PromotionHistoryPage = () => {
                 roundStatus.includes("finished")
               ) {
                 status = "accepted";
-                statusText = "Hoàn thành";
+                statusText = "Completed";
                 statusTextEn = "Completed";
               } else if (
                 roundStatus.includes("rejected") ||
                 roundStatus.includes("failed")
               ) {
                 status = "rejected";
-                statusText = "Không đạt yêu cầu";
+                statusText = "Not Qualified";
                 statusTextEn = "Not Qualified";
               }
             }
 
             return {
               id: item.campaignRoundId || item.id || Math.random(),
-              position: item.campaignName || "Chiến dịch nâng bậc",
-              company: item.airlinePartner || "Đối tác hàng không",
+              position: item.campaignName || "Promotion campaign",
+              company: item.airlinePartner || "Airline partner",
               appliedDate:
                 item.appliedDate || new Date().toISOString().split("T")[0],
               status,
@@ -335,11 +329,11 @@ const PromotionHistoryPage = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            {t("promotion_history") || "Lịch sử nâng bậc"}
+            {t("promotion_history") || "Promotion history"}
           </h1>
           <p className="text-gray-600">
             {t("recruitment_history_subtitle") ||
-              "Xem lại tất cả các đơn ứng tuyển của bạn"}
+              "View all your application history"}
           </p>
         </div>
 
@@ -364,7 +358,7 @@ const PromotionHistoryPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("total_applications") || "Tổng đơn ứng tuyển"}
+                  {t("total_applications") || "Total applications"}
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {totalApplications}
@@ -392,7 +386,7 @@ const PromotionHistoryPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("accepted") || "Hoàn thành"}
+                  {t("accepted") || "Completed"}
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {completedCount}
@@ -420,7 +414,7 @@ const PromotionHistoryPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  Không đạt yêu cầu
+                  Not Qualified
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {rejectedCount}
@@ -440,7 +434,7 @@ const PromotionHistoryPage = () => {
           {loading ? (
             <div className="py-12 text-center">
               <div className="py-8 text-center text-gray-600">
-                Đang tải dữ liệu...
+                Loading data...
               </div>
             </div>
           ) : (
@@ -522,7 +516,7 @@ const PromotionHistoryPage = () => {
                     application.stages && (
                       <div className="pt-6 mt-6 border-t border-gray-200">
                         <h4 className="mb-4 text-sm font-medium text-gray-900">
-                          Tiến trình ứng tuyển
+                          Application timeline
                         </h4>
 
                         {/* Progress Timeline */}
@@ -601,12 +595,12 @@ const PromotionHistoryPage = () => {
                               >
                                 <strong>Trạng thái hiện tại:</strong>{" "}
                                 {stageStatus === "rejected"
-                                  ? `Không đạt ở ${getStageName(currentStage)}`
-                                  : currentStage?.completed
-                                  ? `Hoàn thành ${getStageName(currentStage)}`
-                                  : `Đang trong giai đoạn ${getStageName(
+                                  ? `Not qualified at ${getStageName(
                                       currentStage
-                                    )}`}
+                                    )}`
+                                  : currentStage?.completed
+                                  ? `Completed ${getStageName(currentStage)}`
+                                  : `In progress ${getStageName(currentStage)}`}
                               </p>
                             </div>
                           );
@@ -637,18 +631,18 @@ const PromotionHistoryPage = () => {
                 />
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {t("no_applications") || "Chưa có đơn ứng tuyển nào"}
+                {t("no_applications") || "No applications submitted"}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
                 {t("no_applications_desc") ||
-                  "Bạn chưa nộp đơn ứng tuyển nào. Hãy bắt đầu tìm kiếm cơ hội việc làm phù hợp."}
+                  "You have not submitted any applications. Start searching for suitable job opportunities."}
               </p>
               <div className="mt-6">
                 <button
                   onClick={() => navigate("/cabin-crew/promotion")}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700"
                 >
-                  {t("browse_jobs") || "Duyệt việc làm"}
+                  {t("browse_jobs") || "Browse jobs"}
                 </button>
               </div>
             </div>

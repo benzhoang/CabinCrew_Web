@@ -142,7 +142,7 @@ const PromotionStagesPage = () => {
           }
 
           let status = "pending";
-          let statusText = "Đang xem xét";
+          let statusText = "Under review";
           let statusTextEn = "Under Review";
 
           if (campaignData.roundStatus) {
@@ -153,22 +153,22 @@ const PromotionStagesPage = () => {
               roundStatus.includes("finished")
             ) {
               status = "accepted";
-              statusText = "Đã hoàn thành";
+              statusText = "Completed";
               statusTextEn = "Completed";
             } else if (
               roundStatus.includes("rejected") ||
               roundStatus.includes("failed")
             ) {
               status = "rejected";
-              statusText = "Đã từ chối";
+              statusText = "Rejected";
               statusTextEn = "Rejected";
             }
           }
 
           const mappedData = {
             id: campaignData.campaignRoundId || 1,
-            position: campaignData.campaignName || "Chiến dịch nâng bậc",
-            company: campaignData.airlinePartner || "Đối tác hàng không",
+            position: campaignData.campaignName || "Promotion campaign",
+            company: campaignData.airlinePartner || "Airline partner",
             roundName: campaignData.roundName || "",
             airlinePartner: campaignData.airlinePartner || "",
             campaignName: campaignData.campaignName || "",
@@ -185,14 +185,12 @@ const PromotionStagesPage = () => {
           setPromotionStages([mappedData]);
         } else {
           setPromotionStages([]);
-          setError(
-            result.error || "Không có chiến dịch nâng bậc đang được xử lý"
-          );
+          setError(result.error || "No promotion campaign is being processed");
         }
       } catch (err) {
         console.error("Error fetching ongoing campaign:", err);
         setPromotionStages([]);
-        setError("Đã xảy ra lỗi khi tải dữ liệu");
+        setError("An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -273,24 +271,24 @@ const PromotionStagesPage = () => {
             {t("promotion_stages")}
           </h1>
           <p className="text-gray-600">
-            Theo dõi tiến trình nâng bậc của bạn qua các giai đoạn
+            Track the progress of your promotion through the stages
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              Tiến trình nâng bậc
+              Promotion stages
             </h2>
             <p className="mt-1 text-sm text-gray-600">
-              Theo dõi tiến trình nâng bậc của bạn
+              Track the progress of your promotion through the stages
             </p>
           </div>
           <div className="p-6">
             {loading && (
               <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
                 <div className="py-8 text-center text-gray-600">
-                  Đang tải dữ liệu...
+                  Loading data...
                 </div>
               </div>
             )}
@@ -311,7 +309,7 @@ const PromotionStagesPage = () => {
                   />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  Không có chiến dịch nâng bậc đang xử lý
+                  No promotion campaign is being processed
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">{error}</p>
               </div>
@@ -354,7 +352,7 @@ const PromotionStagesPage = () => {
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                             />
                           </svg>
-                          <span className="font-medium">Đợt tuyển:</span>
+                          <span className="font-medium">Round:</span>
                           <span>{application.roundName}</span>
                         </div>
                       )}
@@ -373,7 +371,7 @@ const PromotionStagesPage = () => {
                               d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                             />
                           </svg>
-                          <span className="font-medium">Đối tác:</span>
+                          <span className="font-medium">Airline partner:</span>
                           <span>{application.airlinePartner}</span>
                         </div>
                       )}
@@ -422,7 +420,7 @@ const PromotionStagesPage = () => {
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                        Ngày đăng ký: {application.participatedDate}
+                        Registered date: {application.participatedDate}
                       </div>
                     </div>
                   </div>
@@ -481,9 +479,9 @@ const PromotionStagesPage = () => {
                                     `/cabin-crew/profile/${stage.activityId}`
                                   )
                                 }
-                                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="mt-2 text-xs text-blue-600 underline hover:text-blue-800"
                               >
-                                Xem hồ sơ
+                                View profile
                               </button>
                             )}
                           </div>
@@ -495,7 +493,7 @@ const PromotionStagesPage = () => {
                   <div className="p-3 mt-4 rounded-lg bg-yellow-50">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-yellow-800">
-                        <strong>Trạng thái hiện tại:</strong>{" "}
+                        <strong>Current status:</strong>{" "}
                         {application.stages.length > 0 &&
                         application.currentStage > 0 &&
                         application.currentStage <= application.stages.length
@@ -505,11 +503,11 @@ const PromotionStagesPage = () => {
                                   application.currentStage - 1
                                 ];
                               if (currentStageData?.completed) {
-                                return `Hoàn thành ${currentStageData.name}`;
+                                return `Completed ${currentStageData.name}`;
                               }
-                              return `Đang trong giai đoạn ${currentStageData.name}`;
+                              return `In progress ${currentStageData.name}`;
                             })()
-                          : "Đang chờ xử lý"}
+                          : "Pending"}
                       </p>
 
                       {/* Flight Hours Confirmation Button - show while Flight Hours Confirmation stage is active */}
@@ -533,7 +531,7 @@ const PromotionStagesPage = () => {
                               }
                               className="inline-flex items-center px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
-                              Cập nhật thời gian bay
+                              Update flight hours
                             </button>
                           );
                         }
@@ -555,7 +553,7 @@ const PromotionStagesPage = () => {
                               }
                               className="inline-flex items-center px-6 py-3 font-medium text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
-                              Tham gia kiểm tra
+                              Join test
                             </button>
                           );
                         }
@@ -583,18 +581,18 @@ const PromotionStagesPage = () => {
                   />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  {t("no_applications") || "Chưa có đơn ứng tuyển nào"}
+                  {t("no_applications") || "No applications submitted"}
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   {t("no_applications_desc") ||
-                    "Bạn chưa nộp đơn ứng tuyển nào. Hãy bắt đầu tìm kiếm cơ hội việc làm phù hợp."}
+                    "You have not submitted any applications. Start searching for suitable job opportunities."}
                 </p>
                 <div className="mt-6">
                   <button
                     onClick={() => navigate("/cabin-crew/promotion")}
                     className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700"
                   >
-                    {t("browse_jobs") || "Duyệt việc làm"}
+                    {t("browse_jobs") || "Browse jobs"}
                   </button>
                 </div>
               </div>

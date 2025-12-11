@@ -2,27 +2,20 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getCampaignList } from "../../service/api2";
-import { convertDateFormat } from "../../config/formatDate";
+import { formatDate, formatDate2 } from "../../config/formatDate";
 
 const formatDateDisplay = (value) => {
   if (!value) return "—";
 
-  const tryParse = (dateString) => {
-    const date = new Date(dateString);
-    return Number.isNaN(date.getTime()) ? null : date;
-  };
-
-  const directDate = tryParse(value);
-  if (directDate) {
-    return directDate.toLocaleDateString("vi-VN");
+  // Nếu đã là format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm, chỉ lấy phần date
+  if (typeof value === "string" && value.includes("/")) {
+    return formatDate2(value);
   }
 
-  const converted = convertDateFormat(value);
-  if (converted) {
-    const convertedDate = tryParse(converted);
-    if (convertedDate) {
-      return convertedDate.toLocaleDateString("vi-VN");
-    }
+  // Nếu là ISO string hoặc date object, format sang DD/MM/YYYY
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime())) {
+    return formatDate(value);
   }
 
   return value;
@@ -68,23 +61,23 @@ const transformCampaign = (campaign) => {
 
   return {
     id,
-    name: campaign.name ?? campaign.campaignName ?? "Chiến dịch nâng bậc",
+    name: campaign.name ?? campaign.campaignName ?? "Promotion Campaign",
     airline:
       campaign.partnerName ??
       campaign.airline ??
       campaign.airlineName ??
-      "Đối tác chưa cập nhật",
+      "Partner not updated",
     position:
       campaign.position ??
       campaign.role ??
       campaign.campaignType ??
-      "Loại chưa cập nhật",
+      "Type not updated",
     location:
       campaign.location ??
       campaign.city ??
       campaign.address ??
       campaign.locationName ??
-      "Chưa cập nhật",
+      "Location not updated",
     status: mapStatusForCandidate(campaign.status),
     rawStatus: campaign.status ?? "",
     campaignType: campaign.campaignType ?? "",
@@ -137,7 +130,7 @@ const PromotionPage = () => {
         // Kiểm tra token trước khi gọi API
         const token = localStorage.getItem("token");
         if (!token) {
-          setError("Vui lòng đăng nhập để xem danh sách chiến dịch nâng bậc");
+          setError("Please login to view the list of promotion campaigns");
           setCampaigns([]);
           setIsLoading(false);
           return;
@@ -182,7 +175,7 @@ const PromotionPage = () => {
           setError(
             response.error ||
               response.message ||
-              "Không thể lấy danh sách chiến dịch nâng bậc"
+              "Cannot get the list of promotion campaigns"
           );
         }
       } catch (err) {
@@ -191,7 +184,7 @@ const PromotionPage = () => {
           err.response?.data?.message ||
           err.response?.data?.errorMessage ||
           err.message ||
-          "Không thể lấy danh sách chiến dịch nâng bậc";
+          "Cannot get the list of promotion campaigns";
         setError(errorMessage);
       } finally {
         setIsLoading(false);
@@ -229,7 +222,7 @@ const PromotionPage = () => {
       if (
         c.airline &&
         c.airline.trim() &&
-        c.airline !== "Đối tác chưa cập nhật"
+        c.airline !== "Partner not updated"
       ) {
         airlines.add(c.airline.trim());
       }
@@ -267,10 +260,10 @@ const PromotionPage = () => {
       <div className="max-w-6xl px-4 py-8 mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-800">
-            Chiến dịch nâng bậc
+            Promotion Campaign
           </h1>
           <p className="mt-1 text-slate-600">
-            Khám phá các cơ hội thăng tiến nghề nghiệp
+            Discover the opportunities for career advancement
           </p>
         </div>
 
@@ -278,19 +271,19 @@ const PromotionPage = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block mb-2 text-sm font-medium text-slate-700">
-                Tìm kiếm
+                Search
               </label>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tìm theo tên chiến dịch, vị trí hiện tại, vị trí mục tiêu, hãng bay"
+                placeholder="Search by campaign name, current position, target position, airline"
                 className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-slate-700">
-                Hãng hàng không
+                Airline
               </label>
               <select
                 value={airline}
@@ -299,7 +292,7 @@ const PromotionPage = () => {
               >
                 {airlineOptions.map((a) => (
                   <option key={a} value={a}>
-                    {a === "all" ? "Tất cả" : a}
+                    {a === "all" ? "All" : a}
                   </option>
                 ))}
               </select>
@@ -310,7 +303,7 @@ const PromotionPage = () => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {isLoading && (
             <div className="p-12 text-center bg-white border border-gray-200 md:col-span-2 rounded-xl text-slate-500">
-              Đang tải danh sách chiến dịch nâng bậc...
+              Loading promotion campaigns...
             </div>
           )}
           {!isLoading &&
@@ -328,7 +321,7 @@ const PromotionPage = () => {
                       <p className="mt-1 text-sm text-slate-600">
                         {c.airline}
                         {c.location &&
-                          c.location !== "Chưa cập nhật" &&
+                          c.location !== "Location not updated" &&
                           ` • ${c.location}`}
                       </p>
                     </div>
@@ -339,24 +332,24 @@ const PromotionPage = () => {
                           : "bg-gray-100 text-gray-700"
                       }`}
                     >
-                      {c.status === "active" ? "Đang diễn ra" : "Đã kết thúc"}
+                      {c.status === "active" ? "Ongoing" : "Ended"}
                     </span>
                   </div>
                   <div className="grid grid-cols-1 gap-3 mt-4 text-sm sm:grid-cols-3">
                     <div>
-                      <span className="text-slate-500">Vị trí</span>
+                      <span className="text-slate-500">Position</span>
                       <p className="font-medium text-slate-800">
                         Chief Flight Attendant
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Ngày bắt đầu</span>
+                      <span className="text-slate-500">Start Date</span>
                       <p className="font-medium text-slate-800">
                         {c.startDate}
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Ngày kết thúc</span>
+                      <span className="text-slate-500">End Date</span>
                       <p className="font-medium text-slate-800">{c.endDate}</p>
                     </div>
                   </div>
@@ -380,7 +373,7 @@ const PromotionPage = () => {
                       }
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                     >
-                      Xem chi tiết
+                      View details
                     </button>
                   </div>
                 </div>
@@ -390,7 +383,7 @@ const PromotionPage = () => {
 
         {!isLoading && filtered.length === 0 && !error && (
           <div className="p-12 text-center bg-white border border-gray-200 rounded-xl text-slate-500">
-            Không có chiến dịch nâng bậc phù hợp.
+            No promotion campaigns found.
           </div>
         )}
 
@@ -401,10 +394,10 @@ const PromotionPage = () => {
               disabled={displayPage === 1}
               className="px-4 py-2 border rounded-md border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
             >
-              Trước
+              Previous
             </button>
             <span className="px-4 py-2 text-slate-700">
-              Trang {displayPage} / {totalDisplayPages}
+              Page {displayPage} / {totalDisplayPages}
             </span>
             <button
               onClick={() =>
@@ -413,7 +406,7 @@ const PromotionPage = () => {
               disabled={displayPage === totalDisplayPages}
               className="px-4 py-2 border rounded-md border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
             >
-              Sau
+              Next
             </button>
           </div>
         )}

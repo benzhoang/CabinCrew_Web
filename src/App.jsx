@@ -105,6 +105,7 @@ import TestTypePage from "./pages/Admin/TestTypePage";
 import RoundTypePage from "./pages/Admin/RoundTypePage";
 import CityWardPage from "./pages/Admin/CityWardPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
+import ContactPage from "./pages/CabinCrew/ContactPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -728,6 +729,14 @@ function App() {
           element={
             <CabinCrewLayout>
               <ApplicationFormPage />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/contact"
+          element={
+            <CabinCrewLayout>
+              <ContactPage />
             </CabinCrewLayout>
           }
         />
