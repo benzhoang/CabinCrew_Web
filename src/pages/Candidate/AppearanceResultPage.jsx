@@ -281,7 +281,7 @@ const AppearanceResultPage = () => {
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                                     Criteria
                                                                 </th>
-                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32">
                                                                     Result
                                                                 </th>
                                                             </tr>
@@ -313,7 +313,7 @@ const AppearanceResultPage = () => {
                                                                                 </ul>
                                                                             )}
                                                                         </td>
-                                                                        <td className={`px-4 py-3 text-sm ${getResultColorClass(isPassed)}`}>
+                                                                        <td className={`px-4 py-3 text-sm align-top ${getResultColorClass(isPassed)}`}>
                                                                             {getPassLabel(isPassed)}
                                                                         </td>
                                                                     </tr>

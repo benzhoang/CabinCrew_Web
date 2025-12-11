@@ -5,7 +5,7 @@ import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 import { exportQuestionTemplate } from "./ExportQuestionTemplate";
 
-// Transform data từ API sang format của component
+// Transform data from API to component format
 const transformTestData = (item) => {
   const getStatusFromTestType = (testType) => {
     return "active";
@@ -14,8 +14,8 @@ const transformTestData = (item) => {
   return {
     id: item.testId || item.id,
     code: item.joinCode || `TEST-${item.testId || item.id}`,
-    name: item.testName || item.name || "Đề thi chưa có tên",
-    description: item.purpose || item.description || "Không có mô tả",
+    name: item.testName || item.name || "Untitled test",
+    description: item.purpose || item.description || "No description",
     duration: item.durationInMinutes || item.duration || 0,
     totalQuestions: item.totalQuestions || 0,
     createdAt: item.createdAt || new Date().toISOString(),
@@ -31,15 +31,15 @@ const StatusBadge = ({ status }) => {
   const map = {
     active: {
       cls: "bg-green-100 text-green-700 border-green-200",
-      text: "Đang sử dụng",
+      text: "Active",
     },
     draft: {
       cls: "bg-yellow-100 text-yellow-700 border-yellow-200",
-      text: "Bản nháp",
+      text: "Draft",
     },
     archived: {
       cls: "bg-slate-100 text-slate-700 border-slate-200",
-      text: "Đã lưu trữ",
+      text: "Archived",
     },
   };
   const cfg = map[status] || map.draft;
@@ -54,10 +54,10 @@ const StatusBadge = ({ status }) => {
 
 const LevelBadge = ({ level }) => {
   const map = {
-    "Cơ bản": "bg-blue-100 text-blue-700",
-    "Trung cấp": "bg-indigo-100 text-indigo-700",
-    "Nâng cao": "bg-purple-100 text-purple-700",
-    "Chuyên ngành": "bg-orange-100 text-orange-700",
+    Basic: "bg-blue-100 text-blue-700",
+    Intermediate: "bg-indigo-100 text-indigo-700",
+    Advanced: "bg-purple-100 text-purple-700",
+    Specialized: "bg-orange-100 text-orange-700",
   };
   const cls = map[level] || "bg-slate-100 text-slate-700";
   return (
@@ -96,28 +96,28 @@ const TestTypeBadge = ({ testType }) => {
   );
 };
 
-// Helper function để format date an toàn
+// Helper to safely format date
 const formatDate = (dateValue) => {
-  if (!dateValue) return "Không có thông tin";
+  if (!dateValue) return "No data";
   try {
-    // Nếu đã là format "dd/MM/yyyy" hoặc "dd/MM/yyyy HH:mm" thì dùng trực tiếp
+    // If already "dd/MM/yyyy" or "dd/MM/yyyy HH:mm" keep it
     if (typeof dateValue === "string" && dateValue.includes("/")) {
-      return dateValue.split(" ")[0]; // Lấy phần date nếu có cả time
+      return dateValue.split(" ")[0]; // take date part if time exists
     }
     // Parse date
     const date = new Date(dateValue);
-    // Kiểm tra xem date có hợp lệ không
+    // Validate date
     if (isNaN(date.getTime())) {
-      return "Ngày không hợp lệ";
+      return "Invalid date";
     }
-    // Format thành "dd/MM/yyyy"
+    // Format "dd/MM/yyyy"
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   } catch (err) {
     console.error("Error formatting date:", err);
-    return "Ngày không hợp lệ";
+    return "Invalid date";
   }
 };
 
@@ -126,7 +126,7 @@ const TestingPage = () => {
   const [tests, setTests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [levelFilter, setLevelFilter] = useState("all");
+  const [testTypeFilter, setTestTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletingTestId, setDeletingTestId] = useState(null);
@@ -182,11 +182,11 @@ const TestingPage = () => {
           setTests(transformedTests);
         } else {
           setTests([]);
-          setError(response.error || "Không thể lấy danh sách đề thi");
+          setError(response.error || "Unable to fetch tests");
         }
       } catch (err) {
         setTests([]);
-        setError(err.message || "Không thể lấy danh sách đề thi");
+        setError(err.message || "Unable to fetch tests");
       } finally {
         if (showLoading) setIsLoading(false);
       }
@@ -199,32 +199,41 @@ const TestingPage = () => {
   }, [fetchTests]);
 
   const filteredTests = useMemo(() => {
-    // Vì filter nên được thực hiện ở server-side
-    if (pagination.totalPages > 1) {
-      return tests.filter((test) => {
+    const normalize = (val) =>
+      (val || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+    const filterBy = (collection) =>
+      collection.filter((test) => {
+        const testName = normalize(test.name);
+        const testCode = normalize(test.code);
+        const testDesc = normalize(test.description);
+        const term = normalize(searchTerm);
         const matchesSearch =
-          test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          test.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          test.description.toLowerCase().includes(searchTerm.toLowerCase());
+          testName.includes(term) ||
+          testCode.includes(term) ||
+          testDesc.includes(term);
+
         const matchesStatus =
           statusFilter === "all" || test.status === statusFilter;
-        const matchesLevel =
-          levelFilter === "all" || test.level === levelFilter;
-        return matchesSearch && matchesStatus && matchesLevel;
+
+        const testTypeNorm = normalize(test.testType);
+        const matchesType =
+          testTypeFilter === "all" ||
+          (testTypeNorm && testTypeNorm.includes(testTypeFilter));
+
+        return matchesSearch && matchesStatus && matchesType;
       });
+
+    // Filter ideally server-side; apply client-side when needed
+    if (pagination.totalPages > 1) {
+      return filterBy(tests);
     }
-    // Nếu không có pagination, filter toàn bộ
-    return tests.filter((test) => {
-      const matchesSearch =
-        test.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        test.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        test.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || test.status === statusFilter;
-      const matchesLevel = levelFilter === "all" || test.level === levelFilter;
-      return matchesSearch && matchesStatus && matchesLevel;
-    });
-  }, [tests, searchTerm, statusFilter, levelFilter, pagination.totalPages]);
+    return filterBy(tests);
+  }, [tests, searchTerm, statusFilter, testTypeFilter, pagination.totalPages]);
 
   const handleEditTest = (testId) => {
     const test = tests.find((t) => t.id === testId);
@@ -237,15 +246,15 @@ const TestingPage = () => {
   const handleCloseEditModal = async () => {
     setIsEditModalOpen(false);
     setSelectedTest(null);
-    // Đợi một chút để đảm bảo backend đã xử lý xong, sau đó reload danh sách đề thi
+    // Delay to ensure backend finishes, then reload list
     await new Promise((resolve) => setTimeout(resolve, 300));
     await fetchTests(pagination.currentPage, pagination.pageSize, false);
   };
 
   const handleSaveTest = async (formData, responseData) => {
-    // Lưu selectedTest ID trước khi nó bị reset
+    // Save selectedTest ID before reset
     const testIdToUpdate = selectedTest?.id;
-    // Cập nhật test trong state với dữ liệu mới từ response nếu có
+    // Update state with latest response data if available
     if (responseData && testIdToUpdate) {
       setTests((prevTests) =>
         prevTests.map((test) =>
@@ -261,21 +270,21 @@ const TestingPage = () => {
     try {
       const response = await deleteTest(testId);
       if (response.success) {
-        // Loại bỏ test khỏi state ngay lập tức
+        // Remove locally first
         setTests((prev) => prev.filter((test) => test.id !== testId));
-        // Tải lại danh sách để đồng bộ với server
+        // Reload to sync with server
         await fetchTests(pagination.currentPage, pagination.pageSize, true);
-        showToast(response.message || "Xóa đề thi thành công", "success");
+        showToast(response.message || "Deleted test successfully", "success");
       } else {
-        setError(response.error || "Không thể xóa đề thi");
-        showToast(response.error || "Không thể xóa đề thi", "error");
-        // Nếu xóa thất bại, tải lại danh sách để khôi phục trạng thái
+        setError(response.error || "Unable to delete test");
+        showToast(response.error || "Unable to delete test", "error");
+        // Reload to restore state on failure
         await fetchTests(pagination.currentPage, pagination.pageSize, true);
       }
     } catch (err) {
-      setError(err.message || "Không thể xóa đề thi");
-      showToast(err.message || "Không thể xóa đề thi", "error");
-      // Tải lại danh sách nếu có lỗi để khôi phục trạng thái
+      setError(err.message || "Unable to delete test");
+      showToast(err.message || "Unable to delete test", "error");
+      // Reload on error to restore state
       await fetchTests(pagination.currentPage, pagination.pageSize, true);
     } finally {
       setDeletingTestId(null);
@@ -356,10 +365,10 @@ const TestingPage = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="mb-2 text-2xl font-bold text-slate-800">
-            Quản lý đề thi tiếng Anh
+            Manage English Tests
           </h2>
           <p className="text-slate-600">
-            Danh sách các đề thi tiếng Anh đã tạo
+            List of available English tests
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -368,7 +377,7 @@ const TestingPage = () => {
             className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
           >
             <FiPlus className="w-5 h-5" />
-            Tạo đề thi mới
+            Create new test
           </button>
           <button
             type="button"
@@ -385,45 +394,44 @@ const TestingPage = () => {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Tìm kiếm
+              Search
             </label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm theo tên, mã đề thi..."
+              placeholder="Search by name or code..."
               className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Trạng thái
+              Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="all">Tất cả</option>
-              <option value="active">Đang sử dụng</option>
-              <option value="draft">Bản nháp</option>
-              <option value="archived">Đã lưu trữ</option>
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
             </select>
           </div>
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Mức độ
+              Test type
             </label>
             <select
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value)}
+              value={testTypeFilter}
+              onChange={(e) => setTestTypeFilter(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="all">Tất cả</option>
-              <option value="Cơ bản">Cơ bản</option>
-              <option value="Trung cấp">Trung cấp</option>
-              <option value="Nâng cao">Nâng cao</option>
-              <option value="Chuyên ngành">Chuyên ngành</option>
+              <option value="all">All</option>
+              <option value="listening">Listening</option>
+              <option value="speaking">Speaking</option>
+              <option value="practical">Practical</option>
             </select>
           </div>
         </div>
@@ -440,7 +448,7 @@ const TestingPage = () => {
           <div className="p-12 text-center">
             <FiLoader className="w-16 h-16 mx-auto mb-4 text-indigo-600 animate-spin" />
             <p className="text-lg font-medium text-slate-600">
-              Đang tải danh sách đề thi...
+              Loading test list...
             </p>
           </div>
         ) : filteredTests.length === 0 ? (
@@ -448,13 +456,13 @@ const TestingPage = () => {
             <FiFileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
             <p className="mb-2 text-lg font-medium text-slate-600">
               {tests.length === 0
-                ? "Chưa có đề thi nào"
-                : "Không tìm thấy đề thi nào"}
+                ? "No tests available yet"
+                : "No tests match your filters"}
             </p>
             <p className="text-sm text-slate-500">
               {tests.length === 0
-                ? "Hãy tạo đề thi mới để bắt đầu"
-                : "Thử thay đổi bộ lọc hoặc tạo đề thi mới"}
+                ? "Create a new test to get started"
+                : "Try adjusting filters or create a new test"}
             </p>
           </div>
         ) : (
@@ -481,7 +489,7 @@ const TestingPage = () => {
                     </p>
                     <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                       <div className="flex items-center">
-                        <span className="text-slate-500">Mã đề thi:</span>
+                        <span className="text-slate-500">Test code:</span>
                         <div className="flex items-center gap-2 ml-2">
                           <span className="font-medium text-slate-800">
                             {codeVisibility[test.id]
@@ -492,7 +500,7 @@ const TestingPage = () => {
                             onClick={() => toggleCodeVisibility(test.id)}
                             className="text-slate-500 hover:text-slate-700"
                             title={
-                              codeVisibility[test.id] ? "Ẩn mã" : "Hiện mã"
+                              codeVisibility[test.id] ? "Hide code" : "Show code"
                             }
                           >
                             {codeVisibility[test.id] ? (
@@ -504,19 +512,19 @@ const TestingPage = () => {
                         </div>
                       </div>
                       <div>
-                        <span className="text-slate-500">Thời gian:</span>
+                        <span className="text-slate-500">Duration:</span>
                         <span className="ml-2 font-medium text-slate-800">
-                          {test.duration} phút
+                          {test.duration} minutes
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Số câu hỏi:</span>
+                        <span className="text-slate-500">Questions:</span>
                         <span className="ml-2 font-medium text-slate-800">
                           {test.totalQuestions}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500">Điểm tối đa:</span>
+                        <span className="text-slate-500">Max score:</span>
                         <span className="ml-2 font-medium text-slate-800">
                           {test.maxScore || 0}
                         </span>
@@ -527,7 +535,7 @@ const TestingPage = () => {
                         <div className="flex items-center gap-2">
                           <FiMusic className="w-4 h-4 text-slate-500" />
                           <span className="text-sm text-slate-500">
-                            File âm thanh:
+                            Audio file:
                           </span>
                           <a
                             href={test.audioFileURL}
@@ -544,11 +552,11 @@ const TestingPage = () => {
                       </div>
                     )}
                     <div className="mt-3 text-xs text-slate-500">
-                      Tạo: {formatDate(test.createdAt)}
+                      Created: {formatDate(test.createdAt)}
                       {test.createdBy && (
                         <>
                           {" "}
-                          bởi{" "}
+                          by{" "}
                           <span className="font-medium">{test.createdBy}</span>
                         </>
                       )}
@@ -558,14 +566,14 @@ const TestingPage = () => {
                     <button
                       onClick={() => handleViewTest(test.id)}
                       className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                      title="Xem chi tiết"
+                      title="View detail"
                     >
                       <FiEye className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleEditTest(test.id)}
                       className="p-2 text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50"
-                      title="Chỉnh sửa"
+                      title="Edit"
                     >
                       <FiEdit2 className="w-5 h-5" />
                     </button>
@@ -573,7 +581,7 @@ const TestingPage = () => {
                       onClick={() => openConfirmDelete(test.id)}
                       disabled={deletingTestId === test.id}
                       className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Xóa"
+                      title="Delete"
                     >
                       {deletingTestId === test.id ? (
                         <FiLoader className="w-5 h-5 animate-spin" />
@@ -593,12 +601,12 @@ const TestingPage = () => {
       {!isLoading && pagination.totalPages > 1 && (
         <div className="flex flex-col items-center justify-between gap-4 mt-6 sm:flex-row">
           <div className="text-sm text-slate-600">
-            Hiển thị {(pagination.currentPage - 1) * pagination.pageSize + 1} -{" "}
+            Showing {(pagination.currentPage - 1) * pagination.pageSize + 1} -{" "}
             {Math.min(
               pagination.currentPage * pagination.pageSize,
               pagination.totalRecords
             )}{" "}
-            / {pagination.totalRecords} đề thi
+            / {pagination.totalRecords} tests
           </div>
 
           <div className="flex items-center gap-2">
@@ -655,10 +663,10 @@ const TestingPage = () => {
         <div className="mt-4 text-sm text-slate-600">
           {pagination.totalRecords > 0 ? (
             <>
-              Hiển thị {filteredTests.length} / {pagination.totalRecords} đề thi
+              Showing {filteredTests.length} / {pagination.totalRecords} tests
             </>
           ) : (
-            <>Hiển thị {filteredTests.length} đề thi</>
+            <>Showing {filteredTests.length} tests</>
           )}
         </div>
       )}
@@ -675,21 +683,21 @@ const TestingPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" onClick={closeConfirmDelete} />
           <div className="relative z-10 w-full max-w-sm p-6 bg-white border rounded-xl shadow-xl border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Xóa đề thi?</h3>
-            <p className="text-sm text-slate-600 mb-4">Bạn có chắc chắn muốn xóa đề thi này? Hành động này không thể hoàn tác.</p>
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">Delete this test?</h3>
+            <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this test? This action cannot be undone.</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeConfirmDelete}
                 className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border rounded-lg border-slate-300 hover:bg-slate-50"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={() => handleDeleteTest(confirmDeleteId)}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
                 disabled={!!deletingTestId}
               >
-                {deletingTestId ? "Đang xóa..." : "Xóa"}
+                {deletingTestId ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

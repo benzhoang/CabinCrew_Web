@@ -6,27 +6,27 @@ import { FiChevronDown, FiChevronRight, FiFileText } from 'react-icons/fi'
 const demoCampaigns = [
   {
     id: 1,
-    name: 'Tuyển dụng Tiếp viên hàng không 2024',
+    name: 'Cabin Crew Recruitment 2024',
     department: 'Cabin Crew',
     startDate: '2024-11-01',
     endDate: '2025-01-31',
     status: 'ongoing',
     tests: [
-      { id: 11, code: 'CC-ENG-01', name: 'English Proficiency', complaints: 4, roundName: 'Đợt 1', location: 'TP.HCM', target: 10 },
-      { id: 12, code: 'CC-SAF-02', name: 'Safety Procedures', complaints: 2, roundName: 'Đợt 2', location: 'Hà Nội', target: 12 },
-      { id: 13, code: 'CC-CUS-03', name: 'Customer Service', complaints: 0, roundName: 'Đợt 3', location: 'Đà Nẵng', target: 8 }
+      { id: 11, code: 'CC-ENG-01', name: 'English Proficiency', complaints: 4, roundName: 'Round 1', location: 'HCMC', target: 10 },
+      { id: 12, code: 'CC-SAF-02', name: 'Safety Procedures', complaints: 2, roundName: 'Round 2', location: 'Hanoi', target: 12 },
+      { id: 13, code: 'CC-CUS-03', name: 'Customer Service', complaints: 0, roundName: 'Round 3', location: 'Da Nang', target: 8 }
     ]
   },
   {
     id: 2,
-    name: 'Chiến dịch Pilot Training',
+    name: 'Pilot Training Campaign',
     department: 'Flight Operations',
     startDate: '2024-09-01',
     endDate: '2024-12-15',
     status: 'completed',
     tests: [
-      { id: 21, code: 'PLT-TECH-01', name: 'Technical Knowledge', complaints: 1, roundName: 'Đợt 1', location: 'TP.HCM', target: 6 },
-      { id: 22, code: 'PLT-SIM-02', name: 'Simulator Session', complaints: 3, roundName: 'Đợt 2', location: 'Hà Nội', target: 5 }
+      { id: 21, code: 'PLT-TECH-01', name: 'Technical Knowledge', complaints: 1, roundName: 'Round 1', location: 'HCMC', target: 6 },
+      { id: 22, code: 'PLT-SIM-02', name: 'Simulator Session', complaints: 3, roundName: 'Round 2', location: 'Hanoi', target: 5 }
     ]
   },
   {
@@ -37,7 +37,7 @@ const demoCampaigns = [
     endDate: '2025-03-15',
     status: 'pending',
     tests: [
-      { id: 31, code: 'GR-OPS-01', name: 'Operational Basics', complaints: 0, roundName: 'Đợt 1', location: 'TP.HCM', target: 15 }
+      { id: 31, code: 'GR-OPS-01', name: 'Operational Basics', complaints: 0, roundName: 'Round 1', location: 'HCMC', target: 15 }
     ]
   }
 ]
@@ -45,9 +45,9 @@ const demoCampaigns = [
 const StatusBadge = ({ status }) => {
   const map = useMemo(
     () => ({
-      ongoing: { cls: 'bg-green-100 text-green-700 border-green-200', text: 'Đang diễn ra' },
-      pending: { cls: 'bg-yellow-100 text-yellow-700 border-yellow-200', text: 'Sắp diễn ra' },
-      completed: { cls: 'bg-blue-100 text-blue-700 border-blue-200', text: 'Đã hoàn thành' }
+      ongoing: { cls: 'bg-green-100 text-green-700 border-green-200', text: 'Ongoing' },
+      pending: { cls: 'bg-yellow-100 text-yellow-700 border-yellow-200', text: 'Upcoming' },
+      completed: { cls: 'bg-blue-100 text-blue-700 border-blue-200', text: 'Completed' }
     }),
     []
   )
@@ -70,8 +70,8 @@ const ExamCampaignListPage = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Chiến dịch</h2>
-        <p className="text-slate-600">Danh sách chiến dịch - bấm để xem đề thi</p>
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Campaigns</h2>
+        <p className="text-slate-600">Campaign list – click to view tests</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200">
@@ -82,7 +82,7 @@ const ExamCampaignListPage = () => {
               statusFilter === 'ongoing' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
             }`}
           >
-            Đang diễn ra
+            Ongoing
           </button>
           <button
             onClick={() => setStatusFilter('pending')}
@@ -90,7 +90,7 @@ const ExamCampaignListPage = () => {
               statusFilter === 'pending' ? 'bg-yellow-600 text-white border-yellow-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
             }`}
           >
-            Sắp diễn ra
+            Upcoming
           </button>
           <button
             onClick={() => setStatusFilter('completed')}
@@ -98,7 +98,7 @@ const ExamCampaignListPage = () => {
               statusFilter === 'completed' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
             }`}
           >
-            Đã hoàn thành
+            Completed
           </button>
           <button
             onClick={() => setStatusFilter('all')}
@@ -106,7 +106,7 @@ const ExamCampaignListPage = () => {
               statusFilter === 'all' ? 'bg-slate-600 text-white border-slate-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
             }`}
           >
-            Tất cả
+            All
           </button>
         </div>
 
@@ -122,16 +122,16 @@ const ExamCampaignListPage = () => {
                     </div>
                     <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 text-sm text-gray-700">
                       <div>
-                        <span className="text-gray-500">Phòng ban:</span> {c.department}
+                        <span className="text-gray-500">Department:</span> {c.department}
                       </div>
                       <div>
-                        <span className="text-gray-500">Thời gian bắt đầu:</span> {c.startDate}
+                        <span className="text-gray-500">Start date:</span> {c.startDate}
                       </div>
                       <div>
-                        <span className="text-gray-500">Thời gian kết thúc:</span> {c.endDate}
+                        <span className="text-gray-500">End date:</span> {c.endDate}
                       </div>
                       <div>
-                        <span className="text-gray-500">Trạng thái:</span> <StatusBadge status={c.status} />
+                        <span className="text-gray-500">Status:</span> <StatusBadge status={c.status} />
                       </div>
                     </div>
                   </div>
@@ -176,9 +176,9 @@ const ExamCampaignListPage = () => {
                           })
                         }
                         className="relative inline-flex items-center gap-2 px-3 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-100"
-                        aria-label="Xem chi tiết"
+                        aria-label="View detail"
                       >
-                        <span className="text-sm font-medium">Chi tiết</span>
+                        <span className="text-sm font-medium">Detail</span>
                         {typeof t.complaints === 'number' && (
                           <span className="ml-1 inline-flex items-center justify-center w-6 h-6 text-xs font-semibold bg-red-600 text-white rounded-full">{t.complaints}</span>
                         )}

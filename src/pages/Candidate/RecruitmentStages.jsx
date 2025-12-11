@@ -147,7 +147,7 @@ const RecruitmentStages = () => {
 
                     // Map status từ roundStatus
                     let status = 'pending';
-                    let statusText = 'Đang xem xét';
+                    let statusText = 'Under Review';
                     let statusTextEn = 'Under Review';
 
                     if (campaignData.roundStatus) {
@@ -458,7 +458,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/profile/${application.activityId || stage.activityId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                    {t('view_profile')}
+                                                        {t('view_profile')}
                                                     </button>
                                                 )}
                                                 {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
@@ -467,7 +467,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/appearance-result/${stage.activityId || stage.roundId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                    {t('view_result')}
+                                                        {t('view_result')}
                                                     </button>
                                                 )}
                                                 {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
@@ -476,7 +476,7 @@ const RecruitmentStages = () => {
                                                         onClick={() => navigate(`/interview-result/${stage.activityId || stage.roundId || ''}`)}
                                                         className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
                                                     >
-                                                    {t('view_result')}
+                                                        {t('view_result')}
                                                     </button>
                                                 )}
                                             </div>
@@ -553,9 +553,9 @@ const RecruitmentStages = () => {
                                                     ? (() => {
                                                         const currentStageData = application.stages[application.currentStage - 1];
                                                         if (currentStageData?.completed) {
-                                                            return `Hoàn thành ${getStageName(currentStageData)}`;
+                                                            return `Complete ${getStageName(currentStageData)}`;
                                                         } else {
-                                                            return `Đang trong giai đoạn ${getStageName(currentStageData)}`;
+                                                            return `In progress ${getStageName(currentStageData)}`;
                                                         }
                                                     })()
                                                     : 'Đang chờ xử lý'

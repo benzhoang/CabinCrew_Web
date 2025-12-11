@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { FiLoader, FiTrash2, FiExternalLink } from 'react-icons/fi';
-import { updateTest } from '../../service/api';
+import { updateTest, getTestById } from '../../service/api';
 
 const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   const [formData, setFormData] = useState({
@@ -18,21 +18,42 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isFetching, setIsFetching] = useState(false);
 
-  // Load test data when modal opens
-  useEffect(() => {
-    if (isOpen && testData) {
+  // Fetch test detail via api.js
+  const fetchTestDetail = async (id) => {
+    setIsFetching(true);
+    setError(null);
+
+    try {
+      const response = await getTestById(id);
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Unable to load test detail');
+      }
+      const data = response.data || {};
+
       setFormData({
-        testName: testData.name || '',
-        purpose: testData.description || '',
-        testType: testData.testType || '',
-        maxScore: testData.maxScore || '',
-        durationInMinutes: testData.durationInMinutes || '',
+        testName: data.testName || '',
+        purpose: data.purpose || '',
+        testType: data.testType || '',
+        maxScore: data.maxScore || '',
+        durationInMinutes: data.durationInMinutes || '',
         audioFile: null,
         audioFileName: ''
       });
-      setCurrentAudioFileURL(testData.audioFileURL || null);
+      setCurrentAudioFileURL(data.audioFileURL || null);
       setShouldDeleteAudio(false);
+    } catch (err) {
+      setError(err.message || 'Unable to load test detail');
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  // Load test data when modal opens
+  useEffect(() => {
+    if (isOpen && testData?.id) {
+      fetchTestDetail(testData.id);
     }
   }, [isOpen, testData]);
 
@@ -87,11 +108,47 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     }
   };
 
+  const normalizeTestType = (value) => {
+    if (value === undefined || value === null) return null;
+    // Nếu backend trả về số, giữ nguyên
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      // Chuẩn hoá bỏ khoảng trắng và lower-case để tránh lỗi "The value '' is invalid."
+      const v = value.trim().toLowerCase();
+      const compact = v.replace(/\s+/g, '');
+      if (compact === 'englishlistening' || compact === 'listening' || v === '1') return 1;
+      if (compact === 'englishspeaking' || compact === 'speaking' || v === '2') return 2;
+      if (compact === 'practical' || v === '3') return 3;
+      // Nếu không khớp, thử parse number
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return null;
+  };
+
+  const isListeningType = (value) => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'string') {
+      const v = value.trim().toLowerCase();
+      const compact = v.replace(/\s+/g, '');
+      // handle variants: "EnglishListening", "English Listening", "Listening"
+      return (
+        v === '1' ||
+        compact === 'englishlistening' ||
+        v === 'english listening' ||
+        v === 'listening' ||
+        v.includes('listening')
+      );
+    }
+    return false;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!testData || !testData.id) {
-      setError('Không tìm thấy ID đề thi');
+      setError('Test ID not found');
       return;
     }
 
@@ -100,11 +157,14 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     setSuccessMessage(null);
 
     try {
+      // Chuẩn hoá testType sang format backend yêu cầu (số)
+      const normalizedTestType = normalizeTestType(formData.testType);
+
       // Prepare data to send, including delete audio flag if needed
       const submitData = {
         testName: formData.testName,
         purpose: formData.purpose,
-        testType: formData.testType,
+        ...(normalizedTestType !== null && { testType: normalizedTestType }),
         maxScore: formData.maxScore,
         durationInMinutes: formData.durationInMinutes,
         shouldDeleteAudio: shouldDeleteAudio,
@@ -115,7 +175,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
       if (response.success) {
         // Display success message
-        setSuccessMessage(response.message || 'Cập nhật đề thi thành công');
+        setSuccessMessage(response.message || 'Test updated successfully');
         // Call onSave callback with new data from response (including updated audioFileURL)
         if (onSave) {
           onSave(formData, response.data);
@@ -126,7 +186,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         }, 1500);
       } else {
         // Display specific error from API response
-        setError(response.error || 'Không thể cập nhật đề thi');
+        setError(response.error || 'Unable to update test');
       }
     } catch (err) {
       // Handle error from exception (network error, etc.)
@@ -136,7 +196,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
           ? err.response.data.errors.join('. ')
           : null) ||
         err.message ||
-        'Đã xảy ra lỗi khi cập nhật đề thi';
+        'An error occurred while updating the test';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -151,7 +211,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
         {/* HEADER */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Chỉnh sửa đề thi</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Edit Test</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -184,7 +244,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
             {/* Test Name */}
             <div className="flex flex-col">
               <label className="mb-2 text-sm font-medium text-gray-700">
-                Tên đề thi <span className="text-red-500">*</span>
+                Test name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -193,33 +253,28 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                 onChange={handleInputChange}
                 required
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Nhập tên đề thi"
+                placeholder="Enter test name"
               />
             </div>
 
-            {/* Test Type */}
+            {/* Test Type - readonly */}
             <div className="flex flex-col">
               <label className="mb-2 text-sm font-medium text-gray-700">
-                Loại đề thi <span className="text-red-500">*</span>
+                Test type
               </label>
-              <select
+              <input
+                type="text"
                 name="testType"
                 value={formData.testType}
-                onChange={handleInputChange}
-                required
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value="">Chọn loại đề thi</option>
-                <option value="1">EnglishListening</option>
-                <option value="2">EnglishSpeaking</option>
-                <option value="3">Practical</option>
-              </select>
+                readOnly
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
+              />
             </div>
 
             {/* Max Score */}
             <div className="flex flex-col">
               <label className="mb-2 text-sm font-medium text-gray-700">
-                Điểm tối đa <span className="text-red-500">*</span>
+                Max score <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -229,14 +284,14 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                 required
                 min="0"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Nhập điểm tối đa"
+                placeholder="Enter max score"
               />
             </div>
 
             {/* Duration */}
             <div className="flex flex-col">
               <label className="mb-2 text-sm font-medium text-gray-700">
-                Thời lượng (phút) <span className="text-red-500">*</span>
+                Duration (minutes) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -246,7 +301,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                 required
                 min="1"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Nhập thời lượng bài thi"
+                placeholder="Enter duration (minutes)"
               />
             </div>
 
@@ -255,7 +310,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
           {/* PURPOSE (Full width) */}
           <div className="mt-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Mục đích <span className="text-red-500">*</span>
+              Purpose <span className="text-red-500">*</span>
             </label>
             <textarea
               name="purpose"
@@ -264,63 +319,65 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
               required
               rows={4}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-              placeholder="Nhập mục đích của đề thi"
+              placeholder="Enter test purpose"
             />
           </div>
 
-          {/* AUDIO FILE */}
-          <div className="mt-6">
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              File âm thanh
-            </label>
+          {/* AUDIO FILE - only for English Listening */}
+          {isListeningType(formData.testType) && (
+            <div className="mt-6">
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Audio file
+              </label>
 
-            {/* Display current file if available */}
-            {currentAudioFileURL && !shouldDeleteAudio && (
-              <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <FiExternalLink className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                  <a
-                    href={currentAudioFileURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-700 hover:underline truncate flex-1"
+              {/* Display current file if available */}
+              {currentAudioFileURL && !shouldDeleteAudio && (
+                <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <FiExternalLink className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <a
+                      href={currentAudioFileURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-700 hover:underline truncate flex-1"
+                    >
+                      {currentAudioFileURL}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteCurrentAudio}
+                    className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    title="Delete file"
                   >
-                    {currentAudioFileURL}
-                  </a>
+                    <FiTrash2 className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDeleteCurrentAudio}
-                  className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                  title="Xóa file"
-                >
-                  <FiTrash2 className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+              )}
 
-            {/* Input for new file selection */}
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={handleFileChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-            />
+              {/* Input for new file selection */}
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
 
-            {/* Display newly selected file */}
-            {formData.audioFile && (
-              <p className="text-sm mt-2 text-gray-600">
-                File mới: {formData.audioFileName}
-              </p>
-            )}
+              {/* Display newly selected file */}
+              {formData.audioFile && (
+                <p className="text-sm mt-2 text-gray-600">
+                  New file: {formData.audioFileName}
+                </p>
+              )}
 
-            {/* Notification when file is marked for deletion */}
-            {shouldDeleteAudio && !formData.audioFile && (
-              <p className="text-sm mt-2 text-amber-600">
-                File âm thanh sẽ bị xóa khi lưu thay đổi
-              </p>
-            )}
-          </div>
+              {/* Notification when file is marked for deletion */}
+              {shouldDeleteAudio && !formData.audioFile && (
+                <p className="text-sm mt-2 text-amber-600">
+                  The current audio will be removed when saving changes
+                </p>
+              )}
+            </div>
+          )}
 
         </form>
 
@@ -331,7 +388,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
             onClick={onClose}
             className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
           >
-            Hủy
+            Cancel
           </button>
           <button
             type="submit"
@@ -340,7 +397,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
             className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isLoading && <FiLoader className="w-4 h-4 animate-spin" />}
-            {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+            {isLoading ? 'Saving...' : 'Save changes'}
           </button>
         </div>
 

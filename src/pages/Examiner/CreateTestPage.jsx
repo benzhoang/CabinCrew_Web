@@ -1,22 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaFileUpload, FaCloudUploadAlt, FaInfoCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { createTest } from "../../service/api2";
+import { createTest, getTestTypes } from "../../service/api2";
 import { toast } from "react-toastify";
 import ModalConfirm from "../../components/AirlinePartnerComponent/ModalConfirm";
 
-const testTypeOptions = [
-  { value: 0, label: "Chọn loại đề thi" },
-  { value: 1, label: "English Listening" },
-  { value: 2, label: "English Speaking" },
-  { value: 3, label: "Practical" },
-];
-
 const durationOptions = [
-  { value: 0, label: "Chọn thời gian" },
-  { value: 60, label: "60 phút" },
-  { value: 90, label: "90 phút" },
-  { value: 120, label: "120 phút" },
+  { value: 0, label: "Select duration" },
+  { value: 60, label: "60 minutes" },
+  { value: 90, label: "90 minutes" },
+  { value: 120, label: "120 minutes" },
 ];
 
 const CreateTestPage = () => {
@@ -33,6 +26,54 @@ const CreateTestPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [testTypeOptions, setTestTypeOptions] = useState([
+    { value: "0", label: "Select test type" },
+  ]);
+  const [isLoadingTestTypes, setIsLoadingTestTypes] = useState(false);
+
+  // Fetch test types from API
+  useEffect(() => {
+    const fetchTestTypes = async () => {
+      setIsLoadingTestTypes(true);
+      try {
+        const res = await getTestTypes();
+        if (res.success && Array.isArray(res.data)) {
+          const mapped = res.data
+            .map((item) => {
+              const value =
+                item?.id ??
+                item?.testTypeId ??
+                item?.testType ??
+                item?.code ??
+                item?.value;
+              if (value === undefined || value === null) return null;
+              const label =
+                item?.name ||
+                item?.typeName ||
+                item?.testTypeName ||
+                item?.description ||
+                item?.label ||
+                `Type ${value}`;
+              return { value: value.toString(), label };
+            })
+            .filter(Boolean);
+
+          setTestTypeOptions([
+            { value: "0", label: "Select test type" },
+            ...mapped,
+          ]);
+        } else {
+          setErrorMessage(res.error || "Unable to load test types");
+        }
+      } catch (err) {
+        setErrorMessage(err.message || "Unable to load test types");
+      } finally {
+        setIsLoadingTestTypes(false);
+      }
+    };
+
+    fetchTestTypes();
+  }, []);
 
   const handleChange = (field) => (event) => {
     const value =
@@ -74,16 +115,16 @@ const CreateTestPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Validation testName
+      // Validate testName
       if (!formData.testName || !formData.testName.trim()) {
-        setErrorMessage("Tên đề thi là bắt buộc");
+        setErrorMessage("Test name is required");
         setIsSubmitting(false);
         return;
       }
 
-      // Validation purpose
+      // Validate purpose
       if (!formData.purpose || !formData.purpose.trim()) {
-        setErrorMessage("Mô tả là bắt buộc");
+        setErrorMessage("Purpose is required");
         setIsSubmitting(false);
         return;
       }
@@ -94,7 +135,7 @@ const CreateTestPage = () => {
 
       // Validate TestType
       if (!testType || testType === 0) {
-        setErrorMessage("Vui lòng chọn loại đề thi");
+        setErrorMessage("Please select test type");
         setIsSubmitting(false);
         return;
       }
@@ -105,14 +146,14 @@ const CreateTestPage = () => {
         durationInMinutes === 0 ||
         ![60, 90, 120].includes(durationInMinutes)
       ) {
-        setErrorMessage("Vui lòng chọn thời gian: 60, 90 hoặc 120 phút");
+        setErrorMessage("Please select duration: 60, 90 or 120 minutes");
         setIsSubmitting(false);
         return;
       }
 
       // Validate MaxScore
       if (!formData.maxScore || !formData.maxScore > 0) {
-        setErrorMessage("Điểm tối đa phải lớn hơn 0");
+        setErrorMessage("Max score must be greater than 0");
         setIsSubmitting(false);
         return;
       }
@@ -120,26 +161,26 @@ const CreateTestPage = () => {
       // Validate AudioFile for EnglishListening (TestType = 1)
       if (testType === 1 && !formData.audioFile) {
         setErrorMessage(
-          "Audio file là bắt buộc đối với loại bài kiểm tra nghe tiếng Anh"
+          "Audio file is required for English Listening test type"
         );
         setIsSubmitting(false);
         return;
       }
 
-      // Validate audio file format và size
+      // Validate audio file format and size
       if (formData.audioFile) {
         const file = formData.audioFile;
         const fileExtension = file.name.split(".").pop().toLowerCase();
 
         if (fileExtension !== "mp3" && fileExtension !== "wav") {
-          setErrorMessage("File audio phải có định dạng .mp3 hoặc .wav");
+          setErrorMessage("Audio file must be .mp3 or .wav");
           setIsSubmitting(false);
           return;
         }
 
         const fileSizeMB = file.size / (1024 * 1024);
         if (fileSizeMB > 50) {
-          setErrorMessage("File audio không được vượt quá 50 MB");
+          setErrorMessage("Audio file size must not exceed 50 MB");
           setIsSubmitting(false);
           return;
         }
@@ -159,14 +200,14 @@ const CreateTestPage = () => {
       console.log("Creating test:", testData);
 
       if (result.success) {
-        toast.success("Tạo đề thi thành công!");
+        toast.success("Test created successfully!");
         navigate("/examiner/testing");
       } else {
-        toast.error("Tạo đề thi thất bại. Vui lòng thử lại.");
+        toast.error("Creating test failed. Please try again.");
       }
     } catch (error) {
       console.error("Error creating test:", error);
-      setErrorMessage("Đã xảy ra lỗi khi tạo đề thi. Vui lòng thử lại.");
+      setErrorMessage("An error occurred while creating the test. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,10 +217,9 @@ const CreateTestPage = () => {
     <div className="p-6 space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-slate-900">Tạo đề thi</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">Create test</h1>
           <p className="max-w-3xl text-slate-600">
-            Nhập thông tin đề thi và upload file audio đáp ứng yêu cầu định
-            dạng.
+            Enter test information and upload an audio file that meets the requirements.
           </p>
         </div>
         <button
@@ -187,7 +227,7 @@ const CreateTestPage = () => {
           onClick={() => navigate("/examiner/testing")}
           className="inline-flex items-center self-start gap-2 px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100"
         >
-          Quay lại
+          Back
         </button>
       </header>
 
@@ -200,11 +240,11 @@ const CreateTestPage = () => {
               </span>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Yêu cầu upload audio
+                  Audio upload requirements
                 </h2>
                 <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                  <li>• Định dạng cho phép: .mp3 hoặc .wav</li>
-                  <li>• Dung lượng tối đa: 50&nbsp;MB</li>
+                  <li>• Allowed formats: .mp3 or .wav</li>
+                  <li>• Max size: 50 MB</li>
                 </ul>
               </div>
             </div>
@@ -213,47 +253,43 @@ const CreateTestPage = () => {
           <aside className="space-y-6">
             <div className="p-6 space-y-4 bg-white border shadow-sm rounded-2xl border-slate-200">
               <h3 className="text-lg font-semibold text-slate-900">
-                Thông tin nhắc nhanh
+                Quick notes
               </h3>
               <ul className="space-y-3 text-sm text-slate-600">
                 <li>
                   <span className="font-medium text-slate-800">
                     English Listening Test
                   </span>{" "}
-                  yêu cầu bắt buộc upload audio; hệ thống sẽ kiểm tra khi gửi
-                  form.
+                  requires an audio file; the system will validate on submit.
                 </li>
                 <li>
                   <span className="font-medium text-slate-800">
-                    English Speaking Test và Practical Test
+                    English Speaking Test and Practical Test
                   </span>{" "}
-                  có thể bỏ qua file audio nếu không cần.
+                  can skip audio if not needed.
                 </li>
                 <li>
-                  Nên đặt tên file theo cấu trúc:{" "}
+                  Recommended filename format:{" "}
                   <span className="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">
                     testcode_level.mp3
                   </span>
                   .
                 </li>
                 <li>
-                  Sau khi tạo đề thi, bạn có thể quản lý câu hỏi tại trang chi
-                  tiết đề thi.
+                  After creating the test, manage questions in the test detail page.
                 </li>
               </ul>
             </div>
 
             <div className="p-6 space-y-3 text-sm text-indigo-700 border border-indigo-100 rounded-2xl bg-indigo-50">
               <h4 className="text-base font-semibold text-indigo-800">
-                Gợi ý bảo mật
+                Security hints
               </h4>
               <p>
-                Không chia sẻ join code công khai. Gửi cho ứng viên qua các kênh
-                nội bộ hoặc email do hệ thống hỗ trợ.
+                Do not share join code publicly. Send to candidates via internal channels or system email.
               </p>
               <p>
-                Nếu cần cập nhật audio, hãy chỉnh sửa đề thi và upload phiên bản
-                mới thay vì xóa đề.
+                If you need to update audio, edit the test and upload a new file instead of deleting the test.
               </p>
             </div>
           </aside>
@@ -274,18 +310,18 @@ const CreateTestPage = () => {
                   htmlFor="testName"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Tên đề thi
+                  Test name
                 </label>
                 <input
                   id="testName"
                   type="text"
-                  placeholder="Nhập tên đề thi..."
+                  placeholder="Enter test name..."
                   value={formData.testName}
                   onChange={handleChange("testName")}
                   className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
-                  Tên hiển thị cho đề thi, ví dụ "English Level Test".
+                  Displayed name, e.g. "English Level Test".
                 </span>
               </div>
 
@@ -294,18 +330,18 @@ const CreateTestPage = () => {
                   htmlFor="purpose"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Mục đích
+                  Purpose
                 </label>
                 <input
                   id="purpose"
                   type="text"
-                  placeholder="Mục đích đề thi..."
+                  placeholder="Purpose..."
                   value={formData.purpose}
                   onChange={handleChange("purpose")}
                   className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
-                  Ghi chú ngắn giúp xác định mục đích sử dụng đề thi.
+                  Short note to describe the test purpose.
                 </span>
               </div>
 
@@ -314,7 +350,7 @@ const CreateTestPage = () => {
                   htmlFor="testType"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Loại đề thi
+                  Test type
                 </label>
                 <select
                   id="testType"
@@ -329,7 +365,7 @@ const CreateTestPage = () => {
                   ))}
                 </select>
                 <span className="text-xs text-slate-500">
-                  Chọn loại đề thi để áp dụng yêu cầu upload audio tương ứng.
+                  Choose the test type to apply the matching audio requirement.
                 </span>
               </div>
 
@@ -338,7 +374,7 @@ const CreateTestPage = () => {
                   htmlFor="maxScore"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Điểm tối đa
+                  Max score
                 </label>
                 <input
                   id="maxScore"
@@ -348,7 +384,7 @@ const CreateTestPage = () => {
                   className="w-full px-3 py-2 text-sm border rounded-lg shadow-sm border-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
                 <span className="text-xs text-slate-500">
-                  Điểm tối đa cho đề thi (ví dụ 100).
+                  Maximum score for the test (e.g. 100).
                 </span>
               </div>
 
@@ -357,7 +393,7 @@ const CreateTestPage = () => {
                   htmlFor="durationInMinutes"
                   className="text-sm font-medium text-slate-700"
                 >
-                  Thời gian
+                  Duration
                 </label>
                 <select
                   id="durationInMinutes"
@@ -372,7 +408,7 @@ const CreateTestPage = () => {
                   ))}
                 </select>
                 <span className="text-xs text-slate-500">
-                  Chọn thời gian làm bài: 60, 90 hoặc 120 phút.
+                  Select duration: 60, 90 or 120 minutes.
                 </span>
               </div>
             </div>
@@ -380,16 +416,16 @@ const CreateTestPage = () => {
             {formData.testType !== "2" && formData.testType !== "3" && (
               <div className="flex flex-col gap-3">
                 <label className="text-sm font-medium text-slate-700">
-                  File audio
+                  Audio file
                 </label>
                 <div className="flex flex-col gap-4 p-6 text-center text-indigo-700 border border-indigo-300 border-dashed rounded-xl bg-indigo-50/60">
                   <FaCloudUploadAlt className="w-10 h-10 mx-auto" />
                   <div className="space-y-1">
                     <p className="text-sm font-semibold">
-                      Kéo thả file vào đây hoặc bấm chọn tệp
+                      Drag and drop here or choose a file
                     </p>
                     <p className="text-xs text-indigo-600/80">
-                      Hỗ trợ .mp3, .wav · Tối đa 50&nbsp;MB
+                      Supports .mp3, .wav · Up to 50 MB
                     </p>
                   </div>
                   <label
@@ -397,7 +433,7 @@ const CreateTestPage = () => {
                     className="inline-flex items-center gap-2 px-4 py-2 mx-auto text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm cursor-pointer hover:bg-indigo-700"
                   >
                     <FaFileUpload className="w-4 h-4" />
-                    Chọn tệp từ thiết bị
+                    Choose file
                     <input
                       id="audioFile"
                       type="file"
@@ -425,14 +461,14 @@ const CreateTestPage = () => {
                 disabled={isSubmitting}
                 className="px-4 py-2 text-sm font-medium transition border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="px-6 py-2 text-sm font-semibold text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Đang xử lý..." : "Lưu đề thi"}
+                {isSubmitting ? "Processing..." : "Save test"}
               </button>
             </div>
           </form>
@@ -440,10 +476,10 @@ const CreateTestPage = () => {
             isOpen={showCancelModal}
             onClose={() => setShowCancelModal(false)}
             onConfirm={handleConfirmCancel}
-            title="Xác nhận hủy"
-            message="Bạn có chắc chắn muốn hủy? Tất cả thông tin sẽ bị mất."
-            confirmText="Hủy"
-            cancelText="Quay lại"
+            title="Confirm cancel"
+            message="Are you sure you want to cancel? All information will be lost."
+            confirmText="Cancel"
+            cancelText="Go back"
           />
         </div>
       </section>

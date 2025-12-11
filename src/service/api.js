@@ -349,6 +349,148 @@ export const getInterviewCriterias = async () => {
   }
 };
 
+// API lấy interview criterias cho promotion - GET /api/v1/interview-criterias/promotion
+export const getInterviewCriteriasPromotion = async () => {
+  try {
+    const response = await api.get("/interview-criterias/promotion");
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message:
+          response.data.message ||
+          "Lấy interview criterias cho promotion thành công",
+      };
+    } else {
+      return {
+        success: false,
+        error:
+          response.data.message ||
+          "Lấy interview criterias cho promotion thất bại",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Lấy interview criterias cho promotion thất bại",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách round types theo loại campaign (type: 1 Recruitement, 2 Promotion)
+export const getRoundTypes = async (type) => {
+  try {
+    const parsedType =
+      typeof type === "string" ? parseInt(type, 10) : Number(type);
+
+    if (!parsedType || Number.isNaN(parsedType) || parsedType <= 0) {
+      return {
+        success: false,
+        error: "Loại chiến dịch (type) là bắt buộc",
+      };
+    }
+
+    const response = await api.get("/round-types", {
+      params: { type: parsedType },
+    });
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      const list = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : null;
+
+      if (list) {
+        return {
+          success: true,
+          data: list,
+          message: responseData?.message || "Lấy danh sách round types thành công",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy danh sách round types",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy danh sách round types",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy requirement items theo requirement id (1: Recruitment, 2: Promotion)
+export const getRequirementItems = async (requirementId) => {
+  try {
+    const parsedId =
+      typeof requirementId === "string"
+        ? parseInt(requirementId, 10)
+        : Number(requirementId);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Requirement id là bắt buộc",
+      };
+    }
+
+    const response = await api.get(`/requirements/${parsedId}/requirement-items`);
+    const payload = response.data;
+
+    const list = Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload?.data?.requirementItems)
+        ? [{
+          requirementId: payload?.data?.requirementId,
+          requirementItems: payload.data.requirementItems,
+        }]
+        : Array.isArray(payload?.requirementItems)
+          ? [{
+            requirementId: payload?.requirementId,
+            requirementItems: payload.requirementItems,
+          }]
+          : Array.isArray(payload)
+            ? payload
+            : null;
+
+    if (response.status >= 200 && response.status < 300 && list) {
+      return {
+        success: true,
+        data: list,
+        message: payload?.message || "Lấy requirement items thành công",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Không thể lấy requirement items",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy requirement items",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API cập nhật thông tin user theo ID
 export const updateUserProfile = async (userId, userData) => {
   try {

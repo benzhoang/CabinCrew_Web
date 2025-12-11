@@ -808,6 +808,46 @@ export const getRoundParticipants = async (roundId, params = {}) => {
   }
 };
 
+// API lấy danh sách loại bài test - GET /api/v1/test-types
+export const getTestTypes = async () => {
+  try {
+    const response = await api2.get("/test-types");
+    const responseData = response.data;
+
+    // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx có data
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      const list =
+        responseData?.data && Array.isArray(responseData.data)
+          ? responseData.data
+          : Array.isArray(responseData)
+            ? responseData
+            : null;
+
+      if (list) {
+        return {
+          success: true,
+          data: list,
+          message: responseData?.message || "Lấy loại đề thi thành công",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Không thể lấy loại đề thi",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Không thể lấy loại đề thi",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API tạo test mới với audio file upload - POST /api/v1/tests
 export const createTest = async (testData, audioFile) => {
   try {

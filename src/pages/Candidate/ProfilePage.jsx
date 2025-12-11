@@ -1155,71 +1155,78 @@ const ProfilePage = () => {
                             {/* English Certificate */}
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">English certificate</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Type:</label>
-                                        <input
-                                            type="text"
-                                            name="englishCertificate"
-                                            value={formData.englishCertificate}
-                                            onChange={handleInputChange}
-                                            placeholder="TOEIC 500"
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                            required
-                                        />
-                                        <div className="grid grid-cols-3 gap-3 mt-3">
-                                            <div>
-                                                <label className="block text-xs text-slate-600 mb-1 whitespace-nowrap">Reading score</label>
-                                                <input
-                                                    type="number"
-                                                    name="readingScore"
-                                                    value={formData.readingScore}
-                                                    onChange={handleInputChange}
-                                                    placeholder="0"
-                                                    disabled={!isEditing}
-                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-slate-600 mb-1 whitespace-nowrap">Listening score</label>
-                                                <input
-                                                    type="number"
-                                                    name="listeningScore"
-                                                    value={formData.listeningScore}
-                                                    onChange={handleInputChange}
-                                                    placeholder="0"
-                                                    disabled={!isEditing}
-                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-slate-600 mb-1 whitespace-nowrap">Total score</label>
-                                                <input
-                                                    type="number"
-                                                    name="totalScore"
-                                                    value={formData.totalScore}
-                                                    onChange={handleInputChange}
-                                                    placeholder="0"
-                                                    disabled={!isEditing}
-                                                    className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                                />
-                                            </div>
+                                <div className="space-y-4">
+                                    {/* Hàng đầu: Type và Total score */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Type:</label>
+                                            <input
+                                                type="text"
+                                                name="englishCertificate"
+                                                value={formData.englishCertificate}
+                                                onChange={handleInputChange}
+                                                placeholder="TOEIC 500"
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Total score:</label>
+                                            <input
+                                                type="number"
+                                                name="totalScore"
+                                                value={formData.totalScore}
+                                                onChange={handleInputChange}
+                                                placeholder="0"
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            />
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Expiration date:</label>
-                                        <input
-                                            type="date"
-                                            name="certificateExpireDate"
-                                            value={formData.certificateExpireDate}
-                                            onChange={handleInputChange}
-                                            disabled={!isEditing}
-                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
-                                            required
-                                        />
-                                        <div className="mt-3">
-                                            <label className="block text-xs text-slate-600 mb-1">English test date</label>
+                                    {/* Hàng thứ hai: Reading score và Listening score */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Reading score:</label>
+                                            <input
+                                                type="number"
+                                                name="readingScore"
+                                                value={formData.readingScore}
+                                                onChange={handleInputChange}
+                                                placeholder="0"
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Listening score:</label>
+                                            <input
+                                                type="number"
+                                                name="listeningScore"
+                                                value={formData.listeningScore}
+                                                onChange={handleInputChange}
+                                                placeholder="0"
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    {/* Hàng thứ ba: Expiration date và English test date */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">Expiration date:</label>
+                                            <input
+                                                type="date"
+                                                name="certificateExpireDate"
+                                                value={formData.certificateExpireDate}
+                                                onChange={handleInputChange}
+                                                disabled={!isEditing}
+                                                className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">English test date:</label>
                                             <input
                                                 type="date"
                                                 name="englishTestDate"

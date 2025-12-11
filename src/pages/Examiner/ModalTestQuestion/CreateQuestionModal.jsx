@@ -24,13 +24,13 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Xác định giới hạn số lượng câu hỏi dựa trên loại test
-  // API hỗ trợ tối đa 50 câu hỏi, nhưng có thể có giới hạn khuyến nghị cho từng loại test
+  // Determine question limits per test type
+  // API supports up to 50 questions; keep same cap for all types
   const questionLimits = useMemo(() => {
     if (typeConfig.label === 'EnglishSpeaking') {
-      return { min: 1, max: 50 }; // Tối đa 50 theo API, nhưng khuyến nghị 1-10
+      return { min: 1, max: 50 }; // Up to 50 per API, recommend 1-10
     } else if (typeConfig.label === 'EnglishListening' || typeConfig.label === 'Practical') {
-      return { min: 1, max: 50 }; // Tối đa 50 theo API, nhưng khuyến nghị 15-25
+      return { min: 1, max: 50 }; // Up to 50 per API, recommend 15-25
     }
     return { min: 1, max: 50 };
   }, [typeConfig.label]);
@@ -106,14 +106,14 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
 
       // Validate question content
       if (!q.questionContent || q.questionContent.trim() === '') {
-        setErrorMessage(`Câu hỏi ${i + 1}: Nội dung câu hỏi không được để trống.`);
+        setErrorMessage(`Question ${i + 1}: Content is required.`);
         return false;
       }
 
       // Validate score (1-100)
       const score = Number(q.score);
       if (!q.score || isNaN(score) || score < 1 || score > 100) {
-        setErrorMessage(`Câu hỏi ${i + 1}: Điểm phải từ 1 đến 100.`);
+        setErrorMessage(`Question ${i + 1}: Score must be between 1 and 100.`);
         return false;
       }
 
@@ -121,34 +121,34 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
       if (typeConfig.requiresOptions) {
         // Check if options array exists and has valid length
         if (!q.options || !Array.isArray(q.options) || q.options.length < MIN_OPTIONS || q.options.length > MAX_OPTIONS) {
-          setErrorMessage(`Câu hỏi ${i + 1}: Phải có từ ${MIN_OPTIONS} đến ${MAX_OPTIONS} phương án.`);
+          setErrorMessage(`Question ${i + 1}: Must have ${MIN_OPTIONS}-${MAX_OPTIONS} options.`);
           return false;
         }
 
         // Check if all options have content
         const emptyOptions = q.options.filter(opt => !opt || opt.trim() === '');
         if (emptyOptions.length > 0) {
-          setErrorMessage(`Câu hỏi ${i + 1}: Tất cả phương án phải có nội dung.`);
+          setErrorMessage(`Question ${i + 1}: All options must have content.`);
           return false;
         }
 
         // Check if correctAnswer is set and matches one of the options
         if (!q.correctAnswer || q.correctAnswer.trim() === '') {
-          setErrorMessage(`Câu hỏi ${i + 1}: Phải chọn câu trả lời đúng.`);
+          setErrorMessage(`Question ${i + 1}: Please select the correct answer.`);
           return false;
         }
 
         // Check if correctAnswer matches one of the options
         const correctOptionIndex = q.options.findIndex(opt => opt.trim() === q.correctAnswer.trim());
         if (correctOptionIndex === -1) {
-          setErrorMessage(`Câu hỏi ${i + 1}: Câu trả lời đúng phải khớp với một trong các phương án.`);
+          setErrorMessage(`Question ${i + 1}: Correct answer must match an option.`);
           return false;
         }
 
         // Check option content length (max 500 characters)
         const longOptions = q.options.filter(opt => opt && opt.length > 500);
         if (longOptions.length > 0) {
-          setErrorMessage(`Câu hỏi ${i + 1}: Nội dung phương án không được vượt quá 500 ký tự.`);
+          setErrorMessage(`Question ${i + 1}: Option content must be <= 500 characters.`);
           return false;
         }
       }
@@ -162,13 +162,13 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
 
     // Validate testId
     if (!testId) {
-      setErrorMessage('Test ID không hợp lệ. Vui lòng kiểm tra lại.');
+      setErrorMessage('Invalid Test ID. Please check again.');
       return;
     }
 
     // Validate questions
     if (questions.length === 0) {
-      setErrorMessage('Vui lòng tạo ít nhất một câu hỏi.');
+      setErrorMessage('Please create at least one question.');
       return;
     }
 
@@ -215,11 +215,11 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
         }
       } else {
         // Error from API
-        setErrorMessage(response.error || 'Không thể tạo câu hỏi. Vui lòng thử lại.');
+        setErrorMessage(response.error || 'Unable to create questions. Please try again.');
       }
     } catch (error) {
       console.error('Error creating questions:', error);
-      setErrorMessage('Đã xảy ra lỗi khi tạo câu hỏi. Vui lòng thử lại.');
+      setErrorMessage('An error occurred while creating questions. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -230,14 +230,14 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 sticky top-0 bg-white rounded-t-2xl z-10">
           <div>
-            <p className="text-sm font-medium uppercase text-indigo-600">Tạo câu hỏi</p>
-            <h2 className="text-lg font-semibold text-gray-900">Dạng {typeConfig.label}</h2>
+            <p className="text-sm font-medium uppercase text-indigo-600">Create questions</p>
+            <h2 className="text-lg font-semibold text-gray-900">Type {typeConfig.label}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            aria-label="Đóng"
+            aria-label="Close"
           >
             <FiX className="h-5 w-5" />
           </button>
@@ -254,7 +254,7 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
               <div className="flex items-end gap-3">
                 <div className="flex-1">
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Số lượng câu hỏi muốn tạo
+                    Number of questions
                   </label>
                   <input
                     type="number"
@@ -263,7 +263,7 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                     value={numberOfQuestions}
                     onChange={(e) => setNumberOfQuestions(e.target.value)}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                    placeholder={`Nhập số lượng câu hỏi (${questionLimits.min}-${questionLimits.max})`}
+                    placeholder={`Enter question count (${questionLimits.min}-${questionLimits.max})`}
                   />
                 </div>
                 <button
@@ -276,13 +276,13 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                   }
                   className="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  Tạo form
+                  Build form
                 </button>
               </div>
               <p className="text-xs text-gray-500">
                 {typeConfig.label === 'EnglishSpeaking'
-                  ? 'Nhập số lượng câu hỏi (tối đa 50 câu, khuyến nghị 1-10 câu) và nhấn "Tạo form" để bắt đầu'
-                  : 'Nhập số lượng câu hỏi (tối đa 50 câu, khuyến nghị 15-25 câu) và nhấn "Tạo form" để bắt đầu'}
+                  ? 'Enter number of questions (max 50, recommended 1-10) then click "Build form"'
+                  : 'Enter number of questions (max 50, recommended 15-25) then click "Build form"'}
               </p>
             </div>
           ) : (
@@ -290,33 +290,33 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
               {questions.map((question, questionIndex) => (
                 <div key={`question-${questionIndex}`} className="space-y-4 rounded-xl border border-gray-200 p-5 bg-gray-50">
                   <div className="flex items-center justify-between border-b border-gray-300 pb-2">
-                    <h3 className="text-base font-semibold text-gray-900">Câu hỏi {questionIndex + 1}</h3>
+                    <h3 className="text-base font-semibold text-gray-900">Question {questionIndex + 1}</h3>
                     {questions.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setQuestions((prev) => prev.filter((_, idx) => idx !== questionIndex))}
                         className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
                       >
-                        Xóa câu hỏi
+                        Delete question
                       </button>
                     )}
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="md:col-span-2">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Nội dung câu hỏi</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Question content</label>
                       <textarea
                         value={question.questionContent}
                         onChange={(e) => handleQuestionChange(questionIndex, 'questionContent', e.target.value)}
                         rows={4}
                         required
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder="Nhập nội dung câu hỏi..."
+                        placeholder="Enter question content..."
                       />
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Điểm (1-100)</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Score (1-100)</label>
                       <input
                         type="number"
                         min={1}
@@ -325,7 +325,7 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                         onChange={(e) => handleQuestionChange(questionIndex, 'score', e.target.value)}
                         required
                         className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder="Nhập số điểm (1-100)"
+                        placeholder="Enter score (1-100)"
                       />
                     </div>
                   </div>
@@ -334,8 +334,8 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                     <div className="space-y-4 rounded-2xl bg-white p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">Phương án trả lời</p>
-                          <p className="text-xs text-gray-500">Nhập từ 4 đến 6 phương án</p>
+                          <p className="text-sm font-semibold text-gray-900">Answer options</p>
+                          <p className="text-xs text-gray-500">Enter 4 to 6 options</p>
                         </div>
                         <button
                           type="button"
@@ -344,7 +344,7 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                           className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 px-3 py-1.5 text-sm font-medium text-indigo-700 transition-colors disabled:border-gray-200 disabled:text-gray-400"
                         >
                           <FiPlus className="h-4 w-4" />
-                          Thêm
+                          Add
                         </button>
                       </div>
 
@@ -357,14 +357,14 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                               onChange={(e) => handleOptionChange(questionIndex, optIndex, e.target.value)}
                               required
                               className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              placeholder={`Phương án ${optIndex + 1}`}
+                              placeholder={`Option ${optIndex + 1}`}
                             />
                             <button
                               type="button"
                               onClick={() => handleRemoveOption(questionIndex, optIndex)}
                               disabled={question.options.length <= MIN_OPTIONS}
                               className="rounded-lg border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-40"
-                              aria-label="Xoá phương án"
+                              aria-label="Remove option"
                             >
                               <FiTrash2 className="h-4 w-4" />
                             </button>
@@ -373,14 +373,14 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                       </div>
 
                       <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">Câu trả lời chính xác</label>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">Correct answer</label>
                         <select
                           value={question.correctAnswer}
                           onChange={(e) => handleQuestionChange(questionIndex, 'correctAnswer', e.target.value)}
                           required
                           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
-                          <option value="">Chọn câu trả lời đúng</option>
+                          <option value="">Select the correct answer</option>
                           {question.options.map((opt, optIdx) => (
                             opt && opt.trim() !== '' && (
                               <option key={optIdx} value={opt.trim()}>
@@ -390,7 +390,7 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                           ))}
                         </select>
                         <p className="mt-1 text-xs text-gray-500">
-                          Chọn một trong các phương án trên làm câu trả lời đúng
+                          Choose one of the options above as the correct answer
                         </p>
                       </div>
                     </div>
@@ -410,14 +410,14 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                 }}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
-                Đặt lại
+                Reset
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
-                Huỷ
+                Cancel
               </button>
               <button
                 type="submit"
@@ -427,10 +427,10 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
                 {isSubmitting ? (
                   <>
                     <FiLoader className="h-4 w-4 animate-spin" />
-                    Đang tạo...
+                    Creating...
                   </>
                 ) : (
-                  `Lưu ${questions.length} câu hỏi`
+                  `Save ${questions.length} questions`
                 )}
               </button>
             </div>

@@ -129,8 +129,6 @@ const ListeningExam = ({ examInfo }) => {
           if (data.durationInMinutes) {
             setTimeRemaining(data.durationInMinutes * 60);
           }
-
-          toast.success(`Đã tải ${mappedQuestions.length} câu hỏi thành công`);
         } else {
           console.error("API Error:", result.error);
           toast.error(result.error || "Không thể tải câu hỏi đề thi");
@@ -507,11 +505,10 @@ const ListeningExam = ({ examInfo }) => {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleMarkQuestion(currentQuestion.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        markedQuestions.has(currentQuestion.id)
-                          ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className={`p-2 rounded-lg transition-colors ${markedQuestions.has(currentQuestion.id)
+                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
                       title={
                         markedQuestions.has(currentQuestion.id)
                           ? t("unmark_question") || "Bỏ đánh dấu"
@@ -564,6 +561,18 @@ const ListeningExam = ({ examInfo }) => {
                 />
               )}
 
+              {/* Hiển thị câu hỏi */}
+              {currentQuestion.question && (
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    {t("question") || "Câu hỏi"}:
+                  </p>
+                  <p className="text-base text-gray-900 font-medium">
+                    {currentQuestion.question}
+                  </p>
+                </div>
+              )}
+
               {/* Các lựa chọn */}
               <div className="mb-8">
                 <p className="text-sm font-medium text-gray-700 mb-4">
@@ -577,11 +586,10 @@ const ListeningExam = ({ examInfo }) => {
                     return (
                       <label
                         key={index}
-                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          isSelected
-                            ? "border-blue-600 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${isSelected
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                          }`}
                       >
                         <input
                           type="radio"
@@ -629,9 +637,8 @@ const ListeningExam = ({ examInfo }) => {
                   {t("time_remaining") || "Thời gian còn lại"}
                 </h3>
                 <div
-                  className={`text-2xl font-bold ${
-                    timeRemaining < 300 ? "text-red-600" : "text-blue-600"
-                  }`}
+                  className={`text-2xl font-bold ${timeRemaining < 300 ? "text-red-600" : "text-blue-600"
+                    }`}
                 >
                   {formatTime(timeRemaining)}
                 </div>
@@ -669,13 +676,12 @@ const ListeningExam = ({ examInfo }) => {
                       <button
                         key={question.id}
                         onClick={() => handleQuestionClick(index)}
-                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${
-                          isCurrent
-                            ? "bg-blue-600 text-white ring-2 ring-blue-300"
-                            : isAnswered
+                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${isCurrent
+                          ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                          : isAnswered
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                          }`}
                       >
                         {index + 1}
                         {isMarked && (
@@ -698,11 +704,10 @@ const ListeningExam = ({ examInfo }) => {
               <button
                 onClick={openSubmitModal}
                 disabled={hasSubmitted}
-                className={`w-full mt-6 px-4 py-3 rounded-lg font-semibold transition-colors ${
-                  hasSubmitted
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-green-600 text-white hover:bg-red-700"
-                }`}
+                className={`w-full mt-6 px-4 py-3 rounded-lg font-semibold transition-colors ${hasSubmitted
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-green-600 text-white hover:bg-red-700"
+                  }`}
               >
                 {t("submit_exam") || "Nộp bài"}
               </button>

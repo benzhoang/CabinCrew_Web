@@ -99,6 +99,12 @@ import AdminExamDetailPage from "./pages/Admin/AdminExamDetailPage";
 import AdminCampaignDetailPage from "./pages/Admin/AdminCampaignDetailPage";
 import AdminApplyListPage from "./pages/Admin/AdminApplyListPage";
 import AirlineCriteriaPage from "./pages/AirlinePartner/AirlineCriteriaPage";
+import ApperanceCritera from "./pages/Admin/ApperanceCritera";
+import InterviewIndex from "./pages/Admin/InterviewCritera/InterviewIndex";
+import TestTypePage from "./pages/Admin/TestTypePage";
+import RoundTypePage from "./pages/Admin/RoundTypePage";
+import CityWardPage from "./pages/Admin/CityWardPage";
+import RequirementPage from "./pages/Admin/RequirementPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -474,6 +480,54 @@ function App() {
           element={
             <AdminLayout>
               <AdminExamDetailPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/criteria/appearance"
+          element={
+            <AdminLayout>
+              <ApperanceCritera />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/criteria/interview"
+          element={
+            <AdminLayout>
+              <InterviewIndex />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/test-type"
+          element={
+            <AdminLayout>
+              <TestTypePage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/round-type"
+          element={
+            <AdminLayout>
+              <RoundTypePage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/city-ward"
+          element={
+            <AdminLayout>
+              <CityWardPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/criteria/requirement"
+          element={
+            <AdminLayout>
+              <RequirementPage />
             </AdminLayout>
           }
         />

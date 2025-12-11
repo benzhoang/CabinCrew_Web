@@ -167,9 +167,9 @@ const TestDetailPage = () => {
     try {
       const response = await getTestById(id);
       if (response.success) setTestData(response.data);
-      else setError(response.error || "Không thể tải chi tiết đề thi");
+      else setError(response.error || "Unable to load test detail");
     } catch (err) {
-      setError(err.message || "Đã xảy ra lỗi khi tải chi tiết đề thi");
+      setError(err.message || "An error occurred while loading test detail");
     } finally {
       setIsLoading(false);
     }
@@ -226,7 +226,7 @@ const TestDetailPage = () => {
           className="flex items-center gap-2 mb-4 text-gray-600"
         >
           <FiArrowLeft className="w-5 h-5" />
-          Quay lại
+          Back
         </button>
         <div className="p-6 border border-red-200 bg-red-50 rounded-xl">
           <p className="text-red-600">{error}</p>
@@ -248,7 +248,7 @@ const TestDetailPage = () => {
           className="flex items-center gap-2 mb-4 text-gray-600 hover:text-gray-900"
         >
           <FiArrowLeft className="w-5 h-5" />
-          Quay lại danh sách đề thi
+          Back to tests
         </button>
 
         <div className="flex items-start justify-between">
@@ -270,7 +270,7 @@ const TestDetailPage = () => {
               onClick={() => setIsCreateModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
             >
-              <FiPlusCircle /> Tạo câu hỏi
+              <FiPlusCircle /> Create question
             </button>
           </div>
         </div>
@@ -280,29 +280,29 @@ const TestDetailPage = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* LEFT CONTENT */}
         <div className="space-y-6 lg:col-span-2">
-          <Section title="Thông tin chung">
-            <InfoRow label="Tên đề thi" value={testData.testName} />
-            <InfoRow label="Mục đích" value={testData.purpose} />
+          <Section title="General information">
+            <InfoRow label="Test name" value={testData.testName} />
+            <InfoRow label="Purpose" value={testData.purpose} />
             <InfoRow
-              label="Loại đề thi"
+              label="Test type"
               value={<TestTypeBadge testType={testData.testType} />}
             />
-            <InfoRow label="Điểm tối đa" value={testData.maxScore} />
+            <InfoRow label="Max score" value={testData.maxScore} />
             <InfoRow
-              label="Thời lượng"
-              value={`${testData.durationInMinutes} phút`}
+              label="Duration"
+              value={`${testData.durationInMinutes} minutes`}
             />
           </Section>
 
           {testData.audioFileURL && (
-            <Section title="File âm thanh">
+            <Section title="Audio file">
               <AudioPlayer audioUrl={testData.audioFileURL} />
             </Section>
           )}
 
           {/* QUESTIONS */}
           <Section
-            title={`Danh sách câu hỏi (${questionsData?.totalQuestions || 0})`}
+            title={`Questions (${questionsData?.totalQuestions || 0})`}
           >
             {isLoadingQuestions ? (
               <div className="flex items-center justify-center py-8">
@@ -325,7 +325,7 @@ const TestDetailPage = () => {
                           <div className="flex items-start justify-between mb-2">
                             <p className="font-medium">{q.questionContent}</p>
                             <span className="px-2 py-1 ml-4 text-sm bg-gray-100 rounded">
-                              {q.score} điểm
+                              {q.score} pts
                             </span>
                           </div>
 
@@ -355,7 +355,7 @@ const TestDetailPage = () => {
                                   </span>
                                   {op.isCorrect && (
                                     <span className="text-sm font-medium text-green-600">
-                                      ✓ Đúng
+                                      ✓ Correct
                                     </span>
                                   )}
                                 </div>
@@ -369,7 +369,7 @@ const TestDetailPage = () => {
               </div>
             ) : (
               <div className="py-8 text-center text-gray-500">
-                Chưa có câu hỏi nào
+                No questions yet
               </div>
             )}
           </Section>
@@ -377,9 +377,9 @@ const TestDetailPage = () => {
 
         {/* RIGHT SIDEBAR */}
         <div className="space-y-6">
-          <Section title="Thông tin bổ sung">
+          <Section title="Additional info">
             <InfoRow
-              label="Mã đề thi"
+              label="Test code"
               value={
                 <div className="flex items-center gap-2">
                   <span>{testCode}</span>
@@ -392,24 +392,24 @@ const TestDetailPage = () => {
                 </div>
               }
             />
-            <InfoRow label="ID đề thi" value={testData.testId} />
+            <InfoRow label="Test ID" value={testData.testId} />
             {testData.createdAt && (
               <InfoRow
-                label="Ngày tạo"
+                label="Created at"
                 value={formatDate3(testData.createdAt)}
               />
             )}
             {testData.createdBy && (
-              <InfoRow label="Người tạo" value={testData.createdBy} />
+              <InfoRow label="Created by" value={testData.createdBy} />
             )}
             {testData.updatedAt && (
               <InfoRow
-                label="Cập nhật lần cuối"
+                label="Last updated"
                 value={formatDate3(testData.updatedAt)}
               />
             )}
             {testData.updatedBy && (
-              <InfoRow label="Người cập nhật" value={testData.updatedBy} />
+              <InfoRow label="Updated by" value={testData.updatedBy} />
             )}
           </Section>
         </div>

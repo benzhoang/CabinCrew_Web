@@ -115,8 +115,6 @@ const SpeakingExam = ({ examInfo }) => {
           if (data.durationInMinutes) {
             setTimeRemaining(data.durationInMinutes * 60);
           }
-
-          toast.success(`Đã tải ${mappedQuestions.length} câu hỏi thành công`);
         } else {
           console.error("API Error:", result.error);
           toast.error(result.error || "Không thể tải câu hỏi đề thi");
@@ -276,9 +274,8 @@ const SpeakingExam = ({ examInfo }) => {
       const apiAnswers = orderedRecordings.map((item, index) => ({
         questionId: Number(item.questionId),
         blob: item.recording.blob,
-        fileName: `speaking_${resolvedTestId}_${item.questionId}_${
-          item.recording.timestamp || Date.now()
-        }_${index}.mp3`,
+        fileName: `speaking_${resolvedTestId}_${item.questionId}_${item.recording.timestamp || Date.now()
+          }_${index}.mp3`,
       }));
 
       toast.info("Đang nộp bài thi nói...", { autoClose: 2000 });
@@ -403,11 +400,10 @@ const SpeakingExam = ({ examInfo }) => {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleMarkQuestion(currentQuestion.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        markedQuestions.has(currentQuestion.id)
-                          ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className={`p-2 rounded-lg transition-colors ${markedQuestions.has(currentQuestion.id)
+                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
                       title={
                         markedQuestions.has(currentQuestion.id)
                           ? t("unmark_question") || "Bỏ đánh dấu"
@@ -519,9 +515,8 @@ const SpeakingExam = ({ examInfo }) => {
                   {t("time_remaining") || "Thời gian còn lại"}
                 </h3>
                 <div
-                  className={`text-2xl font-bold ${
-                    timeRemaining < 300 ? "text-red-600" : "text-blue-600"
-                  }`}
+                  className={`text-2xl font-bold ${timeRemaining < 300 ? "text-red-600" : "text-blue-600"
+                    }`}
                 >
                   {formatTime(timeRemaining)}
                 </div>
@@ -559,13 +554,12 @@ const SpeakingExam = ({ examInfo }) => {
                       <button
                         key={question.id}
                         onClick={() => handleQuestionClick(index)}
-                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${
-                          isCurrent
-                            ? "bg-blue-600 text-white ring-2 ring-blue-300"
-                            : isRecorded
+                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${isCurrent
+                          ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                          : isRecorded
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                          }`}
                       >
                         {index + 1}
                         {isMarked && (
