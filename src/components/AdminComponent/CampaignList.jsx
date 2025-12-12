@@ -63,7 +63,7 @@ const StatusBadge = ({ status }) => {
       case "draft":
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: "Draft",
+          text: "Planning",
         };
       case "rejected":
         return {
@@ -150,7 +150,7 @@ const CampaignList = ({
   statusFilter = "all",
 }) => {
   const navigate = useNavigate();
-  const [campaigns, setCampaigns] = useState([]);
+  const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortField, setSortField] = useState(null);
@@ -162,14 +162,16 @@ const CampaignList = ({
     totalPages: 0,
   });
 
-  const fetchCampaigns = async (page = 1) => {
+  const fetchCampaigns = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch all data for client-side filtering and pagination
+      // This ensures that when filters change, data from later pages will move up
       const params = {
-        page: page,
-        pageSize: 5,
+        page: 1, // Always fetch from page 1 to get all data
+        pageSize: 1000, // Fetch large page size to get all campaigns
         searchTerm: search || undefined,
       };
 
@@ -196,32 +198,15 @@ const CampaignList = ({
           status: mapStatus(item.status),
         }));
 
-        setCampaigns(mappedCampaigns);
-
-        // Update pagination
-        if (result.pagination) {
-          setPagination({
-            currentPage: result.pagination.currentPage || page,
-            pageSize: result.pagination.pageSize || 5,
-            totalItems:
-              result.pagination.totalRecords || mappedCampaigns.length,
-            totalPages: result.pagination.totalPages || 1,
-          });
-        } else {
-          setPagination({
-            currentPage: page,
-            pageSize: 5,
-            totalItems: mappedCampaigns.length,
-            totalPages: 1,
-          });
-        }
+        // Store all campaigns from server for client-side filtering and pagination
+        setAllCampaigns(mappedCampaigns);
       } else {
-        setCampaigns([]);
+        setAllCampaigns([]);
         setError(result.error || "Error when fetching campaign list");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      setCampaigns([]);
+      setAllCampaigns([]);
       setError(error.message || "Error when fetching campaign list");
     } finally {
       setLoading(false);
@@ -229,7 +214,9 @@ const CampaignList = ({
   };
 
   useEffect(() => {
-    fetchCampaigns(1);
+    // Reset to page 1 when filters change
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchCampaigns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, campaignTypeFilter, statusFilter]);
 
@@ -251,9 +238,15 @@ const CampaignList = ({
 
   // Filter campaigns by campaignType (client-side)
   const filteredCampaigns = useMemo(() => {
-    if (campaignTypeFilter === "all") return campaigns;
-    return campaigns.filter((c) => c.campaignType === campaignTypeFilter);
-  }, [campaigns, campaignTypeFilter]);
+    let filtered = allCampaigns;
+
+    // Filter by campaignType
+    if (campaignTypeFilter !== "all") {
+      filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
+    }
+
+    return filtered;
+  }, [allCampaigns, campaignTypeFilter]);
 
   const sortedCampaigns = useMemo(() => {
     if (!sortField || !sortDirection) return filteredCampaigns;
@@ -274,17 +267,41 @@ const CampaignList = ({
     return copy;
   }, [filteredCampaigns, sortField, sortDirection]);
 
+  // Calculate pagination based on filtered data
+  const paginatedCampaigns = useMemo(() => {
+    const pageSize = pagination.pageSize;
+    const startIndex = (pagination.currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return sortedCampaigns.slice(startIndex, endIndex);
+  }, [sortedCampaigns, pagination.currentPage, pagination.pageSize]);
+
+  // Update pagination when filtered data changes
+  useEffect(() => {
+    const totalItems = sortedCampaigns.length;
+    const totalPages = Math.ceil(totalItems / pagination.pageSize);
+
+    setPagination((prev) => {
+      const currentPage = Math.min(prev.currentPage, totalPages || 1);
+      return {
+        ...prev,
+        totalItems,
+        totalPages: totalPages || 1,
+        currentPage: currentPage || 1,
+      };
+    });
+  }, [sortedCampaigns.length, pagination.pageSize]);
+
   const handlePageChange = (page) => {
     if (
       page > 0 &&
       page <= pagination.totalPages &&
       page !== pagination.currentPage
     ) {
-      fetchCampaigns(page);
+      setPagination((prev) => ({ ...prev, currentPage: page }));
     }
   };
 
-  if (loading && campaigns.length === 0) {
+  if (loading && allCampaigns.length === 0) {
     return (
       <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
         <div className="py-8 text-center text-gray-600">Loading data...</div>
@@ -355,14 +372,14 @@ const CampaignList = ({
             </tr>
           </thead>
           <tbody>
-            {sortedCampaigns.length === 0 ? (
+            {paginatedCampaigns.length === 0 ? (
               <tr>
                 <td colSpan="6" className="px-5 py-8 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
             ) : (
-              sortedCampaigns.map((c, idx) => (
+              paginatedCampaigns.map((c, idx) => (
                 <tr
                   key={c.id}
                   className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}

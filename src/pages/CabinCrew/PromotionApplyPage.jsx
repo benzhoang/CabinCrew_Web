@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getCampaignDetail } from "../../service/api2";
+import {
+  getCampaignDetail,
+  getRequirementItems,
+  getRoundTypes,
+} from "../../service/api2";
 import { formatDate2 } from "../../config/formatDate";
 
 const getRoundTime = (start, end) => {
@@ -135,6 +139,10 @@ const PromotionApplyPage = () => {
   const [campaign, setCampaign] = useState(state?.campaign || null);
   const [isLoading, setIsLoading] = useState(!!id);
   const [error, setError] = useState(null);
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
 
   useEffect(() => {
     if (state?.campaign) {
@@ -169,9 +177,123 @@ const PromotionApplyPage = () => {
     fetchCampaign();
   }, [id]);
 
+  // Fetch requirement items based on campaignType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!campaign?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaign.campaignType).trim();
+      let requirementId = null;
+
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
+        requirementId = 1;
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
+        requirementId = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          requirementId = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(requirementId);
+        console.log("Requirement Items Response:", response);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          // API có thể trả về: { code: 0, data: {...} } với data.requirementItems hoặc array trực tiếp
+          let items = [];
+
+          if (Array.isArray(response.data)) {
+            items = response.data;
+          } else if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            items = response.data.requirementItems;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            items = response.data.data;
+          }
+
+          setRequirementItems(items);
+        } else {
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching requirement items:", error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [campaign?.campaignType]);
+
+  // Fetch round types based on campaignType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!campaign?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaign.campaignType).trim();
+      let type = null;
+
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
+        type = 1;
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
+        type = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          type = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(type);
+        console.log("Round Types Response:", response);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          // API có thể trả về: { code: 0, data: [...] } hoặc array trực tiếp
+          let types = [];
+
+          if (Array.isArray(response.data)) {
+            types = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            types = response.data.data;
+          }
+
+          setRoundTypes(types);
+        } else {
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error("Error fetching round types:", error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [campaign?.campaignType]);
+
   const formatDateLabel = (value) => formatDate2(value) || "—";
 
-  if (isLoading) {
+  // Show full-page loading when fetching campaign data, requirements, or round types
+  if (isLoading || isLoadingRequirements || isLoadingRoundTypes) {
     return (
       <div className="flex items-center justify-center w-full h-full">
         <div className="text-gray-500">Loading campaign information...</div>
@@ -201,7 +323,7 @@ const PromotionApplyPage = () => {
               onClick={() => navigate("/cabin-crew/promotion")}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
-              Quay lại
+              Back
             </button>
           </div>
         ) : (
@@ -238,15 +360,7 @@ const PromotionApplyPage = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
                   <Info label="Position" value={"Chief Flight Attendant"} />
-                  <Info
-                    label="Type"
-                    value={
-                      campaign.position ||
-                      campaign.campaignType ||
-                      campaign.type ||
-                      "—"
-                    }
-                  />
+                  <Info label="Type" value={campaign.campaignType || "—"} />
                   <Info label="Airline" value={campaign.airline || "—"} />
                   <Info
                     label="Start Date"
@@ -262,99 +376,88 @@ const PromotionApplyPage = () => {
                   />
                 </div>
 
-                {campaign.jobDescription && (
-                  <div className="mt-6">
-                    <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                      📋 Job description
-                    </h3>
-                    <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                      <div
-                        className="text-sm whitespace-pre-line job-description-content text-slate-700"
-                        dangerouslySetInnerHTML={{
-                          __html: campaign.jobDescription || "N/A",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {campaign.jobRequirement && (
-                  <div className="mt-6">
-                    <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                      📝 Job requirements
-                    </h3>
-                    <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                      <div
-                        className="text-sm whitespace-pre-line job-requirement-content text-slate-700"
-                        dangerouslySetInnerHTML={{
-                          __html: campaign.jobRequirement || "N/A",
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Recruitment Process */}
+                {/* Job Requirements */}
                 <div className="mt-6">
                   <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                    🔄 Recruitment process
+                    📝 Requirements
                   </h3>
-                  <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-                    <div className="space-y-4">
-                      <div className="space-y-3">
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              1
+                  <div className="p-4 border border-green-300 rounded-lg bg-green-50">
+                    {requirementItems.length > 0 ? (
+                      <ul className="space-y-2">
+                        {requirementItems.map((item) => (
+                          <li
+                            key={item.requirementItemId}
+                            className="flex items-start"
+                          >
+                            <span className="mr-2 text-blue-600">•</span>
+                            <span className="text-sm text-slate-700">
+                              <span className="font-medium">{item.title}</span>
+                              {item.description && (
+                                <span className="text-slate-600">
+                                  {" : "}
+                                  {item.description}
+                                </span>
+                              )}
                             </span>
-                            <span className="text-slate-700">
-                              Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối
-                              chiếu và lấy số báo danh
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              2
-                            </span>
-                            <span className="text-slate-700">
-                              Kiểm tra ngoại hình AI
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              3
-                            </span>
-                            <span className="text-slate-700">
-                              Cân đo chiều cao và BMI
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              4
-                            </span>
-                            <span className="text-slate-700">
-                              Thi Catwalk - Phỏng vấn AI
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              5
-                            </span>
-                            <span className="text-slate-700">
-                              Thi Tài năng (theo nhóm)
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                              6
-                            </span>
-                            <span className="text-slate-700">
-                              Phỏng vấn Hội đồng
-                            </span>
-                          </div>
-                        </div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        No requirements available
                       </div>
-                    </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
+                <div className="mt-6">
+                  <h3 className="mb-4 text-lg font-semibold text-slate-800">
+                    🔄{" "}
+                    {(() => {
+                      const campaignTypeStr = String(
+                        campaign.campaignType || ""
+                      )
+                        .trim()
+                        .toLowerCase();
+                      if (campaignTypeStr === "recruitment") {
+                        return "Recruitment";
+                      } else if (campaignTypeStr === "promotion") {
+                        return "Promotion";
+                      } else {
+                        // Try to parse as number for backward compatibility
+                        const parsed = Number(campaign.campaignType);
+                        if (parsed === 1) return "Recruitment";
+                        if (parsed === 2) return "Promotion";
+                        return "";
+                      }
+                    })()}{" "}
+                    process
+                  </h3>
+                  <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
+                    {roundTypes.length > 0 ? (
+                      <div className="space-y-3">
+                        {roundTypes.map((roundType, index) => (
+                          <div
+                            key={roundType.roundTypeId}
+                            className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
+                          >
+                            <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-slate-800">
+                                {roundType.roundTypeName}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        No process information available
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -425,10 +528,10 @@ const PromotionApplyPage = () => {
                             }`}
                           >
                             {b.status === "completed"
-                              ? "Đã hoàn thành"
+                              ? "Completed"
                               : b.status === "ongoing"
-                              ? "Đang diễn ra"
-                              : "Sắp diễn ra"}
+                              ? "Ongoing"
+                              : "Upcoming"}
                           </span>
                         </div>
                         <div className="p-4 space-y-4">
@@ -447,7 +550,7 @@ const PromotionApplyPage = () => {
                             {b.applied !== undefined && (
                               <InfoMini
                                 label="Applied"
-                                value={`${b.applied} người`}
+                                value={`${b.applied} people`}
                               />
                             )}
                           </div>

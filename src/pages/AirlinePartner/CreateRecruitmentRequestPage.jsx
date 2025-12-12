@@ -152,12 +152,12 @@ const CreateRecruitmentRequestPage = () => {
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     }
-    if (!formData.jobDescription.trim()) {
-      newErrors.jobDescription = "Job description is required";
-    }
-    if (!formData.jobRequirement.trim()) {
-      newErrors.jobRequirement = "Job requirement is required";
-    }
+    // if (!formData.jobDescription.trim()) {
+    //   newErrors.jobDescription = "Job description is required";
+    // }
+    // if (!formData.jobRequirement.trim()) {
+    //   newErrors.jobRequirement = "Job requirement is required";
+    // }
     if (!formData.dueDate) {
       newErrors.dueDate = "Due date is required";
     } else {
@@ -358,7 +358,7 @@ const CreateRecruitmentRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Requirements *
+                    📝 Requirements *
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -382,11 +382,7 @@ const CreateRecruitmentRequestPage = () => {
                     </p>
                   )} */}
                   <div
-                    className={`rounded-md border p-4 bg-slate-50 ${
-                      errors.jobDescription
-                        ? "border-red-300"
-                        : "border-slate-300"
-                    }`}
+                    className={`rounded-md border p-4 bg-green-50 border-green-300`}
                   >
                     {isLoadingRequirements ? (
                       <div className="text-sm text-slate-500">
@@ -418,20 +414,15 @@ const CreateRecruitmentRequestPage = () => {
                       </div>
                     )}
                   </div>
-                  <p className="mt-2 text-xs text-slate-500 italic">
+                  <p className="mt-2 text-xs italic text-slate-500">
                     If you want to change this content, please contact the
                     admin.
                   </p>
-                  {errors.jobDescription && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.jobDescription}
-                    </p>
-                  )}
                 </div>
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Recruitment process *
+                    🔄 Recruitment process *
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -458,11 +449,7 @@ const CreateRecruitmentRequestPage = () => {
                     </p>
                   )} */}
                   <div
-                    className={`rounded-md border p-4 bg-slate-50 ${
-                      errors.jobRequirement
-                        ? "border-red-300"
-                        : "border-slate-300"
-                    }`}
+                    className={`rounded-md border p-4 bg-purple-50 border-purple-300`}
                   >
                     {isLoadingRoundTypes ? (
                       <div className="text-sm text-slate-500">
@@ -473,9 +460,9 @@ const CreateRecruitmentRequestPage = () => {
                         {roundTypes.map((roundType, index) => (
                           <div
                             key={roundType.roundTypeId}
-                            className="flex items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+                            className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
                           >
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm mr-3 flex-shrink-0">
+                            <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
                               {index + 1}
                             </div>
                             <div className="flex-1">
@@ -492,15 +479,10 @@ const CreateRecruitmentRequestPage = () => {
                       </div>
                     )}
                   </div>
-                  <p className="mt-2 text-xs text-slate-500 italic">
+                  <p className="mt-2 text-xs italic text-slate-500">
                     If you want to change this content, please contact the
                     admin.
                   </p>
-                  {errors.jobRequirement && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.jobRequirement}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>

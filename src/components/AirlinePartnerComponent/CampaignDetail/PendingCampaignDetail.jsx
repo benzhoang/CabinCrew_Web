@@ -1,10 +1,116 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDate2 } from "../../../config/formatDate";
 import BatchInfo from "./BatchInfo";
+import { getRequirementItems, getRoundTypes } from "../../../service/api2";
 
 const PendingCampaignDetail = ({ campaign }) => {
   const navigate = useNavigate();
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+
+  // Fetch requirement items based on campaignType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!campaign?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaign.campaignType).trim();
+      let requirementId = null;
+
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
+        requirementId = 1;
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
+        requirementId = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          requirementId = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(requirementId);
+        if (response.success && response.data) {
+          let items = [];
+          if (Array.isArray(response.data)) {
+            items = response.data;
+          } else if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            items = response.data.requirementItems;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            items = response.data.data;
+          }
+          setRequirementItems(items);
+        } else {
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching requirement items:", error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [campaign?.campaignType]);
+
+  // Fetch round types based on campaignType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!campaign?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaign.campaignType).trim();
+      let type = null;
+
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
+        type = 1;
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
+        type = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          type = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(type);
+        if (response.success && response.data) {
+          let types = [];
+          if (Array.isArray(response.data)) {
+            types = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            types = response.data.data;
+          }
+          setRoundTypes(types);
+        } else {
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error("Error fetching round types:", error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [campaign?.campaignType]);
 
   return (
     <div className="p-6">
@@ -105,39 +211,95 @@ const PendingCampaignDetail = ({ campaign }) => {
               />
             </div>
 
-            {/* Job Description */}
-            {campaign?.jobDescription && (
-              <div className="mt-6">
-                <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                  📋 Job description
-                </h3>
-                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <div
-                    className="text-sm prose-sm prose job-description-content text-slate-700 max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: campaign.jobDescription || "N/A",
-                    }}
-                  />
-                </div>
+            {/* Job Requirements - Dynamic from API (getRequirementItems) */}
+            <div className="mt-6">
+              <h3 className="mb-2 text-lg font-semibold text-slate-800">
+                📝 Requirements
+              </h3>
+              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                {isLoadingRequirements ? (
+                  <div className="text-sm text-slate-500">
+                    Loading requirements...
+                  </div>
+                ) : requirementItems.length > 0 ? (
+                  <ul className="space-y-2">
+                    {requirementItems.map((item) => (
+                      <li
+                        key={item.requirementItemId}
+                        className="flex items-start"
+                      >
+                        <span className="mr-2 text-blue-600">•</span>
+                        <span className="text-sm text-slate-700">
+                          <span className="font-medium">{item.title}</span>
+                          {item.description && (
+                            <span className="text-slate-600">
+                              {" : "}
+                              {item.description}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    No requirements available
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            {/* Job Requirements */}
-            {campaign?.jobRequirement && (
-              <div className="mt-6">
-                <h3 className="mb-2 text-lg font-semibold text-slate-800">
-                  📝 Job requirement
-                </h3>
-                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                  <div
-                    className="text-sm prose-sm prose job-requirement-content text-slate-700 max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: campaign.jobRequirement || "N/A",
-                    }}
-                  />
-                </div>
+            {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
+            <div className="mt-6">
+              <h3 className="mb-2 text-lg font-semibold text-slate-800">
+                🔄{" "}
+                {(() => {
+                  const campaignTypeStr = String(campaign.campaignType || "")
+                    .trim()
+                    .toLowerCase();
+                  if (campaignTypeStr === "recruitment") {
+                    return "Recruitment";
+                  } else if (campaignTypeStr === "promotion") {
+                    return "Promotion";
+                  } else {
+                    const parsed = Number(campaign.campaignType);
+                    if (parsed === 1) return "Recruitment";
+                    if (parsed === 2) return "Promotion";
+                    return "";
+                  }
+                })()}{" "}
+                process
+              </h3>
+              <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
+                {isLoadingRoundTypes ? (
+                  <div className="text-sm text-slate-500">
+                    Loading process...
+                  </div>
+                ) : roundTypes.length > 0 ? (
+                  <div className="space-y-3">
+                    {roundTypes.map((roundType, index) => (
+                      <div
+                        key={roundType.roundTypeId}
+                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
+                      >
+                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-slate-800">
+                            {roundType.roundTypeName}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    No process information available
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
             <BatchInfo campaign={campaign} />
           </div>
