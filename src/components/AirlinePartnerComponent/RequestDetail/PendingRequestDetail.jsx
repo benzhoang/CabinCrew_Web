@@ -1,126 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertDateFormat, formatDate } from "../../../config/formatDate.js";
-
-// Hàm chuyển Markdown thành HTML để hiển thị đúng format
-const markdownToHtml = (text) => {
-  if (!text || text === "N/A") return "N/A";
-
-  // Escape HTML để tránh XSS (chỉ escape phần không phải markdown)
-  const escapeHtml = (unsafe) => {
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  };
-
-  // Hàm xử lý inline formatting (bold, italic)
-  const processInlineFormatting = (line) => {
-    // Escape HTML trước
-    let processed = escapeHtml(line);
-
-    // Xử lý bold **text** hoặc __text__ (xử lý trước italic)
-    processed = processed.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    processed = processed.replace(/__(.+?)__/g, "<strong>$1</strong>");
-
-    // Xử lý italic *text* hoặc _text_ (sau khi đã xử lý bold)
-    // Chỉ match *text* nếu không phải là **text**
-    processed = processed.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, "<em>$1</em>");
-    processed = processed.replace(/(?<!_)_([^_]+?)_(?!_)/g, "<em>$1</em>");
-
-    return processed;
-  };
-
-  // Chia text thành các dòng
-  const lines = text.split(/\r?\n/);
-
-  if (lines.length === 0) return text;
-
-  let html = "";
-  let inList = false;
-  let listItems = [];
-  let inOrderedList = false;
-  let orderedListItems = [];
-
-  const closeList = () => {
-    if (inList && listItems.length > 0) {
-      html += "<ul>";
-      listItems.forEach((item) => {
-        html += `<li>${processInlineFormatting(item)}</li>`;
-      });
-      html += "</ul>";
-      listItems = [];
-      inList = false;
-    }
-    if (inOrderedList && orderedListItems.length > 0) {
-      html += "<ol>";
-      orderedListItems.forEach((item) => {
-        html += `<li>${processInlineFormatting(item)}</li>`;
-      });
-      html += "</ol>";
-      orderedListItems = [];
-      inOrderedList = false;
-    }
-  };
-
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-
-    // Kiểm tra heading
-    if (trimmed.startsWith("### ")) {
-      closeList();
-      const content = trimmed.substring(4);
-      html += `<h3>${processInlineFormatting(content)}</h3>`;
-    } else if (trimmed.startsWith("## ")) {
-      closeList();
-      const content = trimmed.substring(3);
-      html += `<h2>${processInlineFormatting(content)}</h2>`;
-    } else if (trimmed.startsWith("# ")) {
-      closeList();
-      const content = trimmed.substring(2);
-      html += `<h1>${processInlineFormatting(content)}</h1>`;
-    }
-    // Kiểm tra ordered list (1. item)
-    else if (/^\d+\.\s/.test(trimmed)) {
-      if (!inOrderedList) {
-        closeList();
-        inOrderedList = true;
-      }
-      const itemText = trimmed.replace(/^\d+\.\s*/, "").trim();
-      if (itemText) {
-        orderedListItems.push(itemText);
-      }
-    }
-    // Kiểm tra unordered list (• hoặc - hoặc *)
-    else if (/^[•\-*]\s/.test(trimmed)) {
-      if (!inList) {
-        closeList();
-        inList = true;
-      }
-      const itemText = trimmed.replace(/^[•\-*]\s*/, "").trim();
-      if (itemText) {
-        listItems.push(itemText);
-      }
-    }
-    // Dòng trống
-    else if (!trimmed) {
-      closeList();
-      html += "<br>";
-    }
-    // Paragraph thông thường
-    else {
-      closeList();
-      html += `<p>${processInlineFormatting(trimmed)}</p>`;
-    }
-  });
-
-  // Đóng list cuối cùng nếu còn mở
-  closeList();
-
-  return html || processInlineFormatting(text);
-};
+import { getRequirementItems, getRoundTypes } from "../../../service/api2";
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start gap-3">
@@ -131,6 +12,126 @@ const InfoRow = ({ label, value }) => (
 
 const PendingRequestDetail = ({ request }) => {
   const navigate = useNavigate();
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+
+  // Extract requestType to avoid linting warning
+  const requestType = request?.requestType;
+
+  // Fetch requirement items based on requestType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!requestType) {
+        console.warn("No requestType found in request:", request);
+        return;
+      }
+
+      console.log("Fetching requirement items for requestType:", requestType);
+
+      // Map requestType string to number: "Recruitment" = 1, "Promotion" = 2
+      const requestTypeStr = String(requestType).trim();
+      let requirementId = null;
+
+      if (requestTypeStr.toLowerCase() === "recruitment") {
+        requirementId = 1;
+      } else if (requestTypeStr.toLowerCase() === "promotion") {
+        requirementId = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(requestTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          requirementId = parsed;
+        } else {
+          console.warn("Invalid requestType:", requestType);
+          return; // Invalid requestType
+        }
+      }
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(requirementId);
+        if (response.success && response.data) {
+          let items = [];
+          if (Array.isArray(response.data)) {
+            items = response.data;
+          } else if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            items = response.data.requirementItems;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            items = response.data.data;
+          }
+          setRequirementItems(items);
+        } else {
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching requirement items:", error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [requestType, request]);
+
+  // Fetch round types based on requestType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!requestType) {
+        console.warn("No requestType found in request:", request);
+        return;
+      }
+
+      console.log("Fetching round types for requestType:", requestType);
+
+      // Map requestType string to number: "Recruitment" = 1, "Promotion" = 2
+      const requestTypeStr = String(requestType).trim();
+      let type = null;
+
+      if (requestTypeStr.toLowerCase() === "recruitment") {
+        type = 1;
+      } else if (requestTypeStr.toLowerCase() === "promotion") {
+        type = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(requestTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          type = parsed;
+        } else {
+          console.warn("Invalid requestType:", requestType);
+          return; // Invalid requestType
+        }
+      }
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(type);
+        if (response.success && response.data) {
+          let types = [];
+          if (Array.isArray(response.data)) {
+            types = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            types = response.data.data;
+          }
+          setRoundTypes(types);
+        } else {
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error("Error fetching round types:", error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [requestType, request]);
 
   return (
     <div className="p-6">
@@ -140,7 +141,7 @@ const PendingRequestDetail = ({ request }) => {
           <button
             onClick={() => navigate("/airline-partner/requests")}
             className="p-2 transition-colors rounded-lg hover:bg-slate-100"
-            title="Quay lại"
+            title="Back"
           >
             <svg
               className="w-5 h-5 text-slate-600"
@@ -228,103 +229,95 @@ const PendingRequestDetail = ({ request }) => {
               />
             </div>
 
-            {/* Job Description */}
-            {request?.jobDescription && (
-              <div className="mt-6">
-                <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                  📋 Job description
-                </h3>
-                <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <div
-                    className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: markdownToHtml(request.jobDescription),
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Job Requirements */}
-            {request?.jobRequirement && (
-              <div className="mt-6">
-                <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                  📝 Job requirement
-                </h3>
-                <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                  <div
-                    className="job-requirement-content text-sm prose-sm prose text-slate-700 max-w-none"
-                    dangerouslySetInnerHTML={{
-                      __html: markdownToHtml(request.jobRequirement),
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Recruitment Process
+            {/* Job Requirements - Dynamic from API (getRequirementItems) */}
             <div className="mt-6">
               <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                🔄 Recruitment process
+                📝 Requirements
+              </h3>
+              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                {isLoadingRequirements ? (
+                  <div className="text-sm text-slate-500">
+                    Loading requirements...
+                  </div>
+                ) : requirementItems.length > 0 ? (
+                  <ul className="space-y-2">
+                    {requirementItems.map((item) => (
+                      <li
+                        key={item.requirementItemId}
+                        className="flex items-start"
+                      >
+                        <span className="mr-2 text-blue-600">•</span>
+                        <span className="text-sm text-slate-700">
+                          <span className="font-medium">{item.title}</span>
+                          {item.description && (
+                            <span className="text-slate-600">
+                              {" : "}
+                              {item.description}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    No requirements available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
+            <div className="mt-6">
+              <h3 className="mb-4 text-lg font-semibold text-slate-800">
+                🔄{" "}
+                {(() => {
+                  const requestTypeStr = String(request?.requestType || "")
+                    .trim()
+                    .toLowerCase();
+                  if (requestTypeStr === "recruitment") {
+                    return "Recruitment";
+                  } else if (requestTypeStr === "promotion") {
+                    return "Promotion";
+                  } else {
+                    const parsed = Number(request?.requestType);
+                    if (parsed === 1) return "Recruitment";
+                    if (parsed === 2) return "Promotion";
+                    return "";
+                  }
+                })()}{" "}
+                process
               </h3>
               <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-                <div className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          1
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và
-                          lấy số báo danh
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          2
-                        </span>
-                        <span className="text-slate-700">
-                          Kiểm tra ngoại hình AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          3
-                        </span>
-                        <span className="text-slate-700">
-                          Cân đo chiều cao và BMI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          4
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Catwalk - Phỏng vấn AI
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          5
-                        </span>
-                        <span className="text-slate-700">
-                          Thi Tài năng (theo nhóm)
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full">
-                          6
-                        </span>
-                        <span className="text-slate-700">
-                          Phỏng vấn Hội đồng
-                        </span>
-                      </div>
-                    </div>
+                {isLoadingRoundTypes ? (
+                  <div className="text-sm text-slate-500">
+                    Loading process...
                   </div>
-                </div>
+                ) : roundTypes.length > 0 ? (
+                  <div className="space-y-3">
+                    {roundTypes.map((roundType, index) => (
+                      <div
+                        key={roundType.roundTypeId}
+                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
+                      >
+                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-slate-800">
+                            {roundType.roundTypeName}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-500">
+                    No process information available
+                  </div>
+                )}
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>

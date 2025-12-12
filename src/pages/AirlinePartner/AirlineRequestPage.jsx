@@ -51,8 +51,8 @@ const AirlineRequestPage = () => {
                 className="h-10 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
               >
                 <option value="all">All request types</option>
-                <option value="Recruitment">Recruitment</option>
-                <option value="Promotion">Promotion</option>
+                <option value="recruitment">Recruitment</option>
+                <option value="promotion">Promotion</option>
               </select>
             </div>
           </div>

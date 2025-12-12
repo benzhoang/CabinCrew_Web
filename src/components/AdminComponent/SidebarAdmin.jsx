@@ -37,24 +37,28 @@ const SidebarAdmin = ({ isOpen }) => {
 
   return (
     <div
-      className={`w-74 h-full bg-gray-100 p-5  ${isOpen ? "open" : "collapsed"
-        }`}
+      className={`w-74 h-full bg-gray-100 p-5 overflow-y-auto ${
+        isOpen ? "open" : "collapsed"
+      }`}
+      style={{ maxHeight: "100vh" }}
     >
       {/* Navigation */}
-      <ul className="list-none p-0 mt-0 space-y-1">
+      <ul className="p-0 mt-0 space-y-1 list-none">
         <li>
           <Link
             to="/admin/dashboard"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${currentPath === "/admin/dashboard"
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
+              currentPath === "/admin/dashboard"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaGauge
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath === "/admin/dashboard"
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath === "/admin/dashboard"
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={
@@ -75,16 +79,18 @@ const SidebarAdmin = ({ isOpen }) => {
               setIsCriteriaOpen(true);
               navigate("/admin/criteria/appearance");
             }}
-            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${currentPath.startsWith("/admin/criteria/")
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${
+              currentPath.startsWith("/admin/criteria/")
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaQuestionCircle
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath.startsWith("/admin/criteria/")
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath.startsWith("/admin/criteria/")
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={
@@ -100,8 +106,9 @@ const SidebarAdmin = ({ isOpen }) => {
                 e.stopPropagation();
                 setIsCriteriaOpen((v) => !v);
               }}
-              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${isCriteriaOpen ? "rotate-180" : ""
-                } hover:bg-gray-100`}
+              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${
+                isCriteriaOpen ? "rotate-180" : ""
+              } hover:bg-gray-100`}
               aria-label="Toggle criteria submenu"
               role="button"
             >
@@ -109,16 +116,18 @@ const SidebarAdmin = ({ isOpen }) => {
             </span>
           </button>
           <ul
-            className={`${isCriteriaOpen ? "block" : "hidden"
-              } mt-1 ml-10 space-y-1`}
+            className={`${
+              isCriteriaOpen ? "block" : "hidden"
+            } mt-1 ml-10 space-y-1`}
           >
             <li>
               <Link
                 to="/admin/criteria/appearance"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/criteria/appearance"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/criteria/appearance"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Appearance</span>
               </Link>
@@ -126,10 +135,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/criteria/interview"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/criteria/interview"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/criteria/interview"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Interview</span>
               </Link>
@@ -137,10 +147,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/criteria/requirement"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/criteria/requirement"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/criteria/requirement"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Requirement</span>
               </Link>
@@ -155,16 +166,18 @@ const SidebarAdmin = ({ isOpen }) => {
               setIsConfigOpen(true);
               navigate("/admin/config/round-type");
             }}
-            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${currentPath.startsWith("/admin/config/")
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${
+              currentPath.startsWith("/admin/config/")
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaCalendar
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath.startsWith("/admin/config/")
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath.startsWith("/admin/config/")
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={
@@ -180,8 +193,9 @@ const SidebarAdmin = ({ isOpen }) => {
                 e.stopPropagation();
                 setIsConfigOpen((v) => !v);
               }}
-              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${isConfigOpen ? "rotate-180" : ""
-                } hover:bg-gray-100`}
+              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${
+                isConfigOpen ? "rotate-180" : ""
+              } hover:bg-gray-100`}
               aria-label="Toggle configuration submenu"
               role="button"
             >
@@ -189,16 +203,18 @@ const SidebarAdmin = ({ isOpen }) => {
             </span>
           </button>
           <ul
-            className={`${isConfigOpen ? "block" : "hidden"
-              } mt-1 ml-10 space-y-1`}
+            className={`${
+              isConfigOpen ? "block" : "hidden"
+            } mt-1 ml-10 space-y-1`}
           >
             <li>
               <Link
                 to="/admin/config/round-type"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/config/round-type"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/config/round-type"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Round Type</span>
               </Link>
@@ -206,10 +222,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/config/test-type"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/config/test-type"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/config/test-type"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Test Type</span>
               </Link>
@@ -217,10 +234,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/config/city-ward"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/config/city-ward"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/config/city-ward"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>City/Ward</span>
               </Link>
@@ -234,16 +252,18 @@ const SidebarAdmin = ({ isOpen }) => {
               setIsAccountOpen(true);
               navigate("/admin/account/cabin-crews");
             }}
-            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${currentPath.startsWith("/admin/account/")
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`w-full flex items-center p-3 text-left transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 cursor-pointer ${
+              currentPath.startsWith("/admin/account/")
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaUser
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath.startsWith("/admin/account/")
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath.startsWith("/admin/account/")
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={
@@ -259,8 +279,9 @@ const SidebarAdmin = ({ isOpen }) => {
                 e.stopPropagation();
                 setIsAccountOpen((v) => !v);
               }}
-              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${isAccountOpen ? "rotate-180" : ""
-                } hover:bg-gray-100`}
+              className={`ml-auto p-1 rounded cursor-pointer transition-transform duration-200 ${
+                isAccountOpen ? "rotate-180" : ""
+              } hover:bg-gray-100`}
               aria-label="Toggle user submenu"
               role="button"
             >
@@ -268,16 +289,18 @@ const SidebarAdmin = ({ isOpen }) => {
             </span>
           </button>
           <ul
-            className={`${isAccountOpen ? "block" : "hidden"
-              } mt-1 ml-10 space-y-1`}
+            className={`${
+              isAccountOpen ? "block" : "hidden"
+            } mt-1 ml-10 space-y-1`}
           >
             <li>
               <Link
                 to="/admin/account/cabin-crews"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/account/cabin-crews"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/cabin-crews"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Cabin Crew</span>
               </Link>
@@ -285,10 +308,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/account/candidates"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/account/candidates"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/candidates"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Candidate</span>
               </Link>
@@ -296,10 +320,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/account/recruiters"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/account/recruiters"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/recruiters"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Recruiter</span>
               </Link>
@@ -307,10 +332,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/account/airline-partners"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/account/airline-partners"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/airline-partners"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Airline Partner</span>
               </Link>
@@ -318,10 +344,11 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/account/examiners"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/account/examiners"
-                  ? "text-blue-600 bg-cyan-50"
-                  : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${
+                  currentPath === "/admin/account/examiners"
+                    ? "text-blue-600 bg-cyan-50"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <span>Examiner</span>
               </Link>
@@ -331,16 +358,18 @@ const SidebarAdmin = ({ isOpen }) => {
         <li>
           <Link
             to="/admin/campaigns"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${currentPath === "/admin/campaigns"
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
+              currentPath === "/admin/campaigns"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaBullhorn
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath === "/admin/campaigns"
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath === "/admin/campaigns"
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={
@@ -356,16 +385,18 @@ const SidebarAdmin = ({ isOpen }) => {
         <li>
           <Link
             to="/admin/tests"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${currentPath === "/admin/tests"
-              ? "text-blue-600 bg-cyan-50"
-              : "text-gray-700 hover:text-blue-600"
-              }`}
+            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
+              currentPath === "/admin/tests"
+                ? "text-blue-600 bg-cyan-50"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
             <FaFileAlt
-              className={`mr-3 transition-colors duration-300 text-lg ${currentPath === "/admin/tests"
-                ? "text-blue-600"
-                : "text-gray-500"
-                }`}
+              className={`mr-3 transition-colors duration-300 text-lg ${
+                currentPath === "/admin/tests"
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
             />
             <span
               className={

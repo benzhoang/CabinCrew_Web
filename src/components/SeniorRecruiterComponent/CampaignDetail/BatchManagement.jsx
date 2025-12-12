@@ -216,10 +216,29 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
   // Check if campaign status is approved
   const isApproved = campaign?.status?.toLowerCase() === "approved";
 
+  // Get campaign type label for display
+  const getCampaignTypeLabel = () => {
+    const campaignTypeStr = String(campaign?.campaignType || "")
+      .trim()
+      .toLowerCase();
+
+    if (campaignTypeStr === "recruitment") {
+      return "Recruitment plan";
+    } else if (campaignTypeStr === "promotion") {
+      return "Promotion plan";
+    } else {
+      // Try to parse as number for backward compatibility
+      const parsed = Number(campaign?.campaignType);
+      if (parsed === 1) return "Recruitment plan";
+      if (parsed === 2) return "Promotion plan";
+      return "Batch management"; // Fallback
+    }
+  };
+
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-sm text-slate-600">Batch management</div>
+        <div className="text-sm text-slate-600">{getCampaignTypeLabel()}</div>
         {isApproved && (
           <button
             onClick={handleCreateBatch}

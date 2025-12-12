@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { toast } from "react-toastify";
 import {
   getCampaignDetail,
   updateCampaignAndCreateRounds,
   getRoundTypes,
+  getRequirementItems,
 } from "../../service/api2";
 import CreateRound from "../../components/SeniorRecruiterComponent/CreateCampaign/CreateRound";
 import ModalConfirm from "../../components/SeniorRecruiterComponent/ModalConfirm";
@@ -41,6 +40,8 @@ const SeniorCreateCampaignPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roundsData, setRoundsData] = useState([]); // State để lưu rounds data cho UI mới
   const [roundTypes, setRoundTypes] = useState([]); // State để lưu round types từ API
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const navigate = useNavigate();
   const isRequestDataLocked = Boolean(campaignDetail);
@@ -79,13 +80,80 @@ const SeniorCreateCampaignPage = () => {
             jobRequirement: detailData.jobRequirement || "",
           }));
 
-          // Fetch round types based on campaign type
+          // Fetch requirement items based on campaign type
           const campaignType = detailData.campaignType;
-          // Convert campaignType string to number: "Recruitment" -> 1, "Promotion" -> 2
-          const typeNumber = campaignType === "Promotion" ? 2 : 1;
-          const roundTypesResult = await getRoundTypes(typeNumber);
-          if (roundTypesResult.success && roundTypesResult.data) {
-            setRoundTypes(roundTypesResult.data);
+          // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+          const campaignTypeStr = String(campaignType || "").trim();
+          let requirementId = null;
+
+          if (campaignTypeStr.toLowerCase() === "recruitment") {
+            requirementId = 1;
+          } else if (campaignTypeStr.toLowerCase() === "promotion") {
+            requirementId = 2;
+          } else {
+            // Try to parse as number for backward compatibility
+            const parsed = Number(campaignTypeStr);
+            if (parsed === 1 || parsed === 2) {
+              requirementId = parsed;
+            }
+          }
+
+          if (requirementId) {
+            setIsLoadingRequirements(true);
+            try {
+              const requirementItemsResult = await getRequirementItems(
+                requirementId
+              );
+              if (
+                requirementItemsResult.success &&
+                requirementItemsResult.data
+              ) {
+                let items = [];
+                if (Array.isArray(requirementItemsResult.data)) {
+                  items = requirementItemsResult.data;
+                } else if (
+                  requirementItemsResult.data.requirementItems &&
+                  Array.isArray(requirementItemsResult.data.requirementItems)
+                ) {
+                  items = requirementItemsResult.data.requirementItems;
+                } else if (
+                  requirementItemsResult.data.data &&
+                  Array.isArray(requirementItemsResult.data.data)
+                ) {
+                  items = requirementItemsResult.data.data;
+                }
+                setRequirementItems(items);
+              } else {
+                setRequirementItems([]);
+              }
+            } catch (error) {
+              console.error("Error fetching requirement items:", error);
+              setRequirementItems([]);
+            } finally {
+              setIsLoadingRequirements(false);
+            }
+          } else {
+            // If campaignType exists but requirementId couldn't be determined, still set loading to false
+            setIsLoadingRequirements(false);
+            setRequirementItems([]);
+          }
+
+          // Fetch round types based on campaign type
+          let type = requirementId;
+          if (type) {
+            const roundTypesResult = await getRoundTypes(type);
+            if (roundTypesResult.success && roundTypesResult.data) {
+              let types = [];
+              if (Array.isArray(roundTypesResult.data)) {
+                types = roundTypesResult.data;
+              } else if (
+                roundTypesResult.data.data &&
+                Array.isArray(roundTypesResult.data.data)
+              ) {
+                types = roundTypesResult.data.data;
+              }
+              setRoundTypes(types);
+            }
           }
         } else {
           setDetailError(result.error || "Cannot load campaign detail");
@@ -118,20 +186,6 @@ const SeniorCreateCampaignPage = () => {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }));
-    }
-  };
-
-  const handleEditorChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
       }));
     }
   };
@@ -265,10 +319,11 @@ const SeniorCreateCampaignPage = () => {
     navigate("/senior-recruiter/campaigns");
   };
 
+  // Show full-page loading when fetching campaign detail
   if (isLoadingDetail) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Loading campaign detail...</div>
+        <div className="text-gray-500">Loading campaign information...</div>
       </div>
     );
   }
@@ -421,39 +476,43 @@ const SeniorCreateCampaignPage = () => {
                   />
                 </div>
 
+                {/* Job Requirements - Dynamic from API (getRequirementItems) */}
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Job description *
+                    Requirements *
                   </label>
-                  <div className={`rounded-md border border-slate-300`}>
-                    <CKEditor
-                      editor={ClassicEditor}
-                      data={formData.jobDescription}
-                      onChange={(_, editor) =>
-                        handleEditorChange("jobDescription", editor.getData())
-                      }
-                      config={{ placeholder: "Mô tả chi tiết về công việc..." }}
-                      disabled={isRequestDataLocked}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Job requirement *
-                  </label>
-                  <div className={`rounded-md border border-slate-300`}>
-                    <CKEditor
-                      editor={ClassicEditor}
-                      data={formData.jobRequirement}
-                      onChange={(_, editor) =>
-                        handleEditorChange("jobRequirement", editor.getData())
-                      }
-                      config={{
-                        placeholder: "Liệt kê các yêu cầu cho ứng viên...",
-                      }}
-                      disabled={isRequestDataLocked}
-                    />
+                  <div
+                    className={`rounded-md border p-4 bg-green-50 border-green-300`}
+                  >
+                    {isLoadingRequirements ? (
+                      <div className="text-sm text-slate-500">
+                        Loading requirements...
+                      </div>
+                    ) : requirementItems.length > 0 ? (
+                      <ul className="space-y-2">
+                        {requirementItems.map((item) => (
+                          <li
+                            key={item.requirementItemId}
+                            className="flex items-start"
+                          >
+                            <span className="mr-2 text-blue-600">•</span>
+                            <span className="text-sm text-slate-700">
+                              <span className="font-medium">{item.title}</span>
+                              {item.description && (
+                                <span className="text-slate-600">
+                                  {" : "}
+                                  {item.description}
+                                </span>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="text-sm text-slate-500">
+                        No requirements available
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

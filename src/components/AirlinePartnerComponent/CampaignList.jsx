@@ -172,7 +172,7 @@ const CampaignCard = ({ campaign }) => {
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [selectedStatus, setSelectedStatus] = useState("pending");
-  const [campaigns, setCampaigns] = useState([]);
+  const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
@@ -185,7 +185,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasPreviousPage: false,
   });
 
-  const fetchCampaigns = async (page = 1, showLoading = false) => {
+  const fetchCampaigns = async (showLoading = false) => {
     try {
       // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
       if (showLoading || isInitialLoad) {
@@ -193,9 +193,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       }
       setError(null);
 
+      // Fetch all data for client-side filtering and pagination
+      // This ensures that when filters change, data from later pages will move up
       const params = {
-        page: page,
-        pageSize: 5,
+        page: 1, // Always fetch from page 1 to get all data
+        pageSize: 1000, // Fetch large page size to get all campaigns
         searchTerm: search || undefined,
       };
 
@@ -222,37 +224,19 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           campaignType: mapCampaignType(item.campaignType),
           progress: { current: 0, total: item.targetQuantity || 0 },
         }));
-        setCampaigns(mappedCampaigns);
 
-        // Lưu thông tin phân trang từ API
-        if (result.pagination) {
-          setPagination((prev) => ({
-            ...prev,
-            ...result.pagination,
-            pageSize: 5,
-          }));
-        } else {
-          // Fallback nếu API chưa trả pagination
-          setPagination((prev) => ({
-            ...prev,
-            currentPage: page,
-            pageSize: 5,
-            totalRecords: mappedCampaigns.length,
-            totalPages: 1,
-            hasNextPage: false,
-            hasPreviousPage: false,
-          }));
-        }
+        // Store all campaigns from server for client-side filtering and pagination
+        setAllCampaigns(mappedCampaigns);
         setError(null);
       } else {
         console.error("Error fetching campaigns:", result.error);
         console.error("Result:", result);
-        setCampaigns([]);
+        setAllCampaigns([]);
         setError(result.error || "Cannot load campaign list");
       }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      setCampaigns([]);
+      setAllCampaigns([]);
       setError(
         error.message || "An error occurred while loading the campaign list"
       );
@@ -266,40 +250,67 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
 
   // Initial load - chỉ chạy một lần khi component mount
   useEffect(() => {
-    fetchCampaigns(1, true);
+    fetchCampaigns(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch lại khi filter thay đổi (không hiển thị loading)
   useEffect(() => {
     if (!isInitialLoad) {
-      fetchCampaigns(1, false);
+      // Reset to page 1 when filters change
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchCampaigns(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignTypeFilter, search, selectedStatus]);
+
+  // Filter campaigns by campaignType (client-side)
+  const filteredCampaigns = useMemo(() => {
+    let filtered = allCampaigns;
+
+    // Filter by campaignType
+    if (campaignTypeFilter !== "all") {
+      filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
+    }
+
+    return filtered;
+  }, [allCampaigns, campaignTypeFilter]);
+
+  // Calculate pagination based on filtered data
+  const paginatedCampaigns = useMemo(() => {
+    const pageSize = pagination.pageSize;
+    const startIndex = (pagination.currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredCampaigns.slice(startIndex, endIndex);
+  }, [filteredCampaigns, pagination.currentPage, pagination.pageSize]);
+
+  // Update pagination when filtered data changes
+  useEffect(() => {
+    const totalItems = filteredCampaigns.length;
+    const totalPages = Math.ceil(totalItems / pagination.pageSize);
+
+    setPagination((prev) => {
+      const currentPage = Math.min(prev.currentPage, totalPages || 1);
+      return {
+        ...prev,
+        totalRecords: totalItems,
+        totalPages: totalPages || 1,
+        currentPage: currentPage || 1,
+        hasNextPage: currentPage < totalPages,
+        hasPreviousPage: currentPage > 1,
+      };
+    });
+  }, [filteredCampaigns.length, pagination.pageSize]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
     if (page < 1) return;
     if (pagination.totalPages && page > pagination.totalPages) return;
-    // Chỉ cho phép đổi trang nếu có previous/next tương ứng
-    if (page > pagination.currentPage && !pagination.hasNextPage) return;
-    if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
 
-    // Không hiển thị loading khi đổi trang
-    fetchCampaigns(page, false);
+    setPagination((prev) => ({ ...prev, currentPage: page }));
   };
 
-  const filtered = useMemo(() => {
-    // Chỉ filter client-side cho campaignType (status đã được filter ở server)
-    return campaigns.filter((c) => {
-      const matchCampaignType =
-        campaignTypeFilter === "all" || c.campaignType === campaignTypeFilter;
-      return matchCampaignType;
-    });
-  }, [campaigns, campaignTypeFilter]);
-
-  if (loading) {
+  if (loading && allCampaigns.length === 0) {
     return (
       <div className="flex flex-col gap-5">
         <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
@@ -318,7 +329,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <div className="mb-2 text-red-600">{error}</div>
           <button
             onClick={() => {
-              fetchCampaigns(1);
+              fetchCampaigns(true);
             }}
             className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
@@ -332,12 +343,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Campaign List (
-        {typeof pagination.totalRecords === "number" &&
-        pagination.totalRecords > 0
-          ? pagination.totalRecords
-          : filtered.length}
-        )
+        Campaign List ({pagination.totalRecords || filteredCampaigns.length})
       </h2>
       <div className="flex items-center gap-3">
         <div className="inline-flex items-stretch gap-3">
@@ -387,23 +393,19 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
         </div>
       </div>
-      {filtered.length === 0 ? (
+      {paginatedCampaigns.length === 0 ? (
         <div className="py-10 text-center text-gray-500">No data found</div>
       ) : (
         <>
-          {filtered.map((c) => (
+          {paginatedCampaigns.map((c) => (
             <CampaignCard key={c.id} campaign={c} />
           ))}
         </>
       )}
 
-      {/* Phân trang - hiển thị nếu có pagination info, không phụ thuộc vào filtered.length */}
-      {(pagination.totalPages > 1 ||
-        pagination.hasNextPage ||
-        pagination.hasPreviousPage ||
-        (typeof pagination.totalRecords === "number" &&
-          pagination.totalRecords > 0)) && (
-        <div className="mt-6 px-6 py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
+      {/* Phân trang - hiển thị khi có data */}
+      {pagination.totalRecords > 0 && (
+        <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border rounded-lg border-slate-200">
           <div className="text-sm text-slate-600">
             Trang{" "}
             <span className="font-semibold">{pagination.currentPage}</span>

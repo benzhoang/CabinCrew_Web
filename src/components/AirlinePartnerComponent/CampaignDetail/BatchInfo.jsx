@@ -202,11 +202,30 @@ const BatchInfo = ({ campaign }) => {
     });
   };
 
+  // Get campaign type label for display
+  const getCampaignTypeLabel = () => {
+    const campaignTypeStr = String(campaign?.campaignType || "")
+      .trim()
+      .toLowerCase();
+
+    if (campaignTypeStr === "recruitment") {
+      return "Recruitment plan";
+    } else if (campaignTypeStr === "promotion") {
+      return "Promotion plan";
+    } else {
+      // Try to parse as number for backward compatibility
+      const parsed = Number(campaign?.campaignType);
+      if (parsed === 1) return "Recruitment plan";
+      if (parsed === 2) return "Promotion plan";
+      return "Recruitment plan"; // Fallback
+    }
+  };
+
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
         <div className="text-sm font-semibold text-slate-800">
-          Recruitment plan
+          {getCampaignTypeLabel()}
         </div>
       </div>
 
