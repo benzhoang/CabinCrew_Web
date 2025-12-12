@@ -180,12 +180,9 @@ const ExaminerCampaign = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      ongoing: { color: "bg-green-100 text-green-800", text: "Đang diễn ra" },
-      completed: { color: "bg-blue-100 text-blue-800", text: "Đã hoàn thành" },
-      pending: {
-        color: "bg-yellow-100 text-yellow-800",
-        text: "Đang chờ diễn ra",
-      },
+      ongoing: { color: "bg-green-100 text-green-800", text: "Ongoing" },
+      completed: { color: "bg-blue-100 text-blue-800", text: "Completed" },
+      pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
     };
     const config =
       statusConfig[normalizeStatus(status)] || statusConfig.ongoing;
@@ -199,15 +196,14 @@ const ExaminerCampaign = () => {
   };
 
   const getRequestTypeLabel = (requestType) => {
-    // Normalize requestType to lowercase for comparison
     const normalizedType = requestType?.toLowerCase() || "";
     switch (normalizedType) {
       case "recruitment":
-        return "Tuyển dụng";
+        return "Recruitment";
       case "promotion":
-        return "Thăng bậc";
+        return "Promotion";
       default:
-        return requestType || "Không xác định";
+        return requestType || "Unknown";
     }
   };
 
@@ -247,10 +243,10 @@ const ExaminerCampaign = () => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h2 className="mb-2 text-2xl font-bold text-slate-800">
-              Quản lý Chiến dịch
+              Campaign Management
             </h2>
             <p className="text-slate-600">
-              Quản lý các chiến dịch tuyển dụng và kế hoạch nhân sự
+              Manage recruitment campaigns and workforce plans
             </p>
           </div>
         </div>
@@ -262,11 +258,11 @@ const ExaminerCampaign = () => {
           {/* Search Bar */}
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Tìm kiếm
+              Search
             </label>
             <input
               type="text"
-              placeholder="Tìm theo tên, loại chiến dịch, đối tác..."
+              placeholder="Search by name, campaign type, partner..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -276,16 +272,16 @@ const ExaminerCampaign = () => {
           {/* Campaign Type Filter */}
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Loại chiến dịch
+              Campaign type
             </label>
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="All">Tất cả loại chiến dịch</option>
-              <option value="Recruitment">Tuyển dụng</option>
-              <option value="Promotion">Thăng bậc</option>
+              <option value="All">All campaign types</option>
+              <option value="Recruitment">Recruitment</option>
+              <option value="Promotion">Promotion</option>
             </select>
           </div>
         </div>
@@ -296,13 +292,13 @@ const ExaminerCampaign = () => {
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-800">
-              Danh sách Chiến dịch ({filteredCampaigns.length})
+              Campaign list ({filteredCampaigns.length})
             </h3>
           </div>
         </div>
 
         <div className="divide-y divide-slate-200">
-          {isLoading && <Loading message="Đang tải danh sách chiến dịch..." />}
+          {isLoading && <Loading message="Loading campaign list..." />}
 
           {!isLoading && error && (
             <div className="p-6 text-center text-red-500">{error}</div>
@@ -326,14 +322,14 @@ const ExaminerCampaign = () => {
                     <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3">
                       <div>
                         <span className="text-sm text-slate-600">
-                          Loại chiến dịch:
+                          Campaign type:
                         </span>
                         <div className="mt-1">
                           <RequestTypeBadge type={campaign.type} />
                         </div>
                       </div>
                       <div>
-                        <span className="text-sm text-slate-600">Đối tác:</span>
+                        <span className="text-sm text-slate-600">Partner:</span>
                         <div className="mt-1">
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
                             {campaign.partner || "Không xác định"}
@@ -342,7 +338,7 @@ const ExaminerCampaign = () => {
                       </div>
                       <div>
                         <span className="text-sm text-slate-600">
-                          Trạng thái:
+                          Status:
                         </span>
                         <div className="mt-1">
                           {getStatusBadge(campaign.status)}
@@ -351,7 +347,7 @@ const ExaminerCampaign = () => {
                       {campaign.type?.toLowerCase() === "promotion" && (
                         <div>
                           <span className="text-sm text-slate-600">
-                            Vị trí:
+                          Position:
                           </span>{" "}
                           <p className="font-medium text-slate-800">
                             Chief Flight Attendant
@@ -361,7 +357,7 @@ const ExaminerCampaign = () => {
                       {campaign.type?.toLowerCase() === "recruitment" && (
                         <div>
                           <span className="text-sm text-slate-600">
-                            Vị trí:
+                            Position:
                           </span>{" "}
                           <p className="font-medium text-slate-800">
                             Flight Attendant
@@ -370,7 +366,7 @@ const ExaminerCampaign = () => {
                       )}
                       <div>
                         <span className="text-sm text-slate-600">
-                          Thời gian bắt đầu:
+                          Start date:
                         </span>
                         <p className="font-medium text-slate-800">
                           {campaign.startDate}
@@ -378,7 +374,7 @@ const ExaminerCampaign = () => {
                       </div>
                       <div>
                         <span className="text-sm text-slate-600">
-                          Thời gian kết thúc:
+                          End date:
                         </span>
                         <p className="font-medium text-slate-800">
                           {campaign.endDate}
@@ -424,7 +420,7 @@ const ExaminerCampaign = () => {
                       onClick={() => handleViewDetails(campaign)}
                       className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
                     >
-                      Xem chi tiết
+                      View details
                     </button>
                   </div>
                 </div>
@@ -434,7 +430,7 @@ const ExaminerCampaign = () => {
 
         {!isLoading && !error && filteredCampaigns.length === 0 && (
           <div className="p-12 text-center">
-            <p className="text-slate-500">Không có dữ liệu</p>
+            <p className="text-slate-500">No data</p>
           </div>
         )}
 

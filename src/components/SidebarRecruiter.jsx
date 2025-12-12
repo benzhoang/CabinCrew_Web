@@ -5,7 +5,7 @@ import logo from "../images/Logo.png";
 import { t, onLangChange } from "../i18n";
 import RecruiterNotificationModal from "./RecruiterNotificationModal";
 import signalRService from "../service/signalrService";
-import { getNotifications } from "../service/api";
+import { getNotifications, getUnreadNotificationCount } from "../service/api";
 
 // Hàm lấy chữ cái đầu tên
 function getInitials(name) {
@@ -80,9 +80,15 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   useEffect(() => {
     const fetchNotificationCount = async () => {
       try {
-        const result = await getNotifications();
-        if (result.success && Array.isArray(result.data)) {
-          const unreadCount = result.data.filter(n => !n.isRead).length;
+        const result = await getUnreadNotificationCount();
+        if (result.success) {
+          setNotificationCount(result.count);
+          return;
+        }
+        // fallback nếu API count lỗi
+        const fallback = await getNotifications();
+        if (fallback.success && Array.isArray(fallback.data)) {
+          const unreadCount = fallback.data.filter(n => !n.isRead).length;
           setNotificationCount(unreadCount);
         }
       } catch (error) {
@@ -95,49 +101,80 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
 
   // Kết nối SignalR + xử lý thông báo real-time + hiển thị browser notification
   useEffect(() => {
+    console.log("SidebarRecruiter: Khởi tạo SignalR connection...");
+
     const handleNewNotification = (notification) => {
-      console.log("New notification from SignalR:", notification);
+      console.log("SidebarRecruiter: Nhận được notification từ SignalR:", notification);
 
-      // Tăng badge
-      setNotificationCount(prev => prev + 1);
+      // Tăng badge ngay lập tức để UX tốt hơn (sử dụng functional update để tránh stale closure)
+      setNotificationCount(prev => {
+        const newCount = prev + 1;
+        console.log("SidebarRecruiter: Cập nhật badge từ", prev, "lên", newCount);
+        return newCount;
+      });
+
+      // Trigger refresh modal
       setRefreshModalTrigger(prev => prev + 1);
+      console.log("SidebarRecruiter: Đã trigger refresh modal");
 
-      // Hiển thị toast nho nhỏ trong app để không cần reload
+      // Hiển thị toast ngay lập tức
+      const toastTitle = notification.title || "Thông báo mới từ Cabin HR";
+      const toastBody = notification.body || notification.message || "Bạn có thông báo mới";
+
+      console.log("SidebarRecruiter: Hiển thị toast với:", { title: toastTitle, body: toastBody });
       setToastData({
         show: true,
-        title: notification.title || "Thông báo mới từ Cabin HR",
-        body: notification.body || notification.message || "Bạn có thông báo mới",
+        title: toastTitle,
+        body: toastBody,
       });
+
+      // Đồng bộ badge theo server sau đó để đảm bảo chính xác
+      getUnreadNotificationCount()
+        .then((res) => {
+          if (res.success) {
+            console.log("SidebarRecruiter: Đồng bộ badge từ server:", res.count);
+            setNotificationCount(res.count);
+          } else {
+            console.warn("SidebarRecruiter: Không thể đồng bộ badge từ server");
+          }
+        })
+        .catch((err) => {
+          console.error("SidebarRecruiter: Lỗi khi đồng bộ badge:", err);
+        });
 
       // Hiển thị thông báo hệ thống (giống Zalo/Facebook)
       if ("Notification" in window) {
         if (Notification.permission === "granted") {
-          const notif = new Notification(notification.title || "Thông báo mới từ Cabin HR", {
-            body: notification.body || notification.message || "Bạn có thông báo mới",
-            icon: logo, // logo 192x192 đẹp nhất
-            badge: logo,
-            tag: notification.notificationId ? `cabin-${notification.notificationId}` : "cabin-new",
-            renotify: true,
-            requireInteraction: false,
-            silent: false,
-            // vibrate: [200, 100, 200], // rung trên mobile
-          });
+          try {
+            const notif = new Notification(toastTitle, {
+              body: toastBody,
+              icon: logo, // logo 192x192 đẹp nhất
+              badge: logo,
+              tag: notification.notificationId ? `cabin-${notification.notificationId}` : "cabin-new",
+              renotify: true,
+              requireInteraction: false,
+              silent: false,
+            });
 
-          // Khi click vào thông báo → focus lại trang + mở modal
-          notif.onclick = () => {
-            window.focus();
-            setIsNotificationModalOpen(true);
-            notif.close();
-          };
+            // Khi click vào thông báo → focus lại trang + mở modal
+            notif.onclick = () => {
+              window.focus();
+              setIsNotificationModalOpen(true);
+              notif.close();
+            };
 
-          // Tự đóng sau 8 giây
-          setTimeout(() => notif.close(), 8000);
+            // Tự đóng sau 8 giây
+            setTimeout(() => notif.close(), 8000);
+            console.log("SidebarRecruiter: Đã hiển thị browser notification");
+          } catch (err) {
+            console.error("SidebarRecruiter: Lỗi khi tạo browser notification:", err);
+          }
         } else if (Notification.permission === "default") {
           // Nếu chưa cấp quyền → tự động hỏi lại (không làm phiền nhiều)
           Notification.requestPermission().then(perm => {
             if (perm === "granted") {
-              new Notification(notification.title || "Thông báo mới", {
-                body: notification.body || "Bạn có thông báo mới",
+              new Notification(toastTitle, {
+                body: toastBody,
                 icon: logo,
                 tag: "cabin-first",
               });
@@ -149,13 +186,23 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
 
     const token = localStorage.getItem("token");
     if (token) {
-      signalRService.startConnection(handleNewNotification);
+      console.log("SidebarRecruiter: Có token, bắt đầu kết nối SignalR...");
+      signalRService.startConnection(handleNewNotification)
+        .then(() => {
+          console.log("SidebarRecruiter: SignalR connection đã được khởi tạo");
+        })
+        .catch((err) => {
+          console.error("SidebarRecruiter: Không thể khởi tạo SignalR:", err);
+        });
+    } else {
+      console.warn("SidebarRecruiter: Không có token, không thể kết nối SignalR");
     }
 
     return () => {
+      console.log("SidebarRecruiter: Cleanup SignalR connection...");
       signalRService.stopConnection();
     };
-  }, []);
+  }, []); // Empty deps để chỉ chạy 1 lần khi mount
 
   // Tự ẩn toast sau 6s
   useEffect(() => {
@@ -256,26 +303,38 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
         )}
 
       {/* Toast thông báo nhanh */}
-      {toastData.show &&
+      {typeof window !== "undefined" && toastData.show && (
         createPortal(
-          <div className="fixed bottom-6 right-6 z-50 max-w-xs w-full bg-slate-900 text-white shadow-xl rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-white/10 flex items-start gap-3">
-              <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-              <div className="flex-1">
-                <div className="text-sm font-semibold">{toastData.title}</div>
-                <div className="text-xs text-slate-200 mt-1">{toastData.body}</div>
+          <div
+            className="fixed bottom-6 right-6 z-[9999] max-w-xs w-full bg-slate-900 text-white shadow-2xl rounded-lg overflow-hidden toast-enter"
+            style={{
+              pointerEvents: "auto"
+            }}
+            role="alert"
+            aria-live="assertive"
+          >
+            <div className="px-4 py-3 flex items-start gap-3">
+              <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold break-words">{toastData.title || "Thông báo mới"}</div>
+                <div className="text-xs text-slate-200 mt-1 break-words">{toastData.body || "Bạn có thông báo mới"}</div>
               </div>
               <button
-                onClick={() => setToastData((prev) => ({ ...prev, show: false }))}
-                className="text-slate-300 hover:text-white text-xs"
+                onClick={() => {
+                  console.log("SidebarRecruiter: Đóng toast");
+                  setToastData((prev) => ({ ...prev, show: false }));
+                }}
+                className="text-slate-300 hover:text-white text-xs flex-shrink-0 ml-2 transition-colors"
                 aria-label="Close notification"
+                type="button"
               >
                 ✕
               </button>
             </div>
           </div>,
           document.body
-        )}
+        )
+      )}
     </aside>
   );
 };

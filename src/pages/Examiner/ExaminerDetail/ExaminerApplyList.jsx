@@ -173,19 +173,19 @@ const ExaminerApplyList = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-extrabold md:text-3xl">
-                Danh sách ứng viên - {campaignRoundData?.roundName || "N/A"}
+                Applicant List - {campaignRoundData?.roundName || "N/A"}
               </h1>
               <p className="mt-1 text-sm text-white/90">
-                Sàng lọc và đánh giá ứng viên tuyển dụng & thăng bậc
+                Screen and evaluate applicants for recruitment & promotion
               </p>
             </div>
             <button
               onClick={goBackToCampaigns}
               className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
-              aria-label="Quay lại"
-              title="Quay lại"
+              aria-label="Back"
+              title="Back"
             >
-              Quay lại
+              Back
             </button>
           </div>
         </div>
@@ -194,45 +194,44 @@ const ExaminerApplyList = () => {
         {/* Batch Info */}
         <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
           <h3 className="mb-4 text-lg font-semibold text-slate-800">
-            Thông tin đợt tuyển
+            Batch information
           </h3>
           {loadingRoundData ? (
             <div className="py-4 text-center">
-              <p className="text-slate-500">Đang tải thông tin đợt tuyển...</p>
+              <p className="text-slate-500">Loading batch info...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
               <div>
-                <span className="text-sm text-slate-600">Tên đợt:</span>
+                <span className="text-sm text-slate-600">Batch name:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData?.roundName || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Ngày bắt đầu:</span>
+                <span className="text-sm text-slate-600">Start date:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData?.startDate || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Ngày kết thúc:</span>
+                <span className="text-sm text-slate-600">End date:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData?.endDate || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Mô tả:</span>
+                <span className="text-sm text-slate-600">Description:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData?.description || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Chỉ tiêu:</span>
+                <span className="text-sm text-slate-600">Target:</span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData
-                    ? `${campaignRoundData.actualQuantiy || 0}/${
-                        campaignRoundData.targetQuantity || 0
-                      }`
+                    ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
+                    }`
                     : "—"}
                 </p>
               </div>

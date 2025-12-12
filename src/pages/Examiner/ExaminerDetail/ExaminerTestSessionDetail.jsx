@@ -113,7 +113,7 @@ const ExaminerTestSessionDetail = () => {
 
     const fetchTestSession = async () => {
       if (!testSessionId) {
-        setError("Không tìm thấy Test Session ID");
+        setError("Test Session ID not found");
         setLoading(false);
         return;
       }
@@ -132,11 +132,11 @@ const ExaminerTestSessionDetail = () => {
           setTestSessionData(result.data);
         } else {
           console.error("API Error:", result.error);
-          setError(result.error || "Không thể lấy thông tin bài làm");
+          setError(result.error || "Unable to fetch test session information");
         }
       } catch (err) {
         console.error("Error fetching test session:", err);
-        setError(err.message || "Không thể lấy thông tin bài làm");
+        setError(err.message || "Unable to fetch test session information");
       } finally {
         setLoading(false);
       }
@@ -259,7 +259,7 @@ const ExaminerTestSessionDetail = () => {
       <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600">Đang tải thông tin bài làm...</p>
+          <p className="text-gray-600">Loading test session information...</p>
         </div>
       </div>
     );
@@ -274,7 +274,7 @@ const ExaminerTestSessionDetail = () => {
             onClick={() => navigate(-1)}
             className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
           >
-            Quay lại
+            Back
           </button>
         </div>
       </div>
@@ -294,29 +294,29 @@ const ExaminerTestSessionDetail = () => {
           <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600 rounded-t-xl">
             <div>
               <h1 className="text-2xl font-extrabold md:text-3xl">
-                Chi tiết bài làm
+                Test Session Details
               </h1>
               <p className="mt-1 text-sm text-white/90">
-                Thông tin chi tiết về bài làm của ứng viên
+                Detailed information about candidate's test session
               </p>
             </div>
             <button
               onClick={() => navigate(-1)}
               className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
-              aria-label="Quay lại"
-              title="Quay lại"
+              aria-label="Back"
+              title="Back"
             >
-              Quay lại
+              Back
             </button>
           </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-          <p className="text-gray-600 mb-4">Không có dữ liệu để hiển thị</p>
+          <p className="text-gray-600 mb-4">No data to display</p>
           <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
           >
-            Quay lại
+            Back
           </button>
         </div>
       </div>
@@ -376,7 +376,7 @@ const ExaminerTestSessionDetail = () => {
 
       if (!answer.answerId) {
         answerErrors.push(
-          `Không tìm thấy answerId cho câu hỏi ${answer.questionId || index + 1}`
+          `Answer ID not found for question ${answer.questionId || index + 1}`
         );
         if (answerErrors.length > 0) {
           validationErrorsByAnswer[key] = answerErrors;
@@ -390,7 +390,7 @@ const ExaminerTestSessionDetail = () => {
         const rawValue = currentScores[criteriaKey];
         if (rawValue === "" || rawValue === undefined || rawValue === null) {
           answerErrors.push(
-            `Vui lòng nhập điểm ${label} cho câu hỏi ${answer.questionId || index + 1}`
+            `Please enter ${label} score for question ${answer.questionId || index + 1}`
           );
           continue;
         }
@@ -398,18 +398,18 @@ const ExaminerTestSessionDetail = () => {
         const numericValue = Number(rawValue);
         if (Number.isNaN(numericValue) || numericValue < 0) {
           answerErrors.push(
-            `Điểm ${label} phải là số không âm (câu hỏi ${answer.questionId || index + 1})`
+            `${label} score must be a non-negative number (question ${answer.questionId || index + 1})`
           );
           continue;
         }
 
-        // Giới hạn điểm mỗi tiêu chí theo % maxScore
+        // Limit score per criteria by % maxScore
         // Pronunciation 30%, Fluency 30%, Grammar 40%
         const weight = speakingCriteriaWeights[criteriaKey] || 0;
         const maxForCriteria = (answer.maxScore || 0) * weight;
         if (maxForCriteria > 0 && numericValue > maxForCriteria) {
           answerErrors.push(
-            `Điểm ${label} tối đa là ${maxForCriteria} (câu hỏi ${answer.questionId || index + 1})`
+            `Maximum ${label} score is ${maxForCriteria} (question ${answer.questionId || index + 1})`
           );
           continue;
         }
@@ -439,7 +439,7 @@ const ExaminerTestSessionDetail = () => {
     }
 
     if (Object.keys(answerScoresPayload).length === 0) {
-      setSpeakingSubmitError({ general: ["Không có dữ liệu hợp lệ để chấm điểm."] });
+      setSpeakingSubmitError({ general: ["No valid data to score."] });
       return;
     }
 
@@ -451,10 +451,10 @@ const ExaminerTestSessionDetail = () => {
       });
 
       if (!result.success) {
-        throw new Error(result.error || "Chấm điểm thất bại");
+        throw new Error(result.error || "Scoring failed");
       }
 
-      setSpeakingSubmitMessage(result.message || "Chấm điểm thành công.");
+      setSpeakingSubmitMessage(result.message || "Scoring successful.");
       setSpeakingScoresLocked(true);
 
       const scoreListId = campaignRoundId || roundId;
@@ -469,7 +469,7 @@ const ExaminerTestSessionDetail = () => {
       }
     } catch (err) {
       console.error("Error scoring speaking answers:", err);
-      setSpeakingSubmitError({ general: [err.message || "Không thể chấm điểm."] });
+      setSpeakingSubmitError({ general: [err.message || "Unable to score."] });
     } finally {
       setSubmittingSpeakingScores(false);
     }
@@ -478,7 +478,7 @@ const ExaminerTestSessionDetail = () => {
   const formatDateTime = (dateString) => {
     if (!dateString) return "—";
     try {
-      return new Date(dateString).toLocaleString("vi-VN", {
+      return new Date(dateString).toLocaleString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -498,27 +498,27 @@ const ExaminerTestSessionDetail = () => {
         <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600 rounded-t-xl">
           <div>
             <h1 className="text-2xl font-extrabold md:text-3xl">
-              Chi tiết bài làm
+              Test Session Details
             </h1>
             <p className="mt-1 text-sm text-white/90">
-              Thông tin chi tiết về bài làm của ứng viên
+              Detailed information about candidate's test session
             </p>
           </div>
           <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
-            aria-label="Quay lại"
-            title="Quay lại"
+            aria-label="Back"
+            title="Back"
           >
-            Quay lại
+            Back
           </button>
         </div>
       </div>
 
-      {/* Thông tin ứng viên */}
+      {/* Candidate Information */}
       <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Thông tin ứng viên
+          Candidate Information
         </h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="flex items-center gap-4">
@@ -540,7 +540,7 @@ const ExaminerTestSessionDetail = () => {
               )}
             </div>
             <div>
-              <p className="text-sm text-gray-500">Họ và tên</p>
+              <p className="text-sm text-gray-500">Full Name</p>
               <p className="mt-1 font-semibold text-gray-900">
                 {userFullName || "—"}
               </p>
@@ -555,20 +555,20 @@ const ExaminerTestSessionDetail = () => {
         </div>
       </div>
 
-      {/* Thông tin bài kiểm tra */}
+      {/* Test Information */}
       <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Thông tin bài kiểm tra
+          Test Information
         </h3>
         <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-gray-500">Tên bài kiểm tra:</p>
+            <p className="text-gray-500">Test Name:</p>
             <p className="mt-1 font-semibold text-gray-900">
               {testName || "—"}
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Loại bài kiểm tra:</p>
+            <p className="text-gray-500">Test Type:</p>
             <p className="mt-1 font-semibold text-gray-900">
               {testType || "—"}
             </p>
@@ -576,9 +576,9 @@ const ExaminerTestSessionDetail = () => {
         </div>
       </div>
 
-      {/* Kết quả */}
+      {/* Results */}
       <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Kết quả</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Results</h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="text-center">
             <div className="inline-block p-6 rounded-full bg-indigo-100">
@@ -586,16 +586,16 @@ const ExaminerTestSessionDetail = () => {
                 {maxScore > 0 ? `${totalScore}/${maxScore}` : totalScore || "—"}
               </div>
             </div>
-            <p className="mt-2 text-sm text-gray-600">Điểm số</p>
+            <p className="mt-2 text-sm text-gray-600">Score</p>
           </div>
           <div>
-            <p className="text-gray-500">Tổng số câu trả lời:</p>
+            <p className="text-gray-500">Total Answers:</p>
             <p className="mt-1 text-lg font-semibold text-gray-900">
               {totalAnswers || 0}
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Trạng thái:</p>
+            <p className="text-gray-500">Status:</p>
             <p className="mt-1">
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${status
@@ -603,12 +603,12 @@ const ExaminerTestSessionDetail = () => {
                   : "bg-red-100 text-red-700"
                   }`}
               >
-                {status ? "Hoàn thành" : "Chưa hoàn thành"}
+                {status ? "Completed" : "Incomplete"}
               </span>
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Thời gian làm bài:</p>
+            <p className="text-gray-500">Time Spent:</p>
             <p className="mt-1 font-semibold text-gray-900">
               {calculateTimeSpent()}
             </p>
@@ -616,18 +616,18 @@ const ExaminerTestSessionDetail = () => {
         </div>
       </div>
 
-      {/* Thời gian */}
+      {/* Time */}
       <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Thời gian</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Time</h3>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <p className="text-gray-500">Thời gian bắt đầu:</p>
+            <p className="text-gray-500">Start Time:</p>
             <p className="mt-1 font-semibold text-gray-900">
               {formatDateTime(startTime)}
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Thời gian kết thúc:</p>
+            <p className="text-gray-500">End Time:</p>
             <p className="mt-1 font-semibold text-gray-900">
               {formatDateTime(endTime)}
             </p>
@@ -635,11 +635,11 @@ const ExaminerTestSessionDetail = () => {
         </div>
       </div>
 
-      {/* Danh sách câu trả lời chi tiết */}
+      {/* Detailed Answer List */}
       <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            Danh sách câu trả lời chi tiết
+            Detailed Answer List
           </h3>
           {loadingAnswers && (
             <div className="w-5 h-5 border-b-2 border-indigo-600 rounded-full animate-spin"></div>
@@ -648,11 +648,11 @@ const ExaminerTestSessionDetail = () => {
 
         {loadingAnswers ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">Đang tải danh sách câu trả lời...</p>
+            <p className="text-gray-600">Loading answer list...</p>
           </div>
         ) : answers.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">Chưa có câu trả lời nào</p>
+            <p className="text-gray-600">No answers yet</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -686,11 +686,11 @@ const ExaminerTestSessionDetail = () => {
                             : "bg-red-100 text-red-700"
                             }`}
                         >
-                          {answer.isCorrect ? "Đúng" : "Sai"}
+                          {answer.isCorrect ? "Correct" : "Incorrect"}
                         </span>
                       )}
                       <span className="px-3 py-1 text-sm font-semibold text-indigo-700 bg-indigo-100 rounded-full">
-                        Điểm:{" "}
+                        Score:{" "}
                         {answer.maxScore > 0
                           ? `${answer.score ?? 0}/${answer.maxScore}`
                           : answer.score ?? 0}
@@ -700,7 +700,7 @@ const ExaminerTestSessionDetail = () => {
 
                   <div className="mb-3">
                     <p className="text-sm font-medium text-gray-700 mb-1">
-                      Câu hỏi:
+                      Question:
                     </p>
                     <p className="text-gray-900">{answer.questionContent || "—"}</p>
                   </div>
@@ -709,7 +709,7 @@ const ExaminerTestSessionDetail = () => {
                   {answer.selectedOptionId && (
                     <div className="mb-3">
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        Câu trả lời (Trắc nghiệm):
+                        Answer (Multiple Choice):
                       </p>
                       <div className="p-3 bg-white rounded-lg border border-gray-200">
                         <p className="text-sm text-gray-600 mb-1">
@@ -726,7 +726,7 @@ const ExaminerTestSessionDetail = () => {
                   {answer.answerAudioFileURL && (
                     <div className="mb-3">
                       <p className="text-sm font-medium text-gray-700 mb-1">
-                        Câu trả lời (Nói):
+                        Answer (Speaking):
                       </p>
                       <div className="p-3 bg-white rounded-lg border border-gray-200">
                         <audio
@@ -734,7 +734,7 @@ const ExaminerTestSessionDetail = () => {
                           className="w-full"
                           src={answer.answerAudioFileURL}
                         >
-                          Trình duyệt của bạn không hỗ trợ phát audio.
+                          Your browser does not support audio playback.
                         </audio>
                       </div>
                     </div>
@@ -743,7 +743,7 @@ const ExaminerTestSessionDetail = () => {
                   {isEnglishSpeaking && (
                     <div className="mt-4">
                       <p className="text-sm font-semibold text-gray-800 mb-3">
-                        Chấm điểm theo tiêu chí
+                        Score by Criteria
                       </p>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         {speakingCriteria.map(({ key: field, label }) => (
@@ -768,7 +768,7 @@ const ExaminerTestSessionDetail = () => {
                                 err.includes(label)
                               ) ? 'border-red-300 bg-red-50' : 'border-gray-300'
                                 }`}
-                              placeholder="Nhập điểm"
+                              placeholder="Enter score"
                             />
                           </div>
                         ))}
@@ -815,10 +815,10 @@ const ExaminerTestSessionDetail = () => {
                   disabled={submittingSpeakingScores || speakingScoresLocked}
                 >
                   {submittingSpeakingScores
-                    ? "Đang chấm..."
+                    ? "Scoring..."
                     : speakingScoresLocked
-                      ? "Đã chấm điểm"
-                      : "Chấm điểm"}
+                      ? "Already Scored"
+                      : "Score"}
                 </button>
               </div>
             )}

@@ -176,7 +176,7 @@ const CityWardPage = () => {
                         <thead className="bg-slate-50">
                             <tr>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
-                                    ID
+                                    No.
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
                                     Ward name
@@ -206,12 +206,13 @@ const CityWardPage = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                displayedWards.map((ward) => {
+                                displayedWards.map((ward, index) => {
                                     const id = ward?.wardId ?? ward?.id ?? "";
                                     const name = ward?.wardName || ward?.name || `Ward ${id}`;
+                                    const stt = (currentPage - 1) * pageSize + index + 1;
                                     return (
                                         <tr key={id}>
-                                            <td className="px-4 py-3 text-sm text-slate-700">{id}</td>
+                                            <td className="px-4 py-3 text-sm text-slate-700">{stt}</td>
                                             <td className="px-4 py-3 text-sm font-medium text-slate-900">
                                                 {name}
                                             </td>

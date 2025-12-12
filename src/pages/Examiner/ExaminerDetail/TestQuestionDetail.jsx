@@ -171,16 +171,16 @@ const TestQuestionDetail = () => {
         if (testRes.success) {
           setTestData(testRes.data);
         } else {
-          setError(testRes.error || "Không thể tải chi tiết đề thi");
+          setError(testRes.error || "Unable to load test details");
         }
 
         if (questionRes.success) {
           setQuestionsData(questionRes.data);
         } else {
-          console.error("Lỗi khi tải câu hỏi:", questionRes.error);
+          console.error("Error loading questions:", questionRes.error);
         }
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu đề thi");
+        setError(err.message || "An error occurred while loading test data");
       } finally {
         setIsLoading(false);
         setIsLoadingQuestions(false);
@@ -211,7 +211,7 @@ const TestQuestionDetail = () => {
           className="flex items-center gap-2 mb-4 text-gray-600"
         >
           <FiArrowLeft className="w-5 h-5" />
-          Quay lại
+          Back
         </button>
         <div className="p-6 border border-red-200 bg-red-50 rounded-xl">
           <p className="text-red-600">{error}</p>
@@ -235,46 +235,46 @@ const TestQuestionDetail = () => {
               <TestTypeBadge testType={testData.testType} />
             </div>
             <p className="mt-1 text-sm text-white/90">
-              Chi tiết đề thi và danh sách câu hỏi
+              Test details and question list
             </p>
           </div>
           <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
-            aria-label="Quay lại"
-            title="Quay lại"
+            aria-label="Back"
+            title="Back"
           >
-            Quay lại
+            Back
           </button>
         </div>
       </div>
 
       <div className="px-6">
-        {/* MAIN CONTENT: chỉ bên trái giống TestDetailPage, không sidebar */}
+        {/* MAIN CONTENT: left side only like TestDetailPage, no sidebar */}
         <div className="space-y-6">
-          <Section title="Thông tin chung">
-            <InfoRow label="Tên đề thi" value={testData.testName} />
-            <InfoRow label="Mục đích" value={testData.purpose} />
+          <Section title="General Information">
+            <InfoRow label="Test Name" value={testData.testName} />
+            <InfoRow label="Purpose" value={testData.purpose} />
             <InfoRow
-              label="Loại đề thi"
+              label="Test Type"
               value={<TestTypeBadge testType={testData.testType} />}
             />
-            <InfoRow label="Điểm tối đa" value={testData.maxScore} />
+            <InfoRow label="Max Score" value={testData.maxScore} />
             <InfoRow
-              label="Thời lượng"
-              value={`${testData.durationInMinutes} phút`}
+              label="Duration"
+              value={`${testData.durationInMinutes} minutes`}
             />
           </Section>
 
           {testData.audioFileURL && (
-            <Section title="File âm thanh">
+            <Section title="Audio File">
               <AudioPlayer audioUrl={testData.audioFileURL} />
             </Section>
           )}
 
           {/* QUESTIONS */}
           <Section
-            title={`Danh sách câu hỏi (${questionsData?.totalQuestions || 0})`}
+            title={`Questions (${questionsData?.totalQuestions || 0})`}
           >
             {isLoadingQuestions ? (
               <div className="flex items-center justify-center py-8">
@@ -298,7 +298,7 @@ const TestQuestionDetail = () => {
                             <p className="font-medium">{q.questionContent}</p>
                             {typeof q.score !== "undefined" && (
                               <span className="px-2 py-1 ml-4 text-sm bg-gray-100 rounded">
-                                {q.score} điểm
+                                {q.score} pts
                               </span>
                             )}
                           </div>
@@ -309,27 +309,25 @@ const TestQuestionDetail = () => {
                                 <div
                                   key={op.optionId || i}
                                   className={`flex items-start gap-2 p-2 rounded 
-                                    ${
-                                      op.isCorrect
-                                        ? "bg-green-50 border border-green-200"
-                                        : "bg-gray-50 border border-gray-200"
+                                    ${op.isCorrect
+                                      ? "bg-green-50 border border-green-200"
+                                      : "bg-gray-50 border border-gray-200"
                                     }`}
                                 >
                                   <span className="font-medium text-gray-600">
                                     {String.fromCharCode(65 + i)}.
                                   </span>
                                   <span
-                                    className={`flex-1 ${
-                                      op.isCorrect
-                                        ? "text-green-800 font-medium"
-                                        : "text-gray-700"
-                                    }`}
+                                    className={`flex-1 ${op.isCorrect
+                                      ? "text-green-800 font-medium"
+                                      : "text-gray-700"
+                                      }`}
                                   >
                                     {op.optionContent}
                                   </span>
                                   {op.isCorrect && (
                                     <span className="text-sm font-medium text-green-600">
-                                      ✓ Đúng
+                                      ✓ Correct
                                     </span>
                                   )}
                                 </div>
@@ -343,7 +341,7 @@ const TestQuestionDetail = () => {
               </div>
             ) : (
               <div className="py-8 text-center text-gray-500">
-                Chưa có câu hỏi nào
+                No questions yet
               </div>
             )}
           </Section>

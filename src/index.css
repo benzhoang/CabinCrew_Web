@@ -274,3 +274,34 @@ body {
 .job-requirement-content p {
   margin: 0.5em 0 !important;
 }
+
+/* Toast notification animation */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.toast-enter {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.toast-exit {
+  animation: slideOutDown 0.3s ease-in;
+}

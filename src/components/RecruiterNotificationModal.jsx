@@ -13,6 +13,14 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
     }
   }, [isOpen, refreshTrigger]);
 
+  // Cập nhật số lượng thông báo chưa đọc sau khi notifications thay đổi
+  useEffect(() => {
+    if (onNotificationUpdate && notifications.length >= 0) {
+      const unreadCount = notifications.filter(n => !n.isRead).length;
+      onNotificationUpdate(unreadCount);
+    }
+  }, [notifications, onNotificationUpdate]);
+
   const fetchNotifications = async () => {
     setLoading(true);
     setError(null);
@@ -27,11 +35,7 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
           return new Date(b.time) - new Date(a.time);
         });
         setNotifications(sorted);
-        // Cập nhật số lượng thông báo chưa đọc cho parent component
-        if (onNotificationUpdate) {
-          const unreadCount = sorted.filter(n => !n.isRead).length;
-          onNotificationUpdate(unreadCount);
-        }
+        // Số lượng thông báo chưa đọc sẽ được cập nhật tự động qua useEffect
       } else {
         setError(result.error || 'Không thể tải thông báo');
       }
@@ -57,11 +61,7 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
             ? { ...n, isRead: true }
             : n
         );
-        // Cập nhật số lượng thông báo chưa đọc ngay
-        if (onNotificationUpdate) {
-          const newUnreadCount = updated.filter(n => !n.isRead).length;
-          onNotificationUpdate(newUnreadCount);
-        }
+        // Số lượng thông báo chưa đọc sẽ được cập nhật tự động qua useEffect
         return updated;
       });
 
@@ -76,10 +76,7 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
                 ? { ...n, isRead: false }
                 : n
             );
-            if (onNotificationUpdate) {
-              const newUnreadCount = rolledBack.filter(n => !n.isRead).length;
-              onNotificationUpdate(newUnreadCount);
-            }
+            // Số lượng thông báo chưa đọc sẽ được cập nhật tự động qua useEffect
             return rolledBack;
           });
           setError('Không thể đánh dấu thông báo là đã đọc');
@@ -93,10 +90,7 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
               ? { ...n, isRead: false }
               : n
           );
-          if (onNotificationUpdate) {
-            const newUnreadCount = rolledBack.filter(n => !n.isRead).length;
-            onNotificationUpdate(newUnreadCount);
-          }
+          // Số lượng thông báo chưa đọc sẽ được cập nhật tự động qua useEffect
           return rolledBack;
         });
         setError('Đã xảy ra lỗi khi đánh dấu thông báo');

@@ -101,7 +101,7 @@ const TestTypePage = () => {
                         <thead className="bg-slate-50">
                             <tr>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
-                                    ID
+                                    No.
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
                                     Test type name
@@ -115,7 +115,7 @@ const TestTypePage = () => {
                             {isLoading ? (
                                 <tr>
                                     <td
-                                        colSpan={4}
+                                        colSpan={3}
                                         className="px-4 py-6 text-sm text-center text-slate-500"
                                     >
                                         Loading data...
@@ -124,17 +124,17 @@ const TestTypePage = () => {
                             ) : items.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={4}
+                                        colSpan={3}
                                         className="px-4 py-6 text-sm text-center text-slate-500"
                                     >
                                         No data for test types.
                                     </td>
                                 </tr>
                             ) : (
-                                items.map((item) => (
+                                items.map((item, index) => (
                                     <tr key={item.id}>
                                         <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.id}
+                                            {index + 1}
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-slate-900">
                                             {item.name}

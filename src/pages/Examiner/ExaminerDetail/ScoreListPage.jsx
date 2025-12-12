@@ -85,12 +85,12 @@ const ScoreListPage = () => {
 
           setTestSessions(transformedSessions);
         } else {
-          setError(result.error || "Không thể lấy danh sách điểm");
+          setError(result.error || "Unable to fetch score list");
           setTestSessions([]);
         }
       } catch (err) {
         console.error("Error fetching test sessions:", err);
-        setError(err.message || "Không thể lấy danh sách điểm");
+        setError(err.message || "Unable to fetch score list");
         setTestSessions([]);
       } finally {
         setLoading(false);
@@ -178,26 +178,26 @@ const ScoreListPage = () => {
   };
 
   const getStatusBadge = (status) => {
-    // Nếu status là null hoặc undefined, hiển thị "Chưa xác định"
+    // If status is null or undefined, display "Undetermined"
     if (status === null || status === undefined) {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-full">
-          Chưa xác định
+          Undetermined
         </span>
       );
     }
 
-    // status: true → "Đã làm bài", false → "Phúc khảo"
+    // status: true → "Completed", false → "Appeal"
     if (status === true) {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
-          Đã làm bài
+          Completed
         </span>
       );
     } else {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-100 rounded-full">
-          Phúc khảo
+          Appeal
         </span>
       );
     }
@@ -209,10 +209,10 @@ const ScoreListPage = () => {
         <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600">
           <div>
             <h1 className="text-2xl font-extrabold md:text-3xl">
-              Danh sách điểm của ứng viên
+              Candidate Score List
             </h1>
             <p className="mt-1 text-sm text-white/90">
-              Xem và phản hồi phúc khảo điểm của ứng viên
+              View and respond to candidate score appeals
             </p>
           </div>
           <button
@@ -227,16 +227,16 @@ const ScoreListPage = () => {
               )
             }
             className="px-4 py-2 transition-colors rounded-lg bg-white/20 hover:bg-white/30"
-            aria-label="Quay lại"
-            title="Quay lại"
+            aria-label="Back"
+            title="Back"
           >
-            Quay lại
+            Back
           </button>
         </div>
         <div className="p-6 mt-4 bg-white border border-gray-200 shadow-sm rounded-2xl">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Thông tin bài kiểm tra
+              Test Information
             </h3>
             {!testInfoLoading && derivedTestId && (
               <button
@@ -248,32 +248,32 @@ const ScoreListPage = () => {
                 }}
                 className="px-4 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
               >
-                Xem chi tiết
+                View Details
               </button>
             )}
           </div>
           {testInfoLoading ? (
             <div className="py-4 text-center">
               <p className="text-gray-500">
-                Đang tải thông tin bài kiểm tra...
+                Loading test information...
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-gray-500">ID bài kiểm tra:</p>
+                <p className="text-gray-500">Test ID:</p>
                 <p className="mt-1 font-semibold text-gray-900">
                   {testInfo?.testId || "N/A"}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Tên bài kiểm tra:</p>
+                <p className="text-gray-500">Test Name:</p>
                 <p className="mt-1 font-semibold text-gray-900">
                   {testInfo?.testName || "N/A"}
                 </p>
               </div>
               <div>
-                <p className="text-gray-500">Loại bài kiểm tra:</p>
+                <p className="text-gray-500">Test Type:</p>
                 <p className="mt-1 font-semibold text-gray-900">
                   {testInfo?.testType || "N/A"}
                 </p>
@@ -287,14 +287,14 @@ const ScoreListPage = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-semibold text-gray-900">
-              Danh sách điểm ({filteredCandidates.length})
+              Score List ({filteredCandidates.length})
             </h1>
             <div className="flex items-center gap-3">
               {/* Notification Icon */}
               <button
                 onClick={() => setShowNotificationModal(true)}
                 className="relative p-2 transition-colors rounded-lg hover:bg-gray-100"
-                aria-label="Thông báo"
+                aria-label="Notifications"
               >
                 <FaBell className="w-5 h-5 text-gray-600" />
                 <span className="absolute w-2 h-2 bg-red-500 rounded-full top-1 right-1"></span>
@@ -303,7 +303,7 @@ const ScoreListPage = () => {
               <div className="relative w-72">
                 <input
                   type="text"
-                  placeholder="Tìm theo tên, email, SĐT..."
+                  placeholder="Search by name, email, phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-3 text-sm border border-gray-300 rounded-lg h-9 pr-9 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400"
@@ -318,7 +318,7 @@ const ScoreListPage = () => {
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-12 text-center">
-              <p className="text-gray-500">Đang tải danh sách điểm...</p>
+              <p className="text-gray-500">Loading score list...</p>
             </div>
           ) : error ? (
             <div className="p-12 text-center">
@@ -328,14 +328,14 @@ const ScoreListPage = () => {
             <table className="min-w-full border-collapse table-auto">
               <thead>
                 <tr className="text-sm text-left text-gray-600 border-b border-gray-200 bg-gray-50">
-                  <th className="px-5 py-3 font-semibold">ẢNH 4X6</th>
-                  <th className="px-5 py-3 font-semibold">ỨNG VIÊN</th>
+                  <th className="px-5 py-3 font-semibold">PORTRAIT</th>
+                  <th className="px-5 py-3 font-semibold">CANDIDATE</th>
                   <th className="px-5 py-3 font-semibold">EMAIL</th>
-                  <th className="px-5 py-3 font-semibold">TRẠNG THÁI</th>
+                  <th className="px-5 py-3 font-semibold">STATUS</th>
                   {!isSpeakingTest && (
-                    <th className="px-5 py-3 font-semibold">ĐIỂM</th>
+                    <th className="px-5 py-3 font-semibold">SCORE</th>
                   )}
-                  <th className="px-5 py-3 font-semibold">HÀNH ĐỘNG</th>
+                  <th className="px-5 py-3 font-semibold">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -405,7 +405,7 @@ const ScoreListPage = () => {
                       <div className="flex items-center gap-2">
                         <button
                           className="p-2 text-gray-600 transition-colors rounded hover:text-gray-900 hover:bg-gray-100"
-                          title="Xem chi tiết"
+                          title="View Details"
                           onClick={() => {
                             const testSessionId =
                               candidate.testSessionId || candidate.id;
@@ -414,7 +414,7 @@ const ScoreListPage = () => {
                                 `/examiner/candidate/test-session/${testSessionId}`
                               );
                             } else {
-                              console.error("Không tìm thấy testSessionId");
+                              console.error("Test session ID not found");
                             }
                           }}
                         >
@@ -423,7 +423,7 @@ const ScoreListPage = () => {
                         {candidate.status !== true && (
                           <button
                             className="p-2 text-yellow-600 transition-colors rounded hover:text-yellow-900 hover:bg-yellow-100"
-                            title="Phúc khảo"
+                            title="Appeal"
                             onClick={() => {
                               const testSessionId =
                                 candidate.testSessionId || candidate.id;
@@ -437,7 +437,7 @@ const ScoreListPage = () => {
                                   },
                                 });
                               } else {
-                                console.error("Không tìm thấy testSessionId");
+                                console.error("Test session ID not found");
                               }
                             }}
                           >
@@ -454,7 +454,7 @@ const ScoreListPage = () => {
 
           {!loading && !error && filteredCandidates.length === 0 && (
             <div className="p-12 text-center">
-              <p className="text-gray-500">Không tìm thấy ứng viên nào</p>
+              <p className="text-gray-500">No candidates found</p>
             </div>
           )}
         </div>
