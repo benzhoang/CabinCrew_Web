@@ -127,7 +127,7 @@ const RecruitmentStages = () => {
                             nameEn: matchingRound?.roundName || template.nameEn,
                             completed: Boolean(matchingRound) && isCompleted,
                             date: matchingRound?.date || null,
-                            status: matchingRound?.status || 'Pending'
+                            status: matchingRound?.status || 'On Going'
                         };
                     });
 
@@ -146,9 +146,9 @@ const RecruitmentStages = () => {
                     }
 
                     // Map status từ roundStatus
-                    let status = 'pending';
-                    let statusText = 'Under Review';
-                    let statusTextEn = 'Under Review';
+                    let status = 'ongoing';
+                    let statusText = 'On Going';
+                    let statusTextEn = 'On Going';
 
                     if (campaignData.roundStatus) {
                         const roundStatus = campaignData.roundStatus.toLowerCase();
@@ -210,7 +210,7 @@ const RecruitmentStages = () => {
         switch (status) {
             case 'accepted':
                 return 'bg-green-100 text-green-800';
-            case 'pending':
+            case 'ongoing':
                 return 'bg-yellow-100 text-yellow-800';
             case 'rejected':
                 return 'bg-red-100 text-red-800';

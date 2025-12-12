@@ -137,7 +137,7 @@ const SidebarAdmin = ({ isOpen }) => {
             <li>
               <Link
                 to="/admin/criteria/requirement"
-                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/criteria/interview"
+                className={`flex items-center p-2 no-underline rounded-md transition-colors ${currentPath === "/admin/criteria/requirement"
                   ? "text-blue-600 bg-cyan-50"
                   : "text-gray-700 hover:bg-gray-100"
                   }`}

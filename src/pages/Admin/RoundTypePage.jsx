@@ -117,7 +117,7 @@ const RoundTypePage = () => {
                         <thead className="bg-slate-50">
                             <tr>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
-                                    ID
+                                    No.
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
                                     Round name
@@ -147,9 +147,9 @@ const RoundTypePage = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                items.map((item) => (
+                                items.map((item, index) => (
                                     <tr key={item.id}>
-                                        <td className="px-4 py-3 text-sm text-slate-700">{item.id}</td>
+                                        <td className="px-4 py-3 text-sm text-slate-700">{index + 1}</td>
                                         <td className="px-4 py-3 text-sm font-medium text-slate-900">
                                             {item.name}
                                         </td>

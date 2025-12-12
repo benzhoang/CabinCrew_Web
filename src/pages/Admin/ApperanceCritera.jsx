@@ -84,6 +84,7 @@ const ApperanceCritera = () => {
     const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [selectedGroupTitle, setSelectedGroupTitle] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -117,8 +118,9 @@ const ApperanceCritera = () => {
         }));
     }, [criterias]);
 
-    const handleAdd = () => {
+    const handleAdd = (groupTitle) => {
         setEditing(null);
+        setSelectedGroupTitle(groupTitle);
         setShowModal(true);
     };
 
@@ -135,18 +137,9 @@ const ApperanceCritera = () => {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-slate-900">Appearance Criteria</h1>
-                    <p className="text-slate-600">View and manage appearance scoring criteria.</p>
-                </div>
-                <button
-                    onClick={handleAdd}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-                >
-                    <FiPlus className="w-4 h-4" />
-                    Add criteria
-                </button>
+            <div>
+                <h1 className="text-2xl font-semibold text-slate-900">Appearance Criteria</h1>
+                <p className="text-slate-600">View and manage appearance scoring criteria.</p>
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -163,8 +156,17 @@ const ApperanceCritera = () => {
                     <div className="divide-y divide-slate-100">
                         {grouped.map((group) => (
                             <div key={group.title} className="p-6 space-y-4">
-                                <div className="uppercase text-xs font-semibold text-slate-500 tracking-wide">
-                                    {group.title}
+                                <div className="flex items-center justify-between">
+                                    <div className="uppercase text-xs font-semibold text-slate-500 tracking-wide">
+                                        {group.title}
+                                    </div>
+                                    <button
+                                        onClick={() => handleAdd(group.title)}
+                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                                    >
+                                        <FiPlus className="w-4 h-4" />
+                                        Add criteria
+                                    </button>
                                 </div>
                                 <div className="space-y-4">
                                     {group.items.map((item) => (
@@ -224,16 +226,21 @@ const ApperanceCritera = () => {
                 <Modal
                     title={editing ? "Edit criteria" : "Add criteria"}
                     initial={
-                        editing && {
-                            title: editing.groupTitle,
-                            text: editing.text,
-                            itemType: editing.itemType,
-                            detailText: editing.details?.[0]?.detailText,
-                        }
+                        editing
+                            ? {
+                                  title: editing.groupTitle,
+                                  text: editing.text,
+                                  itemType: editing.itemType,
+                                  detailText: editing.details?.[0]?.detailText,
+                              }
+                            : {
+                                  title: selectedGroupTitle || "",
+                              }
                     }
                     onClose={() => {
                         setShowModal(false);
                         setEditing(null);
+                        setSelectedGroupTitle(null);
                     }}
                     onSubmit={handleSubmit}
                 />

@@ -810,38 +810,36 @@ const CandidateApplyDetail = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Type:</label>
                                         <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.englishCertificate || '—'}</p>
-                                        {/* Add score fields below Certificate Number */}
                                         <div className="mt-3 space-y-2">
                                             {candidate.readingScore !== null && candidate.readingScore !== undefined && (
                                                 <div>
-                                                    <label className="block text-xs text-slate-600 mb-1">Reading Score:</label>
+                                                    <label className="block text-xs text-slate-600 mb-1">Reading score:</label>
                                                     <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{candidate.readingScore}</p>
                                                 </div>
                                             )}
-                                            {candidate.listeningScore !== null && candidate.listeningScore !== undefined && (
+                                            {candidate.englishTestDate && (
                                                 <div>
-                                                    <label className="block text-xs text-slate-600 mb-1">Listening Score:</label>
-                                                    <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{candidate.listeningScore}</p>
-                                                </div>
-                                            )}
-                                            {candidate.totalScore !== null && candidate.totalScore !== undefined && (
-                                                <div>
-                                                    <label className="block text-xs text-slate-600 mb-1">Total Score:</label>
-                                                    <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm font-semibold">{candidate.totalScore}</p>
+                                                    <label className="block text-xs text-slate-600 mb-1">English test date:</label>
+                                                    <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{formatDate(candidate.englishTestDate)}</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date:</label>
-                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{formatDate(candidate.certificateExpireDate) || '—'}</p>
-                                        {/* Add test date below Expiry Date */}
-                                        {candidate.englishTestDate && (
-                                            <div className="mt-3">
-                                                <label className="block text-xs text-slate-600 mb-1">English Test Date:</label>
-                                                <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{formatDate(candidate.englishTestDate)}</p>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Total score:</label>
+                                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.totalScore !== null && candidate.totalScore !== undefined ? candidate.totalScore : '—'}</p>
+                                        <div className="mt-3 space-y-2">
+                                            {candidate.listeningScore !== null && candidate.listeningScore !== undefined && (
+                                                <div>
+                                                    <label className="block text-xs text-slate-600 mb-1">Listening score:</label>
+                                                    <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{candidate.listeningScore}</p>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <label className="block text-xs text-slate-600 mb-1">Expiration date:</label>
+                                                <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">{formatDate(candidate.certificateExpireDate) || '—'}</p>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

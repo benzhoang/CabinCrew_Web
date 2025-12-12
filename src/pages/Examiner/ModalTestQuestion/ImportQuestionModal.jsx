@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiUpload, FiX, FiAlertCircle, FiCheckCircle, FiFileText, FiInfo, FiLoader } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 import { importQuestionsFromExcel } from '../../../service/api';
 
 const ImportQuestionModal = ({ isOpen, onClose, testId, onSuccess }) => {
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
   const [status, setStatus] = useState({ type: null, message: '' });
   const [isUploading, setIsUploading] = useState(false);
@@ -68,26 +71,52 @@ const ImportQuestionModal = ({ isOpen, onClose, testId, onSuccess }) => {
       const response = await importQuestionsFromExcel(testId, selectedFile);
 
       if (response.success) {
+        // Hiển thị toast thành công (màu xanh)
+        const successMessage = response.message || `Đã import thành công ${response.data?.totalQuestionsCreated || 0} câu hỏi.`;
+        toast.success(successMessage, {
+          position: "top-right",
+          autoClose: 2000,
+        });
+
         setStatus({
           type: 'success',
-          message: response.message || `Imported ${response.data?.totalQuestionsCreated || 0} questions successfully.`,
+          message: successMessage,
         });
+
+        // Gọi callback để refresh danh sách câu hỏi
         if (onSuccess) {
-          await onSuccess(response.data); // Đảm bảo fetch lại danh sách câu hỏi
+          await onSuccess(response.data);
         }
+
+        // Đóng modal và navigate về trang test detail
         setTimeout(() => {
           onClose?.();
+          navigate(`/examiner/testing/${testId}`);
         }, 1000);
       } else {
+        // Hiển thị toast lỗi (màu đỏ)
+        const errorMessage = response.error || 'Không thể import câu hỏi từ file Excel.';
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 2000,
+        });
+
         setStatus({
           type: 'error',
-          message: response.error || 'Unable to import questions from Excel.'
+          message: errorMessage
         });
       }
     } catch (error) {
+      // Hiển thị toast lỗi (màu đỏ)
+      const errorMessage = error.message || 'Đã xảy ra lỗi khi import câu hỏi.';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
       setStatus({
         type: 'error',
-        message: error.message || 'An error occurred while importing questions.'
+        message: errorMessage
       });
     } finally {
       setIsUploading(false);

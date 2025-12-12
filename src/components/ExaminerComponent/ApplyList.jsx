@@ -36,14 +36,14 @@ const ApplyList = ({
   // Filter applicants for specific batch + Application type
   const filteredApplicants = useMemo(() => {
     if (!isViewingBatch) {
-      // Nếu không xem batch cụ thể, trả về mảng rỗng
+      // If not viewing a specific batch, return empty
       return [];
     }
 
     // Chỉ sử dụng participants từ API khi đang xem batch
     let list = [...participants];
 
-    // Filter theo roundFilter
+    // Filter by roundFilter
     if (roundFilter === "final") {
       // Lọc theo kết quả cuối cùng: đã có quyết định cuối (đã duyệt hoặc từ chối)
       list = list.filter(
@@ -64,7 +64,7 @@ const ApplyList = ({
       });
     }
 
-    // Áp dụng search filter
+    // Apply search filter
     if (applicantSearchTerm) {
       const q = applicantSearchTerm.toLowerCase();
       list = list.filter(
@@ -98,7 +98,7 @@ const ApplyList = ({
     );
   }, [availableRounds, roundFilter]);
 
-  // Tính toán dateRange từ round được chọn
+  // Compute dateRange from selected round
   const selectedRoundDateRange = useMemo(() => {
     if (!activeRoundForTests) return null;
     const startDate = activeRoundForTests.startDate
@@ -116,7 +116,7 @@ const ApplyList = ({
     return null;
   }, [activeRoundForTests]);
 
-  // Check if the active round is a test round that requires test selection (English or Practical)
+  // Check if active round requires test selection (English or Practical)
   const isTestRound = useMemo(() => {
     if (!activeRoundForTests) return false;
     const roundName = activeRoundForTests.roundName || "";
@@ -138,7 +138,7 @@ const ApplyList = ({
     return false;
   }, [activeRoundForTests]);
 
-  // Xác định loại test hiện tại
+  // Determine current test type
   const getCurrentTestType = useMemo(() => {
     if (!activeRoundForTests) return null;
     const roundName = activeRoundForTests.roundName || "";
@@ -158,7 +158,7 @@ const ApplyList = ({
     return null;
   }, [activeRoundForTests]);
 
-  // Tìm round tiếp theo dựa trên loại test hiện tại
+  // Find next round based on current test type
   const getNextRound = useMemo(() => {
     if (!activeRoundForTests || !availableRounds.length) return null;
 
@@ -188,7 +188,7 @@ const ApplyList = ({
     return null;
   }, [activeRoundForTests, availableRounds, getCurrentTestType]);
 
-  // Fetch test sessions khi ở round English Speaking Test
+  // Fetch test sessions for English Speaking round
   useEffect(() => {
     const fetchTestSessions = async () => {
       // Chỉ fetch khi ở round English Speaking Test (testType = 2)
@@ -234,30 +234,30 @@ const ApplyList = ({
     fetchTestSessions();
   }, [activeRoundForTests, getCurrentTestType]);
 
-  // Kiểm tra xem có participant nào không có điểm trong English Speaking Test không
+  // Check if any participant has no score in English Speaking Test
   const hasUnscoredParticipants = useMemo(() => {
-    // Chỉ kiểm tra khi ở round English Speaking Test
+    // Only check for speaking round
     if (getCurrentTestType !== "speaking") {
       return false;
     }
 
-    // Nếu đang loading, chưa thể xác định - không ẩn nút
+    // While loading, keep button visible
     if (loadingTestSessions) {
       return false;
     }
 
-    // Nếu không có participants nào, không cần kiểm tra
+    // No participants -> no need to check
     if (filteredApplicants.length === 0) {
       return false;
     }
 
-    // Nếu chưa có test sessions nào được fetch nhưng có participants, có nghĩa là chưa có ai làm bài thi
+    // Participants exist but no test sessions => unscored
     if (testSessions.length === 0) {
       // Có participants nhưng không có test sessions nào = có người chưa có điểm
       return true;
     }
 
-    // Tạo map userId -> totalScore từ test sessions
+    // Build score map userId -> hasScore
     const scoreMap = new Map();
     testSessions.forEach((session) => {
       const userId = session.userId;
@@ -283,7 +283,7 @@ const ApplyList = ({
       }
     });
 
-    // Kiểm tra xem có participant nào trong filteredApplicants không có điểm không
+    // Check if any applicant lacks score
     const hasUnscored = filteredApplicants.some((applicant) => {
       const userId = applicant.userId || applicant.id;
       // Nếu participant không có trong test sessions (chưa làm bài thi)
@@ -303,21 +303,21 @@ const ApplyList = ({
     loadingTestSessions,
   ]);
 
-  // Tính toán message xác nhận cho modal
+  // Confirmation message for modal
   const confirmMessage = useMemo(() => {
-    if (!activeRoundForTests) return "Bạn có muốn xét duyệt không?";
+    if (!activeRoundForTests) return "Do you want to approve moving to next round?";
 
     const currentTestType = getCurrentTestType;
     const nextRound = getNextRound;
 
     if (currentTestType === "listening" && nextRound) {
-      return `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else if (currentTestType === "speaking" && nextRound) {
-      return `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else if (currentTestType === "practical" && nextRound) {
-      return `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else {
-      return `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng tiếp theo?`;
+      return `Move all applicants from "${activeRoundForTests.roundName}" to the next round?`;
     }
   }, [activeRoundForTests, getCurrentTestType, getNextRound]);
 
@@ -326,10 +326,10 @@ const ApplyList = ({
     const normalizedStatus = status ? String(status).toLowerCase() : "";
 
     const statusConfig = {
-      ongoing: { color: "bg-blue-100 text-blue-800", text: "Đang diễn ra" },
-      passed: { color: "bg-green-100 text-green-800", text: "Đã đạt" },
-      failed: { color: "bg-red-100 text-red-800", text: "Không đạt" },
-      pending: { color: "bg-yellow-100 text-yellow-800", text: "Chờ xử lý" },
+      ongoing: { color: "bg-blue-100 text-blue-800", text: "Ongoing" },
+      passed: { color: "bg-green-100 text-green-800", text: "Passed" },
+      failed: { color: "bg-red-100 text-red-800", text: "Failed" },
+      pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
     };
 
     const config = statusConfig[normalizedStatus] || statusConfig.pending;
@@ -343,11 +343,11 @@ const ApplyList = ({
   };
 
   const getRoundBadge = (round, applicant = null) => {
-    // Nếu có rounds từ API, tìm round tương ứng
+    // If rounds exist from API, find matching round
     if (availableRounds.length > 0) {
       let foundRound = null;
 
-      // Tìm round theo roundId hoặc roundName từ applicant
+      // Find round via roundId or roundName from applicant
       if (applicant) {
         if (applicant.roundId) {
           foundRound = availableRounds.find(
@@ -358,7 +358,7 @@ const ApplyList = ({
             (r) => r.roundName === applicant.roundName
           );
         } else if (round) {
-          // Fallback: tìm theo round string nếu có
+          // Fallback: match by round string if present
           foundRound = availableRounds.find(
             (r) =>
               String(r.roundId) === String(round) ||
@@ -387,33 +387,33 @@ const ApplyList = ({
       }
     }
 
-    // Fallback cho "Kết quả cuối cùng"
+    // Fallback for final
     if (round === "final") {
       return (
         <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-200 text-slate-800">
-          Kết quả cuối cùng
+          Final result
         </span>
       );
     }
 
-    // Fallback mặc định với roundConfig cũ
+    // Default fallback roundConfig
     const roundConfig = {
       screening: {
         color: "bg-indigo-100 text-indigo-800",
-        text: "Vòng sàng lọc",
+        text: "Screening",
       },
       grooming: {
         color: "bg-purple-100 text-purple-800",
-        text: "Vòng grooming",
+        text: "Grooming",
       },
-      test: { color: "bg-amber-100 text-amber-800", text: "Vòng kiểm tra" },
+      test: { color: "bg-amber-100 text-amber-800", text: "Test round" },
       interview: {
         color: "bg-teal-100 text-teal-800",
-        text: "Vòng phỏng vấn",
+        text: "Interview",
       },
       final: {
         color: "bg-slate-200 text-slate-800",
-        text: "Kết quả cuối cùng",
+        text: "Final result",
       },
     };
     const config = roundConfig[round] || roundConfig.screening;
@@ -492,7 +492,7 @@ const ApplyList = ({
 
   const handleViewScores = () => {
     if (!campaignId) {
-      console.warn("Không tìm thấy campaignId để xem bài thi");
+      console.warn("campaignId not found to view tests");
       return;
     }
 
@@ -517,7 +517,7 @@ const ApplyList = ({
 
   const openConfirmMoveModal = () => {
     if (!activeRoundForTests?.roundId) {
-      console.warn("Không tìm thấy roundId để chuyển vòng");
+      console.warn("roundId not found to move round");
       return;
     }
 
@@ -539,16 +539,16 @@ const ApplyList = ({
     const currentTestType = getCurrentTestType;
     const nextRound = getNextRound;
 
-    // Xác định message confirm dựa trên loại test
+    // Determine confirm message by test type
     let confirmMessage = "";
     if (currentTestType === "listening" && nextRound) {
-      confirmMessage = `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else if (currentTestType === "speaking" && nextRound) {
-      confirmMessage = `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else if (currentTestType === "practical" && nextRound) {
-      confirmMessage = `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng "${nextRound.roundName}"?`;
+      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
     } else {
-      confirmMessage = `Bạn có chắc chắn muốn chuyển tất cả ứng viên từ vòng "${activeRoundForTests.roundName}" sang vòng tiếp theo?`;
+      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to the next round?`;
     }
 
     setIsMovingToInterview(true);
@@ -557,7 +557,7 @@ const ApplyList = ({
 
       if (result.success) {
         toast.success(
-          result.message || confirmMessage || "Chuyển vòng thành công!"
+          result.message || confirmMessage || "Moved to next round successfully!"
         );
 
         // Reload lại dữ liệu
@@ -610,11 +610,11 @@ const ApplyList = ({
           }
         }
       } else {
-        toast.error(result.error || "Không thể chuyển vòng. Vui lòng thử lại.");
+        toast.error(result.error || "Unable to move to next round. Please try again.");
       }
     } catch (error) {
-      console.error("Lỗi khi chuyển vòng:", error);
-      toast.error("Đã xảy ra lỗi khi chuyển vòng. Vui lòng thử lại.");
+      console.error("Error when moving to next round:", error);
+      toast.error("An error occurred while moving to next round. Please try again.");
     } finally {
       setIsMovingToInterview(false);
     }
@@ -627,20 +627,20 @@ const ApplyList = ({
         <div className="p-6 border-b border-slate-200">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h3 className="text-lg font-semibold text-slate-800">
-              Danh sách ứng viên ({filteredApplicants.length})
+              Applicants ({filteredApplicants.length})
             </h3>
             <div className="flex flex-col w-full gap-3 md:flex-row md:w-auto md:items-center">
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                  activeRoundForTests?.testId === 0 ||
-                  activeRoundForTests?.testId === null ? (
+                    activeRoundForTests?.testId === 0 ||
+                    activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
                     >
                       <FaFilePen className="w-5 h-5" />
-                      Chọn bài thi
+                      Choose test
                     </button>
                   ) : (
                     <>
@@ -649,7 +649,7 @@ const ApplyList = ({
                         className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-green-600 rounded-lg shadow-sm hover:bg-green-700"
                       >
                         <FaRegEye className="w-5 h-5" />
-                        Xem bài thi
+                        View tests
                       </button>
                       {/* Chỉ hiển thị nút Xét duyệt khi không có participant nào chưa có điểm (cho English Speaking Test) */}
                       {(() => {
@@ -684,21 +684,21 @@ const ApplyList = ({
 
                         return !shouldHideButton;
                       })() && (
-                        <button
-                          onClick={openConfirmMoveModal}
-                          disabled={isMovingToInterview}
-                          className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FaArrowRight className="w-5 h-5" />
-                          {isMovingToInterview ? "Đang chuyển..." : "Xét duyệt"}
-                        </button>
-                      )}
+                          <button
+                            onClick={openConfirmMoveModal}
+                            disabled={isMovingToInterview}
+                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FaArrowRight className="w-5 h-5" />
+                            {isMovingToInterview ? "Moving..." : "Approve move"}
+                          </button>
+                        )}
                     </>
                   )}
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <label className="text-sm text-slate-600">Vòng:</label>
+                <label className="text-sm text-slate-600">Round:</label>
                 <select
                   className="px-3 py-2 text-sm border rounded-md border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={roundFilter}
@@ -707,7 +707,7 @@ const ApplyList = ({
                 >
                   {loadingRoundData ? (
                     <option value="" disabled>
-                      Đang tải...
+                      Loading...
                     </option>
                   ) : availableRounds.length > 0 ? (
                     availableRounds.map((round) => (
@@ -717,7 +717,7 @@ const ApplyList = ({
                     ))
                   ) : (
                     <option value="" disabled>
-                      Chưa có dữ liệu vòng
+                      No round data
                     </option>
                   )}
                 </select>
@@ -725,7 +725,7 @@ const ApplyList = ({
               <div className="relative w-full md:w-64">
                 <input
                   type="text"
-                  placeholder="Tìm theo tên, email, SĐT..."
+                  placeholder="Search by name, email, phone..."
                   className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={applicantSearchTerm}
                   onChange={(e) => setApplicantSearchTerm(e.target.value)}
@@ -748,7 +748,7 @@ const ApplyList = ({
           </div>
           {selectedRoundDateRange && (
             <div className="mt-3 text-sm text-slate-600">
-              Thời gian vòng:{" "}
+              Round timeline:{" "}
               <span className="font-medium text-slate-800">
                 {selectedRoundDateRange}
               </span>
@@ -759,32 +759,32 @@ const ApplyList = ({
         <div className="overflow-x-auto">
           {loadingParticipants ? (
             <div className="p-12 text-center">
-              <p className="text-slate-500">Đang tải danh sách ứng viên...</p>
+              <p className="text-slate-500">Loading applicants...</p>
             </div>
           ) : (
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Ảnh 4x6
+                    Portrait
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Ứng viên
+                    Applicant
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Liên hệ
+                    Contact
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Ngày ứng tuyển
+                    Applied date
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Trạng thái
+                    Status
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Vòng
+                    Round
                   </th>
                   <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
-                    Hành động
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -798,7 +798,7 @@ const ApplyList = ({
                             applicant.photo ||
                             "https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo"
                           }
-                          alt={`Ảnh ${applicant.name}`}
+                          alt={`Photo of ${applicant.name}`}
                           className="object-cover w-full h-full"
                           onError={(e) => {
                             e.target.src =
@@ -834,16 +834,16 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                          applicant.roundName ||
-                          applicant.round ||
-                          "screening",
+                        applicant.roundName ||
+                        applicant.round ||
+                        "screening",
                         applicant
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
                       <button
                         className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
-                        title="Xem chi tiết"
+                        title="View details"
                         onClick={() => handleNavigateToEvaluation(applicant)}
                       >
                         <svg
@@ -875,7 +875,7 @@ const ApplyList = ({
 
           {!loadingParticipants && filteredApplicants.length === 0 && (
             <div className="p-12 text-center">
-              <p className="text-slate-500">Chưa có ứng viên nào cho đợt này</p>
+              <p className="text-slate-500">No applicants for this batch yet</p>
             </div>
           )}
         </div>
@@ -885,7 +885,7 @@ const ApplyList = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm p-6 bg-white shadow-lg rounded-xl">
             <h2 className="mb-3 text-lg font-semibold text-slate-900">
-              Xác nhận xét duyệt
+              Confirm approval
             </h2>
             <p className="mb-6 text-sm text-slate-600">{confirmMessage}</p>
             <div className="flex justify-end gap-3">
@@ -893,14 +893,14 @@ const ApplyList = ({
                 onClick={closeConfirmMoveModal}
                 className="px-4 py-2 text-sm font-medium rounded-lg text-slate-700 bg-slate-100 hover:bg-slate-200"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleConfirmMoveToInterview}
                 disabled={isMovingToInterview}
                 className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isMovingToInterview ? "Đang xử lý..." : "Xác nhận"}
+                {isMovingToInterview ? "Processing..." : "Confirm"}
               </button>
             </div>
           </div>

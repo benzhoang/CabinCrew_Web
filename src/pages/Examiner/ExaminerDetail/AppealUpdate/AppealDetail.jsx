@@ -37,12 +37,12 @@ const AppealDetail = () => {
                 if (result.success && result.data) {
                     setTestSession(result.data);
                 } else {
-                    setError(result.error || "Không thể tải thông tin bài làm.");
+                    setError(result.error || "Unable to load test session information.");
                     setTestSession(null);
                 }
             } catch (err) {
                 if (!isMounted) return;
-                setError(err.message || "Không thể tải thông tin bài làm.");
+                setError(err.message || "Unable to load test session information.");
                 setTestSession(null);
             } finally {
                 if (isMounted) {
@@ -103,12 +103,12 @@ const AppealDetail = () => {
                     }
                 }
 
-                // Nếu không có dữ liệu từ criteria API, báo lỗi
+                // If no data from criteria API, show error
                 if (answersWithCriteria.length === 0) {
                     setAnswers([]);
                     const errorMsg = criteriaData?.error ||
                         (criteriaResult.status === 'rejected' ? criteriaResult.reason?.message : null) ||
-                        "Không thể tải câu trả lời với tiêu chí chấm điểm.";
+                        "Unable to load answers with scoring criteria.";
                     setAnswersError(errorMsg);
                     return;
                 }
@@ -152,12 +152,12 @@ const AppealDetail = () => {
                     setAnswers(answersWithCriteria);
                 } else {
                     setAnswers([]);
-                    setAnswersError("Không có dữ liệu câu trả lời.");
+                    setAnswersError("No answer data available.");
                 }
             } catch (err) {
                 if (!isMounted) return;
                 setAnswers([]);
-                setAnswersError(err.message || "Không thể tải câu trả lời.");
+                setAnswersError(err.message || "Unable to load answers.");
             } finally {
                 if (isMounted) {
                     setAnswersLoading(false);
@@ -228,20 +228,20 @@ const AppealDetail = () => {
         if (status === null || status === undefined) {
             return (
                 <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                    Chưa xác định
+                    Undetermined
                 </span>
             );
         }
         if (status === true) {
             return (
                 <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                    Đạt
+                    Passed
                 </span>
             );
         }
         return (
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                Phúc khảo
+                Appeal
             </span>
         );
     };
@@ -322,7 +322,7 @@ const AppealDetail = () => {
 
     const handleUpdateAppeal = async () => {
         if (!testSessionId || answers.length === 0) {
-            toast.warn("Không có dữ liệu phúc khảo để cập nhật.");
+            toast.warn("No appeal data to update.");
             return;
         }
 
@@ -335,13 +335,13 @@ const AppealDetail = () => {
                 newReason
             );
             if (result.success) {
-                toast.success(result.message || "Cập nhật phúc khảo thành công!");
+                toast.success(result.message || "Appeal updated successfully!");
             } else {
-                toast.error(result.error || "Không thể cập nhật phúc khảo.");
+                toast.error(result.error || "Unable to update appeal.");
             }
         } catch (error) {
             console.error("Update appeal error:", error);
-            toast.error("Đã xảy ra lỗi khi cập nhật phúc khảo. Vui lòng thử lại.");
+            toast.error("An error occurred while updating appeal. Please try again.");
         } finally {
             setIsUpdating(false);
         }
@@ -354,7 +354,7 @@ const AppealDetail = () => {
             Object.keys(criteriaScores).length === 0
         ) {
             return (
-                <p className="text-sm text-gray-500">Không có dữ liệu tiêu chí.</p>
+                <p className="text-sm text-gray-500">No criteria data available.</p>
             );
         }
 
@@ -388,9 +388,9 @@ const AppealDetail = () => {
             <div className="mb-6">
                 <div className="flex items-center justify-between p-6 text-white bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl">
                     <div>
-                        <p className="text-sm text-white/80">Chi tiết yêu cầu phúc khảo</p>
+                        <p className="text-sm text-white/80">Appeal Request Details</p>
                         <h1 className="mt-1 text-2xl font-extrabold md:text-3xl">
-                            Phúc khảo bài thi #{testSessionId}
+                            Test Appeal #{testSessionId}
                         </h1>
                     </div>
                     <button
@@ -398,7 +398,7 @@ const AppealDetail = () => {
                         className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-colors bg-white/20 rounded-lg hover:bg-white/30"
                     >
                         <FaArrowLeft />
-                        Quay lại
+                        Back
                     </button>
                 </div>
             </div>
@@ -411,16 +411,16 @@ const AppealDetail = () => {
                         </div>
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900">
-                                Thông tin ứng viên
+                                Candidate Information
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Dữ liệu lấy từ bài làm gần nhất
+                                Data from latest test session
                             </p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <p className="text-sm text-gray-500">Họ và tên</p>
+                            <p className="text-sm text-gray-500">Full Name</p>
                             <p className="mt-1 text-base font-semibold text-gray-900">
                                 {detail.candidateName}
                             </p>
@@ -432,7 +432,7 @@ const AppealDetail = () => {
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Điểm số</p>
+                            <p className="text-sm text-gray-500">Score</p>
                             <p className="mt-1 text-base font-semibold text-gray-900">
                                 {detail.totalScore !== null && detail.maxScore !== null
                                     ? `${detail.totalScore}/${detail.maxScore}`
@@ -440,7 +440,7 @@ const AppealDetail = () => {
                             </p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Trạng thái</p>
+                            <p className="text-sm text-gray-500">Status</p>
                             <div className="mt-1">{getStatusBadge(detail.status)}</div>
                         </div>
                     </div>
@@ -453,32 +453,32 @@ const AppealDetail = () => {
                         </div>
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900">
-                                Thông tin bài thi
+                                Test Information
                             </h2>
-                            <p className="text-sm text-gray-500">Chi tiết bài làm</p>
+                            <p className="text-sm text-gray-500">Test session details</p>
                         </div>
                     </div>
                     <div className="space-y-3 text-sm text-gray-700">
                         <div className="flex items-start justify-between">
-                            <span className="text-gray-500">Tên bài thi:</span>
+                            <span className="text-gray-500">Test Name:</span>
                             <span className="font-medium text-gray-900 text-right">
                                 {detail.testName}
                             </span>
                         </div>
                         <div className="flex items-start justify-between">
-                            <span className="text-gray-500">Loại bài thi:</span>
+                            <span className="text-gray-500">Test Type:</span>
                             <span className="font-medium text-gray-900 text-right">
                                 {detail.testType}
                             </span>
                         </div>
                         <div className="flex items-start justify-between">
-                            <span className="text-gray-500">Thời gian bắt đầu:</span>
+                            <span className="text-gray-500">Start Time:</span>
                             <span className="font-medium text-gray-900 text-right">
                                 {formatDateTime(detail.startTime)}
                             </span>
                         </div>
                         <div className="flex items-start justify-between">
-                            <span className="text-gray-500">Thời gian kết thúc:</span>
+                            <span className="text-gray-500">End Time:</span>
                             <span className="font-medium text-gray-900 text-right">
                                 {formatDateTime(detail.endTime)}
                             </span>
@@ -491,23 +491,23 @@ const AppealDetail = () => {
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900">
-                            Câu trả lời đã nộp
+                            Submitted Answers
                         </h2>
                         <p className="text-sm text-gray-500">
-                            Bao gồm điểm số và tiêu chí chấm
+                            Including scores and scoring criteria
                         </p>
                     </div>
                 </div>
 
                 {answersLoading ? (
                     <div className="py-6 text-center text-gray-500">
-                        Đang tải câu trả lời...
+                        Loading answers...
                     </div>
                 ) : answersError ? (
                     <div className="py-6 text-center text-red-500">{answersError}</div>
                 ) : answers.length === 0 ? (
                     <div className="py-6 text-center text-gray-500">
-                        Không có dữ liệu câu trả lời.
+                        No answer data available.
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -519,14 +519,14 @@ const AppealDetail = () => {
                                 <div className="flex items-center justify-between mb-3">
                                     <div>
                                         <p className="text-xs text-gray-500">
-                                            Câu hỏi #{answer.question?.orderNumber ?? index + 1}
+                                            Question #{answer.question?.orderNumber ?? index + 1}
                                         </p>
                                         <h3 className="text-base font-semibold text-gray-900">
                                             {answer.question?.questionContent || "—"}
                                         </h3>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs text-gray-500">Điểm</p>
+                                        <p className="text-xs text-gray-500">Score</p>
                                         {isListeningTest ? (
                                             <div className="flex items-center justify-end gap-3 mt-1">
                                                 <label className="flex items-center gap-1 text-xs text-gray-700">
@@ -541,7 +541,7 @@ const AppealDetail = () => {
                                                             )
                                                         }
                                                     />
-                                                    Đúng
+                                                    Correct
                                                 </label>
                                                 <label className="flex items-center gap-1 text-xs text-gray-700">
                                                     <input
@@ -555,7 +555,7 @@ const AppealDetail = () => {
                                                             )
                                                         }
                                                     />
-                                                    Sai
+                                                    Incorrect
                                                 </label>
                                             </div>
                                         ) : (
@@ -565,9 +565,9 @@ const AppealDetail = () => {
                                                 </p>
                                                 <p className="text-xs mt-1">
                                                     {answer.isCorrect ? (
-                                                        <span className="text-green-600">Đúng</span>
+                                                        <span className="text-green-600">Correct</span>
                                                     ) : (
-                                                        <span className="text-red-600">Sai</span>
+                                                        <span className="text-red-600">Incorrect</span>
                                                     )}
                                                 </p>
                                             </>
@@ -581,7 +581,7 @@ const AppealDetail = () => {
                                     {answer.studentAnswer && (
                                         <div>
                                             <p className="text-xs font-medium text-gray-500">
-                                                Câu trả lời (trắc nghiệm/viết)
+                                                Answer (multiple choice/written)
                                             </p>
                                             <div className="px-3 py-2 mt-1 bg-white border border-gray-200 rounded-lg">
                                                 {answer.studentAnswer}
@@ -591,7 +591,7 @@ const AppealDetail = () => {
                                     {answer.answerAudioFileURL && (
                                         <div>
                                             <p className="text-xs font-medium text-gray-500">
-                                                Audio trả lời
+                                                Answer Audio
                                             </p>
                                             <audio
                                                 controls
@@ -602,7 +602,7 @@ const AppealDetail = () => {
                                     )}
                                     <div>
                                         <p className="text-xs font-medium text-gray-500 mb-2">
-                                            Điểm theo tiêu chí
+                                            Score by Criteria
                                         </p>
                                         {renderCriteriaInputs(
                                             answer.criteriaScores,
@@ -617,14 +617,14 @@ const AppealDetail = () => {
                 <div className="mt-6 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Ghi chú phúc khảo (tuỳ chọn)
+                            Appeal Note (Optional)
                         </label>
                         <textarea
                             rows={3}
                             value={newReason}
                             onChange={(e) => setNewReason(e.target.value)}
                             className="w-full mt-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 px-3 py-2"
-                            placeholder="Nhập lý do/ghi chú muốn gửi cho ứng viên..."
+                            placeholder="Enter reason/note to send to candidate..."
                         />
                     </div>
                     <div className="flex justify-end">
@@ -633,7 +633,7 @@ const AppealDetail = () => {
                             onClick={handleUpdateAppeal}
                             disabled={isUpdating || answers.length === 0}
                         >
-                            {isUpdating ? "Đang cập nhật..." : "Cập nhật phúc khảo"}
+                            {isUpdating ? "Updating..." : "Update Appeal"}
                         </button>
                     </div>
                 </div>

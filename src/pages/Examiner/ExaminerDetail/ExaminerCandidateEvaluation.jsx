@@ -64,10 +64,10 @@ const ExaminerCandidateEvaluation = () => {
                 setCriteriaGroups(groups)
                 setEvaluations(prev => mapCriteriaToEvaluations(groups, prev))
             } else {
-                setCriteriaError(response.error || 'Không thể lấy tiêu chí phỏng vấn')
+                setCriteriaError(response.error || 'Unable to load interview criteria')
             }
         } catch (error) {
-            setCriteriaError(error.message || 'Không thể lấy tiêu chí phỏng vấn')
+            setCriteriaError(error.message || 'Unable to load interview criteria')
         } finally {
             setCriteriaLoading(false)
         }
@@ -92,7 +92,7 @@ const ExaminerCandidateEvaluation = () => {
         }
     }, [candidate])
 
-    // Kiểm tra số lần đã chấm
+    // Check submission count
     useEffect(() => {
         const checkSubmittedCount = async () => {
             if (!candidate?.activityId) {
@@ -108,7 +108,7 @@ const ExaminerCandidateEvaluation = () => {
                     setSubmittedCount(0)
                 }
             } catch (error) {
-                console.error('Lỗi khi kiểm tra số lần đã chấm:', error)
+                console.error('Error when checking submitted count:', error)
                 setSubmittedCount(0)
             } finally {
                 setCheckingCount(false)
@@ -162,42 +162,28 @@ const ExaminerCandidateEvaluation = () => {
         })
     }
 
-    const handleSave = () => {
-        // Save evaluation logic here
-        const evaluationData = {
-            headerInfo,
-            evaluations: formatEvaluationsForSubmit(),
-            totalScore,
-            result,
-            generalComments,
-            candidateId: id || candidate?.id
-        }
-        console.log('Evaluation Data:', evaluationData)
-        alert('Đã lưu đánh giá thành công!')
-    }
-
     const handleSubmit = async () => {
-        // Kiểm tra nếu đã chấm 3 lần
+        // Do not allow more than 3 submissions
         if (submittedCount >= 3) {
-            alert('Đã chấm đủ 3 lần. Không thể gửi thêm đánh giá.')
+            alert('You have already submitted 3 times. Cannot submit more evaluations.')
             return
         }
 
-        // Kiểm tra activityId và type
+        // Validate activityId and type
         const activityId = candidate?.activityId
         if (!activityId) {
-            alert('Không tìm thấy activityId. Vui lòng thử lại.')
+            alert('activityId not found. Please try again.')
             return
         }
 
-        // Xác định type: 1 = Recruitment, 2 = Promotion
+        // Determine type: 1 = Recruitment, 2 = Promotion
         const type = candidate?.applicationType === 'promotion' ? 2 : 1
 
-        // Chuẩn bị dữ liệu để gửi
+        // Prepare payload
         const choices = formatEvaluationsForSubmit()
 
         if (choices.length === 0) {
-            alert('Vui lòng đánh giá ít nhất một tiêu chí.')
+            alert('Please score at least one criterion.')
             return
         }
 
@@ -211,26 +197,24 @@ const ExaminerCandidateEvaluation = () => {
             })
 
             if (response.success) {
-                alert('Đã gửi đánh giá thành công!')
-                // Tăng số lần đã chấm
+                alert('Submitted evaluation successfully!')
+                // Increase submission count
                 const newCount = submittedCount + 1
                 setSubmittedCount(newCount)
-                // Nếu chưa đủ 3 lần, navigate về trang danh sách
+                // If less than 3, go back
                 if (newCount < 3) {
-                    // Navigate về trang trước hoặc trang danh sách ứng viên
                     if (batchData) {
                         navigate('/examiner/applications', { state: batchData })
                     } else {
-                        navigate(-1) // Quay lại trang trước
+                        navigate(-1)
                     }
                 }
-                // Nếu đã đủ 3 lần, nút sẽ tự động ẩn đi (không cần reload)
             } else {
-                alert(response.error || 'Không thể gửi đánh giá. Vui lòng thử lại.')
+                alert(response.error || 'Unable to submit evaluation. Please try again.')
             }
         } catch (error) {
-            console.error('Lỗi khi gửi đánh giá:', error)
-            alert('Đã xảy ra lỗi khi gửi đánh giá. Vui lòng thử lại.')
+            console.error('Error when submitting evaluation:', error)
+            alert('An error occurred while submitting. Please try again.')
         } finally {
             setLoadingSubmit(false)
         }
@@ -240,12 +224,12 @@ const ExaminerCandidateEvaluation = () => {
         return (
             <div className="p-6">
                 <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-                    <p className="text-slate-500">Không tìm thấy thông tin ứng viên</p>
+                    <p className="text-slate-500">Candidate information not found</p>
                     <button
                         onClick={() => navigate('/examiner/applications')}
                         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                        Quay lại
+                        Back
                     </button>
                 </div>
             </div>
@@ -275,8 +259,8 @@ const ExaminerCandidateEvaluation = () => {
                             </svg>
                         </button>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-extrabold">Đánh giá Ứng viên</h1>
-                            <p className="text-white/90 mt-1 text-sm">Đánh giá tiêu chí phỏng vấn cho ứng viên</p>
+                            <h1 className="text-2xl md:text-3xl font-extrabold">Candidate Evaluation</h1>
+                            <p className="text-white/90 mt-1 text-sm">Evaluate interview criteria for the applicant</p>
                         </div>
                     </div>
                 </div>
@@ -285,7 +269,7 @@ const ExaminerCandidateEvaluation = () => {
             <div className="max-w-7xl mx-auto px-6 py-8">
                 {/* Candidate Information */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-slate-800 mb-4">Thông tin Ứng viên</h2>
+                    <h2 className="text-xl font-semibold text-slate-800 mb-4">Candidate Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-24 h-32 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
@@ -301,7 +285,7 @@ const ExaminerCandidateEvaluation = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-slate-800">{candidate.name}</h3>
                                 <p className="text-sm text-slate-600">{candidate.position || 'Flight Attendant'}</p>
-                                <p className="text-xs text-slate-500 mt-1">Ảnh 4x6</p>
+                                <p className="text-xs text-slate-500 mt-1">Portrait</p>
                             </div>
                         </div>
                         <div>
@@ -309,11 +293,11 @@ const ExaminerCandidateEvaluation = () => {
                             <p className="font-medium text-slate-800">{candidate.email || '—'}</p>
                         </div>
                         <div>
-                            <span className="text-sm text-slate-600 block mb-1">Số điện thoại:</span>
+                            <span className="text-sm text-slate-600 block mb-1">Phone:</span>
                             <p className="font-medium text-slate-800">{candidate.phone || '—'}</p>
                         </div>
                         <div>
-                            <span className="text-sm text-slate-600 block mb-1">Ngày ứng tuyển:</span>
+                            <span className="text-sm text-slate-600 block mb-1">Applied date:</span>
                             <p className="font-medium text-slate-800">{candidate.appliedDate || '—'}</p>
                         </div>
                     </div>
@@ -339,8 +323,8 @@ const ExaminerCandidateEvaluation = () => {
                     {criteriaLoading ? (
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between">
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-800">Đang tải tiêu chí phỏng vấn...</h2>
-                                <p className="text-sm text-slate-500 mt-1">Vui lòng chờ trong giây lát.</p>
+                                <h2 className="text-lg font-semibold text-slate-800">Loading interview criteria...</h2>
+                                <p className="text-sm text-slate-500 mt-1">Please wait a moment.</p>
                             </div>
                             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                         </div>
@@ -351,19 +335,19 @@ const ExaminerCandidateEvaluation = () => {
                                 onClick={loadInterviewCriterias}
                                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                             >
-                                Thử lại
+                                Retry
                             </button>
                         </div>
                     ) : criteriaGroups.length === 0 ? (
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                            <p className="text-slate-600">Chưa có tiêu chí phỏng vấn nào.</p>
+                            <p className="text-slate-600">No interview criteria available.</p>
                         </div>
                     ) : (
                         criteriaGroups.map((group, groupIndex) => (
                             <div key={`${group.title || 'group'}-${groupIndex}`} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                                     <h2 className="text-xl font-semibold text-slate-800">
-                                        {group.title || `Nhóm ${groupIndex + 1}`}
+                                        {group.title || `Group ${groupIndex + 1}`}
                                     </h2>
                                     {group.description && (
                                         <p className="text-sm text-slate-500">{group.description}</p>
@@ -412,7 +396,7 @@ const ExaminerCandidateEvaluation = () => {
                                                                     value={evaluation.comment}
                                                                     onChange={(e) => handleCommentChange(criterionKey, e.target.value)}
                                                                     className="w-full px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                                                    placeholder="Ghi chú..."
+                                                                    placeholder="Remarks..."
                                                                 />
                                                             </td>
                                                         </tr>
@@ -421,7 +405,7 @@ const ExaminerCandidateEvaluation = () => {
                                             ) : (
                                                 <tr>
                                                     <td colSpan="3" className="py-4 text-center text-slate-500 text-sm">
-                                                        Không có tiêu chí nào trong nhóm này.
+                                                        No criteria in this group.
                                                     </td>
                                                 </tr>
                                             )}
@@ -438,7 +422,7 @@ const ExaminerCandidateEvaluation = () => {
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Comments/Remarks</label>
                         <textarea
-                            placeholder="Ghi chú tổng quan về ứng viên..."
+                            placeholder="General remarks about the candidate..."
                             value={generalComments}
                             onChange={(e) => setGeneralComments(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -455,12 +439,12 @@ const ExaminerCandidateEvaluation = () => {
                             disabled={loadingSubmit}
                             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loadingSubmit ? 'Đang gửi...' : 'Gửi đánh giá'}
+                            {loadingSubmit ? 'Submitting...' : 'Submit evaluation'}
                         </button>
                     )}
                     {!checkingCount && submittedCount >= 3 && (
                         <div className="px-6 py-2.5 bg-slate-100 text-slate-500 rounded-lg font-medium">
-                            Đã chấm đủ 3 lần
+                            Submitted 3 times already
                         </div>
                     )}
                 </div>

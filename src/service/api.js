@@ -1833,6 +1833,22 @@ export const getNotifications = async (isRead = null) => {
   }
 };
 
+// API lấy số thông báo chưa đọc (nhẹ hơn việc fetch toàn bộ)
+export const getUnreadNotificationCount = async () => {
+  try {
+    const result = await getNotifications();
+    if (result.success && Array.isArray(result.data)) {
+      return {
+        success: true,
+        count: result.data.filter((n) => !n.isRead).length,
+      };
+    }
+    return { success: false, count: 0, error: result.error };
+  } catch (error) {
+    return { success: false, count: 0, error: error.message };
+  }
+};
+
 // API đánh dấu thông báo là đã đọc
 export const markNotificationAsRead = async (notificationId) => {
   try {
@@ -1983,9 +1999,22 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
     // Kiểm tra HTTP status code
     const httpStatus = response.status;
     const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const is200OK = httpStatus === 200;
 
     if (isHttpSuccess) {
       const responseData = response.data;
+
+      // Nếu HTTP 200 OK thì coi như thành công (toast xanh)
+      if (is200OK) {
+        return {
+          success: true,
+          data: responseData?.data || responseData,
+          message:
+            responseData?.message ||
+            responseData?.errorMessage ||
+            `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
+        };
+      }
 
       // Kiểm tra nếu có errorCode
       if (responseData && typeof responseData.errorCode !== "undefined") {
@@ -1996,7 +2025,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Tạo câu hỏi thành công",
+              `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
           };
         } else {
           let errorMessage =
@@ -2025,7 +2054,9 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || "Tạo câu hỏi thành công",
+            message:
+              responseData.message ||
+              `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
           };
         } else {
           return {
@@ -2042,7 +2073,9 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || "Tạo câu hỏi thành công",
+        message:
+          responseData?.message ||
+          `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
       };
     } else {
       return {
@@ -2157,9 +2190,22 @@ export const importQuestionsFromExcel = async (testId, file) => {
     // Kiểm tra HTTP status code
     const httpStatus = response.status;
     const isHttpSuccess = httpStatus >= 200 && httpStatus < 300;
+    const is200OK = httpStatus === 200;
 
     if (isHttpSuccess) {
       const responseData = response.data;
+
+      // Nếu HTTP status là 200 OK, luôn coi như thành công (màu xanh toast)
+      if (is200OK) {
+        return {
+          success: true,
+          data: responseData?.data || responseData,
+          message:
+            responseData?.message ||
+            responseData?.errorMessage ||
+            `Đã import thành công ${responseData?.data?.totalQuestionsCreated || responseData?.totalQuestionsCreated || 0} câu hỏi.`,
+        };
+      }
 
       // Kiểm tra nếu có errorCode
       if (responseData && typeof responseData.errorCode !== "undefined") {
@@ -2170,7 +2216,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Import câu hỏi thành công",
+              `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
           };
         } else {
           let errorMessage =
@@ -2199,7 +2245,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || "Import câu hỏi thành công",
+            message: responseData.message || `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
           };
         } else {
           return {
@@ -2216,7 +2262,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || "Import câu hỏi thành công",
+        message: responseData?.message || `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
       };
     } else {
       return {

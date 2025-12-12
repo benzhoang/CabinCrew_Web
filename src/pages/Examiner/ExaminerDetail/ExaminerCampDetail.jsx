@@ -21,18 +21,18 @@ const ExaminerCampDetail = ({ campaign }) => {
 
   useEffect(() => {
     const fetchCampaignData = async () => {
-      // Ưu tiên sử dụng campaign từ props hoặc state
+      // Prefer data from props or route state first
       if (campaign || state?.campaign) {
         const campaignFromProps = campaign || state?.campaign;
 
-        // Log campaign từ props/state
+        // Log campaign from props/state
         console.log(
           "DetailInfo - Campaign from props/state:",
           campaignFromProps
         );
         console.log("DetailInfo - Has rounds:", !!campaignFromProps?.rounds);
 
-        // Đảm bảo rounds là array (nếu có) - tạo copy mới để tránh mutate
+        // Ensure rounds is an array (copy to avoid mutate)
         let normalizedCampaign = campaignFromProps;
         if (
           campaignFromProps &&
@@ -52,7 +52,7 @@ const ExaminerCampDetail = ({ campaign }) => {
 
         setCampaignData(normalizedCampaign);
 
-        // Nếu rounds đang trống, tiếp tục gọi API theo id để lấy rounds chuẩn theo Swagger
+        // If rounds missing, fetch by id to hydrate
         const effectiveId =
           normalizedCampaign?.campaignId || normalizedCampaign?.id || id;
         if (
@@ -94,7 +94,7 @@ const ExaminerCampDetail = ({ campaign }) => {
         return;
       }
 
-      // Nếu không có campaign từ props/state, fetch từ API bằng ID
+      // Fallback: fetch by id
       if (id) {
         try {
           setLoading(true);
@@ -133,24 +133,24 @@ const ExaminerCampDetail = ({ campaign }) => {
             setCampaignData(normalizedApiData);
             setError(null);
           } else {
-            setError(result.error || "Không thể tải thông tin chiến dịch");
+            setError(result.error || "Cannot load campaign details");
           }
         } catch (err) {
           console.error("DetailInfo - Error fetching campaign:", err);
-          setError(err.message || "Đã xảy ra lỗi khi tải thông tin chiến dịch");
+          setError(err.message || "Error while loading campaign details");
         } finally {
           setLoading(false);
         }
       } else {
         setLoading(false);
-        setError("Không tìm thấy ID chiến dịch");
+        setError("Campaign ID not found");
       }
     };
 
     fetchCampaignData();
   }, [id, campaign, state?.campaign]);
 
-  // Debug: Log data để kiểm tra (chỉ log một lần khi data thay đổi)
+  // Debug log once when data changes
   useEffect(() => {
     if (campaignData) {
       console.log("DetailInfo - Campaign Data:", campaignData);
@@ -200,7 +200,7 @@ const ExaminerCampDetail = ({ campaign }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Đang tải thông tin chiến dịch...</div>
+        <div className="text-gray-500">Loading campaign info...</div>
       </div>
     );
   }
@@ -216,22 +216,22 @@ const ExaminerCampDetail = ({ campaign }) => {
   if (!campaignData) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Không có dữ liệu chiến dịch</div>
+        <div className="text-gray-500">No campaign data</div>
       </div>
     );
   }
 
-  // Normalize và validate rounds data từ API
+  // Normalize and validate rounds data from API
   const normalizeRoundsData = (campaign) => {
     if (!campaign) return campaign;
 
-    // Nếu đã có rounds và là array, giữ nguyên
+    // If rounds already array, keep
     if (campaign.rounds && Array.isArray(campaign.rounds)) {
       // Validate và normalize từng round
       const normalizedRounds = campaign.rounds.map((round, index) => {
         return {
           campaignRoundId: round.campaignRoundId || round.id || index + 1,
-          roundName: round.roundName || round.name || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || `Round ${index + 1}`,
           description: round.description || "",
           targetQuantity: round.targetQuantity || round.target || 0,
           actualQuantity: round.actualQuantity || round.actualQuantiy || 0, // Handle typo in API
@@ -239,7 +239,7 @@ const ExaminerCampDetail = ({ campaign }) => {
           startDate: round.startDate || "",
           endDate: round.endDate || "",
           location: round.location || "",
-          method: round.method || "Trực tiếp",
+          method: round.method || "In-person",
           owner: round.owner || "",
           totalApplicants: round.totalApplicants || 0,
         };
@@ -251,7 +251,7 @@ const ExaminerCampDetail = ({ campaign }) => {
       };
     }
 
-    // Nếu không có rounds, trả về campaign với rounds là empty array
+    // If no rounds, return empty array
     if (!campaign.rounds) {
       return {
         ...campaign,
@@ -264,7 +264,7 @@ const ExaminerCampDetail = ({ campaign }) => {
 
   const data = normalizeRoundsData(campaignData);
 
-  // Format date từ API (có thể là "11/12/2025 00:00" hoặc ISO string)
+  // Format date from API ("dd/mm/yyyy hh:mm" or ISO)
   const formatDateFromAPI = (dateString) => {
     if (!dateString) return "";
     // Nếu đã là format "dd/mm/yyyy HH:mm", chỉ lấy phần date
@@ -274,13 +274,13 @@ const ExaminerCampDetail = ({ campaign }) => {
     return formatDate(dateString);
   };
 
-  // Format campaignType để hiển thị - kiểm tra nhiều field name
+  // Format campaignType for display - check multiple field names
   const formatCampaignType = (type) => {
     if (!type) return "";
     const typeMap = {
-      Promotion: "Thăng bậc",
-      Recruitment: "Tuyển dụng",
-      Replacement: "Thay thế",
+      Promotion: "Promotion",
+      Recruitment: "Recruitment",
+      Replacement: "Replacement",
     };
     return typeMap[type] || type;
   };
@@ -294,9 +294,8 @@ const ExaminerCampDetail = ({ campaign }) => {
     return num.toLocaleString("vi-VN");
   };
 
-  // Lấy campaignType từ nhiều field name có thể
-  // Lưu ý: data từ props/state đã được transform (campaignType → position)
-  //        data từ API có format gốc (campaignType)
+  // Get campaignType from many possible fields
+  // note: props/state may be transformed
   const getCampaignType = () => {
     if (!data) return "";
 
@@ -312,9 +311,7 @@ const ExaminerCampDetail = ({ campaign }) => {
     return type;
   };
 
-  // Lấy targetQuantity từ nhiều field name có thể
-  // Lưu ý: data từ props/state đã được transform (targetQuantity → targetHires)
-  //        data từ API có format gốc (targetQuantity)
+  // Get targetQuantity from many possible fields
   const getTargetQuantity = () => {
     if (!data) return "";
 
@@ -347,7 +344,7 @@ const ExaminerCampDetail = ({ campaign }) => {
           onClick={() => navigate("/examiner/campaigns")}
           className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
         >
-          Quay lại
+          Back
         </button>
       </div>
 
@@ -355,13 +352,13 @@ const ExaminerCampDetail = ({ campaign }) => {
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="space-y-1">
-            <div className="text-sm text-slate-500">Thông tin đề xuất</div>
+            <div className="text-sm text-slate-500">Proposal info</div>
             <div className="font-semibold text-slate-800">
               {data.partnerName || "N/A"}
             </div>
           </div>
           <div className="text-xs text-right text-slate-500">
-            Mã số: {data.campaignId || "N/A"}
+            Code: {data.campaignId || "N/A"}
           </div>
         </div>
 
@@ -371,22 +368,22 @@ const ExaminerCampDetail = ({ campaign }) => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {(data?.campaignType?.toLowerCase() === "promotion" ||
                 data?.campaignType === "Promotion") && (
-                <InfoRow label="Vị trí" value="Chief Flight Attendant" />
+                <InfoRow label="Position" value="Chief Flight Attendant" />
               )}
               {(data?.campaignType?.toLowerCase() === "recruitment" ||
                 data?.campaignType === "Recruitment") && (
-                <InfoRow label="Vị trí" value="Flight Attendant" />
+                <InfoRow label="Position" value="Flight Attendant" />
               )}
               <InfoRow
-                label="Số lượng tuyển"
+                label="Target quantity"
                 value={formatTargetQuantity(getTargetQuantity())}
               />
               <InfoRow
-                label="Ngày bắt đầu"
+                label="Start date"
                 value={formatDateFromAPI(data.startDate) || ""}
               />
               <InfoRow
-                label="Ngày kết thúc"
+                label="End date"
                 value={formatDateFromAPI(data.endDate) || ""}
               />
             </div>
@@ -395,7 +392,7 @@ const ExaminerCampDetail = ({ campaign }) => {
             {data.jobDescription && (
               <div className="mt-6">
                 <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                  📋 Mô tả công việc / Job Description
+                  📋 Job Description
                 </h3>
                 <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                   <div
@@ -412,7 +409,7 @@ const ExaminerCampDetail = ({ campaign }) => {
             {data.jobRequirement && (
               <div className="mt-6">
                 <h3 className="mb-4 text-lg font-semibold text-slate-800">
-                  📝 Yêu cầu công việc / Job Requirements
+                  📝 Job Requirements
                 </h3>
                 <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                   <div

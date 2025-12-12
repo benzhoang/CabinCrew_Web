@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiX, FiPlus, FiTrash2, FiLoader } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 import { createBulkTestQuestions } from '../../../service/api';
 
 const TEST_TYPE_CONFIG = {
@@ -15,6 +17,7 @@ const MIN_OPTIONS = 4;
 const MAX_OPTIONS = 6;
 
 const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) => {
+  const navigate = useNavigate();
   const typeConfig = useMemo(() => {
     return TEST_TYPE_CONFIG[String(testType)] || { label: 'Question', requiresOptions: false };
   }, [testType]);
@@ -206,20 +209,30 @@ const CreateQuestionModal = ({ isOpen, onClose, testType, testId, onSuccess }) =
       const response = await createBulkTestQuestions(testId, questionsPayload);
 
       if (response.success) {
-        // Success - close modal and refresh
+        const successMessage = response.message || `Đã tạo thành công ${questions.length} câu hỏi.`;
+        toast.success(successMessage, { position: 'top-right', autoClose: 2000 });
+
+        // Success - refresh, close modal và điều hướng về trang test detail
         if (typeof onSuccess === 'function') {
-          onSuccess();
+          await onSuccess();
         }
-        if (typeof onClose === 'function') {
-          onClose();
-        }
+        setTimeout(() => {
+          if (typeof onClose === 'function') {
+            onClose();
+          }
+          navigate(`/examiner/testing/${testId}`);
+        }, 800);
       } else {
         // Error from API
-        setErrorMessage(response.error || 'Unable to create questions. Please try again.');
+        const errorMessage = response.error || 'Không thể tạo câu hỏi. Vui lòng thử lại.';
+        toast.error(errorMessage, { position: 'top-right', autoClose: 2000 });
+        setErrorMessage(errorMessage);
       }
     } catch (error) {
       console.error('Error creating questions:', error);
-      setErrorMessage('An error occurred while creating questions. Please try again.');
+      const errorMessage = 'Đã xảy ra lỗi khi tạo câu hỏi. Vui lòng thử lại.';
+      toast.error(errorMessage, { position: 'top-right', autoClose: 2000 });
+      setErrorMessage(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
