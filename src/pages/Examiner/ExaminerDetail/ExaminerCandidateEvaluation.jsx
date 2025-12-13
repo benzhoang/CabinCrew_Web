@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { onLangChange } from '../../../i18n'
 import { getInterviewCriterias, submitInterviewResult, getInterviewResults } from '../../../service/api'
+import { toast } from 'react-toastify'
 
 const mapCriteriaToEvaluations = (criteriaGroups, previousEvaluations = {}) => {
     const mapped = {}
@@ -165,14 +166,14 @@ const ExaminerCandidateEvaluation = () => {
     const handleSubmit = async () => {
         // Do not allow more than 3 submissions
         if (submittedCount >= 3) {
-            alert('You have already submitted 3 times. Cannot submit more evaluations.')
+            toast.error('You have already submitted 3 times. Cannot submit more evaluations.')
             return
         }
 
         // Validate activityId and type
         const activityId = candidate?.activityId
         if (!activityId) {
-            alert('activityId not found. Please try again.')
+            toast.error('activityId not found. Please try again.')
             return
         }
 
@@ -183,7 +184,7 @@ const ExaminerCandidateEvaluation = () => {
         const choices = formatEvaluationsForSubmit()
 
         if (choices.length === 0) {
-            alert('Please score at least one criterion.')
+            toast.error('Please score at least one criterion.')
             return
         }
 
@@ -197,7 +198,7 @@ const ExaminerCandidateEvaluation = () => {
             })
 
             if (response.success) {
-                alert('Submitted evaluation successfully!')
+                toast.success('Submitted evaluation successfully!')
                 // Increase submission count
                 const newCount = submittedCount + 1
                 setSubmittedCount(newCount)
@@ -210,11 +211,11 @@ const ExaminerCandidateEvaluation = () => {
                     }
                 }
             } else {
-                alert(response.error || 'Unable to submit evaluation. Please try again.')
+                toast.error(response.error || 'Unable to submit evaluation. Please try again.')
             }
         } catch (error) {
             console.error('Error when submitting evaluation:', error)
-            alert('An error occurred while submitting. Please try again.')
+            toast.error('An error occurred while submitting. Please try again.')
         } finally {
             setLoadingSubmit(false)
         }

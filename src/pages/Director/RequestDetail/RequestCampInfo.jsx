@@ -3,6 +3,8 @@ import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   getCampaignRequestById,
   approveOrRejectCampaignRequest,
+  getRequirementItems,
+  getRoundTypes,
 } from "../../../service/api";
 import RejectRequestModal from "./RejectRequestModal";
 import { toast } from "react-toastify";
@@ -43,6 +45,10 @@ const RequestCampInfo = () => {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
 
   // Fetch API
   useEffect(() => {
@@ -98,6 +104,147 @@ const RequestCampInfo = () => {
 
     fetchRequestDetail();
   }, [id, state]);
+
+  // Fetch requirement items based on requestType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!data?.requestType) return;
+
+      // Map requestType string to number: "Recruitment" = 1, "Promotion" = 2
+      const requestTypeStr = String(data.requestType).trim();
+      let requirementId = null;
+
+      if (requestTypeStr.toLowerCase() === 'recruitment') {
+        requirementId = 1;
+      } else if (requestTypeStr.toLowerCase() === 'promotion') {
+        requirementId = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(requestTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          requirementId = parsed;
+        } else {
+          return; // Invalid requestType
+        }
+      }
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(requirementId);
+        console.log('RequestCampInfo - Requirement Items Response:', response);
+        console.log('RequestCampInfo - Request Type:', requestTypeStr, 'Requirement ID:', requirementId);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          let items = [];
+
+          // Case 1: response.data là array
+          if (Array.isArray(response.data)) {
+            if (response.data.length > 0) {
+              const firstItem = response.data[0];
+              if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+                // It's array of objects like [{ requirementId, requirementItems }]
+                items = response.data.flatMap(item =>
+                  Array.isArray(item.requirementItems) ? item.requirementItems : []
+                );
+              } else if (firstItem.requirementItemId || firstItem.title) {
+                // It's array of requirement items directly
+                items = response.data;
+              }
+            }
+          }
+          // Case 2: response.data là object có requirementItems
+          else if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            items = response.data.requirementItems;
+          }
+          // Case 3: response.data.data có requirementItems (nested structure)
+          else if (
+            response.data.data &&
+            response.data.data.requirementItems &&
+            Array.isArray(response.data.data.requirementItems)
+          ) {
+            items = response.data.data.requirementItems;
+          }
+          // Case 4: response.data.data là array
+          else if (response.data.data && Array.isArray(response.data.data)) {
+            items = response.data.data;
+          }
+
+          console.log('RequestCampInfo - Extracted Requirement Items:', items);
+          console.log('RequestCampInfo - Items count:', items.length);
+          setRequirementItems(items || []);
+        } else {
+          console.log('RequestCampInfo - No requirement items found or API failed:', response);
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error('RequestCampInfo - Error fetching requirement items:', error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [data?.requestType]);
+
+  // Fetch round types based on requestType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!data?.requestType) return;
+
+      // Map requestType string to number: "Recruitment" = 1, "Promotion" = 2
+      const requestTypeStr = String(data.requestType).trim();
+      let type = null;
+
+      if (requestTypeStr.toLowerCase() === 'recruitment') {
+        type = 1;
+      } else if (requestTypeStr.toLowerCase() === 'promotion') {
+        type = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(requestTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          type = parsed;
+        } else {
+          return; // Invalid requestType
+        }
+      }
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(type);
+        console.log('RequestCampInfo - Round Types Response:', response);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          let types = [];
+
+          if (Array.isArray(response.data)) {
+            types = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            types = response.data.data;
+          }
+
+          console.log('RequestCampInfo - Extracted Round Types:', types);
+          setRoundTypes(types);
+        } else {
+          console.log('RequestCampInfo - No round types found or API failed:', response);
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error('RequestCampInfo - Error fetching round types:', error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [data?.requestType]);
 
   if (loading) {
     return (
@@ -155,46 +302,77 @@ const RequestCampInfo = () => {
             </div>
           )}
 
-          {/* JOB DESCRIPTION */}
-          <div className="mt-6">
-            <h3 className="mb-2 text-lg font-semibold text-slate-800">
-              Job description
-            </h3>
-            {data.jobDescription ? (
-              <div className="p-4 text-sm whitespace-pre-wrap border border-blue-200 rounded-lg bg-blue-50 text-slate-700">
-                <div
-                  className="job-description-content text-sm prose-sm prose text-slate-700 max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: data.jobDescription || "N/A",
-                  }}
-                />
+          {/* Job Requirements */}
+          {requirementItems.length > 0 && (
+            <div className="mt-6">
+              <div className="mb-3 text-sm font-semibold text-gray-900">📝 Requirements</div>
+              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                <ul className="space-y-2">
+                  {requirementItems.map((item) => (
+                    <li key={item.requirementItemId} className="flex items-start">
+                      <span className="mr-2 text-blue-600">•</span>
+                      <span className="text-sm text-gray-700">
+                        <span className="font-medium">{item.title}</span>
+                        {item.description && (
+                          <span className="text-gray-600">
+                            {' : '}
+                            {item.description}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ) : (
-              <p className="text-sm italic text-slate-500">
-                No job description yet
-              </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* JOB REQUIREMENT */}
+          {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
           <div className="mt-6">
-            <h3 className="mb-2 text-lg font-semibold text-slate-800">
-              Job requirements
-            </h3>
-            {data.jobRequirement ? (
-              <div className="p-4 text-sm whitespace-pre-wrap border border-green-200 rounded-lg bg-green-50 text-slate-700">
-                <div
-                  className="job-requirement-content text-sm prose-sm prose text-slate-700 max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: data.jobRequirement || "N/A",
-                  }}
-                />
-              </div>
-            ) : (
-              <p className="text-sm italic text-slate-500">
-                No job requirements yet
-              </p>
-            )}
+            <div className="mb-3 text-sm font-semibold text-gray-900">
+              🔄{' '}
+              {(() => {
+                const requestTypeStr = String(data.requestType || '')
+                  .trim()
+                  .toLowerCase();
+                if (requestTypeStr === 'recruitment') {
+                  return 'Recruitment';
+                } else if (requestTypeStr === 'promotion') {
+                  return 'Promotion';
+                } else {
+                  const parsed = Number(data.requestType);
+                  if (parsed === 1) return 'Recruitment';
+                  if (parsed === 2) return 'Promotion';
+                  return '';
+                }
+              })()}{' '}
+              process
+            </div>
+            <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+              {roundTypes.length > 0 ? (
+                <div className="space-y-3">
+                  {roundTypes.map((roundType, index) => (
+                    <div
+                      key={roundType.roundTypeId}
+                      className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-gray-200 hover:shadow-md"
+                    >
+                      <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-800">
+                          {roundType.roundTypeName}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  Loading Process...
+                </div>
+              )}
+            </div>
           </div>
         </Section>
       </div>

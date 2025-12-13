@@ -37,6 +37,8 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
 
     // Kiểm tra xem đợt có đang "sắp diễn ra" không
     const isUpcoming = batch.status === 'upcoming'
+    // Kiểm tra xem đợt có đang ở trạng thái "Ongoing" không
+    const isOngoing = batch.status === 'ongoing'
 
     const handleViewApplicants = () => {
         // Không cho phép xem danh sách ứng viên nếu đợt đang "sắp diễn ra"
@@ -55,6 +57,11 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
     }
 
     const handleFinalReview = () => {
+        // Chỉ cho phép Final Review khi round đang ở trạng thái Ongoing
+        if (!isOngoing) {
+            return
+        }
+
         const campaignRoundId = batch.id || batch.campaignRoundId
         navigate(`/recruiter/final-review/${campaignRoundId}`, {
             state: {
@@ -94,50 +101,6 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                     )}
                 </div>
 
-                {/* Applicant Statistics Dropdown */}
-                {(batch.totalApplicants !== undefined || batch.appliedCandidates !== undefined) && (
-                    <div className="border-t border-slate-100 pt-3">
-                        <button
-                            onClick={() => setOpenStats(!openStats)}
-                            className="w-full flex items-center justify-between text-xs text-slate-700 font-medium hover:text-blue-600 transition"
-                        >
-                            <span>Applicant Statistics</span>
-                            <span>{openStats ? '▲' : '▼'}</span>
-                        </button>
-                        {openStats && (
-                            <div className="mt-3">
-                                <div className="grid grid-cols-2 gap-3">
-                                    {batch.totalApplicants !== undefined && (
-                                        <div className="bg-blue-50 rounded-lg p-3">
-                                            <div className="text-xs text-blue-600 mb-1">Interested</div>
-                                            <div className="text-lg font-bold text-blue-700">{batch.totalApplicants}</div>
-                                        </div>
-                                    )}
-                                    {batch.appliedCandidates !== undefined && (
-                                        <div className="bg-green-50 rounded-lg p-3">
-                                            <div className="text-xs text-green-600 mb-1">Applied</div>
-                                            <div className="text-lg font-bold text-green-700">{batch.appliedCandidates}</div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Recruitment Progress */}
-                {batch.target !== undefined && (
-                    <div className="border-t border-slate-100 pt-3">
-                        <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
-                            <span>Recruitment Progress</span>
-                            <span>{percent}%</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                            <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${percent}%` }}></div>
-                        </div>
-                    </div>
-                )}
-
                 {/* View Applicants Button */}
                 <div className="border-t border-slate-100 pt-3 space-y-2">
                     <button
@@ -158,8 +121,12 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
                     {/* Post-Recruitment Review Button */}
                     <button
                         onClick={handleFinalReview}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
-                        title="Review applicants"
+                        disabled={!isOngoing}
+                        className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${!isOngoing
+                            ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-60'
+                            : 'bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800'
+                            }`}
+                        title={!isOngoing ? 'Final Review is only available when the batch is Ongoing' : 'Review applicants'}
                     >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

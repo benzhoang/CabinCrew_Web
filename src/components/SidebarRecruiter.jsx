@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../images/Logo.png";
@@ -63,11 +63,26 @@ const navItems = [
 const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   const initials = getInitials(username);
   const [, setLangTick] = useState(0);
-  const [notificationCount, setNotificationCount] = useState(0);
+
+  // Khởi tạo notificationCount từ localStorage để persist qua các lần re-mount
+  const [notificationCount, setNotificationCount] = useState(() => {
+    const saved = localStorage.getItem('notificationCount');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [refreshModalTrigger, setRefreshModalTrigger] = useState(0);
   const [toastData, setToastData] = useState({ show: false, title: "", body: "" });
   const navigate = useNavigate();
+  const hasFetchedInitialCount = useRef(false);
+  const hasStartedSignalR = useRef(false);
+
+  // Wrapper function để update cả state và localStorage
+  const updateNotificationCount = (newCount) => {
+    console.log("📊 Update notification count:", newCount);
+    setNotificationCount(newCount);
+    localStorage.setItem('notificationCount', newCount.toString());
+  };
 
   // Yêu cầu quyền thông báo khi lần đầu load
   useEffect(() => {
@@ -76,23 +91,41 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
     }
   }, []);
 
-  // Load số thông báo chưa đọc ban đầu
+  // Load số thông báo chưa đọc ban đầu (CHỈ 1 LẦN)
   useEffect(() => {
+    // Prevent multiple API calls
+    if (hasFetchedInitialCount.current) {
+      console.log("SidebarRecruiter: Đã fetch rồi, bỏ qua");
+      return;
+    }
+    hasFetchedInitialCount.current = true;
+
     const fetchNotificationCount = async () => {
       try {
+        console.log("SidebarRecruiter: 🔥 Bắt đầu load số thông báo...");
         const result = await getUnreadNotificationCount();
-        if (result.success) {
-          setNotificationCount(result.count);
+        console.log("SidebarRecruiter: API response:", result);
+
+        if (result.success && typeof result.count === 'number') {
+          console.log("SidebarRecruiter: ✅ Set count =", result.count);
+          updateNotificationCount(result.count);
           return;
         }
+
         // fallback nếu API count lỗi
+        console.log("SidebarRecruiter: Fallback sang getNotifications()");
         const fallback = await getNotifications();
+        console.log("SidebarRecruiter: Kết quả getNotifications:", fallback);
+
         if (fallback.success && Array.isArray(fallback.data)) {
           const unreadCount = fallback.data.filter(n => !n.isRead).length;
-          setNotificationCount(unreadCount);
+          console.log("SidebarRecruiter: Tính được", unreadCount, "thông báo chưa đọc từ", fallback.data.length, "thông báo");
+          updateNotificationCount(unreadCount);
+        } else {
+          console.warn("SidebarRecruiter: Không thể lấy số thông báo");
         }
       } catch (error) {
-        console.error("Error fetching notification count:", error);
+        console.error("SidebarRecruiter: Error fetching notification count:", error);
       }
     };
 
@@ -101,17 +134,22 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
 
   // Kết nối SignalR + xử lý thông báo real-time + hiển thị browser notification
   useEffect(() => {
+    if (hasStartedSignalR.current) {
+      console.log("SidebarRecruiter: SignalR đã được khởi tạo rồi, bỏ qua");
+      return;
+    }
+
     console.log("SidebarRecruiter: Khởi tạo SignalR connection...");
+    hasStartedSignalR.current = true;
 
     const handleNewNotification = (notification) => {
       console.log("SidebarRecruiter: Nhận được notification từ SignalR:", notification);
 
-      // Tăng badge ngay lập tức để UX tốt hơn (sử dụng functional update để tránh stale closure)
-      setNotificationCount(prev => {
-        const newCount = prev + 1;
-        console.log("SidebarRecruiter: Cập nhật badge từ", prev, "lên", newCount);
-        return newCount;
-      });
+      // Tăng badge ngay lập tức để UX tốt hơn
+      const currentCount = parseInt(localStorage.getItem('notificationCount') || '0', 10);
+      const newCount = currentCount + 1;
+      console.log("SidebarRecruiter: Cập nhật badge từ", currentCount, "lên", newCount);
+      updateNotificationCount(newCount);
 
       // Trigger refresh modal
       setRefreshModalTrigger(prev => prev + 1);
@@ -133,7 +171,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
         .then((res) => {
           if (res.success) {
             console.log("SidebarRecruiter: Đồng bộ badge từ server:", res.count);
-            setNotificationCount(res.count);
+            updateNotificationCount(res.count);
           } else {
             console.warn("SidebarRecruiter: Không thể đồng bộ badge từ server");
           }
@@ -199,8 +237,9 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
     }
 
     return () => {
-      console.log("SidebarRecruiter: Cleanup SignalR connection...");
-      signalRService.stopConnection();
+      console.log("SidebarRecruiter: Component unmount, nhưng giữ SignalR connection active");
+      // ✅ KHÔNG đóng connection để duy trì real-time notifications
+      // Connection sẽ được maintain xuyên suốt session cho đến khi user logout
     };
   }, []); // Empty deps để chỉ chạy 1 lần khi mount
 
@@ -213,12 +252,17 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
 
   // Nhận cập nhật số lượng chưa đọc từ modal
   const handleNotificationUpdate = (newCount) => {
-    setNotificationCount(newCount);
+    updateNotificationCount(newCount);
   };
 
   const handleLogout = () => {
+    // Đóng SignalR connection khi logout
+    console.log("SidebarRecruiter: User logout, đóng SignalR connection");
+    signalRService.stopConnection();
+
     localStorage.removeItem("employee");
     localStorage.removeItem("token");
+    localStorage.removeItem("notificationCount");
     localStorage.removeItem("refreshToken");
     window.dispatchEvent(new Event("auth-changed"));
     navigate("/");
@@ -243,11 +287,15 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
 
         <button
           className="relative p-2 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-all duration-200"
-          onClick={() => setIsNotificationModalOpen(true)}
+          onClick={() => {
+            console.log("🔔 Bell clicked, count:", notificationCount);
+            setIsNotificationModalOpen(true);
+          }}
+          aria-label={`Thông báo (${notificationCount} chưa đọc)`}
         >
           <BellIcon className="h-5 w-5" />
           {notificationCount > 0 && (
-            <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center min-w-[16px]">
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {notificationCount > 99 ? "99+" : notificationCount}
             </span>
           )}

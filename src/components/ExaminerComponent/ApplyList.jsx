@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaRegEye, FaFilePen, FaArrowRight } from "react-icons/fa6";
+import { FaRegEye, FaFilePen, FaArrowRight, FaClipboardCheck } from "react-icons/fa6";
 import TestListModal from "./TestListModal";
 import {
   getRoundParticipants,
@@ -431,6 +431,13 @@ const ApplyList = ({
       ? `/examiner/campaigns/cabin-crew/${applicant.id}`
       : `/examiner/campaigns/candidate/${applicant.id}`;
 
+  // Kiểm tra xem round hiện tại có phải là interview không
+  const isInterviewRound = useMemo(() => {
+    if (!activeRoundForTests) return false;
+    const roundName = (activeRoundForTests.roundName || "").toLowerCase();
+    return roundName.includes("interview") || roundName.includes("phỏng vấn");
+  }, [activeRoundForTests]);
+
   const handleNavigateToEvaluation = (applicant) => {
     const targetRoute = getEvaluationRoute(applicant);
     navigate(targetRoute, {
@@ -438,6 +445,10 @@ const ApplyList = ({
         candidate: applicant,
       },
     });
+  };
+
+  const handleNavigateToCandidateView = (applicant) => {
+    navigate(`/examiner/candidate/${applicant.activityId || applicant.id}`);
   };
 
   const handleOpenTestModal = () => {
@@ -556,9 +567,7 @@ const ApplyList = ({
       const result = await moveToInterview(activeRoundForTests.roundId);
 
       if (result.success) {
-        toast.success(
-          result.message || confirmMessage || "Moved to next round successfully!"
-        );
+        toast.success("Moved to next round successfully!");
 
         // Reload lại dữ liệu
         // Refetch campaign round data
@@ -610,7 +619,7 @@ const ApplyList = ({
           }
         }
       } else {
-        toast.error(result.error || "Unable to move to next round. Please try again.");
+        toast.error("Unable to move to next round. Please try again.");
       }
     } catch (error) {
       console.error("Error when moving to next round:", error);
@@ -841,31 +850,36 @@ const ApplyList = ({
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
-                      <button
-                        className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
-                        title="View details"
-                        onClick={() => handleNavigateToEvaluation(applicant)}
-                      >
-                        <svg
-                          className="w-4 h-4 mx-auto"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        {isInterviewRound ? (
+                          <>
+                            {/* Icon con mắt - xem thông tin candidate */}
+                            <button
+                              className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
+                              title="View candidate details"
+                              onClick={() => handleNavigateToCandidateView(applicant)}
+                            >
+                              <FaRegEye className="w-4 h-4" />
+                            </button>
+                            {/* Icon chấm phỏng vấn */}
+                            <button
+                              className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
+                              title="Evaluate interview"
+                              onClick={() => handleNavigateToEvaluation(applicant)}
+                            >
+                              <FaClipboardCheck className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
+                            title="View candidate details"
+                            onClick={() => handleNavigateToCandidateView(applicant)}
+                          >
+                            <FaRegEye className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

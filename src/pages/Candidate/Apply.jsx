@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { FiLoader } from 'react-icons/fi'
-import { getCampaignById, getOngoingCampaign } from '../../service/api'
+import { getCampaignById, getOngoingCampaign, getRequirementItems, getRoundTypes } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 
@@ -25,6 +25,10 @@ const Apply = () => {
     const [error, setError] = useState(null)
     const [ongoingCampaign, setOngoingCampaign] = useState(null)
     const [appliedRoundIds, setAppliedRoundIds] = useState(new Set()) // Lưu các roundId đã có applicationId
+    const [requirementItems, setRequirementItems] = useState([])
+    const [isLoadingRequirements, setIsLoadingRequirements] = useState(false)
+    const [roundTypes, setRoundTypes] = useState([])
+    const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false)
 
     useEffect(() => {
         // Nếu có ID trong URL, luôn gọi API để lấy dữ liệu mới nhất (bao gồm rounds)
@@ -35,6 +39,152 @@ const Apply = () => {
         fetchOngoingCampaign()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id])
+
+    // Fetch requirement items based on campaignType
+    useEffect(() => {
+        const fetchRequirementItems = async () => {
+            if (!campaign?.campaignType) return
+
+            // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+            const campaignTypeStr = String(campaign.campaignType).trim()
+            let requirementId = null
+
+            if (campaignTypeStr.toLowerCase() === 'recruitment') {
+                requirementId = 1
+            } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+                requirementId = 2
+            } else {
+                // Try to parse as number for backward compatibility
+                const parsed = Number(campaignTypeStr)
+                if (parsed === 1 || parsed === 2) {
+                    requirementId = parsed
+                } else {
+                    return // Invalid campaignType
+                }
+            }
+
+            setIsLoadingRequirements(true)
+            try {
+                const response = await getRequirementItems(requirementId)
+                console.log('Requirement Items Response:', response)
+                console.log('Campaign Type:', campaignTypeStr, 'Requirement ID:', requirementId)
+
+                if (response.success && response.data) {
+                    // Handle different response structures
+                    // API có thể trả về: { code: 0, data: {...} } với data.requirementItems hoặc array trực tiếp
+                    let items = []
+
+                    // Case 1: response.data là array
+                    if (Array.isArray(response.data)) {
+                        // Check if it's array of items or array of objects with requirementItems
+                        if (response.data.length > 0) {
+                            // Check first element to determine structure
+                            const firstItem = response.data[0]
+                            if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+                                // It's array of objects like [{ requirementId, requirementItems }]
+                                // Collect all requirementItems from all objects in array
+                                items = response.data.flatMap(item =>
+                                    Array.isArray(item.requirementItems) ? item.requirementItems : []
+                                )
+                            } else if (firstItem.requirementItemId || firstItem.title) {
+                                // It's array of requirement items directly
+                                items = response.data
+                            }
+                        }
+                    }
+                    // Case 2: response.data là object có requirementItems
+                    else if (
+                        response.data.requirementItems &&
+                        Array.isArray(response.data.requirementItems)
+                    ) {
+                        items = response.data.requirementItems
+                    }
+                    // Case 3: response.data.data có requirementItems (nested structure)
+                    else if (
+                        response.data.data &&
+                        response.data.data.requirementItems &&
+                        Array.isArray(response.data.data.requirementItems)
+                    ) {
+                        items = response.data.data.requirementItems
+                    }
+                    // Case 4: response.data.data là array
+                    else if (response.data.data && Array.isArray(response.data.data)) {
+                        items = response.data.data
+                    }
+
+                    console.log('Extracted Requirement Items:', items)
+                    console.log('Items count:', items.length)
+                    setRequirementItems(items || [])
+                } else {
+                    console.log('No requirement items found or API failed:', response)
+                    setRequirementItems([])
+                }
+            } catch (error) {
+                console.error('Error fetching requirement items:', error)
+                setRequirementItems([])
+            } finally {
+                setIsLoadingRequirements(false)
+            }
+        }
+
+        fetchRequirementItems()
+    }, [campaign?.campaignType])
+
+    // Fetch round types based on campaignType
+    useEffect(() => {
+        const fetchRoundTypes = async () => {
+            if (!campaign?.campaignType) return
+
+            // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+            const campaignTypeStr = String(campaign.campaignType).trim()
+            let type = null
+
+            if (campaignTypeStr.toLowerCase() === 'recruitment') {
+                type = 1
+            } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+                type = 2
+            } else {
+                // Try to parse as number for backward compatibility
+                const parsed = Number(campaignTypeStr)
+                if (parsed === 1 || parsed === 2) {
+                    type = parsed
+                } else {
+                    return // Invalid campaignType
+                }
+            }
+
+            setIsLoadingRoundTypes(true)
+            try {
+                const response = await getRoundTypes(type)
+                console.log('Round Types Response:', response)
+
+                if (response.success && response.data) {
+                    // Handle different response structures
+                    // API có thể trả về: { code: 0, data: [...] } hoặc array trực tiếp
+                    let types = []
+
+                    if (Array.isArray(response.data)) {
+                        types = response.data
+                    } else if (response.data.data && Array.isArray(response.data.data)) {
+                        types = response.data.data
+                    }
+
+                    console.log('Extracted Round Types:', types)
+                    setRoundTypes(types)
+                } else {
+                    console.log('No round types found or API failed:', response)
+                    setRoundTypes([])
+                }
+            } catch (error) {
+                console.error('Error fetching round types:', error)
+                setRoundTypes([])
+            } finally {
+                setIsLoadingRoundTypes(false)
+            }
+        }
+
+        fetchRoundTypes()
+    }, [campaign?.campaignType])
 
     const fetchCampaignDetail = async () => {
         setIsLoading(true)
@@ -283,98 +433,79 @@ const Apply = () => {
                                     <Info label="Target" value={`${campaign.targetHires ?? '—'}`} />
                                 </div>
 
-                                {/* Job Description */}
-                                {campaign.jobDescription && (
-                                    <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📋 Job Description</h3>
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <div className="text-sm text-slate-700">
-                                                {renderHTML(campaign.jobDescription)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
                                 {/* Job Requirements */}
-                                {campaign.jobRequirement && (
+                                {requirementItems.length > 0 && (
                                     <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📝 Job Requirements</h3>
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                            <div className="text-sm text-slate-700">
-                                                {renderHTML(campaign.jobRequirement)}
-                                            </div>
+                                        <h3 className="text-lg font-semibold text-slate-800 mb-4">📝 Requirements</h3>
+                                        <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                                            <ul className="space-y-2">
+                                                {requirementItems.map((item) => (
+                                                    <li key={item.requirementItemId} className="flex items-start">
+                                                        <span className="mr-2 text-blue-600">•</span>
+                                                        <span className="text-sm text-slate-700">
+                                                            <span className="font-medium">{item.title}</span>
+                                                            {item.description && (
+                                                                <span className="text-slate-600">
+                                                                    {' : '}
+                                                                    {item.description}
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Recruitment Process
+                                {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
                                 <div className="mt-6">
-                                    <h3 className="text-lg font-semibold text-slate-800 mb-4">🔄 Quy trình tuyển dụng / Recruitment Process</h3>
-                                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-3">
-                                                    <h4 className="font-medium text-slate-800">🇻🇳 Tiếng Việt:</h4>
-                                                    <div className="space-y-2 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                                                            <span className="text-slate-700">Kiểm tra hồ sơ: Ứng viên chuẩn bị CCCD để đối chiếu và lấy số báo danh</span>
+                                    <h3 className="text-lg font-semibold text-slate-800 mb-4">
+                                        🔄{' '}
+                                        {(() => {
+                                            const campaignTypeStr = String(campaign.campaignType || '')
+                                                .trim()
+                                                .toLowerCase()
+                                            if (campaignTypeStr === 'recruitment') {
+                                                return 'Recruitment'
+                                            } else if (campaignTypeStr === 'promotion') {
+                                                return 'Promotion'
+                                            } else {
+                                                // Try to parse as number for backward compatibility
+                                                const parsed = Number(campaign.campaignType)
+                                                if (parsed === 1) return 'Recruitment'
+                                                if (parsed === 2) return 'Promotion'
+                                                return ''
+                                            }
+                                        })()}{' '}
+                                        process
+                                    </h3>
+                                    <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+                                        {roundTypes.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {roundTypes.map((roundType, index) => (
+                                                    <div
+                                                        key={roundType.roundTypeId}
+                                                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
+                                                    >
+                                                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                                                            {index + 1}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                                                            <span className="text-slate-700">Kiểm tra ngoại hình AI</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                                                            <span className="text-slate-700">Cân đo chiều cao và BMI</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-                                                            <span className="text-slate-700">Thi Catwalk - Phỏng vấn AI</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
-                                                            <span className="text-slate-700">Thi Tài năng (theo nhóm)</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">6</span>
-                                                            <span className="text-slate-700">Phỏng vấn Hội đồng</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    <h4 className="font-medium text-slate-800">🇺🇸 English:</h4>
-                                                    <div className="space-y-2 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                                                            <span className="text-slate-700">Document Check: candidates bring the ID Card (Passport for expat) for verification and candidate's number</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                                                            <span className="text-slate-700">AI Grooming Check</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                                                            <span className="text-slate-700">Height and BMI Check</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-                                                            <span className="text-slate-700">Catwalk - AI Interview</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
-                                                            <span className="text-slate-700">Talent Show (in groups)</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">6</span>
-                                                            <span className="text-slate-700">Panel Interview</span>
+                                                        <div className="flex-1">
+                                                            <div className="text-sm font-medium text-slate-800">
+                                                                {roundType.roundTypeName}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                ))}
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className="text-sm text-slate-500">
+                                                Loading Process...
+                                            </div>
+                                        )}
                                     </div>
-                                </div> */}
+                                </div>
 
                                 {/* Batches (recruitment rounds) */}
                                 <div className="mt-6">

@@ -106,6 +106,7 @@ import RoundTypePage from "./pages/Admin/RoundTypePage";
 import CityWardPage from "./pages/Admin/CityWardPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
 import ContactPage from "./pages/CabinCrew/ContactPage";
+import ExaminerApplication from "./pages/Examiner/ExaminerApplication";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -946,6 +947,17 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <CreateTestPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/candidate/:id"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerApplication />
               </main>
             </div>
           }

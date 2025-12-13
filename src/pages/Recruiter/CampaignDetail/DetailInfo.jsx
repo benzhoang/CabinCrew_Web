@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { getCampaignById } from "../../../service/api";
+import { getCampaignById, getRequirementItems, getRoundTypes } from "../../../service/api";
 import BatchManagement from "./BatchManagement";
 import { formatDate } from "../../../config/formatDate";
 
@@ -24,6 +24,10 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   const [campaignData, setCampaignData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [requirementItems, setRequirementItems] = useState([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [roundTypes, setRoundTypes] = useState([]);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
 
   useEffect(() => {
     const fetchCampaignData = async () => {
@@ -203,6 +207,147 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
     }
   }, [campaignData]);
 
+  // Fetch requirement items based on campaignType
+  useEffect(() => {
+    const fetchRequirementItems = async () => {
+      if (!campaignData?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaignData.campaignType).trim();
+      let requirementId = null;
+
+      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+        requirementId = 1;
+      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+        requirementId = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          requirementId = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRequirements(true);
+      try {
+        const response = await getRequirementItems(requirementId);
+        console.log('DetailInfo - Requirement Items Response:', response);
+        console.log('DetailInfo - Campaign Type:', campaignTypeStr, 'Requirement ID:', requirementId);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          let items = [];
+
+          // Case 1: response.data là array
+          if (Array.isArray(response.data)) {
+            if (response.data.length > 0) {
+              const firstItem = response.data[0];
+              if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+                // It's array of objects like [{ requirementId, requirementItems }]
+                items = response.data.flatMap(item =>
+                  Array.isArray(item.requirementItems) ? item.requirementItems : []
+                );
+              } else if (firstItem.requirementItemId || firstItem.title) {
+                // It's array of requirement items directly
+                items = response.data;
+              }
+            }
+          }
+          // Case 2: response.data là object có requirementItems
+          else if (
+            response.data.requirementItems &&
+            Array.isArray(response.data.requirementItems)
+          ) {
+            items = response.data.requirementItems;
+          }
+          // Case 3: response.data.data có requirementItems (nested structure)
+          else if (
+            response.data.data &&
+            response.data.data.requirementItems &&
+            Array.isArray(response.data.data.requirementItems)
+          ) {
+            items = response.data.data.requirementItems;
+          }
+          // Case 4: response.data.data là array
+          else if (response.data.data && Array.isArray(response.data.data)) {
+            items = response.data.data;
+          }
+
+          console.log('DetailInfo - Extracted Requirement Items:', items);
+          console.log('DetailInfo - Items count:', items.length);
+          setRequirementItems(items || []);
+        } else {
+          console.log('DetailInfo - No requirement items found or API failed:', response);
+          setRequirementItems([]);
+        }
+      } catch (error) {
+        console.error('DetailInfo - Error fetching requirement items:', error);
+        setRequirementItems([]);
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+
+    fetchRequirementItems();
+  }, [campaignData?.campaignType]);
+
+  // Fetch round types based on campaignType
+  useEffect(() => {
+    const fetchRoundTypes = async () => {
+      if (!campaignData?.campaignType) return;
+
+      // Map campaignType string to number: "Recruitment" = 1, "Promotion" = 2
+      const campaignTypeStr = String(campaignData.campaignType).trim();
+      let type = null;
+
+      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+        type = 1;
+      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+        type = 2;
+      } else {
+        // Try to parse as number for backward compatibility
+        const parsed = Number(campaignTypeStr);
+        if (parsed === 1 || parsed === 2) {
+          type = parsed;
+        } else {
+          return; // Invalid campaignType
+        }
+      }
+
+      setIsLoadingRoundTypes(true);
+      try {
+        const response = await getRoundTypes(type);
+        console.log('DetailInfo - Round Types Response:', response);
+
+        if (response.success && response.data) {
+          // Handle different response structures
+          let types = [];
+
+          if (Array.isArray(response.data)) {
+            types = response.data;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            types = response.data.data;
+          }
+
+          console.log('DetailInfo - Extracted Round Types:', types);
+          setRoundTypes(types);
+        } else {
+          console.log('DetailInfo - No round types found or API failed:', response);
+          setRoundTypes([]);
+        }
+      } catch (error) {
+        console.error('DetailInfo - Error fetching round types:', error);
+        setRoundTypes([]);
+      } finally {
+        setIsLoadingRoundTypes(false);
+      }
+    };
+
+    fetchRoundTypes();
+  }, [campaignData?.campaignType]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
@@ -371,43 +516,81 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
                 value={formatDateFromAPI(data.endDate) || ""}
               />
             </div>
+
+            {/* Job Requirements */}
+            {requirementItems.length > 0 && (
+              <div className="mt-6">
+                <div className="mb-3 text-sm font-semibold text-gray-900">📝 Requirements</div>
+                <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                  <ul className="space-y-2">
+                    {requirementItems.map((item) => (
+                      <li key={item.requirementItemId} className="flex items-start">
+                        <span className="mr-2 text-blue-600">•</span>
+                        <span className="text-sm text-gray-700">
+                          <span className="font-medium">{item.title}</span>
+                          {item.description && (
+                            <span className="text-gray-600">
+                              {' : '}
+                              {item.description}
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
+            <div className="mt-6">
+              <div className="mb-3 text-sm font-semibold text-gray-900">
+                🔄{' '}
+                {(() => {
+                  const campaignTypeStr = String(data.campaignType || '')
+                    .trim()
+                    .toLowerCase();
+                  if (campaignTypeStr === 'recruitment') {
+                    return 'Recruitment';
+                  } else if (campaignTypeStr === 'promotion') {
+                    return 'Promotion';
+                  } else {
+                    const parsed = Number(data.campaignType);
+                    if (parsed === 1) return 'Recruitment';
+                    if (parsed === 2) return 'Promotion';
+                    return '';
+                  }
+                })()}{' '}
+                process
+              </div>
+              <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+                {roundTypes.length > 0 ? (
+                  <div className="space-y-3">
+                    {roundTypes.map((roundType, index) => (
+                      <div
+                        key={roundType.roundTypeId}
+                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-gray-200 hover:shadow-md"
+                      >
+                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-800">
+                            {roundType.roundTypeName}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    Loading Process...
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Job Description */}
-          {data.jobDescription && (
-            <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Job Description
-              </h3>
-              <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                <div
-                  className="text-sm text-slate-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_li]:ml-2"
-                  dangerouslySetInnerHTML={renderHTML(data.jobDescription)}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Job Requirements */}
-          {data.jobRequirement && (
-            <div className="mt-6">
-              <h3 className="mb-4 text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                Job Requirements
-              </h3>
-              <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                <div
-                  className="text-sm text-slate-700 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:space-y-1 [&_li]:ml-2"
-                  dangerouslySetInnerHTML={renderHTML(data.jobRequirement)}
-                />
-              </div>
-            </div>
-          )}
           {/* Batch Management Section */}
           <div className="mt-6">
             {(() => {
