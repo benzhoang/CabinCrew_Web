@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getCampaignDetail } from "../../service/api2";
 import BatchInfo from "../../components/AdminComponent/CampaignDetail/BatchInfo";
 import CampaignInfo from "../../components/AdminComponent/CampaignDetail/CampaignInfo";
+import PendingCampaignInfo from "../../components/AdminComponent/CampaignDetail/PendingCampaignInfo";
 
 const AdminCampaignDetailPage = () => {
   const { id } = useParams();
@@ -62,6 +63,12 @@ const AdminCampaignDetailPage = () => {
         <div className="text-gray-500">Data not found</div>
       </div>
     );
+  }
+
+  // Kiểm tra nếu campaign đang chờ phê duyệt (pending)
+  const status = campaignData.status?.toLowerCase() || "";
+  if (status === "pending") {
+    return <PendingCampaignInfo campaign={campaignData} />;
   }
 
   const goBack = () => navigate("/admin/campaigns");

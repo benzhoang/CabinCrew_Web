@@ -422,7 +422,7 @@ const CreatePromotionRequestPage = () => {
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    🔄 Promotion process *
+                    🔄 Promotion processes *
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -452,7 +452,7 @@ const CreatePromotionRequestPage = () => {
                   >
                     {isLoadingRoundTypes ? (
                       <div className="text-sm text-slate-500">
-                        Loading promotion process...
+                        Loading promotion processes...
                       </div>
                     ) : roundTypes.length > 0 ? (
                       <div className="space-y-3">
@@ -489,7 +489,7 @@ const CreatePromotionRequestPage = () => {
                       </div>
                     ) : (
                       <div className="text-sm text-slate-500">
-                        No promotion process available
+                        No promotion processes available
                       </div>
                     )}
                   </div>

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { FaCheck, FaClock, FaEllipsisH } from "react-icons/fa";
 
-const CandidateDetailPage = () => {
+const AirlineCandidateDetailPage = () => {
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [, setLangVersion] = useState(0);
@@ -691,4 +691,4 @@ const CandidateDetailPage = () => {
   );
 };
 
-export default CandidateDetailPage;
+export default AirlineCandidateDetailPage;

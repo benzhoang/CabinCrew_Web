@@ -132,11 +132,11 @@ const CampaignInfo = ({ campaign }) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(campaign?.campaignType?.toLowerCase() === "promotion" ||
               campaign?.campaignType === "Promotion") && (
-              <Info label="Position" value="Chief Flight Attendant" />
+              <Info label="Position" value="Purser" />
             )}
             {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
               campaign?.campaignType === "Recruitment") && (
-              <Info label="Position" value="Flight Attendant" />
+              <Info label="Position" value="Cabin Crew" />
             )}
             <Info
               label="Target quantity"
@@ -211,11 +211,13 @@ const CampaignInfo = ({ campaign }) => {
                   return "";
                 }
               })()}{" "}
-              process
+              processes
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
               {isLoadingRoundTypes ? (
-                <div className="text-sm text-slate-500">Loading process...</div>
+                <div className="text-sm text-slate-500">
+                  Loading processes...
+                </div>
               ) : roundTypes.length > 0 ? (
                 <div className="space-y-3">
                   {roundTypes.map((roundType, index) => (
@@ -236,7 +238,7 @@ const CampaignInfo = ({ campaign }) => {
                 </div>
               ) : (
                 <div className="text-sm text-slate-500">
-                  No process information available
+                  No processes information available
                 </div>
               )}
             </div>

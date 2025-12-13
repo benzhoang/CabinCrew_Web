@@ -192,14 +192,20 @@ const BatchInfo = ({ campaign }) => {
     const campaignRoundId = batch?.campaignRoundId || batch?.id;
     if (!campaignRoundId) return;
 
-    navigate(`/airline-partner/campaigns/${campaignRoundId}/candidate`, {
-      state: {
-        campaignRoundId,
-        roundName: batch.name,
-        round: batch,
-        campaign,
-      },
-    });
+    const campaignId = campaign?.campaignId || campaign?.id;
+    if (!campaignId) return;
+
+    navigate(
+      `/airline-partner/campaigns/${campaignId}/applications/${campaignRoundId}`,
+      {
+        state: {
+          campaignRoundId,
+          roundName: batch.name,
+          round: batch,
+          campaign,
+        },
+      }
+    );
   };
 
   // Get campaign type label for display

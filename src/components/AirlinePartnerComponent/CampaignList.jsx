@@ -141,13 +141,13 @@ const CampaignCard = ({ campaign }) => {
             {campaign.campaignType === "promotion" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Chief Flight Attendant</span>
+                <span>Purser</span>
               </div>
             )}
             {campaign.campaignType === "recruitment" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Flight Attendant</span>
+                <span>Cabin Crew</span>
               </div>
             )}
           </div>
@@ -307,7 +307,13 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     if (page < 1) return;
     if (pagination.totalPages && page > pagination.totalPages) return;
 
-    setPagination((prev) => ({ ...prev, currentPage: page }));
+    // Cập nhật currentPage và hasNextPage/hasPreviousPage
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: page,
+      hasNextPage: page < prev.totalPages,
+      hasPreviousPage: page > 1,
+    }));
   };
 
   if (loading && allCampaigns.length === 0) {

@@ -359,7 +359,7 @@ const PromotionApplyPage = () => {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  <Info label="Position" value={"Chief Flight Attendant"} />
+                  <Info label="Position" value={"Purser"} />
                   <Info label="Type" value={campaign.campaignType || "—"} />
                   <Info label="Airline" value={campaign.airline || "—"} />
                   <Info
@@ -432,7 +432,7 @@ const PromotionApplyPage = () => {
                         return "";
                       }
                     })()}{" "}
-                    process
+                    processes
                   </h3>
                   <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
                     {roundTypes.length > 0 ? (
@@ -455,7 +455,7 @@ const PromotionApplyPage = () => {
                       </div>
                     ) : (
                       <div className="text-sm text-slate-500">
-                        No process information available
+                        No processes information available
                       </div>
                     )}
                   </div>

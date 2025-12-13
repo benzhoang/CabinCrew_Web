@@ -260,7 +260,7 @@ const PromotionPage = () => {
       <div className="max-w-6xl px-4 py-8 mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-800">
-            Promotion Campaign
+            Promotion Campaigns
           </h1>
           <p className="mt-1 text-slate-600">
             Discover the opportunities for career advancement
@@ -338,9 +338,7 @@ const PromotionPage = () => {
                   <div className="grid grid-cols-1 gap-3 mt-4 text-sm sm:grid-cols-3">
                     <div>
                       <span className="text-slate-500">Position</span>
-                      <p className="font-medium text-slate-800">
-                        Chief Flight Attendant
-                      </p>
+                      <p className="font-medium text-slate-800">Purser</p>
                     </div>
                     <div>
                       <span className="text-slate-500">Start Date</span>

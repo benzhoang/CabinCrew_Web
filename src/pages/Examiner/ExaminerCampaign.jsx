@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyCampaigns } from "../../service/api2";
-import Loading from "../../components/Loading";
 
 const ExaminerCampaign = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -150,13 +149,19 @@ const ExaminerCampaign = () => {
   }, [campaigns, searchTerm, typeFilter, normalizeString]);
 
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredCampaigns.length / pageSize)
+    );
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [filteredCampaigns, currentPage, pageSize]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredCampaigns.length / pageSize));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCampaigns.length / pageSize)
+  );
   const startIndex = (currentPage - 1) * pageSize;
   const displayedCampaigns = filteredCampaigns.slice(
     startIndex,
@@ -214,8 +219,8 @@ const ExaminerCampaign = () => {
       normalizedType === "promotion"
         ? "bg-purple-100 text-purple-700 border-purple-200"
         : normalizedType === "recruitment"
-          ? "bg-blue-100 text-blue-700 border-blue-200"
-          : "bg-gray-100 text-gray-600 border-gray-200";
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
 
     return (
       <span
@@ -298,7 +303,11 @@ const ExaminerCampaign = () => {
         </div>
 
         <div className="divide-y divide-slate-200">
-          {isLoading && <Loading message="Loading campaign list..." />}
+          {isLoading && (
+            <div className="p-12 text-center">
+              <p className="text-slate-600">Loading campaign list...</p>
+            </div>
+          )}
 
           {!isLoading && error && (
             <div className="p-6 text-center text-red-500">{error}</div>
@@ -337,9 +346,7 @@ const ExaminerCampaign = () => {
                         </div>
                       </div>
                       <div>
-                        <span className="text-sm text-slate-600">
-                          Status:
-                        </span>
+                        <span className="text-sm text-slate-600">Status:</span>
                         <div className="mt-1">
                           {getStatusBadge(campaign.status)}
                         </div>
@@ -347,7 +354,7 @@ const ExaminerCampaign = () => {
                       {campaign.type?.toLowerCase() === "promotion" && (
                         <div>
                           <span className="text-sm text-slate-600">
-                          Position:
+                            Position:
                           </span>{" "}
                           <p className="font-medium text-slate-800">
                             Chief Flight Attendant
@@ -439,10 +446,11 @@ const ExaminerCampaign = () => {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`px-3 py-1 rounded-md border ${currentPage === 1
-                ? "text-slate-400 border-slate-200 cursor-not-allowed"
-                : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                }`}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === 1
+                  ? "text-slate-400 border-slate-200 cursor-not-allowed"
+                  : "text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
             >
               ←
             </button>
@@ -453,10 +461,11 @@ const ExaminerCampaign = () => {
                 <button
                   key={pageNumber}
                   onClick={() => handlePageChange(pageNumber)}
-                  className={`px-3 py-1 rounded-md border text-sm font-medium ${isActive
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                    }`}
+                  className={`px-3 py-1 rounded-md border text-sm font-medium ${
+                    isActive
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "text-slate-700 border-slate-300 hover:bg-slate-50"
+                  }`}
                 >
                   {pageNumber}
                 </button>
@@ -465,10 +474,11 @@ const ExaminerCampaign = () => {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 rounded-md border ${currentPage === totalPages
-                ? "text-slate-400 border-slate-200 cursor-not-allowed"
-                : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                }`}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === totalPages
+                  ? "text-slate-400 border-slate-200 cursor-not-allowed"
+                  : "text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
             >
               →
             </button>

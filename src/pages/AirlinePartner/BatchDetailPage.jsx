@@ -16,7 +16,7 @@ const BatchDetailPage = () => {
   const [searchTerm] = useState("");
   const [statusFilter] = useState("active");
   const [departmentFilter] = useState("all");
-  const [roundFilter, setRoundFilter] = useState("all");
+  const [roundFilter, setRoundFilter] = useState(null);
   const [applicantSearchTerm, setApplicantSearchTerm] = useState("");
   const [, setLangVersion] = useState(0);
   const [campaignRoundData, setCampaignRoundData] = useState(null);
@@ -30,9 +30,10 @@ const BatchDetailPage = () => {
 
   // Check if we're viewing a specific batch
   const batchData = location.state;
-  // Nếu có id trong URL params, đang xem batch cụ thể
+  // Nếu có campaignRoundId trong URL params, đang xem batch cụ thể
   const isViewingBatch =
-    params.id || (batchData && batchData.batchName && batchData.campaignId);
+    params.campaignRoundId ||
+    (batchData && batchData.batchName && batchData.campaignId);
 
   useEffect(() => {
     const off = onLangChange(() => setLangVersion((v) => v + 1));
@@ -48,10 +49,10 @@ const BatchDetailPage = () => {
         return;
       }
 
-      // Ưu tiên lấy campaignRoundId từ URL params (id)
+      // Ưu tiên lấy campaignRoundId từ URL params (campaignRoundId)
       // Nếu không có thì lấy từ batchData
       const campaignRoundId =
-        params.id ||
+        params.campaignRoundId ||
         batchData?.batch?.id ||
         batchData?.batch?.campaignRoundId ||
         batchData?.campaignRoundId;
@@ -83,9 +84,30 @@ const BatchDetailPage = () => {
     };
 
     fetchCampaignRoundData();
-  }, [isViewingBatch, params.id, batchData]);
+  }, [isViewingBatch, params.campaignRoundId, batchData]);
 
-  // Gọi API để lấy danh sách participants theo roundId khi filter thay đổi
+  // Tự động chọn round "Screening" khi availableRounds được load
+  useEffect(() => {
+    if (availableRounds.length > 0 && !roundFilter) {
+      // Tìm round có tên "Screening" (case-insensitive)
+      const screeningRound = availableRounds.find(
+        (round) =>
+          round.roundName?.toLowerCase() === "screening" ||
+          round.name?.toLowerCase() === "screening"
+      );
+
+      if (screeningRound) {
+        const roundId = screeningRound.roundId || screeningRound.id;
+        setRoundFilter(String(roundId));
+      } else if (availableRounds.length > 0) {
+        // Nếu không tìm thấy "Screening", chọn round đầu tiên
+        const roundId = availableRounds[0].roundId || availableRounds[0].id;
+        setRoundFilter(String(roundId));
+      }
+    }
+  }, [availableRounds, roundFilter]);
+
+  // Gọi API để lấy danh sách participants theo roundId cụ thể
   useEffect(() => {
     const fetchParticipants = async () => {
       if (!isViewingBatch) {
@@ -93,27 +115,14 @@ const BatchDetailPage = () => {
         return;
       }
 
-      // Nếu chọn "final", không gọi API
-      if (roundFilter === "final") {
+      // Nếu chọn "final" hoặc chưa có roundFilter, không gọi API
+      if (roundFilter === "final" || !roundFilter) {
         setParticipants([]);
         return;
       }
 
-      let roundId = null;
-
-      // Nếu chọn "all", lấy round đầu tiên từ availableRounds
-      if (roundFilter === "all") {
-        if (availableRounds.length > 0) {
-          roundId = availableRounds[0].roundId;
-        } else {
-          // Chưa có rounds, đợi rounds được load
-          setParticipants([]);
-          return;
-        }
-      } else {
-        // Lấy roundId từ roundFilter
-        roundId = roundFilter;
-      }
+      // Lấy roundId từ roundFilter
+      const roundId = roundFilter;
 
       // Kiểm tra roundId hợp lệ
       if (!roundId || roundId === "final") {
@@ -123,10 +132,10 @@ const BatchDetailPage = () => {
 
       setLoadingParticipants(true);
       try {
+        // Gọi API cho round cụ thể
         const result = await getRoundParticipants(roundId);
         if (result.success && result.data && Array.isArray(result.data)) {
-          // Map dữ liệu từ API sang format hiển thị theo cấu trúc response
-          // Response structure: { code: 0, message: "string", data: { items: [...], currentPage, pageSize, ... } }
+          // Map dữ liệu từ API sang format hiển thị
           const mappedParticipants = result.data.map((participant) => ({
             id: participant.userId || participant.activityId,
             activityId: participant.activityId || 0,
@@ -138,7 +147,6 @@ const BatchDetailPage = () => {
             status: participant.status || "pending",
             roundId: participant.roundId || 0,
             roundName: participant.roundName || "",
-            // Giữ các field khác nếu cần
             appliedDate:
               participant.appliedDate || new Date().toISOString().split("T")[0],
             education: participant.education || "",
@@ -252,14 +260,14 @@ const BatchDetailPage = () => {
     // Chỉ sử dụng participants từ API, không dùng mock data
     let list = [...participants];
 
-    // Filter theo roundFilter
+    // Filter theo roundFilter (nếu có)
     if (roundFilter === "final") {
       // Lọc theo kết quả cuối cùng: đã có quyết định cuối (đã duyệt hoặc từ chối)
       list = list.filter(
         (a) => a.status === "approved" || a.status === "rejected"
       );
-    } else if (roundFilter !== "all") {
-      // Filter theo roundId được chọn
+    } else if (roundFilter) {
+      // Filter theo roundId được chọn (đảm bảo chỉ hiển thị participants của round đã chọn)
       const selectedRoundId = String(roundFilter);
       list = list.filter((a) => {
         if (a.roundId && String(a.roundId) === selectedRoundId) return true;
@@ -272,7 +280,6 @@ const BatchDetailPage = () => {
         return false;
       });
     }
-    // Nếu roundFilter === 'all', hiển thị tất cả participants (đã được load từ round đầu tiên)
 
     // Áp dụng search filter
     if (applicantSearchTerm) {
@@ -372,7 +379,7 @@ const BatchDetailPage = () => {
     // Fallback cho "Kết quả cuối cùng"
     if (round === "final") {
       return (
-        <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-800">
+        <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-200 text-slate-800">
           Final result
         </span>
       );
@@ -380,7 +387,7 @@ const BatchDetailPage = () => {
 
     // Fallback mặc định nếu không tìm thấy
     return (
-      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+      <span className="px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full">
         {round || "Not determined"}
       </span>
     );
@@ -412,12 +419,12 @@ const BatchDetailPage = () => {
   // Lấy campaignRoundId từ params hoặc batchData
   const currentCampaignRoundId = useMemo(() => {
     return (
-      params.id ||
+      params.campaignRoundId ||
       batchData?.batch?.id ||
       batchData?.batch?.campaignRoundId ||
       batchData?.campaignRoundId
     );
-  }, [params.id, batchData]);
+  }, [params.campaignRoundId, batchData]);
 
   const handleExportFlightHours = async (roundId, campaignRoundId) => {
     if (!roundId) {
@@ -516,7 +523,8 @@ const BatchDetailPage = () => {
   };
 
   const goBackToCampaigns = () => {
-    navigate("/recruiter/campaigns");
+    const campaignId = params.id || campaignRoundData?.campaignId;
+    navigate(`/airline-partner/campaigns/${campaignId}`);
   };
 
   if (isViewingBatch) {
@@ -524,12 +532,12 @@ const BatchDetailPage = () => {
     return (
       <div className="">
         {/* Page hero */}
-        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
-          <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="text-white bg-gradient-to-r from-indigo-600 to-blue-600">
+          <div className="px-6 py-8 mx-auto max-w-7xl">
             <div className="flex items-center gap-4">
               <button
                 onClick={goBackToCampaigns}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 transition-colors rounded-lg hover:bg-white/10"
               >
                 <svg
                   className="w-5 h-5"
@@ -546,13 +554,13 @@ const BatchDetailPage = () => {
                 </svg>
               </button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-extrabold">
+                <h1 className="text-2xl font-extrabold md:text-3xl">
                   Applicant list -{" "}
                   {campaignRoundData?.roundName ||
                     batchData?.batchName ||
                     "Recruitment batch"}
                 </h1>
-                <p className="text-white/90 mt-1 text-sm">
+                <p className="mt-1 text-sm text-white/90">
                   Filter and evaluate applicants for the recruitment batch
                 </p>
               </div>
@@ -560,20 +568,20 @@ const BatchDetailPage = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="px-6 py-8 mx-auto max-w-7xl">
           {/* Batch Info */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          <div className="p-6 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
+            <h3 className="mb-4 text-lg font-semibold text-slate-800">
               Recruitment batch information
             </h3>
             {loadingRoundData ? (
-              <div className="text-center py-4">
+              <div className="py-4 text-center">
                 <p className="text-slate-500">
                   Loading recruitment batch information...
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                 <div>
                   <span className="text-sm text-slate-600">Name:</span>
                   <p className="font-medium text-slate-800">
@@ -621,18 +629,18 @@ const BatchDetailPage = () => {
           </div>
 
           {/* Applicants List */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="bg-white border shadow-sm rounded-xl border-slate-200">
             <div className="p-6 border-b border-slate-200">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <h3 className="text-lg font-semibold text-slate-800">
                   Applicant list ({filteredApplicants.length})
                 </h3>
-                <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center w-full gap-3 md:w-auto">
                   <div className="flex items-center gap-2">
                     <label className="text-sm text-slate-600">Round:</label>
                     <select
-                      className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={roundFilter}
+                      className="px-3 py-2 text-sm border rounded-md border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={roundFilter || ""}
                       onChange={(e) => setRoundFilter(e.target.value)}
                       disabled={loadingRoundData}
                     >
@@ -642,7 +650,10 @@ const BatchDetailPage = () => {
                         </option>
                       ) : availableRounds.length > 0 ? (
                         availableRounds.map((round) => (
-                          <option key={round.roundId} value={round.roundId}>
+                          <option
+                            key={round.roundId}
+                            value={String(round.roundId)}
+                          >
                             {round.roundName}
                           </option>
                         ))
@@ -653,16 +664,16 @@ const BatchDetailPage = () => {
                       )}
                     </select>
                   </div>
-                  <div className="relative md:w-64 w-full">
+                  <div className="relative w-full md:w-64">
                     <input
                       type="text"
                       placeholder="Tìm theo tên, email, SĐT..."
-                      className="w-full border border-slate-300 rounded-md pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={applicantSearchTerm}
                       onChange={(e) => setApplicantSearchTerm(e.target.value)}
                     />
                     <svg
-                      className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-slate-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -679,7 +690,7 @@ const BatchDetailPage = () => {
               </div>
               {/* Hiển thị nút Export/Import nếu là vòng Flight Hours Confirmation */}
               {isFlightHoursConfirmationRound && (
-                <div className="mt-4 pt-4 border-t border-slate-200">
+                <div className="pt-4 mt-4 border-t border-slate-200">
                   <FlightHoursActions
                     roundId={roundFilter}
                     campaignRoundId={currentCampaignRoundId}
@@ -699,25 +710,25 @@ const BatchDetailPage = () => {
                 <table className="w-full">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Photo 4x6
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Applicant
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Contact
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Applied date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Round
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-slate-500">
                         Action
                       </th>
                     </tr>
@@ -726,14 +737,14 @@ const BatchDetailPage = () => {
                     {filteredApplicants.map((applicant) => (
                       <tr key={applicant.id} className="hover:bg-slate-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden">
+                          <div className="w-16 h-20 overflow-hidden rounded-md bg-slate-100">
                             <img
                               src={
                                 applicant.photo ||
                                 "https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo"
                               }
                               alt={`Ảnh ${applicant.name}`}
-                              className="w-full h-full object-cover"
+                              className="object-cover w-full h-full"
                               onError={(e) => {
                                 e.target.src =
                                   "https://via.placeholder.com/64x80/cccccc/666666?text=No+Photo";
@@ -759,7 +770,7 @@ const BatchDetailPage = () => {
                             {applicant.phone}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-slate-900">
                           {applicant.appliedDate}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -773,9 +784,9 @@ const BatchDetailPage = () => {
                             applicant
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                        <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
                           <button
-                            className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
+                            className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
                             title="View details"
                             onClick={() =>
                               navigate(`/candidate/${applicant.activityId}`, {
@@ -829,7 +840,7 @@ const BatchDetailPage = () => {
 const InfoMini = ({ label, value }) => (
   <div>
     <div className="text-slate-500">{label}</div>
-    <div className="text-slate-800 font-medium">{value}</div>
+    <div className="font-medium text-slate-800">{value}</div>
   </div>
 );
 
