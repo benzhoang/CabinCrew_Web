@@ -422,7 +422,7 @@ const CreateRecruitmentRequestPage = () => {
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    🔄 Recruitment process *
+                    🔄 Recruitment processes *
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -453,7 +453,7 @@ const CreateRecruitmentRequestPage = () => {
                   >
                     {isLoadingRoundTypes ? (
                       <div className="text-sm text-slate-500">
-                        Loading recruitment process...
+                        Loading recruitment processes...
                       </div>
                     ) : roundTypes.length > 0 ? (
                       <div className="space-y-3">
@@ -475,7 +475,7 @@ const CreateRecruitmentRequestPage = () => {
                       </div>
                     ) : (
                       <div className="text-sm text-slate-500">
-                        No recruitment process available
+                        No recruitment processes available
                       </div>
                     )}
                   </div>

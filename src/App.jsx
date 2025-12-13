@@ -32,7 +32,6 @@ import FinalReview from "./pages/Recruiter/FinalReview";
 import CandidateApplyDetail from "./pages/Recruiter/CandidateApplyDetail";
 import Tasks from "./pages/Recruiter/Tasks";
 import AirlinePartnerLayout from "./layouts/AirlinePartnerLayout";
-import CandidateDetailPage from "./pages/AirlinePartner/CandidateDetailPage";
 import BatchDetailPage from "./pages/AirlinePartner/BatchDetailPage";
 import CabinCrewHomePage from "./pages/CabinCrew/CabinCrewHomePage";
 import PromotionHistoryPage from "./pages/CabinCrew/PromotionHistoryPage";
@@ -107,6 +106,10 @@ import CityWardPage from "./pages/Admin/CityWardPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
 import ContactPage from "./pages/CabinCrew/ContactPage";
 import ExaminerApplication from "./pages/Examiner/ExaminerApplication";
+import AirlineCandidateDetailPage from "./pages/AirlinePartner/AirlineCandidateDetailPage";
+import AdminCandidateDetailPage from "./pages/Admin/AdminCandidateDetailPage";
+import SeniorApplyListPage from "./pages/SeniorRecruiter/SeniorApplyListPage";
+import SeniorCandidateDetailPage from "./pages/SeniorRecruiter/SeniorCandidateDetailPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -470,6 +473,14 @@ function App() {
           }
         />
         <Route
+          path="/admin/campaigns/:id/candidate/:candidateId"
+          element={
+            <AdminLayout>
+              <AdminCandidateDetailPage />
+            </AdminLayout>
+          }
+        />
+        <Route
           path="/admin/tests"
           element={
             <AdminLayout>
@@ -554,7 +565,7 @@ function App() {
           }
         />
         <Route
-          path="/airline-partner/campaigns/:id/candidate"
+          path="/airline-partner/campaigns/:id/applications/:campaignRoundId"
           element={
             <AirlinePartnerLayout>
               <BatchDetailPage />
@@ -562,10 +573,10 @@ function App() {
           }
         />
         <Route
-          path="/airline-partner/campaigns/:id/candidates/:candidateId"
+          path="/airline-partner/campaigns/:id/candidate/:candidateId"
           element={
             <AirlinePartnerLayout>
-              <CandidateDetailPage />
+              <AirlineCandidateDetailPage />
             </AirlinePartnerLayout>
           }
         />
@@ -758,6 +769,22 @@ function App() {
           element={
             <SeniorRecruiterLayout>
               <SeniorCampaignDetailPage />
+            </SeniorRecruiterLayout>
+          }
+        />
+        <Route
+          path="/senior-recruiter/campaigns/:id/applications/:campaignRoundId"
+          element={
+            <SeniorRecruiterLayout>
+              <SeniorApplyListPage />
+            </SeniorRecruiterLayout>
+          }
+        />
+        <Route
+          path="/senior-recruiter/campaigns/:id/candidate/:candidateId"
+          element={
+            <SeniorRecruiterLayout>
+              <SeniorCandidateDetailPage />
             </SeniorRecruiterLayout>
           }
         />
