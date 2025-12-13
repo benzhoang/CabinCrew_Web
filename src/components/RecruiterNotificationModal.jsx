@@ -14,12 +14,13 @@ const RecruiterNotificationModal = ({ isOpen, onClose, onNotificationUpdate, ref
   }, [isOpen, refreshTrigger]);
 
   // Cập nhật số lượng thông báo chưa đọc sau khi notifications thay đổi
+  // CHỈ update khi modal đang mở VÀ đã fetch data (tránh reset về 0 khi mount)
   useEffect(() => {
-    if (onNotificationUpdate && notifications.length >= 0) {
+    if (isOpen && onNotificationUpdate && notifications.length >= 0) {
       const unreadCount = notifications.filter(n => !n.isRead).length;
       onNotificationUpdate(unreadCount);
     }
-  }, [notifications, onNotificationUpdate]);
+  }, [notifications, onNotificationUpdate, isOpen]);
 
   const fetchNotifications = async () => {
     setLoading(true);

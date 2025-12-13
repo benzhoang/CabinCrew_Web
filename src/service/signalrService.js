@@ -125,10 +125,17 @@ class SignalRService {
     });
 
     // Handler khi reconnect thành công
-    conn.onreconnected((connectionId) => {
+    conn.onreconnected(async (connectionId) => {
       console.log("SignalR reconnected:", connectionId);
       this.isConnected = true;
       this.reconnectAttempts = 0;
+
+      // ✅ Join lại vào group sau khi reconnect
+      try {
+        await this.joinUserGroups();
+      } catch (err) {
+        console.warn("SignalR: Không thể join group sau reconnect:", err);
+      }
     });
 
     // Handler khi connection bị đóng
@@ -176,7 +183,7 @@ class SignalRService {
     if (!this.startPromise) {
       this.startPromise = this.connection
         .start()
-        .then(() => {
+        .then(async () => {
           if (this.stopRequested) {
             // Tránh lỗi "stop before start" bằng cách dừng sau khi start xong
             return this.connection.stop();
@@ -184,6 +191,17 @@ class SignalRService {
           console.log("SignalR connected successfully");
           this.isConnected = true;
           this.reconnectAttempts = 0;
+
+          // Delay để connection thực sự ready
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Join groups (backend OnConnectedAsync đã tự động join, nhưng có thể join thủ công để đảm bảo)
+          try {
+            await this.joinUserGroups();
+          } catch (err) {
+            console.warn("SignalR: Join groups optional, backend đã auto-join trong OnConnectedAsync:", err.message);
+          }
+
           return null;
         })
         .catch((err) => {
@@ -201,13 +219,21 @@ class SignalRService {
               false
             );
 
-            return this.connection.start().then(() => {
+            return this.connection.start().then(async () => {
               if (this.stopRequested) {
-                return this.connection.stop();
+                // Join groups
+                try {
+                  await this.joinUserGroups();
+                } catch (err) {
+                  console.warn("SignalR: Join groups optional (LongPolling):", err.message);
+                }
               }
               console.log("SignalR reconnected with LongPolling");
               this.isConnected = true;
               this.reconnectAttempts = 0;
+
+              console.log("SignalR: Backend sẽ tự động route notification dựa trên JWT token");
+
               return null;
             }).catch((fallbackErr) => {
               console.error("Fallback SignalR connection error:", fallbackErr);
@@ -264,6 +290,83 @@ class SignalRService {
   setCurrentOrderId = (orderId) => {
     this.currentOrderId = orderId;
     console.log("SignalR: currentOrderId đã được set:", orderId);
+  };
+
+  // Join vào các group để nhận notification
+  // Backend sử dụng OnConnectedAsync để tự động join, nhưng frontend cũng có thể join thủ công
+  joinUserGroups = async () => {
+    if (!this.connection) {
+      console.warn("SignalR: Connection chưa được khởi tạo");
+      return;
+    }
+
+    try {
+      // Lấy thông tin user từ localStorage
+      const employeeStr = localStorage.getItem("employee");
+      const userStr = localStorage.getItem("user");
+
+      let employee = null;
+      try {
+        employee = employeeStr ? JSON.parse(employeeStr) : (userStr ? JSON.parse(userStr) : null);
+      } catch (err) {
+        console.warn("SignalR: Không thể parse user data", err);
+        return;
+      }
+
+      if (!employee) {
+        console.warn("SignalR: Không tìm thấy thông tin user để join group");
+        return;
+      }
+
+      console.log("SignalR: Thử join vào các groups (optional)...", {
+        role: employee.role,
+        userId: employee.userId || employee.id || employee.accountId
+      });
+
+      // Kiểm tra connection state trước khi invoke
+      const connectionState = this.connection.state;
+      console.log(`SignalR: Connection state = ${connectionState}`);
+
+      if (connectionState !== signalR.HubConnectionState.Connected) {
+        console.warn(`SignalR: Connection chưa Connected (state=${connectionState}), bỏ qua join groups`);
+        return;
+      }
+
+      // Join vào role group (ví dụ: "Recruiters", "Examiners", "Admins")
+      if (employee.role) {
+        try {
+          await this.connection.invoke("JoinRoleGroup", employee.role);
+          console.log(`SignalR: ✅ Đã join vào role group: ${employee.role}`);
+        } catch (err) {
+          console.warn(`SignalR: Không thể join role group ${employee.role}:`, err.message);
+          // Không throw - backend có thể không support method này
+        }
+      }
+
+      // Join vào user group riêng (dựa trên userId)
+      const userId = employee.userId || employee.id || employee.accountId;
+      if (userId) {
+        try {
+          await this.connection.invoke("JoinUserGroup", userId.toString());
+          console.log(`SignalR: ✅ Đã join vào user group: ${userId}`);
+        } catch (err) {
+          console.warn(`SignalR: Không thể join user group ${userId}:`, err.message);
+        }
+      }
+
+      // Join vào group chung cho tất cả users (nếu backend có)
+      try {
+        await this.connection.invoke("JoinGroup", "AllUsers");
+        console.log("SignalR: ✅ Đã join vào AllUsers group");
+      } catch (err) {
+        // Không log warning nếu method không tồn tại
+        console.debug("SignalR: Backend không support AllUsers group:", err.message);
+      }
+
+    } catch (error) {
+      console.error("SignalR: Lỗi khi join groups:", error);
+      // Không throw - để connection vẫn hoạt động
+    }
   };
 }
 
