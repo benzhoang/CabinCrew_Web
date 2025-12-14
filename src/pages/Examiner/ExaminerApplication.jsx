@@ -378,25 +378,8 @@ const ExaminerApplication = () => {
     }, [routeApplicationId, candidateFromState])
 
     const goBack = () => {
-        // Quay về danh sách ứng viên với thông tin batch
-        const batchData = location.state?.batchData || location.state?.batch
-        // Lấy campaignRoundId từ nhiều nguồn có thể (KHÔNG dùng activityId)
-        const campaignRoundId =
-            batchData?.batch?.id ||
-            batchData?.batch?.campaignRoundId ||
-            batchData?.campaignRoundId ||
-            batchData?.id ||
-            location.state?.campaignRoundId
-
-        if (campaignRoundId) {
-            // Luôn điều hướng về /recruiter/final-review/:id với campaignRoundId
-            navigate(`/recruiter/final-review/${campaignRoundId}`, {
-                state: batchData ? { batch: batchData } : undefined
-            })
-        } else {
-            // Fallback nếu không có campaignRoundId - về trang final-review chung
-            navigate(`/recruiter/final-review`)
-        }
+        // Quay về trang trước đó trong lịch sử trình duyệt
+        navigate(-1)
     }
 
     const getStatusBadge = (status) => {

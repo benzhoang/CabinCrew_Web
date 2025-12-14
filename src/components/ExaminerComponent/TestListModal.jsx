@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 const transformTestData = (item) => ({
   id: item.testId || item.id,
-  name: item.testName || item.name || "Đề thi chưa có tên",
+  name: item.testName || item.name || "Unnamed test",
   totalQuestions: item.numberOfQuestions || item.totalQuestions || 0,
   status: item.status || "active",
   testType: item.testType || "Practical",
@@ -13,15 +13,15 @@ const transformTestData = (item) => ({
 const StatusBadge = ({ status }) => {
   const map = {
     active: {
-      text: "Đang sử dụng",
+      text: "Active",
       cls: "bg-green-100 text-green-700 border-green-200",
     },
     draft: {
-      text: "Bản nháp",
+      text: "Draft",
       cls: "bg-amber-100 text-amber-700 border-amber-200",
     },
     archived: {
-      text: "Đã lưu trữ",
+      text: "Archived",
       cls: "bg-slate-100 text-slate-600 border-slate-200",
     },
   };
@@ -85,13 +85,13 @@ const TestListModal = ({
         setTests(rawTests.map(transformTestData));
       } else {
         setTests([]);
-        const message = response.error || "Không thể lấy danh sách đề thi";
+        const message = response.error || "Unable to fetch test list";
         setError(message);
         toast.error(message);
       }
     } catch (err) {
       setTests([]);
-      const message = err.message || "Không thể lấy danh sách đề thi";
+      const message = err.message || "Unable to fetch test list";
       setError(message);
       toast.error(message);
     } finally {
@@ -104,7 +104,7 @@ const TestListModal = ({
       fetchTests();
     } else if (isOpen && !testType) {
       setTests([]);
-      const message = "Vui lòng chọn vòng kiểm tra để xem danh sách đề thi";
+      const message = "Please select a round to view the test list";
       setError(message);
       toast.error(message);
     }
@@ -117,23 +117,23 @@ const TestListModal = ({
       <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h2 className="text-2xl font-extrabold md:text-3xl">Chọn đề thi</h2>
+            <h2 className="text-2xl font-extrabold md:text-3xl">Select Test</h2>
             <p className="mt-1 text-sm text-white/90">
-              Danh sách đề thi đang hoạt động cho vòng kiểm tra
+              List of active tests for the round
             </p>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
           >
-            Đóng
+            Close
           </button>
         </div>
 
         <div className="px-6 py-4 overflow-y-auto max-h-[70vh] space-y-4">
           {isLoading && (
             <div className="py-10 text-sm text-center text-slate-500">
-              Đang tải danh sách đề thi...
+              Loading test list...
             </div>
           )}
 
@@ -145,7 +145,7 @@ const TestListModal = ({
 
           {!isLoading && !error && tests.length === 0 && (
             <div className="py-10 text-sm text-center text-slate-500">
-              Chưa có đề thi nào phù hợp.
+              No matching tests found.
             </div>
           )}
 
@@ -154,11 +154,10 @@ const TestListModal = ({
             tests.map((test) => (
               <div
                 key={test.id}
-                className={`rounded-2xl border px-5 py-4 transition duration-200 ${
-                  selectedTestId === test.id
-                    ? "border-indigo-400 bg-indigo-50/70"
-                    : "border-slate-200 hover:border-indigo-200"
-                }`}
+                className={`rounded-2xl border px-5 py-4 transition duration-200 ${selectedTestId === test.id
+                  ? "border-indigo-400 bg-indigo-50/70"
+                  : "border-slate-200 hover:border-indigo-200"
+                  }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -174,7 +173,7 @@ const TestListModal = ({
                     <button
                       onClick={async () => {
                         if (!roundId) {
-                          const message = "Không tìm thấy roundId";
+                          const message = "Round ID not found";
                           setError(message);
                           toast.error(message);
                           return;
@@ -190,7 +189,7 @@ const TestListModal = ({
                           console.log("Result: ", result);
                           if (result.success) {
                             toast.success(
-                              "Cập nhật đề thi cho vòng kiểm tra thành công"
+                              "Successfully updated test for the round"
                             );
                             onSelectTest?.(test);
                             onClose?.();
@@ -201,14 +200,14 @@ const TestListModal = ({
                           } else {
                             const message =
                               result.error ||
-                              "Không thể cập nhật bài thi cho round";
+                              "Unable to update test for round";
                             setError(message);
                             toast.error(message);
                           }
                         } catch (err) {
                           const message =
                             err.message ||
-                            "Không thể cập nhật bài thi cho round";
+                            "Unable to update test for round";
                           setError(message);
                           toast.error(message);
                         } finally {
@@ -220,15 +219,15 @@ const TestListModal = ({
                       className="px-4 py-2 text-sm font-medium text-white transition bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isUpdating && updatingTestId === test.id
-                        ? "Đang cập nhật..."
-                        : "Chọn đề này"}
+                        ? "Updating..."
+                        : "Select this test"}
                     </button>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 mt-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <p className="text-slate-500">Số câu hỏi</p>
+                    <p className="text-slate-500">Number of questions</p>
                     <p className="font-semibold text-slate-900">
                       {test.totalQuestions || 0}
                     </p>
