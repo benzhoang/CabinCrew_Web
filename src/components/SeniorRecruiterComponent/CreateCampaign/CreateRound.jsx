@@ -859,7 +859,7 @@ const CreateRound = forwardRef(
                             ? "border-red-300"
                             : "border-slate-300"
                         }`}
-                        placeholder="Nhập chỉ tiêu..."
+                        placeholder="Enter target quantity"
                       />
                       {errors[`rounds.${index}.targetQuantity`] && (
                         <p className="mt-1 text-xs text-red-600">
@@ -883,7 +883,7 @@ const CreateRound = forwardRef(
                         }
                         rows="3"
                         className="w-full px-2 py-1 text-xs border rounded border-slate-300"
-                        placeholder="Mô tả về đợt tuyển dụng này..."
+                        placeholder="Enter description"
                       />
                       {errors[`rounds.${index}.description`] && (
                         <p className="mt-1 text-xs text-red-600">

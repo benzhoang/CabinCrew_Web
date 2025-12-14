@@ -501,7 +501,7 @@ const BatchDetailPage = () => {
         if (campaignRoundIdToUse) {
           setTimeout(() => {
             navigate(
-              `/airline-partner/campaigns/${campaignRoundIdToUse}/candidate`
+              `/airline-partner/campaigns/${params.id}/candidate/${campaignRoundIdToUse}`
             );
           }, 1000); // Đợi 1 giây để người dùng thấy toast
         }
@@ -789,12 +789,15 @@ const BatchDetailPage = () => {
                             className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
                             title="View details"
                             onClick={() =>
-                              navigate(`/candidate/${applicant.activityId}`, {
-                                state: {
-                                  candidate: applicant,
-                                  batchData: batchData,
-                                },
-                              })
+                              navigate(
+                                `/airline-partner/campaigns/${params.id}/candidate/${applicant.activityId}`,
+                                {
+                                  state: {
+                                    candidate: applicant,
+                                    batchData: batchData,
+                                  },
+                                }
+                              )
                             }
                           >
                             <svg
