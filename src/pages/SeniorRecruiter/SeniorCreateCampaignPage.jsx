@@ -19,12 +19,9 @@ const SeniorCreateCampaignPage = () => {
     startDate: "",
     endDate: "",
     description: "",
-    requirements: "",
-    jobDescription: "",
-    jobRequirement: "",
     rounds: [
       {
-        roundName: "Đợt 1",
+        roundName: "Round 1",
         roundStartDate: "",
         roundEndDate: "",
         targetQuantity: "",
@@ -76,8 +73,6 @@ const SeniorCreateCampaignPage = () => {
                 ? String(detailData.targetQuantity)
                 : "",
             description: detailData.description || "",
-            jobDescription: detailData.jobDescription || "",
-            jobRequirement: detailData.jobRequirement || "",
           }));
 
           // Fetch requirement items based on campaign type
@@ -212,10 +207,6 @@ const SeniorCreateCampaignPage = () => {
       formData.startDate >= formData.endDate
     ) {
       newErrors.endDate = "End date must be after start date";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
     }
 
     // Validate rounds using CreateRound component
