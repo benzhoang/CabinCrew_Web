@@ -33,6 +33,39 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
+const renderStatusBadge = (statusRaw) => {
+  const status = String(statusRaw || '').toLowerCase();
+  const mapping = {
+    pending: {
+      text: 'Pending',
+      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    },
+    pending_approval: {
+      text: 'Pending approval',
+      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    },
+    approved: {
+      text: 'Approved',
+      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    },
+    rejected: {
+      text: 'Rejected',
+      cls: 'bg-rose-50 text-rose-700 border border-rose-200',
+    },
+  };
+
+  const preset = mapping[status] || {
+    text: statusRaw || 'N/A',
+    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+  };
+
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+      {preset.text}
+    </span>
+  );
+};
+
 const RequestCampInfo = () => {
   const { id } = useParams();
   const { state } = useLocation();
@@ -293,7 +326,7 @@ const RequestCampInfo = () => {
             <InfoRow label="Director" value={data.directorName || "N/A"} />
             <InfoRow label="Target quantity" value={data.quantity} />
             <InfoRow label="Created at" value={formatDate(data.createdAt)} />
-            <InfoRow label="Status" value={data.status} />
+            <InfoRow label="Status" value={renderStatusBadge(data.status)} />
           </div>
 
           {data.description && (

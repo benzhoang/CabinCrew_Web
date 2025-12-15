@@ -49,24 +49,11 @@ const AccountInformation = ({ formData, errors }) => {
                             </span>
                         )}
                     </label>
-                    <div className="relative">
-                        <select
-                            id="role"
-                            name="role"
-                            value={formData.role}
-                            disabled={true}
-                            className="w-full px-4 py-3 border rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
-                        >
-                            <option value="">{formData.role || 'Vai trò sẽ được cập nhật tự động khi ứng tuyển thành công'}</option>
-                            {formData.role && (
-                                <option value={formData.role}>{formData.role}</option>
-                            )}
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                        </div>
+                    <div
+                        id="role"
+                        className="w-full px-4 py-3 border rounded-lg bg-gray-50 text-gray-700 border-gray-300"
+                    >
+                        {formData.role || 'Vai trò sẽ được cập nhật tự động khi ứng tuyển thành công'}
                     </div>
                     <p className="text-sm text-gray-600 mt-2 flex items-center">
                         <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2781,11 +2781,15 @@ export const submitInterviewResult = async (payload) => {
 
     const responseData = response.data;
 
-    if (responseData?.code === 0) {
+    // Code 0 = success, code 2 = created_success (API sometimes returns 2)
+    if (responseData?.code === 0 || responseData?.code === 2) {
       return {
         success: true,
         data: responseData.data || null,
-        message: responseData.message || "Gửi kết quả phỏng vấn thành công",
+        message:
+          responseData.message ||
+          responseData.errorMessage ||
+          "Gửi kết quả phỏng vấn thành công",
       };
     }
 

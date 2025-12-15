@@ -27,6 +27,39 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
+const renderStatusBadge = (statusRaw) => {
+  const status = String(statusRaw || '').toLowerCase();
+  const mapping = {
+    pending: {
+      text: 'Pending',
+      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    },
+    pending_approval: {
+      text: 'Pending approval',
+      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    },
+    approved: {
+      text: 'Approved',
+      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    },
+    rejected: {
+      text: 'Rejected',
+      cls: 'bg-rose-50 text-rose-700 border border-rose-200',
+    },
+  };
+
+  const preset = mapping[status] || {
+    text: statusRaw || 'N/A',
+    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+  };
+
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+      {preset.text}
+    </span>
+  );
+};
+
 const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   const { id } = useParams();
   const { state } = useLocation();
@@ -426,6 +459,10 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
 
   const data = normalizeRoundsData(campaignData);
 
+  const showBatchStatus = ["ongoing", "upcoming", "ended"].includes(
+    String(data?.status || "").trim().toLowerCase()
+  );
+
   // Format date from API (e.g. "11/12/2025 00:00" or ISO string)
   const formatDateFromAPI = (dateString) => {
     if (!dateString) return "";
@@ -507,7 +544,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
                 label="Campaign type"
                 value={formatCampaignType(getCampaignType())}
               />
-              <InfoRow label="Status" value={data.status || ""} />
+              <InfoRow label="Status" value={renderStatusBadge(data.status)} />
               <InfoRow
                 label="Target quantity"
                 value={formatTargetQuantity(getTargetQuantity())}
@@ -609,7 +646,12 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
                   : 0,
                 rounds: data.rounds,
               });
-              return <DirectorBatchInfo campaign={data} />;
+              return (
+                <DirectorBatchInfo
+                  campaign={data}
+                  showBatchStatus={showBatchStatus}
+                />
+              );
             })()}
           </div>
         </Section>

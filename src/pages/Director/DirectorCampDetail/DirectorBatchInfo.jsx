@@ -40,7 +40,7 @@ const formatDateForDisplay = (
   return dateString.split(" ")[0] || "-";
 };
 
-const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
+const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
@@ -67,9 +67,11 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
     <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
       <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div className="text-sm font-semibold text-slate-800">{batch.name}</div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
-          {statusCfg.text}
-        </span>
+        {showStatus && (
+          <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
+            {statusCfg.text}
+          </span>
+        )}
       </div>
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -269,7 +271,7 @@ const convertRoundsToBatches = (rounds) => {
   });
 };
 
-const DirectorBatchInfo = ({ campaign }) => {
+const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
@@ -467,6 +469,7 @@ const DirectorBatchInfo = ({ campaign }) => {
                 statusCfg={statusCfg}
                 percent={progressPercent}
                 campaignId={campaign?.campaignId || campaign?.id || 1}
+                showStatus={showBatchStatus}
               />
             );
           })}

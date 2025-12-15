@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 import { t, onLangChange } from '../../i18n'
@@ -348,7 +349,7 @@ const ApplicationForm = () => {
 
         // Validate captcha
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
+            toast.error(t('application_form_captcha_incorrect'))
             // Captcha sẽ tự động refresh trong component
             return
         }
@@ -358,14 +359,14 @@ const ApplicationForm = () => {
             !formData.gender || !formData.mobileNumber ||
             !formData.height || !formData.weight ||
             formData.termsAccepted !== 'yes') {
-            alert('Vui lòng điền đầy đủ thông tin bắt buộc')
+            toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
             return
         }
 
         // Validate required files
         if (!files.applicationForm || !files.profilePhoto || !files.educationDegree ||
             !files.englishCertificate || !files.idCard || !files.idCardBack) {
-            alert('Vui lòng upload đầy đủ các file bắt buộc')
+            toast.error('Vui lòng upload đầy đủ các file bắt buộc')
             return
         }
 
@@ -373,7 +374,7 @@ const ApplicationForm = () => {
         const campaignRoundId = getCampaignRoundId()
         console.log('Final campaignRoundId for submit:', campaignRoundId)
         if (!campaignRoundId) {
-            alert('Không tìm thấy thông tin vòng tuyển dụng. Vui lòng quay lại và thử lại.')
+            toast.error('Không tìm thấy thông tin vòng tuyển dụng. Vui lòng quay lại và thử lại.')
             return
         }
 
@@ -407,14 +408,17 @@ const ApplicationForm = () => {
                 // Xóa bản nháp trong localStorage sau khi nộp thành công
                 localStorage.removeItem('applicationFormDraft')
 
-                alert(t('application_form_submitted_successfully') || result.message || 'Nộp đơn thành công!')
-                navigate('/recruitment-stages')
+                toast.success(t('application_form_submitted_successfully') || result.message || 'Nộp đơn thành công!')
+                // Đợi một chút để người dùng thấy toast trước khi navigate
+                setTimeout(() => {
+                    navigate('/recruitment-stages')
+                }, 1500)
             } else {
-                alert(result.error || 'Nộp đơn thất bại. Vui lòng thử lại.')
+                toast.error(result.error || 'Nộp đơn thất bại. Vui lòng thử lại.')
             }
         } catch (error) {
             console.error('Error submitting application:', error)
-            alert('Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.')
+            toast.error('Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.')
         } finally {
             setIsSubmitting(false)
         }
@@ -461,14 +465,17 @@ const ApplicationForm = () => {
                 }
                 localStorage.setItem('applicationFormDraft', JSON.stringify(localDraftData))
 
-                alert(t('application_form_draft_saved') || result.message || 'Đã lưu bản nháp thành công!')
-                navigate('/recruitment-stages')
+                toast.success(t('application_form_draft_saved') || result.message || 'Đã lưu bản nháp thành công!')
+                // Đợi một chút để người dùng thấy toast trước khi navigate
+                setTimeout(() => {
+                    navigate('/recruitment-stages')
+                }, 1500)
             } else {
-                alert(result.error || 'Lưu bản nháp thất bại. Vui lòng thử lại.')
+                toast.error(result.error || 'Lưu bản nháp thất bại. Vui lòng thử lại.')
             }
         } catch (error) {
             console.error('Error saving draft:', error)
-            alert('Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.')
+            toast.error('Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.')
         } finally {
             setIsSavingDraft(false)
         }

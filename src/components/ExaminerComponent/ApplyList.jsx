@@ -447,8 +447,44 @@ const ApplyList = ({
     });
   };
 
+  const mapRoundToStageId = (roundData, applicant) => {
+    const roundName = (roundData?.roundName || applicant?.roundName || "").toLowerCase();
+    const testType = roundData?.testType;
+
+    if (roundName.includes("screening")) return "screening";
+    if (roundName.includes("appearance") || roundName.includes("grooming")) return "appearance";
+    if (roundName.includes("listening") || testType === 1) return "english-listening";
+    if (roundName.includes("speaking") || testType === 2) return "english-speaking";
+    if (roundName.includes("practical") || testType === 3) return "english-speaking";
+    if (roundName.includes("interview")) return "interview";
+    if (roundName.includes("final")) return "final";
+
+    return null;
+  };
+
   const handleNavigateToCandidateView = (applicant) => {
-    navigate(`/examiner/candidate/${applicant.activityId || applicant.id}`);
+    const roundFromFilter =
+      roundFilter === "final"
+        ? { roundId: "final", roundName: "Final" }
+        : availableRounds.find((r) => String(r.roundId) === String(roundFilter)) ||
+        activeRoundForTests ||
+        null;
+
+    const stageId =
+      mapRoundToStageId(roundFromFilter, applicant) ||
+      mapRoundToStageId({ roundName: applicant?.roundName }, applicant) ||
+      "screening";
+
+    navigate(`/examiner/candidate/${applicant.activityId || applicant.id}`, {
+      state: {
+        candidate: applicant,
+        viewingRound: {
+          stageId,
+          roundId: roundFromFilter?.roundId || roundFilter || applicant?.roundId,
+          roundName: roundFromFilter?.roundName || applicant?.roundName || "",
+        },
+      },
+    });
   };
 
   const handleOpenTestModal = () => {

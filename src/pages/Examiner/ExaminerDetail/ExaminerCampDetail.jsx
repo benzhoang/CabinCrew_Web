@@ -502,9 +502,6 @@ const ExaminerCampDetail = ({ campaign }) => {
               {data.partnerName || "N/A"}
             </div>
           </div>
-          <div className="text-xs text-right text-slate-500">
-            Code: {data.campaignId || "N/A"}
-          </div>
         </div>
 
         <div className="p-5">

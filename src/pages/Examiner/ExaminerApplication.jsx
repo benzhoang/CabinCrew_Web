@@ -168,6 +168,20 @@ const defaultStageTemplates = [
 
 const normalizeText = (text) => (text || '').toLowerCase().trim()
 
+const normalizeStageId = (stageValue) => {
+    const text = normalizeText(stageValue)
+    if (!text) return null
+
+    if (text.includes('screening')) return 'screening'
+    if (text.includes('appearance') || text.includes('grooming')) return 'appearance'
+    if (text.includes('listening')) return 'english-listening'
+    if (text.includes('speaking') || text.includes('practical')) return 'english-speaking'
+    if (text.includes('interview')) return 'interview'
+    if (text.includes('final')) return 'final'
+
+    return null
+}
+
 const isStageReached = (stage, index, currentStage) => {
     if (!stage || typeof index !== 'number') return false
     if (stage.completed) return true
@@ -270,46 +284,45 @@ const getStageIcon = (stage, currentStage, stageIndex, overallStatus) => {
     )
 }
 
-// Build timeline data: các vòng trước luôn đánh dấu đạt, vòng cuối hiển thị trạng thái thực tế
-const buildTimelineForCandidate = (candidate) => {
+// Build timeline data với stage hiện tại linh hoạt theo vòng đang xem
+const buildTimelineForCandidate = (candidate, forcedStageId) => {
     if (!candidate) return null
 
+    const fallbackStage = normalizeStageId(candidate.currentRound) || 'screening'
+    const currentStageId = forcedStageId || fallbackStage || 'screening'
+    const currentStageIndex = Math.max(defaultStageTemplates.findIndex(t => t.id === currentStageId), 0)
     const overallStatus = normalizeText(candidate.status || 'pending')
+    const isPassedFinal = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
+    const isFailedFinal = ['failed', 'rejected'].some(k => overallStatus.includes(k))
 
     const stages = defaultStageTemplates.map((template, index) => {
         const isFinal = template.id === 'final'
+        const isCurrent = index === currentStageIndex
+        const completedBefore = index < currentStageIndex
 
-        // Các vòng trước final luôn coi là đã hoàn thành
-        if (!isFinal) {
-            return {
-                templateId: template.id,
-                name: template.name,
-                nameEn: template.nameEn,
-                completed: true,
-                isCurrent: false,
-                status: 'Completed',
-                date: null
-            }
-        }
-
-        // Vòng cuối: hiển thị theo trạng thái thực tế
-        const isPassed = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
-        const isFailed = ['failed', 'rejected'].some(k => overallStatus.includes(k))
+        let completed = completedBefore
+        let status = completed ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'
 
         return {
             templateId: template.id,
             name: template.name,
             nameEn: template.nameEn,
-            completed: isPassed,
-            isCurrent: true,
-            status: isFailed ? 'Failed' : isPassed ? 'Completed' : 'In Progress',
+            completed: isFinal
+                ? (isCurrent ? isPassedFinal : completed)
+                : completed,
+            isCurrent,
+            status: isFinal
+                ? isCurrent
+                    ? (isFailedFinal ? 'Failed' : isPassedFinal ? 'Completed' : 'In Progress')
+                    : status
+                : status,
             date: null
         }
     })
 
     return {
         stages,
-        currentStage: stages.length // luôn đặt ở vòng cuối để hiển thị nút trạng thái
+        currentStage: currentStageIndex + 1
     }
 }
 
@@ -323,7 +336,16 @@ const ExaminerApplication = () => {
     const location = useLocation()
     const { id: routeApplicationId } = useParams()
     const candidateFromState = location.state?.candidate || null
-    const applicationTimeline = buildTimelineForCandidate(candidate)
+    const viewingRound = location.state?.viewingRound || null
+
+    const derivedStageId =
+        normalizeStageId(viewingRound?.stageId || viewingRound?.roundName || viewingRound?.roundId) ||
+        normalizeStageId(candidate?.currentRound) ||
+        normalizeStageId(candidateFromState?.currentRound || candidateFromState?.roundName) ||
+        'screening'
+
+    const applicationTimeline = buildTimelineForCandidate(candidate, derivedStageId)
+    const currentStageName = defaultStageTemplates.find(stage => stage.id === derivedStageId)?.name || 'Screening'
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
@@ -560,7 +582,7 @@ const ExaminerApplication = () => {
                         </button>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800">
-                                Candidate Profile - Final
+                                Candidate Profile - {currentStageName}
                             </h1>
                             <p className="text-slate-600">Detailed candidate information</p>
                         </div>

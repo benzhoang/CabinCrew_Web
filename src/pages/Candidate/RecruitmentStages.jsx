@@ -33,13 +33,13 @@ const defaultStageTemplates = [
     },
     {
         id: 'interview',
-        name: 'Phỏng vấn',
+        name: 'Interview',
         nameEn: 'Interview',
         aliases: ['interview', 'phong van']
     },
     {
         id: 'final',
-        name: 'Vòng cuối',
+        name: 'Final',
         nameEn: 'Final',
         aliases: ['final', 'chung ket', 'final round']
     },
