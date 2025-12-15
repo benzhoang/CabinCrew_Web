@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { FaTasks } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AddTaskModal from "./AddTaskModal";
 import { formatDate2 } from "../../../config/formatDate";
 
 const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
+  const params = useParams();
 
   // Kiểm tra xem đợt có đang "sắp diễn ra" không
   const isUpcoming = batch.status === "upcoming";
@@ -17,7 +18,10 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
       return;
     }
 
-    navigate("/recruiter/applications");
+    const campaignId = params.id || params.campaignId;
+    navigate(
+      `/senior-recruiter/campaigns/${campaignId}/applications/${batch.id}`
+    );
   };
 
   return (
@@ -49,40 +53,40 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
         {/* Applicant Statistics Dropdown */}
         {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
-            <div className="pt-3 border-t border-slate-100">
-              <button
-                onClick={() => setOpenStats(!openStats)}
-                className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
-              >
-                <span>Applicant statistics</span>
-                <span>{openStats ? "▲" : "▼"}</span>
-              </button>
-              {openStats && (
-                <div className="mt-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    {batch.totalApplicants !== undefined && (
-                      <div className="p-3 rounded-lg bg-blue-50">
-                        <div className="mb-1 text-xs text-blue-600">
-                          Interested
-                        </div>
-                        <div className="text-lg font-bold text-blue-700">
-                          {batch.totalApplicants}
-                        </div>
+          <div className="pt-3 border-t border-slate-100">
+            <button
+              onClick={() => setOpenStats(!openStats)}
+              className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
+            >
+              <span>Applicant statistics</span>
+              <span>{openStats ? "▲" : "▼"}</span>
+            </button>
+            {openStats && (
+              <div className="mt-3">
+                <div className="grid grid-cols-2 gap-3">
+                  {batch.totalApplicants !== undefined && (
+                    <div className="p-3 rounded-lg bg-blue-50">
+                      <div className="mb-1 text-xs text-blue-600">
+                        Interested
                       </div>
-                    )}
-                    {batch.appliedCandidates !== undefined && (
-                      <div className="p-3 rounded-lg bg-green-50">
-                        <div className="mb-1 text-xs text-green-600">Applied</div>
-                        <div className="text-lg font-bold text-green-700">
-                          {batch.appliedCandidates}
-                        </div>
+                      <div className="text-lg font-bold text-blue-700">
+                        {batch.totalApplicants}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                  {batch.appliedCandidates !== undefined && (
+                    <div className="p-3 rounded-lg bg-green-50">
+                      <div className="mb-1 text-xs text-green-600">Applied</div>
+                      <div className="text-lg font-bold text-green-700">
+                        {batch.appliedCandidates}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recruitment Progress */}
         {batch.target !== undefined && (
@@ -105,10 +109,11 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
-              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-              }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
+              isUpcoming
+                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+            }`}
             title={
               isUpcoming
                 ? "Cannot view applicant list because the batch has not started"
@@ -136,7 +141,11 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
   );
 };
 
-const BatchManagement = ({ campaign, onCreateBatch, showBatchStatus = false }) => {
+const BatchManagement = ({
+  campaign,
+  onCreateBatch,
+  showBatchStatus = false,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Map rounds from API to batch format

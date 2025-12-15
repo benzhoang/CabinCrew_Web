@@ -2195,4 +2195,88 @@ export const getApplicationById = async (applicationId) => {
   }
 };
 
+// API lấy thông tin user theo ID
+export const getUserProfile = async (userId) => {
+  try {
+    const response = await api2.get(`/users/${userId}`);
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.message || "Cannot get user profile",
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot get user profile",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách thành phố
+export const getCities = async () => {
+  try {
+    const response = await api2.get("/cities");
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: response.data.message || "Cannot get cities",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message || error.message || "Cannot get cities",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách phường/xã theo cityId
+export const getWardsForCity = async (cityId) => {
+  try {
+    const response = await api2.get(`/cities/${cityId}/wards`);
+
+    if (response.data.code === 0 && response.data.data) {
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: response.data.message || "Cannot get wards",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message || error.message || "Cannot get wards",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;

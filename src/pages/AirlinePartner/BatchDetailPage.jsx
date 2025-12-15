@@ -667,7 +667,7 @@ const BatchDetailPage = () => {
                   <div className="relative w-full md:w-64">
                     <input
                       type="text"
-                      placeholder="Tìm theo tên, email, SĐT..."
+                      placeholder="Search by name, email, phone..."
                       className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={applicantSearchTerm}
                       onChange={(e) => setApplicantSearchTerm(e.target.value)}
@@ -790,7 +790,7 @@ const BatchDetailPage = () => {
                             title="View details"
                             onClick={() =>
                               navigate(
-                                `/airline-partner/campaigns/${params.id}/candidate/${applicant.activityId}`,
+                                `/airline-partner/campaigns/candidate/${applicant.activityId}`,
                                 {
                                   state: {
                                     candidate: applicant,

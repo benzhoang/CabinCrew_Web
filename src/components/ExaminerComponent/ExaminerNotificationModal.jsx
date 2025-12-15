@@ -24,12 +24,13 @@ const ExaminerNotificationModal = ({
   }, [isOpen, refreshTrigger]);
 
   // Cập nhật số lượng thông báo chưa đọc sau khi notifications thay đổi
+  // CHỈ update khi modal đang mở VÀ đã fetch data (tránh reset về 0 khi mount)
   useEffect(() => {
-    if (onNotificationUpdate && notifications.length >= 0) {
+    if (isOpen && onNotificationUpdate && notifications.length >= 0) {
       const unreadCount = notifications.filter((n) => !n.isRead).length;
       onNotificationUpdate(unreadCount);
     }
-  }, [notifications, onNotificationUpdate]);
+  }, [notifications, onNotificationUpdate, isOpen]);
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -132,7 +133,7 @@ const ExaminerNotificationModal = ({
               </h2>
               {unreadCount > 0 && (
                 <p className="mt-1 text-sm text-gray-500">
-                  {unreadCount} unread notifications
+                  There are {unreadCount} unread notifications
                 </p>
               )}
             </div>
@@ -164,7 +165,7 @@ const ExaminerNotificationModal = ({
           ) : notifications.length === 0 ? (
             <div className="py-12 text-center">
               <FaCheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500">No notifications</p>
+              <p className="text-gray-500">There are no notifications</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -203,7 +204,7 @@ const ExaminerNotificationModal = ({
                       }
                     }
                   } catch (err) {
-                    console.error("Error formatting date time:", err);
+                    console.error("Error formatting time:", err);
                     formattedDateTime = notification.time;
                   }
                 }
