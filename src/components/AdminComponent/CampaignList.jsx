@@ -14,6 +14,8 @@ const mapStatus = (status) => {
     Rejected: "rejected",
     Ongoing: "ongoing",
     Ended: "ended",
+    Cancelled: "cancelled",
+    Upcoming: "upcoming",
   };
   return statusMap[status] || status?.toLowerCase() || "unknown";
 };
@@ -75,10 +77,20 @@ const StatusBadge = ({ status }) => {
           className: "bg-emerald-100 text-emerald-700 border-emerald-200",
           text: "Approved",
         };
+      case "upcoming":
+        return {
+          className: "bg-sky-100 text-sky-700 border-sky-200",
+          text: "Upcoming",
+        };
+      case "cancelled":
+        return {
+          className: "bg-slate-200 text-slate-700 border-slate-300",
+          text: "Cancelled",
+        };
       default:
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: status || "Unknown",
+          text: "Unknown",
         };
     }
   };
@@ -191,8 +203,7 @@ const CampaignList = ({
         // Map API data to component structure
         const mappedCampaigns = result.data.map((item) => ({
           id: item.campaignId || item.id || item.campaignID || item.Id,
-          campaignName:
-            item.campaignName || item.name || "Chiến dịch chưa có tên",
+          campaignName: item.campaignName || item.name || "No campaign name",
           targetQuantity: item.targetQuantity || 0,
           campaignType: mapCampaignType(item.campaignType),
           status: mapStatus(item.status),

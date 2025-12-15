@@ -198,10 +198,10 @@ const AdminExamDetailPage = () => {
       if (response.success) {
         setTestData(response.data);
       } else {
-        setError(response.error || "Không thể tải chi tiết đề thi");
+        setError(response.error || "Cannot fetch test details");
       }
     } catch (err) {
-      setError(err.message || "Đã xảy ra lỗi khi tải chi tiết đề thi");
+      setError(err.message || "An error occurred while fetching test details");
     } finally {
       setIsLoading(false);
     }
@@ -216,12 +216,12 @@ const AdminExamDetailPage = () => {
 
       if (response.success) {
         setQuestionsData(response.data);
-        console.log("Danh sách câu hỏi đã được làm mới:", response.data);
+        console.log("Test questions have been refreshed:", response.data);
       } else {
-        console.error("Lỗi khi tải câu hỏi:", response.error);
+        console.error("Error when fetching test questions:", response.error);
       }
     } catch (err) {
-      console.error("Exception khi fetch câu hỏi:", err);
+      console.error("Exception when fetching test questions:", err);
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -297,7 +297,7 @@ const AdminExamDetailPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate("/admin/tests")}
-              className="px-4 py-2 border border-slate-200 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
+              className="px-4 py-2 border rounded-lg border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700"
             >
               Back
             </button>
@@ -309,30 +309,30 @@ const AdminExamDetailPage = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* LEFT CONTENT */}
         <div className="space-y-6 lg:col-span-2">
-          <Section title="Thông tin chung">
-            <InfoRow label="Tên đề thi" value={testData.testName} />
-            <InfoRow label="Mục đích" value={testData.purpose} />
+          <Section title="General information">
+            <InfoRow label="Test name" value={testData.testName} />
+            <InfoRow label="Purpose" value={testData.purpose} />
             <InfoRow
-              label="Loại đề thi"
+              label="Test type"
               value={<TestTypeBadge testType={testData.testType} />}
             />
-            <InfoRow label="Điểm tối đa" value={testData.maxScore} />
+            <InfoRow label="Maximum score" value={testData.maxScore} />
             <InfoRow
-              label="Thời lượng"
-              value={`${testData.durationInMinutes} phút`}
+              label="Duration"
+              value={`${testData.durationInMinutes} minutes`}
             />
           </Section>
 
           {/* Show audio only for English Listening */}
           {isEnglishListening() && testData.audioFileURL && (
-            <Section title="File âm thanh">
+            <Section title="Audio file">
               <AudioPlayer audioUrl={testData.audioFileURL} />
             </Section>
           )}
 
           {/* QUESTIONS */}
           <Section
-            title={`Danh sách câu hỏi (${
+            title={`Question list (${
               questionsData?.totalQuestions ||
               questionsData?.questions?.length ||
               0
@@ -359,7 +359,7 @@ const AdminExamDetailPage = () => {
                           <div className="flex items-start justify-between mb-2">
                             <p className="font-medium">{q.questionContent}</p>
                             <span className="px-2 py-1 ml-4 text-sm bg-gray-100 rounded">
-                              {q.score} điểm
+                              {q.score} points
                             </span>
                           </div>
 
@@ -389,7 +389,7 @@ const AdminExamDetailPage = () => {
                                   </span>
                                   {op.isCorrect && (
                                     <span className="text-sm font-medium text-green-600">
-                                      ✓ Đúng
+                                      ✓ Correct
                                     </span>
                                   )}
                                 </div>
@@ -403,7 +403,7 @@ const AdminExamDetailPage = () => {
               </div>
             ) : (
               <div className="py-8 text-center text-gray-500">
-                Chưa có câu hỏi nào
+                No questions found
               </div>
             )}
           </Section>
@@ -411,9 +411,9 @@ const AdminExamDetailPage = () => {
 
         {/* RIGHT SIDEBAR */}
         <div className="space-y-6">
-          <Section title="Thông tin bổ sung">
+          <Section title="Additional information">
             <InfoRow
-              label="Mã đề thi"
+              label="Test code"
               value={
                 <div className="flex items-center gap-2">
                   <span>{testCode}</span>
@@ -426,24 +426,24 @@ const AdminExamDetailPage = () => {
                 </div>
               }
             />
-            <InfoRow label="ID đề thi" value={testData.testId} />
+            <InfoRow label="Test ID" value={testData.testId} />
             {testData.createdAt && (
               <InfoRow
-                label="Ngày tạo"
+                label="Created date"
                 value={formatDate3(testData.createdAt)}
               />
             )}
             {testData.createdBy && (
-              <InfoRow label="Người tạo" value={testData.createdBy} />
+              <InfoRow label="Created by" value={testData.createdBy} />
             )}
             {testData.updatedAt && (
               <InfoRow
-                label="Cập nhật lần cuối"
+                label="Last updated"
                 value={formatDate3(testData.updatedAt)}
               />
             )}
             {testData.updatedBy && (
-              <InfoRow label="Người cập nhật" value={testData.updatedBy} />
+              <InfoRow label="Updated by" value={testData.updatedBy} />
             )}
           </Section>
         </div>

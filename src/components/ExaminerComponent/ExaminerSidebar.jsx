@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../../images/Logo.png";
-import { t, onLangChange } from "../../i18n";
+import { t } from "../../i18n";
 import ExaminerNotificationModal from "./ExaminerNotificationModal";
 import signalRService from "../../service/signalrService";
 import {
@@ -39,21 +39,21 @@ const CampaignIcon = ({ className = "" }) => (
   </svg>
 );
 
-const ReportIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-    <polyline points="14,2 14,8 20,8" />
-    <line x1="16" y1="13" x2="8" y2="13" />
-    <line x1="16" y1="17" x2="8" y2="17" />
-    <polyline points="10,9 9,9 8,9" />
-  </svg>
-);
+// const ReportIcon = ({ className = "" }) => (
+//   <svg
+//     viewBox="0 0 24 24"
+//     fill="none"
+//     stroke="currentColor"
+//     strokeWidth="1.8"
+//     className={className}
+//   >
+//     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+//     <polyline points="14,2 14,8 20,8" />
+//     <line x1="16" y1="13" x2="8" y2="13" />
+//     <line x1="16" y1="17" x2="8" y2="17" />
+//     <polyline points="10,9 9,9 8,9" />
+//   </svg>
+// );
 
 const TaskIcon = ({ className = "" }) => (
   <svg
@@ -104,11 +104,17 @@ const navItems = [
 ];
 
 const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
-  const [displayName, setDisplayName] = useState(username);
-  const [role, setRole] = useState("Examiner");
+  const [displayName] = useState(username);
+  const [role] = useState("Examiner");
   const initials = getInitials(displayName);
-  const [, setLangTick] = useState(0);
-  const [notificationCount, setNotificationCount] = useState(0);
+  //const [, setLangTick] = useState(0);
+
+  // Khởi tạo notificationCount từ localStorage để persist qua các lần re-mount
+  const [notificationCount, setNotificationCount] = useState(() => {
+    const saved = localStorage.getItem("notificationCount");
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [refreshModalTrigger, setRefreshModalTrigger] = useState(0);
   const [toastData, setToastData] = useState({
@@ -117,25 +123,15 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
     body: "",
   });
   const navigate = useNavigate();
+  const hasFetchedInitialCount = useRef(false);
+  const hasStartedSignalR = useRef(false);
 
-  useEffect(() => {
-    // Load employee data from localStorage
-    const employee = localStorage.getItem("employee");
-    if (employee) {
-      const employeeData = JSON.parse(employee);
-      if (employeeData.displayName) {
-        setDisplayName(employeeData.displayName);
-      }
-      if (employeeData.role === "examiner") {
-        setRole("Examiner");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const off = onLangChange(() => setLangTick((v) => v + 1));
-    return () => off();
-  }, []);
+  // Wrapper function để update cả state và localStorage
+  const updateNotificationCount = (newCount) => {
+    console.log("📊 Update notification count:", newCount);
+    setNotificationCount(newCount);
+    localStorage.setItem("notificationCount", newCount.toString());
+  };
 
   // Yêu cầu quyền thông báo khi lần đầu load
   useEffect(() => {
@@ -144,23 +140,50 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
     }
   }, []);
 
-  // Load số thông báo chưa đọc ban đầu
+  // Load số thông báo chưa đọc ban đầu (CHỈ 1 LẦN)
   useEffect(() => {
+    // Prevent multiple API calls
+    if (hasFetchedInitialCount.current) {
+      console.log("SidebarExaminer: Đã fetch rồi, bỏ qua");
+      return;
+    }
+    hasFetchedInitialCount.current = true;
+
     const fetchNotificationCount = async () => {
       try {
+        console.log("SidebarExaminer: 🔥 Bắt đầu load số thông báo...");
         const result = await getUnreadNotificationCount();
-        if (result.success) {
-          setNotificationCount(result.count);
+        console.log("SidebarExaminer: API response:", result);
+
+        if (result.success && typeof result.count === "number") {
+          console.log("SidebarExaminer: ✅ Set count =", result.count);
+          updateNotificationCount(result.count);
           return;
         }
+
         // fallback nếu API count lỗi
+        console.log("SidebarExaminer: Fallback sang getNotifications()");
         const fallback = await getNotifications();
+        console.log("SidebarExaminer: Kết quả getNotifications:", fallback);
+
         if (fallback.success && Array.isArray(fallback.data)) {
           const unreadCount = fallback.data.filter((n) => !n.isRead).length;
-          setNotificationCount(unreadCount);
+          console.log(
+            "SidebarExaminer: Tính được",
+            unreadCount,
+            "thông báo chưa đọc từ",
+            fallback.data.length,
+            "thông báo"
+          );
+          updateNotificationCount(unreadCount);
+        } else {
+          console.warn("SidebarExaminer: Không thể lấy số thông báo");
         }
       } catch (error) {
-        console.error("Error fetching notification count:", error);
+        console.error(
+          "SidebarExaminer: Error fetching notification count:",
+          error
+        );
       }
     };
 
@@ -169,36 +192,46 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
 
   // Kết nối SignalR + xử lý thông báo real-time + hiển thị browser notification
   useEffect(() => {
-    console.log("ExaminerSidebar: Khởi tạo SignalR connection...");
+    if (hasStartedSignalR.current) {
+      console.log("SidebarExaminer: SignalR đã được khởi tạo rồi, bỏ qua");
+      return;
+    }
+
+    console.log("SidebarExaminer: Khởi tạo SignalR connection...");
+    hasStartedSignalR.current = true;
 
     const handleNewNotification = (notification) => {
       console.log(
-        "ExaminerSidebar: Nhận được notification từ SignalR:",
+        "SidebarExaminer: Nhận được notification từ SignalR:",
         notification
       );
 
-      // Tăng badge ngay lập tức để UX tốt hơn (sử dụng functional update để tránh stale closure)
-      setNotificationCount((prev) => {
-        const newCount = prev + 1;
-        console.log(
-          "ExaminerSidebar: Cập nhật badge từ",
-          prev,
-          "lên",
-          newCount
-        );
-        return newCount;
-      });
+      // Tăng badge ngay lập tức để UX tốt hơn
+      const currentCount = parseInt(
+        localStorage.getItem("notificationCount") || "0",
+        10
+      );
+      const newCount = currentCount + 1;
+      console.log(
+        "SidebarExaminer: Cập nhật badge từ",
+        currentCount,
+        "lên",
+        newCount
+      );
+      updateNotificationCount(newCount);
 
       // Trigger refresh modal
       setRefreshModalTrigger((prev) => prev + 1);
-      console.log("ExaminerSidebar: Đã trigger refresh modal");
+      console.log("SidebarExaminer: Đã trigger refresh modal");
 
       // Hiển thị toast ngay lập tức
-      const toastTitle = notification.title || "Thông báo mới từ Cabin HR";
+      const toastTitle = notification.title || "New notification from Cabin HR";
       const toastBody =
-        notification.body || notification.message || "Bạn có thông báo mới";
+        notification.body ||
+        notification.message ||
+        "You have a new notification";
 
-      console.log("ExaminerSidebar: Hiển thị toast với:", {
+      console.log("SidebarExaminer: Hiển thị toast với:", {
         title: toastTitle,
         body: toastBody,
       });
@@ -212,14 +245,14 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
       getUnreadNotificationCount()
         .then((res) => {
           if (res.success) {
-            console.log("ExaminerSidebar: Đồng bộ badge từ server:", res.count);
-            setNotificationCount(res.count);
+            console.log("SidebarExaminer: Đồng bộ badge từ server:", res.count);
+            updateNotificationCount(res.count);
           } else {
-            console.warn("ExaminerSidebar: Không thể đồng bộ badge từ server");
+            console.warn("SidebarExaminer: Không thể đồng bộ badge từ server");
           }
         })
         .catch((err) => {
-          console.error("ExaminerSidebar: Lỗi khi đồng bộ badge:", err);
+          console.error("SidebarExaminer: Lỗi khi đồng bộ badge:", err);
         });
 
       // Hiển thị thông báo hệ thống (giống Zalo/Facebook)
@@ -247,10 +280,10 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
 
             // Tự đóng sau 8 giây
             setTimeout(() => notif.close(), 8000);
-            console.log("ExaminerSidebar: Đã hiển thị browser notification");
+            console.log("SidebarExaminer: Đã hiển thị browser notification");
           } catch (err) {
             console.error(
-              "ExaminerSidebar: Lỗi khi tạo browser notification:",
+              "SidebarExaminer: Lỗi khi tạo browser notification:",
               err
             );
           }
@@ -271,24 +304,27 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
 
     const token = localStorage.getItem("token");
     if (token) {
-      console.log("ExaminerSidebar: Có token, bắt đầu kết nối SignalR...");
+      console.log("SidebarExaminer: Có token, bắt đầu kết nối SignalR...");
       signalRService
         .startConnection(handleNewNotification)
         .then(() => {
-          console.log("ExaminerSidebar: SignalR connection đã được khởi tạo");
+          console.log("SidebarExaminer: SignalR connection đã được khởi tạo");
         })
         .catch((err) => {
-          console.error("ExaminerSidebar: Không thể khởi tạo SignalR:", err);
+          console.error("SidebarExaminer: Không thể khởi tạo SignalR:", err);
         });
     } else {
       console.warn(
-        "ExaminerSidebar: Không có token, không thể kết nối SignalR"
+        "SidebarExaminer: Không có token, không thể kết nối SignalR"
       );
     }
 
     return () => {
-      console.log("ExaminerSidebar: Cleanup SignalR connection...");
-      signalRService.stopConnection();
+      console.log(
+        "SidebarExaminer: Component unmount, nhưng giữ SignalR connection active"
+      );
+      // ✅ KHÔNG đóng connection để duy trì real-time notifications
+      // Connection sẽ được maintain xuyên suốt session cho đến khi user logout
     };
   }, []); // Empty deps để chỉ chạy 1 lần khi mount
 
@@ -304,12 +340,17 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
 
   // Nhận cập nhật số lượng chưa đọc từ modal
   const handleNotificationUpdate = (newCount) => {
-    setNotificationCount(newCount);
+    updateNotificationCount(newCount);
   };
 
   const handleLogout = () => {
+    // Đóng SignalR connection khi logout
+    console.log("SidebarExaminer: User logout, đóng SignalR connection");
+    signalRService.stopConnection();
+
     localStorage.removeItem("employee");
     localStorage.removeItem("token");
+    localStorage.removeItem("notificationCount");
     localStorage.removeItem("refreshToken");
     window.dispatchEvent(new Event("auth-changed"));
     navigate("/");
@@ -338,11 +379,15 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
 
         <button
           className="relative p-2 transition-all duration-200 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-800"
-          onClick={() => setIsNotificationModalOpen(true)}
+          onClick={() => {
+            console.log("🔔 Bell clicked, count:", notificationCount);
+            setIsNotificationModalOpen(true);
+          }}
+          aria-label={`Thông báo (${notificationCount} chưa đọc)`}
         >
           <BellIcon className="w-5 h-5" />
           {notificationCount > 0 && (
-            <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center min-w-[16px]">
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {notificationCount > 99 ? "99+" : notificationCount}
             </span>
           )}

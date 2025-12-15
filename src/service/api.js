@@ -130,9 +130,7 @@ export const login = async (username, password) => {
       // API trả về lỗi nhưng không ném exception
       // Ưu tiên errorMessage từ API response (format: {errorCode, error, errorMessage})
       const errorMessage =
-        response.data.errorMessage ||
-        response.data.message ||
-        "Đăng nhập thất bại";
+        response.data.errorMessage || response.data.message || "Login failed";
       return {
         success: false,
         error: errorMessage,
@@ -147,7 +145,7 @@ export const login = async (username, password) => {
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Đăng nhập thất bại";
+      "Login failed";
 
     return {
       success: false,
@@ -181,14 +179,14 @@ export const register = async (payload) => {
 
     return {
       success: false,
-      error: data?.message || "Đăng ký thất bại",
+      error: data?.message || "Registration failed",
       status,
     };
   } catch (error) {
     return {
       success: false,
       error:
-        error.response?.data?.message || error.message || "Đăng ký thất bại",
+        error.response?.data?.message || error.message || "Registration failed",
       status: error.response?.status,
     };
   }
@@ -209,7 +207,7 @@ export const getUserProfile = async (userId) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy thông tin người dùng",
+        error: response.data.message || "Cannot get user profile",
       };
     }
   } catch (error) {
@@ -218,7 +216,7 @@ export const getUserProfile = async (userId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy thông tin người dùng",
+        "Cannot get user profile",
       status: error.response?.status,
     };
   }
@@ -240,7 +238,7 @@ export const getRecruitmentHistory = async () => {
 
     return {
       success: false,
-      error: responseData.message || "Không thể lấy lịch sử ứng tuyển",
+      error: responseData.message || "Cannot get recruitment history",
     };
   } catch (error) {
     const errorData = error.response?.data;
@@ -250,7 +248,7 @@ export const getRecruitmentHistory = async () => {
         errorData?.message ||
         errorData?.errorMessage ||
         error.message ||
-        "Không thể lấy lịch sử ứng tuyển",
+        "Cannot get recruitment history",
       status: error.response?.status,
     };
   }
@@ -271,15 +269,13 @@ export const getCities = async () => {
 
     return {
       success: false,
-      error: response.data.message || "Không thể lấy danh sách thành phố",
+      error: response.data.message || "Cannot get cities",
     };
   } catch (error) {
     return {
       success: false,
       error:
-        error.response?.data?.message ||
-        error.message ||
-        "Không thể lấy danh sách thành phố",
+        error.response?.data?.message || error.message || "Cannot get cities",
       status: error.response?.status,
     };
   }
@@ -300,15 +296,13 @@ export const getWardsForCity = async (cityId) => {
 
     return {
       success: false,
-      error: response.data.message || "Không thể lấy danh sách phường/xã",
+      error: response.data.message || "Cannot get wards",
     };
   } catch (error) {
     return {
       success: false,
       error:
-        error.response?.data?.message ||
-        error.message ||
-        "Không thể lấy danh sách phường/xã",
+        error.response?.data?.message || error.message || "Cannot get wards",
       status: error.response?.status,
     };
   }
@@ -333,7 +327,7 @@ export const getInterviewCriterias = async () => {
       error:
         responseData.message ||
         responseData.errorMessage ||
-        "Không thể lấy tiêu chí phỏng vấn",
+        "Cannot get interview criterias",
     };
   } catch (error) {
     const errorData = error.response?.data;
@@ -343,7 +337,7 @@ export const getInterviewCriterias = async () => {
         errorData?.message ||
         errorData?.errorMessage ||
         error.message ||
-        "Không thể lấy tiêu chí phỏng vấn",
+        "Cannot get interview criterias",
       status: error.response?.status,
     };
   }
@@ -361,14 +355,14 @@ export const getInterviewCriteriasPromotion = async () => {
         data: response.data.data,
         message:
           response.data.message ||
-          "Lấy interview criterias cho promotion thành công",
+          "Get interview criterias for promotion successfully",
       };
     } else {
       return {
         success: false,
         error:
           response.data.message ||
-          "Lấy interview criterias cho promotion thất bại",
+          "Get interview criterias for promotion failed",
       };
     }
   } catch (error) {
@@ -377,7 +371,7 @@ export const getInterviewCriteriasPromotion = async () => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Lấy interview criterias cho promotion thất bại",
+        "Get interview criterias for promotion failed",
       status: error.response?.status,
     };
   }
@@ -392,7 +386,7 @@ export const getRoundTypes = async (type) => {
     if (!parsedType || Number.isNaN(parsedType) || parsedType <= 0) {
       return {
         success: false,
-        error: "Loại chiến dịch (type) là bắt buộc",
+        error: "Campaign type (type) is required",
       };
     }
 
@@ -405,21 +399,21 @@ export const getRoundTypes = async (type) => {
       const list = Array.isArray(responseData?.data)
         ? responseData.data
         : Array.isArray(responseData)
-          ? responseData
-          : null;
+        ? responseData
+        : null;
 
       if (list) {
         return {
           success: true,
           data: list,
-          message: responseData?.message || "Lấy danh sách round types thành công",
+          message: responseData?.message || "Get round types successfully",
         };
       }
     }
 
     return {
       success: false,
-      error: responseData?.message || "Không thể lấy danh sách round types",
+      error: responseData?.message || "Cannot get round types",
     };
   } catch (error) {
     return {
@@ -427,7 +421,7 @@ export const getRoundTypes = async (type) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách round types",
+        "Cannot get round types",
       status: error.response?.status,
     };
   }
@@ -444,40 +438,46 @@ export const getRequirementItems = async (requirementId) => {
     if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
       return {
         success: false,
-        error: "Requirement id là bắt buộc",
+        error: "Requirement id is required",
       };
     }
 
-    const response = await api.get(`/requirements/${parsedId}/requirement-items`);
+    const response = await api.get(
+      `/requirements/${parsedId}/requirement-items`
+    );
     const payload = response.data;
 
     const list = Array.isArray(payload?.data)
       ? payload.data
       : Array.isArray(payload?.data?.requirementItems)
-        ? [{
-          requirementId: payload?.data?.requirementId,
-          requirementItems: payload.data.requirementItems,
-        }]
-        : Array.isArray(payload?.requirementItems)
-          ? [{
+      ? [
+          {
+            requirementId: payload?.data?.requirementId,
+            requirementItems: payload.data.requirementItems,
+          },
+        ]
+      : Array.isArray(payload?.requirementItems)
+      ? [
+          {
             requirementId: payload?.requirementId,
             requirementItems: payload.requirementItems,
-          }]
-          : Array.isArray(payload)
-            ? payload
-            : null;
+          },
+        ]
+      : Array.isArray(payload)
+      ? payload
+      : null;
 
     if (response.status >= 200 && response.status < 300 && list) {
       return {
         success: true,
         data: list,
-        message: payload?.message || "Lấy requirement items thành công",
+        message: payload?.message || "Get requirement items successfully",
       };
     }
 
     return {
       success: false,
-      error: payload?.message || "Không thể lấy requirement items",
+      error: payload?.message || "Cannot get requirement items",
     };
   } catch (error) {
     return {
@@ -485,7 +485,7 @@ export const getRequirementItems = async (requirementId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy requirement items",
+        "Cannot get requirement items",
       status: error.response?.status,
     };
   }
@@ -515,13 +515,12 @@ export const updateUserProfile = async (userId, userData) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Cập nhật profile thành công",
+              "Update profile successfully",
           };
         } else {
           // Có lỗi - xử lý errors array
           let errorMessage =
-            responseData.errorMessage ||
-            "Không thể cập nhật thông tin người dùng";
+            responseData.errorMessage || "Cannot update user profile";
 
           // Nếu có errors array, kết hợp các lỗi
           if (
@@ -555,14 +554,13 @@ export const updateUserProfile = async (userId, userData) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || "Cập nhật profile thành công",
+            message: responseData.message || "Update profile successfully",
           };
         } else {
           // Code khác và message không phải success, coi như lỗi
           return {
             success: false,
-            error:
-              responseData.message || "Không thể cập nhật thông tin người dùng",
+            error: responseData.message || "Cannot update user profile",
           };
         }
       }
@@ -571,14 +569,13 @@ export const updateUserProfile = async (userId, userData) => {
       return {
         success: true,
         data: responseData || responseData?.data,
-        message: responseData?.message || "Cập nhật profile thành công",
+        message: responseData?.message || "Update profile successfully",
       };
     } else {
       // HTTP status không thành công
       return {
         success: false,
-        error:
-          response.data?.message || "Không thể cập nhật thông tin người dùng",
+        error: response.data?.message || "Cannot update user profile",
         status: httpStatus,
       };
     }
@@ -587,8 +584,7 @@ export const updateUserProfile = async (userId, userData) => {
 
     // Kiểm tra nếu có errorCode và errors array trong error response
     if (errorData && typeof errorData.errorCode !== "undefined") {
-      let errorMessage =
-        errorData.errorMessage || "Không thể cập nhật thông tin người dùng";
+      let errorMessage = errorData.errorMessage || "Cannot update user profile";
 
       // Nếu có errors array, kết hợp các lỗi
       if (
@@ -655,12 +651,12 @@ export const uploadProfileImage = async (file) => {
       return {
         success: true,
         data: data,
-        message: responseData.message || "Tải ảnh đại diện thành công",
+        message: responseData.message || "Upload profile image successfully",
       };
     } else {
       return {
         success: false,
-        error: responseData.message || "Tải ảnh đại diện thất bại",
+        error: responseData.message || "Upload profile image failed",
       };
     }
   } catch (error) {
@@ -704,7 +700,7 @@ export const getCampaignRequests = async (page = 1, pageSize = 5) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy danh sách campaign",
+        error: response.data.message || "Cannot get campaign list",
       };
     }
   } catch (error) {
@@ -713,7 +709,7 @@ export const getCampaignRequests = async (page = 1, pageSize = 5) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách campaign",
+        "Cannot get campaign list",
       status: error.response?.status,
     };
   }
@@ -733,8 +729,7 @@ export const getCampaignRequestById = async (id) => {
     } else {
       return {
         success: false,
-        error:
-          response.data.message || "Không thể lấy chi tiết campaign request",
+        error: response.data.message || "Cannot get campaign request detail",
       };
     }
   } catch (error) {
@@ -743,7 +738,7 @@ export const getCampaignRequestById = async (id) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy chi tiết campaign request",
+        "Cannot get campaign request detail",
       status: error.response?.status,
     };
   }
@@ -784,15 +779,15 @@ export const approveOrRejectCampaignRequest = async (
               responseData.message ||
               responseData.errorMessage ||
               (status === 2
-                ? "Duyệt yêu cầu thành công"
-                : "Từ chối yêu cầu thành công"),
+                ? "Approve campaign request successfully"
+                : "Reject campaign request successfully"),
           };
         } else {
           let errorMessage =
             responseData.errorMessage ||
             (status === 2
-              ? "Không thể duyệt yêu cầu"
-              : "Không thể từ chối yêu cầu");
+              ? "Cannot approve campaign request"
+              : "Cannot reject campaign request");
 
           if (
             responseData.errors &&
@@ -826,8 +821,8 @@ export const approveOrRejectCampaignRequest = async (
             message:
               responseData.message ||
               (status === 2
-                ? "Duyệt yêu cầu thành công"
-                : "Từ chối yêu cầu thành công"),
+                ? "Approve campaign request successfully"
+                : "Reject campaign request successfully"),
           };
         } else {
           return {
@@ -836,8 +831,8 @@ export const approveOrRejectCampaignRequest = async (
               responseData.message ||
               responseData.errorMessage ||
               (status === 2
-                ? "Không thể duyệt yêu cầu"
-                : "Không thể từ chối yêu cầu"),
+                ? "Cannot approve campaign request"
+                : "Cannot reject campaign request"),
           };
         }
       }
@@ -849,8 +844,8 @@ export const approveOrRejectCampaignRequest = async (
         message:
           responseData?.message ||
           (status === 2
-            ? "Duyệt yêu cầu thành công"
-            : "Từ chối yêu cầu thành công"),
+            ? "Approve campaign request successfully"
+            : "Reject campaign request successfully"),
       };
     } else {
       return {
@@ -859,8 +854,8 @@ export const approveOrRejectCampaignRequest = async (
           response.data?.message ||
           response.data?.errorMessage ||
           (status === 2
-            ? "Không thể duyệt yêu cầu"
-            : "Không thể từ chối yêu cầu"),
+            ? "Cannot approve campaign request"
+            : "Cannot reject campaign request"),
         status: httpStatus,
       };
     }
@@ -868,8 +863,8 @@ export const approveOrRejectCampaignRequest = async (
     const errorData = error.response?.data;
     let errorMessage =
       status === 2
-        ? "Đã xảy ra lỗi khi duyệt yêu cầu"
-        : "Đã xảy ra lỗi khi từ chối yêu cầu";
+        ? "An error occurred while approving campaign request"
+        : "An error occurred while rejecting campaign request";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -904,7 +899,7 @@ export const getCampaigns = async (params = {}) => {
       return {
         success: true,
         data: responseData,
-        message: "Lấy danh sách chiến dịch thành công",
+        message: "Get campaign list successfully",
       };
     }
 
@@ -939,7 +934,7 @@ export const getCampaigns = async (params = {}) => {
 
     return {
       success: false,
-      error: responseData.message || "Không thể lấy danh sách chiến dịch",
+      error: responseData.message || "Cannot get campaign list",
     };
   } catch (error) {
     return {
@@ -947,7 +942,7 @@ export const getCampaigns = async (params = {}) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách chiến dịch",
+        "Cannot get campaign list",
       status: error.response?.status,
     };
   }
@@ -963,7 +958,7 @@ export const getMyCampaigns = async (params = {}) => {
       return {
         success: true,
         data: responseData,
-        message: "Lấy danh sách chiến dịch thành công",
+        message: "Get campaign list successfully",
       };
     }
 
@@ -998,7 +993,7 @@ export const getMyCampaigns = async (params = {}) => {
 
     return {
       success: false,
-      error: responseData.message || "Không thể lấy danh sách chiến dịch",
+      error: responseData.message || "Cannot get campaign list",
     };
   } catch (error) {
     return {
@@ -1006,7 +1001,7 @@ export const getMyCampaigns = async (params = {}) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách chiến dịch",
+        "Cannot get campaign list",
       status: error.response?.status,
     };
   }
@@ -1022,7 +1017,7 @@ export const getMyTasks = async (params = {}) => {
       return {
         success: true,
         data: responseData,
-        message: "Lấy danh sách task thành công",
+        message: "Get task list successfully",
       };
     }
 
@@ -1057,7 +1052,7 @@ export const getMyTasks = async (params = {}) => {
 
     return {
       success: false,
-      error: responseData.message || "Không thể lấy danh sách task",
+      error: responseData.message || "Cannot get task list",
     };
   } catch (error) {
     return {
@@ -1065,7 +1060,7 @@ export const getMyTasks = async (params = {}) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách task",
+        "Cannot get task list",
       status: error.response?.status,
     };
   }
@@ -1094,13 +1089,13 @@ export const getCampaignById = async (id) => {
       return {
         success: true,
         data: responseData.data || responseData,
-        message: responseData.message || "Lấy chi tiết chiến dịch thành công",
+        message: responseData.message || "Get campaign detail successfully",
       };
     }
 
     return {
       success: false,
-      error: responseData?.message || "Không thể lấy chi tiết chiến dịch",
+      error: responseData?.message || "Cannot get campaign detail",
     };
   } catch (error) {
     return {
@@ -1108,7 +1103,7 @@ export const getCampaignById = async (id) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy chi tiết chiến dịch",
+        "Cannot get campaign detail",
       status: error.response?.status,
     };
   }
@@ -1146,15 +1141,15 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
               responseData.message ||
               responseData.errorMessage ||
               (status === 2
-                ? "Duyệt chiến dịch thành công"
-                : "Từ chối chiến dịch thành công"),
+                ? "Approve campaign successfully"
+                : "Reject campaign successfully"),
           };
         } else {
           let errorMessage =
             responseData.errorMessage ||
             (status === 2
-              ? "Không thể duyệt chiến dịch"
-              : "Không thể từ chối chiến dịch");
+              ? "Cannot approve campaign"
+              : "Cannot reject campaign");
 
           if (
             responseData.errors &&
@@ -1183,8 +1178,8 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
             message:
               responseData.message ||
               (status === 2
-                ? "Duyệt chiến dịch thành công"
-                : "Từ chối chiến dịch thành công"),
+                ? "Approve campaign successfully"
+                : "Reject campaign successfully"),
           };
         } else {
           // Có lỗi (code !== 0)
@@ -1194,8 +1189,8 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
               responseData.message ||
               responseData.errorMessage ||
               (status === 2
-                ? "Không thể duyệt chiến dịch"
-                : "Không thể từ chối chiến dịch"),
+                ? "Cannot approve campaign"
+                : "Cannot reject campaign"),
           };
         }
       }
@@ -1207,8 +1202,8 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
         message:
           responseData?.message ||
           (status === 2
-            ? "Duyệt chiến dịch thành công"
-            : "Từ chối chiến dịch thành công"),
+            ? "Approve campaign successfully"
+            : "Reject campaign successfully"),
       };
     } else {
       return {
@@ -1216,9 +1211,7 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
         error:
           response.data?.message ||
           response.data?.errorMessage ||
-          (status === 2
-            ? "Không thể duyệt chiến dịch"
-            : "Không thể từ chối chiến dịch"),
+          (status === 2 ? "Cannot approve campaign" : "Cannot reject campaign"),
         status: httpStatus,
       };
     }
@@ -1226,8 +1219,8 @@ export const updateCampaignStatus = async (id, status, rejectReason = null) => {
     const errorData = error.response?.data;
     let errorMessage =
       status === 2
-        ? "Đã xảy ra lỗi khi duyệt chiến dịch"
-        : "Đã xảy ra lỗi khi từ chối chiến dịch";
+        ? "An error occurred while approving campaign"
+        : "An error occurred while rejecting campaign";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -1273,7 +1266,7 @@ export const getTests = async (page = 1, pageSize = 10) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy danh sách đề thi",
+        error: response.data.message || "Cannot get test list",
       };
     }
   } catch (error) {
@@ -1283,7 +1276,7 @@ export const getTests = async (page = 1, pageSize = 10) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách đề thi",
+        "Cannot get test list",
       status: error.response?.status,
     };
   }
@@ -1320,7 +1313,7 @@ export const getMyTests = async () => {
       console.warn("API returned code !== 0 and no data:", response.data.code);
       return {
         success: false,
-        error: response.data.message || "Không thể lấy danh sách đề thi",
+        error: response.data.message || "Cannot get test list",
         data: response.data.data || null,
         rawResponse: response.data,
       };
@@ -1333,7 +1326,7 @@ export const getMyTests = async () => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách đề thi",
+        "Cannot get test list",
       status: error.response?.status,
     };
   }
@@ -1348,7 +1341,9 @@ export const getMyListeningSessions = async () => {
 
     // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
     const hasData =
-      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (responseData?.data?.items &&
+        Array.isArray(responseData.data.items) &&
+        responseData.data.items.length > 0) ||
       (Array.isArray(responseData?.data) && responseData.data.length > 0);
 
     if (responseData.code === 0 || hasData) {
@@ -1381,7 +1376,7 @@ export const getMyListeningSessions = async () => {
       error:
         responseData.message ||
         responseData.errorMessage ||
-        "Không thể lấy lịch sử bài thi Listening",
+        "Cannot get listening test history",
     };
   } catch (error) {
     const errorData = error.response?.data;
@@ -1391,7 +1386,7 @@ export const getMyListeningSessions = async () => {
         errorData?.message ||
         errorData?.errorMessage ||
         error.message ||
-        "Không thể lấy lịch sử bài thi Listening",
+        "Cannot get listening test history",
       status: error.response?.status,
     };
   }
@@ -1406,7 +1401,9 @@ export const getMySpeakingSessions = async () => {
 
     // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
     const hasData =
-      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (responseData?.data?.items &&
+        Array.isArray(responseData.data.items) &&
+        responseData.data.items.length > 0) ||
       (Array.isArray(responseData?.data) && responseData.data.length > 0);
 
     if (responseData.code === 0 || hasData) {
@@ -1439,7 +1436,7 @@ export const getMySpeakingSessions = async () => {
       error:
         responseData.message ||
         responseData.errorMessage ||
-        "Không thể lấy lịch sử bài thi Speaking",
+        "Cannot get speaking test history",
     };
   } catch (error) {
     const errorData = error.response?.data;
@@ -1449,7 +1446,7 @@ export const getMySpeakingSessions = async () => {
         errorData?.message ||
         errorData?.errorMessage ||
         error.message ||
-        "Không thể lấy lịch sử bài thi Speaking",
+        "Cannot get speaking test history",
       status: error.response?.status,
     };
   }
@@ -1464,7 +1461,9 @@ export const getMyPracticalSessions = async () => {
 
     // Kiểm tra nếu có data trong response (có thể là items array hoặc data trực tiếp)
     const hasData =
-      (responseData?.data?.items && Array.isArray(responseData.data.items) && responseData.data.items.length > 0) ||
+      (responseData?.data?.items &&
+        Array.isArray(responseData.data.items) &&
+        responseData.data.items.length > 0) ||
       (Array.isArray(responseData?.data) && responseData.data.length > 0);
 
     if (responseData.code === 0 || hasData) {
@@ -1497,7 +1496,7 @@ export const getMyPracticalSessions = async () => {
       error:
         responseData.message ||
         responseData.errorMessage ||
-        "Không thể lấy lịch sử bài thi Practical",
+        "Cannot get practical test history",
     };
   } catch (error) {
     const errorData = error.response?.data;
@@ -1507,7 +1506,7 @@ export const getMyPracticalSessions = async () => {
         errorData?.message ||
         errorData?.errorMessage ||
         error.message ||
-        "Không thể lấy lịch sử bài thi Practical",
+        "Cannot get practical test history",
       status: error.response?.status,
     };
   }
@@ -1522,12 +1521,12 @@ export const deleteTest = async (testId) => {
     if (response.data.code === 0) {
       return {
         success: true,
-        message: response.data.message || "Xóa đề thi thành công",
+        message: response.data.message || "Delete test successfully",
       };
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể xóa đề thi",
+        error: response.data.message || "Cannot delete test",
       };
     }
   } catch (error) {
@@ -1535,9 +1534,7 @@ export const deleteTest = async (testId) => {
     return {
       success: false,
       error:
-        error.response?.data?.message ||
-        error.message ||
-        "Không thể xóa đề thi",
+        error.response?.data?.message || error.message || "Cannot delete test",
       status: error.response?.status,
     };
   }
@@ -1557,7 +1554,7 @@ export const getTestById = async (testId) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy chi tiết đề thi",
+        error: response.data.message || "Cannot get test detail",
       };
     }
   } catch (error) {
@@ -1567,7 +1564,7 @@ export const getTestById = async (testId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy chi tiết đề thi",
+        "Cannot get test detail",
       status: error.response?.status,
     };
   }
@@ -1603,7 +1600,7 @@ export const getTestQuestions = async (testId, options = {}) => {
     } else {
       return {
         success: false,
-        error: responseData?.message || "Không thể lấy danh sách câu hỏi",
+        error: responseData?.message || "Cannot get test questions",
       };
     }
   } catch (error) {
@@ -1613,7 +1610,7 @@ export const getTestQuestions = async (testId, options = {}) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách câu hỏi",
+        "Cannot get test questions",
       status: error.response?.status,
     };
   }
@@ -1694,12 +1691,11 @@ export const updateTest = async (testId, testData) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Cập nhật đề thi thành công",
+              "Update test successfully",
           };
         } else {
           // Có lỗi - xử lý errors array
-          let errorMessage =
-            responseData.errorMessage || "Không thể cập nhật đề thi";
+          let errorMessage = responseData.errorMessage || "Cannot update test";
 
           // Nếu có errors array, kết hợp các lỗi
           if (
@@ -1733,7 +1729,7 @@ export const updateTest = async (testId, testData) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || "Cập nhật đề thi thành công",
+            message: responseData.message || "Update test successfully",
           };
         } else {
           // Code khác và message không phải success, coi như lỗi
@@ -1742,7 +1738,7 @@ export const updateTest = async (testId, testData) => {
             error:
               responseData.message ||
               responseData.errorMessage ||
-              "Không thể cập nhật đề thi",
+              "Cannot update test",
           };
         }
       }
@@ -1751,7 +1747,7 @@ export const updateTest = async (testId, testData) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || "Cập nhật đề thi thành công",
+        message: responseData?.message || "Update test successfully",
       };
     } else {
       // HTTP status không thành công
@@ -1760,7 +1756,7 @@ export const updateTest = async (testId, testData) => {
         error:
           response.data?.message ||
           response.data?.errorMessage ||
-          "Không thể cập nhật đề thi",
+          "Cannot update test",
         status: httpStatus,
       };
     }
@@ -1769,7 +1765,7 @@ export const updateTest = async (testId, testData) => {
 
     // Xử lý lỗi từ response
     const errorData = error.response?.data;
-    let errorMessage = "Đã xảy ra lỗi khi cập nhật đề thi";
+    let errorMessage = "An error occurred while updating test";
 
     if (errorData) {
       // Ưu tiên errorMessage từ API
@@ -1819,7 +1815,7 @@ export const getNotifications = async (isRead = null) => {
 
     return {
       success: false,
-      error: responseData.message || "Không thể lấy danh sách thông báo",
+      error: responseData.message || "Cannot get notification list",
     };
   } catch (error) {
     return {
@@ -1827,7 +1823,7 @@ export const getNotifications = async (isRead = null) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách thông báo",
+        "Cannot get notification list",
       status: error.response?.status,
     };
   }
@@ -1864,7 +1860,7 @@ export const markNotificationAsRead = async (notificationId) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Đánh dấu thông báo thành công",
+              "Mark notification as read successfully",
           };
         }
 
@@ -1873,7 +1869,7 @@ export const markNotificationAsRead = async (notificationId) => {
           error:
             responseData.errorMessage ||
             responseData.message ||
-            "Không thể đánh dấu thông báo",
+            "Cannot mark notification as read",
           errorCode: responseData.errorCode,
         };
       }
@@ -1890,26 +1886,28 @@ export const markNotificationAsRead = async (notificationId) => {
         if (isSuccessCode) {
           return {
             success: true,
-            message: responseData.message || "Đánh dấu thông báo thành công",
+            message:
+              responseData.message || "Mark notification as read successfully",
           };
         }
 
         return {
           success: false,
-          error: responseData.message || "Không thể đánh dấu thông báo",
+          error: responseData.message || "Cannot mark notification as read",
           errorCode: responseData.code,
         };
       }
 
       return {
         success: true,
-        message: responseData.message || "Đánh dấu thông báo thành công",
+        message:
+          responseData.message || "Mark notification as read successfully",
       };
     }
 
     return {
       success: false,
-      error: responseData.message || "Không thể đánh dấu thông báo",
+      error: responseData.message || "Cannot mark notification as read",
       status: response.status,
     };
   } catch (error) {
@@ -1920,7 +1918,7 @@ export const markNotificationAsRead = async (notificationId) => {
         errorData?.errorMessage ||
         errorData?.message ||
         error.message ||
-        "Không thể đánh dấu thông báo",
+        "Cannot mark notification as read",
       status: error.response?.status,
     };
   }
@@ -1935,13 +1933,14 @@ export const markAllNotificationsAsRead = async () => {
       return {
         success: true,
         message:
-          response.data.message || "Đánh dấu tất cả thông báo thành công",
+          response.data.message ||
+          "Mark all notifications as read successfully",
       };
     }
 
     return {
       success: false,
-      error: response.data.message || "Không thể đánh dấu tất cả thông báo",
+      error: response.data.message || "Cannot mark all notifications as read",
     };
   } catch (error) {
     return {
@@ -1949,7 +1948,7 @@ export const markAllNotificationsAsRead = async () => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể đánh dấu tất cả thông báo",
+        "Cannot mark all notifications as read",
       status: error.response?.status,
     };
   }
@@ -1964,7 +1963,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
     if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
       return {
         success: false,
-        error: "Test ID không hợp lệ. Vui lòng kiểm tra lại.",
+        error: "Invalid test ID. Please check again.",
       };
     }
 
@@ -1976,7 +1975,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
     ) {
       return {
         success: false,
-        error: "Danh sách câu hỏi không hợp lệ.",
+        error: "Invalid question list.",
       };
     }
 
@@ -1984,7 +1983,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
     if (questionsData.length > 50) {
       return {
         success: false,
-        error: "Số lượng câu hỏi không được vượt quá 50.",
+        error: "The number of questions cannot exceed 50.",
       };
     }
 
@@ -2012,7 +2011,9 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
           message:
             responseData?.message ||
             responseData?.errorMessage ||
-            `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
+            `Created successfully ${
+              responseData?.data?.length || questionsData.length
+            } questions.`,
         };
       }
 
@@ -2025,11 +2026,13 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
+              `Đã tạo thành công ${
+                responseData?.data?.length || questionsData.length
+              } câu hỏi.`,
           };
         } else {
           let errorMessage =
-            responseData.errorMessage || "Không thể tạo câu hỏi";
+            responseData.errorMessage || "Cannot create question";
 
           if (
             responseData.errors &&
@@ -2056,7 +2059,9 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             data: responseData.data,
             message:
               responseData.message ||
-              `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
+              `Created successfully ${
+                responseData?.data?.length || questionsData.length
+              } questions.`,
           };
         } else {
           return {
@@ -2064,7 +2069,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             error:
               responseData.message ||
               responseData.errorMessage ||
-              "Không thể tạo câu hỏi",
+              "Cannot create question",
           };
         }
       }
@@ -2075,7 +2080,9 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
         data: responseData?.data || responseData,
         message:
           responseData?.message ||
-          `Đã tạo thành công ${responseData?.data?.length || questionsData.length} câu hỏi.`,
+          `Created successfully ${
+            responseData?.data?.length || questionsData.length
+          } questions.`,
       };
     } else {
       return {
@@ -2083,14 +2090,14 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
         error:
           response.data?.message ||
           response.data?.errorMessage ||
-          "Không thể tạo câu hỏi",
+          "Cannot create question",
         status: httpStatus,
       };
     }
   } catch (error) {
     console.error("Bulk Create Questions Error:", error);
     const errorData = error.response?.data;
-    let errorMessage = "Đã xảy ra lỗi khi tạo câu hỏi";
+    let errorMessage = "An error occurred while creating question";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -2106,9 +2113,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
         errorMessage = errorData;
       } else if (error.response?.status === 400) {
         errorMessage =
-          errorData.title ||
-          errorData ||
-          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+          errorData.title || errorData || "Invalid data. Please check again.";
       }
     } else if (error.message) {
       errorMessage = error.message;
@@ -2130,7 +2135,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (!file) {
       return {
         success: false,
-        error: "Vui lòng chọn file Excel để tải lên.",
+        error: "Please select an Excel file to upload.",
       };
     }
 
@@ -2140,7 +2145,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (!isExcelFile) {
       return {
         success: false,
-        error: "Vui lòng chọn đúng định dạng Excel (.xlsx hoặc .xls).",
+        error: "Please select the correct Excel format (.xlsx or .xls).",
       };
     }
 
@@ -2149,7 +2154,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (file.size > maxSize) {
       return {
         success: false,
-        error: "Kích thước file không được vượt quá 10 MB.",
+        error: "The file size cannot exceed 10 MB.",
       };
     }
 
@@ -2159,7 +2164,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
     if (!testIdNum || testIdNum <= 0 || isNaN(testIdNum)) {
       return {
         success: false,
-        error: "Test ID không hợp lệ. Vui lòng kiểm tra lại.",
+        error: "Invalid test ID. Please check again.",
       };
     }
 
@@ -2203,7 +2208,11 @@ export const importQuestionsFromExcel = async (testId, file) => {
           message:
             responseData?.message ||
             responseData?.errorMessage ||
-            `Đã import thành công ${responseData?.data?.totalQuestionsCreated || responseData?.totalQuestionsCreated || 0} câu hỏi.`,
+            `Imported successfully ${
+              responseData?.data?.totalQuestionsCreated ||
+              responseData?.totalQuestionsCreated ||
+              0
+            } questions.`,
         };
       }
 
@@ -2216,11 +2225,13 @@ export const importQuestionsFromExcel = async (testId, file) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
+              `Imported successfully ${
+                responseData?.data?.totalQuestionsCreated || 0
+              } questions.`,
           };
         } else {
           let errorMessage =
-            responseData.errorMessage || "Không thể import câu hỏi";
+            responseData.errorMessage || "Cannot import question";
 
           if (
             responseData.errors &&
@@ -2245,7 +2256,11 @@ export const importQuestionsFromExcel = async (testId, file) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
+            message:
+              responseData.message ||
+              `Imported successfully ${
+                responseData?.data?.totalQuestionsCreated || 0
+              } questions.`,
           };
         } else {
           return {
@@ -2253,7 +2268,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
             error:
               responseData.message ||
               responseData.errorMessage ||
-              "Không thể import câu hỏi",
+              "Cannot import question",
           };
         }
       }
@@ -2262,7 +2277,11 @@ export const importQuestionsFromExcel = async (testId, file) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || `Đã import thành công ${responseData?.data?.totalQuestionsCreated || 0} câu hỏi.`,
+        message:
+          responseData?.message ||
+          `Imported successfully ${
+            responseData?.data?.totalQuestionsCreated || 0
+          } questions.`,
       };
     } else {
       return {
@@ -2270,14 +2289,14 @@ export const importQuestionsFromExcel = async (testId, file) => {
         error:
           response.data?.message ||
           response.data?.errorMessage ||
-          "Không thể import câu hỏi",
+          "Cannot import question",
         status: httpStatus,
       };
     }
   } catch (error) {
     console.error("Import Excel Error:", error);
     const errorData = error.response?.data;
-    let errorMessage = "Đã xảy ra lỗi khi import câu hỏi";
+    let errorMessage = "An error occurred while importing question";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -2293,9 +2312,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
         errorMessage = errorData;
       } else if (error.response?.status === 400) {
         errorMessage =
-          errorData.title ||
-          errorData ||
-          "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại file Excel.";
+          errorData.title || errorData || "Invalid data. Please check again.";
       }
     } else if (error.message) {
       errorMessage = error.message;
@@ -2333,13 +2350,13 @@ export const getCampaignRoundById = async (id) => {
       return {
         success: true,
         data: responseData.data || responseData,
-        message: responseData.message || "Lấy thông tin đợt tuyển thành công",
+        message: responseData.message || "Get campaign round successfully",
       };
     }
 
     return {
       success: false,
-      error: responseData?.message || "Không thể lấy thông tin đợt tuyển",
+      error: responseData?.message || "Cannot get campaign round",
     };
   } catch (error) {
     return {
@@ -2347,7 +2364,7 @@ export const getCampaignRoundById = async (id) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy thông tin đợt tuyển",
+        "Cannot get campaign round",
       status: error.response?.status,
     };
   }
@@ -2382,7 +2399,7 @@ export const getRoundParticipants = async (roundId, params = {}) => {
       return {
         success: true,
         data: responseData,
-        message: "Lấy danh sách ứng viên thành công",
+        message: "Get round participants successfully",
       };
     }
 
@@ -2392,13 +2409,13 @@ export const getRoundParticipants = async (roundId, params = {}) => {
         success: true,
         data: responseData.data,
         pagination: responseData.pagination,
-        message: responseData.message || "Lấy danh sách ứng viên thành công",
+        message: responseData.message || "Get round participants successfully",
       };
     }
 
     return {
       success: false,
-      error: responseData?.message || "Không thể lấy danh sách ứng viên",
+      error: responseData?.message || "Cannot get round participants",
     };
   } catch (error) {
     return {
@@ -2406,7 +2423,7 @@ export const getRoundParticipants = async (roundId, params = {}) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy danh sách ứng viên",
+        "Cannot get round participants",
       status: error.response?.status,
     };
   }
@@ -2446,16 +2463,16 @@ export const exportRoundUsers = async (roundId) => {
 
     return {
       success: true,
-      message: "Export danh sách users thành công",
+      message: "Export round users successfully",
     };
   } catch (error) {
-    console.error("Lỗi khi export users theo roundId:", error);
+    console.error("Error when exporting users by roundId:", error);
     return {
       success: false,
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể export danh sách users",
+        "Cannot export round users",
       status: error.response?.status,
     };
   }
@@ -2467,14 +2484,14 @@ export const importFinalReview = async (roundId, file) => {
   if (!roundId) {
     return {
       success: false,
-      error: "Thiếu roundId để import",
+      error: "Missing roundId to import",
     };
   }
 
   if (!file) {
     return {
       success: false,
-      error: "Thiếu file để import",
+      error: "Missing file to import",
     };
   }
 
@@ -2514,9 +2531,7 @@ export const importFinalReview = async (roundId, file) => {
       return {
         success: true,
         data: responseData.data || responseData,
-        message:
-          responseData.message ||
-          "Import hậu kiểm thành công",
+        message: responseData.message || "Import final review successfully",
       };
     } else {
       return {
@@ -2524,18 +2539,18 @@ export const importFinalReview = async (roundId, file) => {
         error:
           responseData.errorMessage ||
           responseData.message ||
-          "Không thể import file Excel",
+          "Cannot import Excel file",
         status: httpStatus,
       };
     }
   } catch (error) {
-    console.error("Lỗi khi import final review:", error);
+    console.error("Error when importing final review:", error);
     const errorData = error.response?.data;
     const errorMessage =
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Không thể import file Excel";
+      "Cannot import Excel file";
 
     return {
       success: false,
@@ -2561,9 +2576,7 @@ export const getOngoingCampaign = async () => {
 
     return {
       success: false,
-      error:
-        responseData?.message ||
-        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+      error: responseData?.message || "Cannot get ongoing campaign",
     };
   } catch (error) {
     return {
@@ -2571,7 +2584,7 @@ export const getOngoingCampaign = async () => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy thông tin chiến dịch đang ứng tuyển",
+        "Cannot get ongoing campaign",
       status: error.response?.status,
     };
   }
@@ -2581,7 +2594,7 @@ export const getAppearanceResult = async (activityId) => {
   if (!activityId) {
     return {
       success: false,
-      error: "Thiếu activityId để truy xuất kết quả ngoại hình",
+      error: "Missing activityId to get appearance result",
     };
   }
 
@@ -2602,7 +2615,7 @@ export const getAppearanceResult = async (activityId) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy kết quả kiểm tra ngoại hình",
+        "Cannot get appearance result",
     };
   } catch (error) {
     return {
@@ -2611,7 +2624,7 @@ export const getAppearanceResult = async (activityId) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy kết quả kiểm tra ngoại hình",
+        "Cannot get appearance result",
       status: error.response?.status,
     };
   }
@@ -2635,7 +2648,7 @@ export const getScoringCriterias = async () => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy danh sách tiêu chí đánh giá",
+        "Cannot get scoring criterias",
     };
   } catch (error) {
     return {
@@ -2644,7 +2657,7 @@ export const getScoringCriterias = async () => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy danh sách tiêu chí đánh giá",
+        "Cannot get scoring criterias",
       status: error.response?.status,
     };
   }
@@ -2655,7 +2668,7 @@ export const getInterviewResults = async (activityId) => {
   if (!activityId) {
     return {
       success: false,
-      error: "Thiếu activityId để truy xuất kết quả phỏng vấn",
+      error: "Missing activityId to get interview results",
     };
   }
 
@@ -2680,7 +2693,7 @@ export const getInterviewResults = async (activityId) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy danh sách kết quả phỏng vấn",
+        "Cannot get interview results",
     };
   } catch (error) {
     return {
@@ -2689,7 +2702,7 @@ export const getInterviewResults = async (activityId) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy danh sách kết quả phỏng vấn",
+        "Cannot get interview results",
       status: error.response?.status,
     };
   }
@@ -2700,7 +2713,7 @@ export const getInterviewResultDetail = async (id) => {
   if (!id) {
     return {
       success: false,
-      error: "Thiếu ID để truy xuất chi tiết kết quả phỏng vấn",
+      error: "Missing ID to get interview result detail",
     };
   }
 
@@ -2721,7 +2734,7 @@ export const getInterviewResultDetail = async (id) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy chi tiết kết quả phỏng vấn",
+        "Cannot get interview result detail",
     };
   } catch (error) {
     return {
@@ -2730,7 +2743,7 @@ export const getInterviewResultDetail = async (id) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy chi tiết kết quả phỏng vấn",
+        "Cannot get interview result detail",
       status: error.response?.status,
     };
   }
@@ -2742,28 +2755,29 @@ export const submitInterviewResult = async (payload) => {
   if (!payload) {
     return {
       success: false,
-      error: "Thiếu dữ liệu để gửi kết quả phỏng vấn",
+      error: "Missing data to submit interview result",
     };
   }
 
   if (!payload.activityId) {
     return {
       success: false,
-      error: "Thiếu activityId để gửi kết quả phỏng vấn",
+      error: "Missing activityId to submit interview result",
     };
   }
 
   if (payload.type === undefined || payload.type === null) {
     return {
       success: false,
-      error: "Thiếu type để gửi kết quả phỏng vấn (1: Recruitment, 2: Promotion)",
+      error:
+        "Missing type to submit interview result (1: Recruitment, 2: Promotion)",
     };
   }
 
   if (!Array.isArray(payload.choices)) {
     return {
       success: false,
-      error: "Thiếu choices (mảng các lựa chọn) để gửi kết quả phỏng vấn",
+      error: "Missing choices (array of choices) to submit interview result",
     };
   }
 
@@ -2789,7 +2803,7 @@ export const submitInterviewResult = async (payload) => {
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Gửi kết quả phỏng vấn thành công",
+          "Submit interview result successfully",
       };
     }
 
@@ -2798,7 +2812,7 @@ export const submitInterviewResult = async (payload) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể gửi kết quả phỏng vấn",
+        "Cannot submit interview result",
     };
   } catch (error) {
     return {
@@ -2807,7 +2821,7 @@ export const submitInterviewResult = async (payload) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể gửi kết quả phỏng vấn",
+        "Cannot submit interview result",
       status: error.response?.status,
     };
   }
@@ -2830,7 +2844,7 @@ export const submitMultipleChoiceTest = async (
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: "Test ID không hợp lệ",
+        error: "Invalid test ID",
       };
     }
 
@@ -2838,7 +2852,7 @@ export const submitMultipleChoiceTest = async (
     if (!Array.isArray(answers)) {
       return {
         success: false,
-        error: "Danh sách câu trả lời phải là một mảng",
+        error: "The answer list must be an array",
       };
     }
 
@@ -2921,7 +2935,7 @@ export const submitMultipleChoiceTest = async (
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Nộp bài thi thành công",
+        message: responseData.message || "Submit test successfully",
       };
     } else {
       // Response không thành công
@@ -2930,7 +2944,7 @@ export const submitMultipleChoiceTest = async (
         error:
           responseData?.message ||
           responseData?.errorMessage ||
-          "Không thể nộp bài thi",
+          "Cannot submit test",
         errorData: responseData,
       };
     }
@@ -2952,7 +2966,7 @@ export const submitMultipleChoiceTest = async (
           errorData?.message ||
           errorData?.errorMessage ||
           errorData?.title ||
-          `Lỗi server (${error.response.status})`,
+          `Server error (${error.response.status})`,
         status: error.response.status,
         errorData: errorData,
       };
@@ -2960,13 +2974,14 @@ export const submitMultipleChoiceTest = async (
       // Request được gửi nhưng không nhận được response (network error)
       return {
         success: false,
-        error: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        error:
+          "Cannot connect to server. Please check your network connection.",
       };
     } else {
       // Lỗi khác
       return {
         success: false,
-        error: error.message || "Đã xảy ra lỗi khi nộp bài thi",
+        error: error.message || "An error occurred while submitting test",
       };
     }
   }
@@ -2987,21 +3002,21 @@ export const submitSpeakingExam = async ({
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: "Test ID không hợp lệ",
+        error: "Invalid test ID",
       };
     }
 
     if (!startTime || !endTime) {
       return {
         success: false,
-        error: "Thiếu thông tin thời gian bắt đầu hoặc kết thúc bài thi",
+        error: "Missing start time or end time",
       };
     }
 
     if (!Array.isArray(answers) || answers.length === 0) {
       return {
         success: false,
-        error: "Không có dữ liệu ghi âm để nộp bài thi nói",
+        error: "No audio data to submit speaking test",
       };
     }
 
@@ -3025,7 +3040,7 @@ export const submitSpeakingExam = async ({
 
       if (isNaN(questionIdNum) || questionIdNum <= 0) {
         console.warn(
-          `submitSpeakingExam: questionId không hợp lệ tại vị trí ${index}`,
+          `submitSpeakingExam: invalid questionId at index ${index}`,
           answer.questionId
         );
         return acc;
@@ -3046,7 +3061,7 @@ export const submitSpeakingExam = async ({
 
       if (!(file instanceof File)) {
         console.warn(
-          `submitSpeakingExam: không tìm thấy file hợp lệ cho questionId ${questionIdNum}`
+          `submitSpeakingExam: cannot find valid file for questionId ${questionIdNum}`
         );
         return acc;
       }
@@ -3061,7 +3076,7 @@ export const submitSpeakingExam = async ({
     if (normalizedAnswers.length === 0) {
       return {
         success: false,
-        error: "Không có ghi âm hợp lệ để nộp bài thi nói",
+        error: "No valid audio to submit speaking test",
       };
     }
 
@@ -3117,7 +3132,7 @@ export const submitSpeakingExam = async ({
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Nộp bài thi thành công",
+        message: responseData.message || "Submit speaking test successfully",
       };
     } else {
       // Response không thành công
@@ -3126,7 +3141,7 @@ export const submitSpeakingExam = async ({
         error:
           responseData?.message ||
           responseData?.errorMessage ||
-          "Không thể nộp bài thi",
+          "Cannot submit speaking test",
         errorData: responseData,
       };
     }
@@ -3148,7 +3163,7 @@ export const submitSpeakingExam = async ({
           errorData?.message ||
           errorData?.errorMessage ||
           errorData?.title ||
-          `Lỗi server (${error.response.status})`,
+          `Server error (${error.response.status})`,
         status: error.response.status,
         errorData: errorData,
       };
@@ -3156,13 +3171,15 @@ export const submitSpeakingExam = async ({
       // Request được gửi nhưng không nhận được response (network error)
       return {
         success: false,
-        error: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+        error:
+          "Cannot connect to server. Please check your network connection.",
       };
     } else {
       // Lỗi khác
       return {
         success: false,
-        error: error.message || "Đã xảy ra lỗi khi nộp bài thi",
+        error:
+          error.message || "An error occurred while submitting speaking test",
       };
     }
   }
@@ -3176,7 +3193,7 @@ export const getExamQuestions = async (testId, joinCode) => {
     if (!testId) {
       return {
         success: false,
-        error: "Test ID không được để trống",
+        error: "Test ID cannot be empty",
       };
     }
 
@@ -3186,14 +3203,14 @@ export const getExamQuestions = async (testId, joinCode) => {
     if (isNaN(testIdNum) || testIdNum <= 0) {
       return {
         success: false,
-        error: "Test ID không hợp lệ",
+        error: "Invalid test ID",
       };
     }
 
     if (!joinCode || joinCode.length !== 10) {
       return {
         success: false,
-        error: "Join Code phải có đúng 10 ký tự",
+        error: "Join Code must be exactly 10 characters",
       };
     }
 
@@ -3219,7 +3236,7 @@ export const getExamQuestions = async (testId, joinCode) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy câu hỏi thành công",
+        message: responseData.message || "Get exam questions successfully",
       };
     }
     // Nếu không có data, kiểm tra code === 0 (success) theo format API chuẩn
@@ -3242,7 +3259,7 @@ export const getExamQuestions = async (testId, joinCode) => {
       );
       return {
         success: false,
-        error: responseData.message || "Không thể lấy câu hỏi đề thi",
+        error: responseData.message || "Cannot get exam questions",
       };
     }
   } catch (error) {
@@ -3251,8 +3268,7 @@ export const getExamQuestions = async (testId, joinCode) => {
     const errorData = error.response?.data;
     return {
       success: false,
-      error:
-        errorData?.message || error.message || "Không thể lấy câu hỏi đề thi",
+      error: errorData?.message || error.message || "Cannot get exam questions",
       status: error.response?.status,
     };
   }
@@ -3277,7 +3293,11 @@ export const saveApplicationDraft = async (draftData) => {
     if (draftData.dateOfBirth) {
       formData.append("DateOfBirth", draftData.dateOfBirth);
     }
-    if (draftData.gender !== undefined && draftData.gender !== null && draftData.gender !== "") {
+    if (
+      draftData.gender !== undefined &&
+      draftData.gender !== null &&
+      draftData.gender !== ""
+    ) {
       formData.append("Gender", parseInt(draftData.gender));
     }
     if (draftData.height !== undefined && draftData.height !== "") {
@@ -3345,18 +3365,19 @@ export const saveApplicationDraft = async (draftData) => {
         return {
           success: true,
           data: responseData.data || responseData,
-          message: responseData.message || "Lưu bản nháp thành công",
+          message:
+            responseData.message || "Save application draft successfully",
         };
       } else {
         return {
           success: false,
-          error: responseData.message || "Lưu bản nháp thất bại",
+          error: responseData.message || "Save application draft failed",
         };
       }
     } else {
       return {
         success: false,
-        error: "Lưu bản nháp thất bại",
+        error: "Save application draft failed",
       };
     }
   } catch (error) {
@@ -3365,7 +3386,7 @@ export const saveApplicationDraft = async (draftData) => {
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Lưu bản nháp thất bại";
+      "Save application draft failed";
 
     return {
       success: false,
@@ -3474,18 +3495,18 @@ export const submitApplication = async (applicationData) => {
         return {
           success: true,
           data: responseData.data || responseData,
-          message: responseData.message || "Nộp đơn thành công",
+          message: responseData.message || "Submit application successfully",
         };
       } else {
         return {
           success: false,
-          error: responseData.message || "Nộp đơn thất bại",
+          error: responseData.message || "Submit application failed",
         };
       }
     } else {
       return {
         success: false,
-        error: "Nộp đơn thất bại",
+        error: "Submit application failed",
       };
     }
   } catch (error) {
@@ -3494,7 +3515,7 @@ export const submitApplication = async (applicationData) => {
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Nộp đơn thất bại";
+      "Submit application failed";
 
     return {
       success: false,
@@ -3511,7 +3532,7 @@ export const updateApplication = async (applicationId, updateData = {}) => {
   if (!applicationId) {
     return {
       success: false,
-      error: "Thiếu mã hồ sơ để cập nhật",
+      error: "Missing application ID to update",
     };
   }
 
@@ -3585,7 +3606,7 @@ export const updateApplication = async (applicationId, updateData = {}) => {
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Cập nhật hồ sơ thành công",
+          "Update application successfully",
       };
     }
 
@@ -3594,7 +3615,7 @@ export const updateApplication = async (applicationId, updateData = {}) => {
       error:
         responseData.errorMessage ||
         responseData.message ||
-        "Cập nhật hồ sơ thất bại",
+        "Update application failed",
       errors: responseData.errors,
       status: httpStatus,
     };
@@ -3604,7 +3625,7 @@ export const updateApplication = async (applicationId, updateData = {}) => {
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Cập nhật hồ sơ thất bại";
+      "Update application failed";
 
     return {
       success: false,
@@ -3624,7 +3645,7 @@ export const submitExistingApplication = async (
   if (!applicationId) {
     return {
       success: false,
-      error: "Thiếu mã hồ sơ để nộp đơn",
+      error: "Missing application ID to submit",
     };
   }
 
@@ -3657,7 +3678,7 @@ export const submitExistingApplication = async (
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Nộp hồ sơ thành công",
+          "Submit application successfully",
       };
     }
 
@@ -3666,7 +3687,7 @@ export const submitExistingApplication = async (
       error:
         responseData.errorMessage ||
         responseData.message ||
-        "Nộp hồ sơ thất bại",
+        "Submit application failed",
       errors: responseData.errors,
       status: httpStatus,
     };
@@ -3676,7 +3697,7 @@ export const submitExistingApplication = async (
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Nộp hồ sơ thất bại";
+      "Submit application failed";
 
     return {
       success: false,
@@ -3694,7 +3715,7 @@ export const exportFlightHoursConfirmation = async (roundId) => {
   if (!roundId) {
     return {
       success: false,
-      error: "Thiếu roundId để export",
+      error: "Missing roundId to export",
     };
   }
 
@@ -3704,10 +3725,10 @@ export const exportFlightHoursConfirmation = async (roundId) => {
     });
 
     // Kiểm tra content-type để xem có phải là error JSON không
-    const contentType = response.headers["content-type"] || '';
+    const contentType = response.headers["content-type"] || "";
 
     // Kiểm tra nếu response là lỗi (thường là JSON error trong blob)
-    if (contentType.includes('application/json')) {
+    if (contentType.includes("application/json")) {
       // Nếu là JSON error, đọc nội dung
       const text = await response.data.text();
       let errorData;
@@ -3718,7 +3739,10 @@ export const exportFlightHoursConfirmation = async (roundId) => {
       }
       return {
         success: false,
-        error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+        error:
+          errorData?.errorMessage ||
+          errorData?.message ||
+          "Không thể export file Excel",
         status: response.status,
       };
     }
@@ -3736,7 +3760,10 @@ export const exportFlightHoursConfirmation = async (roundId) => {
       }
       return {
         success: false,
-        error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+        error:
+          errorData?.errorMessage ||
+          errorData?.message ||
+          "Không thể export file Excel",
         status: response.status,
       };
     }
@@ -3753,7 +3780,7 @@ export const exportFlightHoursConfirmation = async (roundId) => {
     if (disposition) {
       const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
       if (match && match[1]) {
-        filename = decodeURIComponent(match[1].replace(/['"]/g, ''));
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
       }
     }
 
@@ -3769,11 +3796,11 @@ export const exportFlightHoursConfirmation = async (roundId) => {
 
     return {
       success: true,
-      message: "Export file Excel thành công",
+      message: "Export file Excel successfully",
       filename: filename,
     };
   } catch (error) {
-    console.error("Lỗi khi export Flight Hours Confirmation:", error);
+    console.error("Error when exporting Flight Hours Confirmation:", error);
 
     // Nếu error response có data là blob, cố gắng đọc nó
     if (error.response?.data instanceof Blob) {
@@ -3787,7 +3814,10 @@ export const exportFlightHoursConfirmation = async (roundId) => {
         }
         return {
           success: false,
-          error: errorData?.errorMessage || errorData?.message || "Không thể export file Excel",
+          error:
+            errorData?.errorMessage ||
+            errorData?.message ||
+            "Cannot export file Excel",
           status: error.response?.status,
         };
       } catch (e) {
@@ -3800,7 +3830,7 @@ export const exportFlightHoursConfirmation = async (roundId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể export file Excel",
+        "Cannot export file Excel",
       status: error.response?.status,
     };
   }
@@ -3812,14 +3842,14 @@ export const importFlightHoursConfirmation = async (roundId, file) => {
   if (!roundId) {
     return {
       success: false,
-      error: "Thiếu roundId để import",
+      error: "Missing roundId to import",
     };
   }
 
   if (!file) {
     return {
       success: false,
-      error: "Thiếu file để import",
+      error: "Missing file to import",
     };
   }
 
@@ -3860,7 +3890,9 @@ export const importFlightHoursConfirmation = async (roundId, file) => {
         data: responseData.data || responseData,
         message:
           responseData.message ||
-          `Import thành công. Đã xử lý ${responseData.data?.totalProcessed || 0} ứng viên.`,
+          `Import successfully. Processed ${
+            responseData.data?.totalProcessed || 0
+          } applicants.`,
         totalProcessed: responseData.data?.totalProcessed || 0,
         passedCount: responseData.data?.passedCount || 0,
         failedCount: responseData.data?.failedCount || 0,
@@ -3871,18 +3903,18 @@ export const importFlightHoursConfirmation = async (roundId, file) => {
         error:
           responseData.errorMessage ||
           responseData.message ||
-          "Không thể import file Excel",
+          "Cannot import file Excel",
         status: httpStatus,
       };
     }
   } catch (error) {
-    console.error("Lỗi khi import Flight Hours Confirmation:", error);
+    console.error("Error when importing Flight Hours Confirmation:", error);
     const errorData = error.response?.data;
     const errorMessage =
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Không thể import file Excel";
+      "Cannot import file Excel";
 
     return {
       success: false,
@@ -3898,16 +3930,18 @@ export const updateFlightExperience = async (activityId, payload) => {
   if (!activityId) {
     return {
       success: false,
-      error: "Thiếu mã hồ sơ để cập nhật",
+      error: "Missing activityId to update",
     };
   }
 
   try {
     const requestBody = {
-      totalFlightHours: payload.totalFlightHours !== undefined && payload.totalFlightHours !== null
-        ? parseInt(payload.totalFlightHours, 10)
-        : 0,
-      experience: payload.experience || null
+      totalFlightHours:
+        payload.totalFlightHours !== undefined &&
+        payload.totalFlightHours !== null
+          ? parseInt(payload.totalFlightHours, 10)
+          : 0,
+      experience: payload.experience || null,
     };
 
     const response = await api.put(
@@ -3932,7 +3966,7 @@ export const updateFlightExperience = async (activityId, payload) => {
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Cập nhật thông tin thành công",
+          "Update flight experience successfully",
       };
     }
 
@@ -3941,7 +3975,7 @@ export const updateFlightExperience = async (activityId, payload) => {
       error:
         responseData.errorMessage ||
         responseData.message ||
-        "Cập nhật thông tin thất bại",
+        "Update flight experience failed",
       errors: responseData.errors,
       status: httpStatus,
     };
@@ -3951,7 +3985,7 @@ export const updateFlightExperience = async (activityId, payload) => {
       errorData?.errorMessage ||
       errorData?.message ||
       error.message ||
-      "Cập nhật thông tin thất bại";
+      "Update flight experience failed";
 
     return {
       success: false,
@@ -3970,7 +4004,7 @@ export const getApplicationById = async (applicationId) => {
     if (!applicationId) {
       return {
         success: false,
-        error: "Application ID không được để trống",
+        error: "Application ID cannot be empty",
       };
     }
 
@@ -3986,7 +4020,7 @@ export const getApplicationById = async (applicationId) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy thông tin đơn ứng tuyển",
+        error: response.data.message || "Cannot get application information",
       };
     }
   } catch (error) {
@@ -3995,7 +4029,7 @@ export const getApplicationById = async (applicationId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy thông tin đơn ứng tuyển",
+        "Cannot get application information",
       status: error.response?.status,
     };
   }
@@ -4016,7 +4050,7 @@ export const getUserApplication = async (userId) => {
     } else {
       return {
         success: false,
-        error: response.data.message || "Không thể lấy thông tin đơn ứng tuyển",
+        error: response.data.message || "Cannot get application information",
       };
     }
   } catch (error) {
@@ -4025,7 +4059,7 @@ export const getUserApplication = async (userId) => {
       error:
         error.response?.data?.message ||
         error.message ||
-        "Không thể lấy thông tin đơn ứng tuyển",
+        "Cannot get application information",
       status: error.response?.status,
     };
   }
@@ -4039,7 +4073,7 @@ export const getTestSessionById = async (testSessionId) => {
     if (!testSessionId) {
       return {
         success: false,
-        error: "Test Session ID không được để trống",
+        error: "Test Session ID cannot be empty",
       };
     }
 
@@ -4051,7 +4085,7 @@ export const getTestSessionById = async (testSessionId) => {
     if (isNaN(idNum) || idNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4072,7 +4106,8 @@ export const getTestSessionById = async (testSessionId) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy thông tin bài làm thành công",
+        message:
+          responseData.message || "Get test session information successfully",
       };
     }
 
@@ -4082,7 +4117,8 @@ export const getTestSessionById = async (testSessionId) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy thông tin bài làm thành công",
+        message:
+          responseData.message || "Get test session information successfully",
       };
     }
 
@@ -4092,7 +4128,7 @@ export const getTestSessionById = async (testSessionId) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy thông tin bài làm",
+        "Cannot get test session information",
       errorData: responseData,
     };
   } catch (error) {
@@ -4105,7 +4141,7 @@ export const getTestSessionById = async (testSessionId) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy thông tin bài làm",
+        "Cannot get test session information",
       status: error.response?.status,
     };
   }
@@ -4118,7 +4154,7 @@ export const getTestSessionAnswers = async (testSessionId) => {
     if (!testSessionId) {
       return {
         success: false,
-        error: "Test Session ID không được để trống",
+        error: "Test Session ID cannot be empty",
       };
     }
 
@@ -4130,7 +4166,7 @@ export const getTestSessionAnswers = async (testSessionId) => {
     if (isNaN(idNum) || idNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4151,17 +4187,22 @@ export const getTestSessionAnswers = async (testSessionId) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy danh sách câu trả lời thành công",
+        message:
+          responseData.message || "Get test session answers successfully",
       };
     }
 
     // Nếu không có code hoặc code khác 0, nhưng vẫn có data, vẫn trả về success
     if (responseData?.data) {
-      console.log("API Success (no code check) - Answers Data:", responseData.data);
+      console.log(
+        "API Success (no code check) - Answers Data:",
+        responseData.data
+      );
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy danh sách câu trả lời thành công",
+        message:
+          responseData.message || "Get test session answers successfully",
       };
     }
 
@@ -4171,7 +4212,7 @@ export const getTestSessionAnswers = async (testSessionId) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy danh sách câu trả lời",
+        "Cannot get test session answers",
       errorData: responseData,
     };
   } catch (error) {
@@ -4184,7 +4225,7 @@ export const getTestSessionAnswers = async (testSessionId) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy danh sách câu trả lời",
+        "Cannot get test session answers",
       status: error.response?.status,
     };
   }
@@ -4196,7 +4237,7 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
     if (!testSessionId) {
       return {
         success: false,
-        error: "Test Session ID không được để trống",
+        error: "Test Session ID cannot be empty",
       };
     }
 
@@ -4207,7 +4248,7 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
     if (isNaN(idNum) || idNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4220,7 +4261,8 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy câu trả lời thành công",
+        message:
+          responseData.message || "Get test session answers successfully",
       };
     }
 
@@ -4228,7 +4270,8 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
       return {
         success: true,
         data: responseData.data,
-        message: responseData.message || "Lấy câu trả lời thành công",
+        message:
+          responseData.message || "Get test session answers successfully",
       };
     }
 
@@ -4236,7 +4279,7 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
       return {
         success: true,
         data: responseData,
-        message: "Lấy câu trả lời thành công",
+        message: "Get test session answers successfully",
       };
     }
 
@@ -4245,7 +4288,7 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể lấy câu trả lời",
+        "Cannot get test session answers",
     };
   } catch (error) {
     return {
@@ -4254,7 +4297,7 @@ export const getTestSessionAnswersWithCriteria = async (testSessionId) => {
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể lấy câu trả lời",
+        "Cannot get test session answers",
       status: error.response?.status,
     };
   }
@@ -4270,7 +4313,7 @@ export const updateEnquiryRequestScore = async (
     if (!testSessionId) {
       return {
         success: false,
-        error: "Test Session ID không được để trống",
+        error: "Test Session ID cannot be empty",
       };
     }
 
@@ -4281,7 +4324,7 @@ export const updateEnquiryRequestScore = async (
     if (isNaN(idNum) || idNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4292,10 +4335,7 @@ export const updateEnquiryRequestScore = async (
       payload.newReason = newReason.trim();
     }
 
-    const response = await api.put(
-      `/enquiry-requests/${idNum}/score`,
-      payload
-    );
+    const response = await api.put(`/enquiry-requests/${idNum}/score`, payload);
     const responseData = response.data;
 
     if (
@@ -4311,7 +4351,7 @@ export const updateEnquiryRequestScore = async (
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Cập nhật phúc khảo thành công",
+          "Update enquiry request score successfully",
       };
     }
 
@@ -4320,7 +4360,7 @@ export const updateEnquiryRequestScore = async (
       error:
         responseData?.message ||
         responseData?.errorMessage ||
-        "Không thể cập nhật phúc khảo",
+        "Cannot update enquiry request score",
     };
   } catch (error) {
     return {
@@ -4329,7 +4369,7 @@ export const updateEnquiryRequestScore = async (
         error.response?.data?.message ||
         error.response?.data?.errorMessage ||
         error.message ||
-        "Không thể cập nhật phúc khảo",
+        "Cannot update enquiry request score",
       status: error.response?.status,
     };
   }
@@ -4342,7 +4382,7 @@ export const scoreTestSessionAnswers = async (payload) => {
     if (!payload || !payload.testSessionId || !payload.answerScores) {
       return {
         success: false,
-        error: "Thiếu dữ liệu testSessionId hoặc answerScores để chấm điểm",
+        error: "Missing data testSessionId or answerScores to score",
       };
     }
 
@@ -4354,7 +4394,7 @@ export const scoreTestSessionAnswers = async (payload) => {
     if (isNaN(idNum) || idNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4387,7 +4427,7 @@ export const scoreTestSessionAnswers = async (payload) => {
         message:
           responseData.message ||
           responseData.errorMessage ||
-          "Chấm điểm bài thi thành công",
+          "Score test session answers successfully",
       };
     }
 
@@ -4396,7 +4436,7 @@ export const scoreTestSessionAnswers = async (payload) => {
       error:
         responseData.errorMessage ||
         responseData.message ||
-        "Không thể chấm điểm bài thi",
+        "Cannot score test session answers",
       errorCode: responseData.errorCode ?? responseData.code,
     };
   } catch (error) {
@@ -4407,7 +4447,7 @@ export const scoreTestSessionAnswers = async (payload) => {
         errorData?.errorMessage ||
         errorData?.message ||
         error.message ||
-        "Không thể chấm điểm bài thi",
+        "Cannot score test session answers",
       status: error.response?.status,
       errorCode: errorData?.errorCode ?? errorData?.code,
     };
@@ -4425,7 +4465,7 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
     if (isNaN(testSessionIdNum) || testSessionIdNum <= 0) {
       return {
         success: false,
-        error: "Test Session ID không hợp lệ",
+        error: "Test Session ID is invalid",
       };
     }
 
@@ -4433,14 +4473,14 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
     if (!reason || !reason.trim()) {
       return {
         success: false,
-        error: "Lý do phúc khảo không được để trống",
+        error: "Reason cannot be empty",
       };
     }
 
     if (reason.trim().length > 250) {
       return {
         success: false,
-        error: "Lý do phúc khảo không được vượt quá 250 ký tự",
+        error: "Reason cannot be more than 250 characters",
       };
     }
 
@@ -4469,11 +4509,11 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              "Gửi yêu cầu phúc khảo thành công",
+              "Create enquiry request successfully",
           };
         } else {
           let errorMessage =
-            responseData.errorMessage || "Không thể gửi yêu cầu phúc khảo";
+            responseData.errorMessage || "Cannot create enquiry request";
 
           if (
             responseData.errors &&
@@ -4498,7 +4538,8 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
           return {
             success: true,
             data: responseData.data,
-            message: responseData.message || "Gửi yêu cầu phúc khảo thành công",
+            message:
+              responseData.message || "Create enquiry request successfully",
           };
         } else {
           return {
@@ -4506,7 +4547,7 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
             error:
               responseData.message ||
               responseData.errorMessage ||
-              "Không thể gửi yêu cầu phúc khảo",
+              "Cannot create enquiry request",
           };
         }
       }
@@ -4515,7 +4556,7 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
       return {
         success: true,
         data: responseData?.data || responseData,
-        message: responseData?.message || "Gửi yêu cầu phúc khảo thành công",
+        message: responseData?.message || "Create enquiry request successfully",
       };
     } else {
       return {
@@ -4523,13 +4564,13 @@ export const createEnquiryRequest = async (testSessionId, reason) => {
         error:
           response.data?.message ||
           response.data?.errorMessage ||
-          "Không thể gửi yêu cầu phúc khảo",
+          "Cannot create enquiry request",
         status: httpStatus,
       };
     }
   } catch (error) {
     const errorData = error.response?.data;
-    let errorMessage = "Đã xảy ra lỗi khi gửi yêu cầu phúc khảo";
+    let errorMessage = "An error occurred when creating enquiry request";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -4561,21 +4602,24 @@ export const screeningApprove = async (activityId, status) => {
   if (!activityId) {
     return {
       success: false,
-      error: "Thiếu activityId để duyệt hồ sơ sàng lọc",
+      error: "Missing activityId to approve",
     };
   }
 
   if (!status || (status !== 2 && status !== 3)) {
     return {
       success: false,
-      error: "Status không hợp lệ. Status phải là 2 (Passed) hoặc 3 (Failed)",
+      error: "Invalid status. Status must be 2 (Passed) or 3 (Failed)",
     };
   }
 
   try {
-    const response = await api.put(`/applications/screening-approve/${activityId}`, {
-      status: Number(status),
-    });
+    const response = await api.put(
+      `/applications/screening-approve/${activityId}`,
+      {
+        status: Number(status),
+      }
+    );
 
     // Kiểm tra HTTP status code
     const httpStatus = response.status;
@@ -4594,15 +4638,15 @@ export const screeningApprove = async (activityId, status) => {
               responseData.message ||
               responseData.errorMessage ||
               (status === 2
-                ? "Duyệt hồ sơ thành công"
-                : "Từ chối hồ sơ thành công"),
+                ? "Approve application successfully"
+                : "Reject application successfully"),
           };
         } else {
           let errorMessage =
             responseData.errorMessage ||
             (status === 2
-              ? "Không thể duyệt hồ sơ"
-              : "Không thể từ chối hồ sơ");
+              ? "Cannot approve application"
+              : "Cannot reject application");
 
           if (
             responseData.errors &&
@@ -4626,19 +4670,23 @@ export const screeningApprove = async (activityId, status) => {
         data: responseData?.data || responseData,
         message:
           responseData?.message ||
-          (status === 2 ? "Duyệt hồ sơ thành công" : "Từ chối hồ sơ thành công"),
+          (status === 2
+            ? "Approve application successfully"
+            : "Reject application successfully"),
       };
     }
 
     return {
       success: false,
-      error: "Không thể duyệt hồ sơ. Vui lòng thử lại.",
+      error: "Cannot approve application. Please try again.",
       status: httpStatus,
     };
   } catch (error) {
     const errorData = error.response?.data;
     let errorMessage =
-      status === 2 ? "Đã xảy ra lỗi khi duyệt hồ sơ" : "Đã xảy ra lỗi khi từ chối hồ sơ";
+      status === 2
+        ? "An error occurred when approving application"
+        : "An error occurred when rejecting application";
 
     if (errorData) {
       if (errorData.errorMessage) {
@@ -4664,4 +4712,3 @@ export const screeningApprove = async (activityId, status) => {
 };
 
 export default api;
-

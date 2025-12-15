@@ -1,14 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
-import {
-  getCampaignRoundById,
-  getRoundParticipants,
-  exportFlightHoursConfirmation,
-  importFlightHoursConfirmation,
-} from "../../service/api";
-import FlightHoursActions from "../../components/AirlinePartnerComponent/FlightHoursActions";
-import { toast } from "react-toastify";
+import { getCampaignRoundById, getRoundParticipants } from "../../service/api";
 
 const SeniorApplyListPage = () => {
   const [campaigns] = useState([]);
@@ -25,15 +18,10 @@ const SeniorApplyListPage = () => {
   const [participants, setParticipants] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const params = useParams();
 
-  // Check if we're viewing a specific batch
-  const batchData = location.state;
   // Nếu có campaignRoundId trong URL params, đang xem batch cụ thể
-  const isViewingBatch =
-    params.campaignRoundId ||
-    (batchData && batchData.batchName && batchData.campaignId);
+  const isViewingBatch = !!params.campaignRoundId;
 
   useEffect(() => {
     const off = onLangChange(() => setLangVersion((v) => v + 1));
@@ -49,13 +37,8 @@ const SeniorApplyListPage = () => {
         return;
       }
 
-      // Ưu tiên lấy campaignRoundId từ URL params (campaignRoundId)
-      // Nếu không có thì lấy từ batchData
-      const campaignRoundId =
-        params.campaignRoundId ||
-        batchData?.batch?.id ||
-        batchData?.batch?.campaignRoundId ||
-        batchData?.campaignRoundId;
+      // Lấy campaignRoundId từ URL params
+      const campaignRoundId = params.campaignRoundId;
 
       if (!campaignRoundId) {
         console.warn("CampaignRoundId not found");
@@ -84,7 +67,7 @@ const SeniorApplyListPage = () => {
     };
 
     fetchCampaignRoundData();
-  }, [isViewingBatch, params.campaignRoundId, batchData]);
+  }, [isViewingBatch, params.campaignRoundId]);
 
   // Tự động chọn round "Screening" khi availableRounds được load
   useEffect(() => {
@@ -398,133 +381,9 @@ const SeniorApplyListPage = () => {
   //   console.log(`Changing status of applicant ${applicantId} to ${newStatus}`)
   // }
 
-  // Kiểm tra xem round hiện tại có phải là "Flight Hours Confirmation" không
-  const isFlightHoursConfirmationRound = useMemo(() => {
-    if (!roundFilter || roundFilter === "all" || roundFilter === "final") {
-      return false;
-    }
-    const selectedRound = availableRounds.find(
-      (r) => String(r.roundId) === String(roundFilter)
-    );
-    if (selectedRound) {
-      const roundName = selectedRound.roundName?.toLowerCase() || "";
-      return (
-        roundName.includes("flight hours") ||
-        roundName.includes("flight hours confirmation")
-      );
-    }
-    return false;
-  }, [roundFilter, availableRounds]);
-
-  // Lấy campaignRoundId từ params hoặc batchData
-  const currentCampaignRoundId = useMemo(() => {
-    return (
-      params.campaignRoundId ||
-      batchData?.batch?.id ||
-      batchData?.batch?.campaignRoundId ||
-      batchData?.campaignRoundId
-    );
-  }, [params.campaignRoundId, batchData]);
-
-  const handleExportFlightHours = async (roundId, campaignRoundId) => {
-    if (!roundId) {
-      toast.error("Round information not found");
-      return;
-    }
-
-    console.log(
-      "handleExportFlightHours - roundId:",
-      roundId,
-      "campaignRoundId:",
-      campaignRoundId
-    );
-
-    try {
-      console.log(
-        "Calling exportFlightHoursConfirmation with roundId:",
-        roundId
-      );
-      const result = await exportFlightHoursConfirmation(roundId);
-      console.log("Export result:", result);
-      if (!result.success) {
-        alert(result.error || "Export file thất bại");
-      } else {
-        console.log("Export successful, file:", result.filename);
-      }
-    } catch (error) {
-      console.error("Error when exporting:", error);
-      toast.error(
-        "Error when exporting file: " + (error.message || "Unknown error")
-      );
-    }
-  };
-
-  const handleImportFlightHours = async (file, roundId, campaignRoundId) => {
-    if (!roundId) {
-      return {
-        success: false,
-        error: "Round information not found",
-      };
-    }
-
-    if (!file) {
-      return {
-        success: false,
-        error: "You have not selected an Excel file to upload",
-      };
-    }
-
-    try {
-      console.log(
-        "Calling importFlightHoursConfirmation with roundId:",
-        roundId
-      );
-      const result = await importFlightHoursConfirmation(roundId, file);
-      console.log("Import result:", result);
-
-      if (result.success) {
-        // Hiển thị toast thành công
-        const message =
-          result.message ||
-          `Import successful! Processed ${
-            result.totalProcessed || 0
-          } applicants (${result.passedCount || 0} passed, ${
-            result.failedCount || 0
-          } failed).`;
-        toast.success(message, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Redirect về trang candidate sau khi import thành công
-        const campaignRoundIdToUse = campaignRoundId || currentCampaignRoundId;
-        if (campaignRoundIdToUse) {
-          setTimeout(() => {
-            navigate(
-              `/airline-partner/campaigns/${params.id}/candidate/${campaignRoundIdToUse}`
-            );
-          }, 1000); // Đợi 1 giây để người dùng thấy toast
-        }
-
-        return result;
-      } else {
-        return {
-          success: false,
-          error: result.error || "Import file failed",
-        };
-      }
-    } catch (error) {
-      console.error("Error when importing:", error);
-      return {
-        success: false,
-        error: error.message || "Error when importing file",
-      };
-    }
-  };
-
   const goBackToCampaigns = () => {
     const campaignId = params.id || campaignRoundData?.campaignId;
-    navigate(`/airline-partner/campaigns/${campaignId}`);
+    navigate(`/senior-recruiter/campaigns/${campaignId}`);
   };
 
   if (isViewingBatch) {
@@ -556,9 +415,7 @@ const SeniorApplyListPage = () => {
               <div>
                 <h1 className="text-2xl font-extrabold md:text-3xl">
                   Applicant list -{" "}
-                  {campaignRoundData?.roundName ||
-                    batchData?.batchName ||
-                    "Recruitment batch"}
+                  {campaignRoundData?.roundName || "Recruitment batch"}
                 </h1>
                 <p className="mt-1 text-sm text-white/90">
                   Filter and evaluate applicants for the recruitment batch
@@ -585,25 +442,19 @@ const SeniorApplyListPage = () => {
                 <div>
                   <span className="text-sm text-slate-600">Name:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.roundName ||
-                      batchData?.batchName ||
-                      "—"}
+                    {campaignRoundData?.roundName || "—"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Start date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.startDate ||
-                      batchData.batch?.time?.split(" - ")[0] ||
-                      "—"}
+                    {campaignRoundData?.startDate || "—"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">End date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.endDate ||
-                      batchData.batch?.time?.split(" - ")[1] ||
-                      "—"}
+                    {campaignRoundData?.endDate || "—"}
                   </p>
                 </div>
                 <div>
@@ -619,9 +470,7 @@ const SeniorApplyListPage = () => {
                       ? `${campaignRoundData.actualQuantiy || 0}/${
                           campaignRoundData.targetQuantity || 0
                         }`
-                      : `${batchData.batch?.current || 0}/${
-                          batchData.batch?.target || 0
-                        }`}
+                      : "—"}
                   </p>
                 </div>
               </div>
@@ -688,17 +537,6 @@ const SeniorApplyListPage = () => {
                   </div>
                 </div>
               </div>
-              {/* Hiển thị nút Export/Import nếu là vòng Flight Hours Confirmation */}
-              {isFlightHoursConfirmationRound && (
-                <div className="pt-4 mt-4 border-t border-slate-200">
-                  <FlightHoursActions
-                    roundId={roundFilter}
-                    campaignRoundId={currentCampaignRoundId}
-                    onExport={handleExportFlightHours}
-                    onImport={handleImportFlightHours}
-                  />
-                </div>
-              )}
             </div>
 
             <div className="overflow-x-auto">
@@ -790,11 +628,10 @@ const SeniorApplyListPage = () => {
                             title="View details"
                             onClick={() =>
                               navigate(
-                                `/airline-partner/campaigns/${params.id}/candidate/${applicant.activityId}`,
+                                `/senior-recruiter/campaigns/candidate/${applicant.activityId}`,
                                 {
                                   state: {
                                     candidate: applicant,
-                                    batchData: batchData,
                                   },
                                 }
                               )

@@ -473,7 +473,7 @@ function App() {
           }
         />
         <Route
-          path="/admin/campaigns/:id/candidate/:candidateId"
+          path="/admin/campaigns/candidate/:id"
           element={
             <AdminLayout>
               <AdminCandidateDetailPage />
@@ -573,7 +573,7 @@ function App() {
           }
         />
         <Route
-          path="/airline-partner/campaigns/:id/candidate/:candidateId"
+          path="/airline-partner/campaigns/candidate/:id"
           element={
             <AirlinePartnerLayout>
               <AirlineCandidateDetailPage />
@@ -781,7 +781,7 @@ function App() {
           }
         />
         <Route
-          path="/senior-recruiter/campaigns/:id/candidate/:candidateId"
+          path="/senior-recruiter/campaigns/candidate/:id"
           element={
             <SeniorRecruiterLayout>
               <SeniorCandidateDetailPage />
