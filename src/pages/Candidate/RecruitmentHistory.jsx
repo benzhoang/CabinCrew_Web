@@ -80,6 +80,36 @@ const stageAxisPositionMap = {
 };
 
 const normalizeText = (text) => (text || '').toLowerCase().trim();
+const formatDateSafe = (value) => {
+    if (!value) return '—';
+
+    // Try native parsing first
+    const native = new Date(value);
+    if (!isNaN(native.getTime())) {
+        return native.toLocaleDateString();
+    }
+
+    // Handle common dd/MM/yyyy (e.g. 16/12/2025)
+    if (typeof value === 'string') {
+        const parts = value.split(/[\/\-]/);
+        if (parts.length === 3) {
+            const [p1, p2, p3] = parts.map((p) => p.trim());
+            // Detect dd/MM/yyyy by checking if first part seems day (>12)
+            const dayFirst = Number(p1);
+            const month = Number(p2);
+            const year = Number(p3);
+            if (!isNaN(dayFirst) && !isNaN(month) && !isNaN(year)) {
+                const dt = new Date(year, month - 1, dayFirst);
+                if (!isNaN(dt.getTime())) {
+                    return dt.toLocaleDateString();
+                }
+            }
+        }
+    }
+
+    // Fallback: show raw string
+    return typeof value === 'string' ? value : '—';
+};
 
 const doesRoundMatchStage = (round, stageTemplate) => {
     if (!round) return false;
@@ -204,11 +234,12 @@ const normalizeHistoryData = (data = []) => {
         const statusKey = normalizeStatusKey(item.roundStatus);
         const statusLabels = STATUS_LABELS[statusKey] || STATUS_LABELS.pending || { vi: 'Đang xử lý', en: 'Pending' };
 
+        const participatedDate = item.participatedDate || item.participateDate || item.appliedDate || null;
         return {
             id: item.campaignRoundId ?? item.roundId ?? index + 1,
             position: item.campaignName || 'Chưa có tên chiến dịch',
             company: item.airlinePartner || 'N/A',
-            appliedDate: item.participateDate,
+            appliedDate: participatedDate,
             status: statusKey,
             statusText: statusLabels?.vi || 'Đang xử lý',
             statusTextEn: statusLabels?.en || 'Pending',
@@ -285,10 +316,7 @@ const RecruitmentHistory = () => {
         }
     };
 
-    const getStatusText = (item) => {
-        const lang = localStorage.getItem('lang') || 'vi';
-        return lang === 'vi' ? item.statusText : item.statusTextEn;
-    };
+    const getStatusText = (item) => item.statusTextEn || item.statusText || STATUS_LABELS.pending.en;
 
     // Hàm lấy tên giai đoạn theo ngôn ngữ
     const getStageName = (stage) => {
@@ -472,7 +500,7 @@ const RecruitmentHistory = () => {
                     <div className="divide-y divide-gray-200">
                         {recruitmentHistory.map((application) => {
                             const appliedDateText = application.appliedDate
-                                ? new Date(application.appliedDate).toLocaleDateString()
+                                ? formatDateSafe(application.appliedDate)
                                 : '—';
                             const hasStages = Array.isArray(application.stages) && application.stages.length > 0;
 

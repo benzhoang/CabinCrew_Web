@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import AddTaskModal from "./AddTaskModal";
 import { formatDate2 } from "../../../config/formatDate";
 
-const BatchCard = ({ batch, statusCfg, percent }) => {
+const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
   const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
@@ -26,9 +26,11 @@ const BatchCard = ({ batch, statusCfg, percent }) => {
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
           {batch.name}
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
-          {statusCfg.text}
-        </span>
+        {showStatus && (
+          <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
+            {statusCfg.text}
+          </span>
+        )}
       </div>
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
@@ -47,40 +49,40 @@ const BatchCard = ({ batch, statusCfg, percent }) => {
         {/* Applicant Statistics Dropdown */}
         {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
-          <div className="pt-3 border-t border-slate-100">
-            <button
-              onClick={() => setOpenStats(!openStats)}
-              className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
-            >
-              <span>Applicant statistics</span>
-              <span>{openStats ? "▲" : "▼"}</span>
-            </button>
-            {openStats && (
-              <div className="mt-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {batch.totalApplicants !== undefined && (
-                    <div className="p-3 rounded-lg bg-blue-50">
-                      <div className="mb-1 text-xs text-blue-600">
-                        Interested
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                onClick={() => setOpenStats(!openStats)}
+                className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
+              >
+                <span>Applicant statistics</span>
+                <span>{openStats ? "▲" : "▼"}</span>
+              </button>
+              {openStats && (
+                <div className="mt-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {batch.totalApplicants !== undefined && (
+                      <div className="p-3 rounded-lg bg-blue-50">
+                        <div className="mb-1 text-xs text-blue-600">
+                          Interested
+                        </div>
+                        <div className="text-lg font-bold text-blue-700">
+                          {batch.totalApplicants}
+                        </div>
                       </div>
-                      <div className="text-lg font-bold text-blue-700">
-                        {batch.totalApplicants}
+                    )}
+                    {batch.appliedCandidates !== undefined && (
+                      <div className="p-3 rounded-lg bg-green-50">
+                        <div className="mb-1 text-xs text-green-600">Applied</div>
+                        <div className="text-lg font-bold text-green-700">
+                          {batch.appliedCandidates}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {batch.appliedCandidates !== undefined && (
-                    <div className="p-3 rounded-lg bg-green-50">
-                      <div className="mb-1 text-xs text-green-600">Applied</div>
-                      <div className="text-lg font-bold text-green-700">
-                        {batch.appliedCandidates}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
         {/* Recruitment Progress */}
         {batch.target !== undefined && (
@@ -103,11 +105,10 @@ const BatchCard = ({ batch, statusCfg, percent }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
                 ? "Cannot view applicant list because the batch has not started"
@@ -135,7 +136,7 @@ const BatchCard = ({ batch, statusCfg, percent }) => {
   );
 };
 
-const BatchManagement = ({ campaign, onCreateBatch }) => {
+const BatchManagement = ({ campaign, onCreateBatch, showBatchStatus = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Map rounds from API to batch format
@@ -265,6 +266,7 @@ const BatchManagement = ({ campaign, onCreateBatch }) => {
                 statusCfg={statusCfg}
                 percent={progressPercent}
                 campaignId={campaign?.campaignId || campaign?.id || 1}
+                showStatus={showBatchStatus}
               />
             );
           })}

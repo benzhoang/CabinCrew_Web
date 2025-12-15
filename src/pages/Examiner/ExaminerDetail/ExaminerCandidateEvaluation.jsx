@@ -54,6 +54,7 @@ const ExaminerCandidateEvaluation = () => {
     const [submittedCount, setSubmittedCount] = useState(0) // Số lần đã chấm
     const [loadingSubmit, setLoadingSubmit] = useState(false)
     const [checkingCount, setCheckingCount] = useState(true) // Đang kiểm tra số lần đã chấm
+    const [submittedOnce, setSubmittedOnce] = useState(false) // Đã chấm trong phiên hiện tại
 
     const loadInterviewCriterias = useCallback(async () => {
         setCriteriaLoading(true)
@@ -198,10 +199,17 @@ const ExaminerCandidateEvaluation = () => {
             })
 
             if (response.success) {
-                toast.success('Submitted evaluation successfully!')
+                toast.success('Submitted evaluation successfully!', {
+                    style: {
+                        background: '#16a34a',
+                        color: '#ffffff'
+                    },
+                    progressStyle: { background: '#22c55e' }
+                })
                 // Increase submission count
                 const newCount = submittedCount + 1
                 setSubmittedCount(newCount)
+                setSubmittedOnce(true)
                 // If less than 3, go back
                 if (newCount < 3) {
                     if (batchData) {
@@ -238,6 +246,7 @@ const ExaminerCandidateEvaluation = () => {
     }
 
     let criterionCounter = 0
+    const hasReachedLimit = submittedCount >= 3 || submittedOnce
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -434,18 +443,18 @@ const ExaminerCandidateEvaluation = () => {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-3">
-                    {!checkingCount && submittedCount < 3 && (
+                    {!checkingCount && !hasReachedLimit && (
                         <button
                             onClick={handleSubmit}
-                            disabled={loadingSubmit}
+                            disabled={loadingSubmit || hasReachedLimit}
                             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loadingSubmit ? 'Submitting...' : 'Submit evaluation'}
                         </button>
                     )}
-                    {!checkingCount && submittedCount >= 3 && (
+                    {!checkingCount && hasReachedLimit && (
                         <div className="px-6 py-2.5 bg-slate-100 text-slate-500 rounded-lg font-medium">
-                            Submitted 3 times already
+                            Submitted already
                         </div>
                     )}
                 </div>

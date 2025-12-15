@@ -19,6 +19,8 @@ const PromotionStagesPage = () => {
 
   useEffect(() => {
     const fetchOngoingPromotion = async () => {
+      const friendlyError =
+        "Currently, promotion campaign cannot be loaded. Please try again later.";
       try {
         setLoading(true);
         setError(null);
@@ -185,12 +187,12 @@ const PromotionStagesPage = () => {
           setPromotionStages([mappedData]);
         } else {
           setPromotionStages([]);
-          setError(result.error || "No promotion campaign is being processed");
+          setError(friendlyError);
         }
       } catch (err) {
         console.error("Error fetching ongoing campaign:", err);
         setPromotionStages([]);
-        setError("An error occurred while loading data");
+        setError(friendlyError);
       } finally {
         setLoading(false);
       }
@@ -432,12 +434,11 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 0
-                              ? `${
-                                  (application.stages.filter((s) => s.completed)
-                                    .length /
-                                    application.stages.length) *
-                                  100
-                                }%`
+                              ? `${(application.stages.filter((s) => s.completed)
+                                .length /
+                                application.stages.length) *
+                              100
+                              }%`
                               : "0%",
                         }}
                       ></div>
@@ -495,18 +496,18 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Current status:</strong>{" "}
                         {application.stages.length > 0 &&
-                        application.currentStage > 0 &&
-                        application.currentStage <= application.stages.length
+                          application.currentStage > 0 &&
+                          application.currentStage <= application.stages.length
                           ? (() => {
-                              const currentStageData =
-                                application.stages[
-                                  application.currentStage - 1
-                                ];
-                              if (currentStageData?.completed) {
-                                return `Completed ${currentStageData.name}`;
-                              }
-                              return `In progress ${currentStageData.name}`;
-                            })()
+                            const currentStageData =
+                              application.stages[
+                              application.currentStage - 1
+                              ];
+                            if (currentStageData?.completed) {
+                              return `Completed ${currentStageData.name}`;
+                            }
+                            return `In progress ${currentStageData.name}`;
+                          })()
                           : "Pending"}
                       </p>
 

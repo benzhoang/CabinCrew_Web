@@ -8,6 +8,9 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   const [roundTypes, setRoundTypes] = useState([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+  const showBatchStatus = ["ongoing", "upcoming", "ended"].includes(
+    String(campaign?.status || "").trim().toLowerCase()
+  );
 
   // Fetch requirement items based on campaignType
   useEffect(() => {
@@ -241,7 +244,11 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
             </div>
           </div>
 
-          <BatchManagement campaign={campaign} onCreateBatch={onCreateBatch} />
+          <BatchManagement
+            campaign={campaign}
+            onCreateBatch={onCreateBatch}
+            showBatchStatus={showBatchStatus}
+          />
         </div>
       </div>
     </div>

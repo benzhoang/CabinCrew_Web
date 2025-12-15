@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getTestSessionById, getTestSessionAnswers, getTestSessionAnswersWithCriteria, scoreTestSessionAnswers } from "../../../service/api";
+import { toast } from "react-toastify";
+import {
+  getTestSessionById,
+  getTestSessionAnswers,
+  getTestSessionAnswersWithCriteria,
+  scoreTestSessionAnswers,
+} from "../../../service/api";
 
 const ExaminerTestSessionDetail = () => {
   const { testSessionId } = useParams();
@@ -454,7 +460,9 @@ const ExaminerTestSessionDetail = () => {
         throw new Error(result.error || "Scoring failed");
       }
 
-      setSpeakingSubmitMessage(result.message || "Scoring successful.");
+      const successMsg = "Scoring successful.";
+      setSpeakingSubmitMessage(successMsg);
+      toast.success(successMsg);
       setSpeakingScoresLocked(true);
 
       const scoreListId = campaignRoundId || roundId;

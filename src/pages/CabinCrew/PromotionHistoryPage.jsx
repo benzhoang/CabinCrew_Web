@@ -526,11 +526,10 @@ const PromotionHistoryPage = () => {
                             <div
                               className="h-full transition-all duration-500 bg-blue-500"
                               style={{
-                                width: `${
-                                  (application.currentStage /
+                                width: `${(application.currentStage /
                                     application.stages.length) *
                                   100
-                                }%`,
+                                  }%`,
                               }}
                             ></div>
                           </div>
@@ -596,11 +595,11 @@ const PromotionHistoryPage = () => {
                                 <strong>Trạng thái hiện tại:</strong>{" "}
                                 {stageStatus === "rejected"
                                   ? `Not qualified at ${getStageName(
-                                      currentStage
-                                    )}`
+                                    currentStage
+                                  )}`
                                   : currentStage?.completed
-                                  ? `Completed ${getStageName(currentStage)}`
-                                  : `In progress ${getStageName(currentStage)}`}
+                                    ? `Completed ${getStageName(currentStage)}`
+                                    : `In progress ${getStageName(currentStage)}`}
                               </p>
                             </div>
                           );
@@ -637,14 +636,6 @@ const PromotionHistoryPage = () => {
                 {t("no_applications_desc") ||
                   "You have not submitted any applications. Start searching for suitable job opportunities."}
               </p>
-              <div className="mt-6">
-                <button
-                  onClick={() => navigate("/cabin-crew/promotion")}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700"
-                >
-                  Browse Promotion
-                </button>
-              </div>
             </div>
           </div>
         )}

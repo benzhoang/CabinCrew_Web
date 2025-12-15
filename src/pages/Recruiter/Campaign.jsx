@@ -8,7 +8,6 @@ const Campaign = () => {
     const [filteredCampaigns, setFilteredCampaigns] = useState([]) // Campaigns after filtering/sorting
     const [displayedCampaigns, setDisplayedCampaigns] = useState([]) // Campaigns displayed on current page (5 items)
     const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState('all')
     const [sortBy, setSortBy] = useState('startDateDesc')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
@@ -147,11 +146,6 @@ const Campaign = () => {
             )
         }
 
-        // Filter by status
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(campaign => normalizeStatus(campaign.status) === statusFilter)
-        }
-
         // Sort campaigns
         const sorted = [...filtered].sort((a, b) => {
             switch (sortBy) {
@@ -186,7 +180,7 @@ const Campaign = () => {
             hasNextPage: totalPages > 1,
             hasPreviousPage: false,
         }))
-    }, [allCampaigns, searchTerm, statusFilter, sortBy])
+    }, [allCampaigns, searchTerm, sortBy])
 
     // Apply client-side pagination on filteredCampaigns
     useEffect(() => {
@@ -340,46 +334,6 @@ const Campaign = () => {
                 <div className="p-6 border-b border-slate-200">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-slate-800">Campaign List ({filteredCampaigns.length})</h3>
-                    </div>
-
-                    {/* Status Filter Buttons */}
-                    <div className="flex gap-3 flex-wrap">
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
-                                ? 'bg-slate-600 text-white border-slate-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                }`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('ongoing')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'ongoing'
-                                ? 'bg-green-600 text-white border-green-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
-                                }`}
-                        >
-                            Ongoing
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('pending')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'pending'
-                                ? 'bg-yellow-600 text-white border-yellow-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
-                                }`}
-                        >
-                            Pending
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('completed')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'completed'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-slate-700 border-slate-300 hover:bg-blue-50'
-                                }`}
-                        >
-                            Completed
-                        </button>
                     </div>
                 </div>
 
