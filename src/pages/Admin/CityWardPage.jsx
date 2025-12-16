@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaEdit, FaPlus, FaSyncAlt, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
 import { getCities, getWardsForCity } from "../../service/api";
 import Pagination from "../../components/AdminComponent/Pagination";
+import CreateWardModal from "./ModalCreate/CreateWardModal";
+import EditWardModal from "./ModalCreate/EditWardModal";
 
 const CityWardPage = () => {
   const [cities, setCities] = useState([]);
@@ -12,6 +15,9 @@ const CityWardPage = () => {
   const [error, setError] = useState("");
   const pageSize = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedWardForEdit, setSelectedWardForEdit] = useState(null);
 
   const fetchCities = useMemo(
     () => async () => {
@@ -91,8 +97,42 @@ const CityWardPage = () => {
     currentPage * pageSize
   );
 
+  const selectedCity = useMemo(
+    () =>
+      cities.find(
+        (city) =>
+          String(city?.cityId ?? city?.id ?? "") === String(selectedCityId)
+      ),
+    [cities, selectedCityId]
+  );
+
   const handlePlaceholderAction = (action, payload) => {
     console.log(`TODO: ${action}`, payload);
+  };
+
+  const handleOpenCreateModal = () => {
+    if (!selectedCityId) {
+      toast.error("Vui lòng chọn thành phố trước khi thêm phường/xã");
+      return;
+    }
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateSuccess = () => {
+    if (selectedCityId) {
+      fetchWards(selectedCityId);
+    }
+  };
+
+  const handleOpenEditModal = (ward) => {
+    setSelectedWardForEdit(ward);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    if (selectedCityId) {
+      fetchWards(selectedCityId);
+    }
   };
 
   return (
@@ -107,9 +147,7 @@ const CityWardPage = () => {
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() =>
-              handlePlaceholderAction("create", { cityId: selectedCityId })
-            }
+            onClick={handleOpenCreateModal}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             <FaPlus className="w-4 h-4" />
@@ -215,9 +253,10 @@ const CityWardPage = () => {
                           <button
                             type="button"
                             onClick={() =>
-                              handlePlaceholderAction("edit", {
-                                cityId: selectedCityId,
-                                wardId: id,
+                              handleOpenEditModal({
+                                ...ward,
+                                id,
+                                wardName: name,
                               })
                             }
                             className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition border rounded-lg text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -256,6 +295,20 @@ const CityWardPage = () => {
           />
         </div>
       </section>
+
+      <CreateWardModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        cityId={selectedCityId}
+        cityName={selectedCity?.cityName || selectedCity?.name || ""}
+        onSuccess={handleCreateSuccess}
+      />
+      <EditWardModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        ward={selectedWardForEdit}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 };

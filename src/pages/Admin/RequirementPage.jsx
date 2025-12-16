@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiEdit2, FiLoader, FiPlus, FiTrash2 } from "react-icons/fi";
-import { getRequirementItems } from "../../service/api";
+import { getRequirementItems, deleteRequirementItem } from "../../service/api";
+import CreateRequirementItemModal from "./ModalCreate/CreateRequirementItemModal";
+import EditRequirementItemModal from "./ModalCreate/EditRequirementItemModal";
+import DeleteConfirmModal from "./ModalCreate/DeleteConfirmModal";
+import { toast } from "react-toastify";
 
 const EmptyState = ({ message }) => (
     <div className="p-6 text-center text-slate-500 border border-dashed border-slate-200 rounded-lg bg-white">
@@ -13,6 +17,12 @@ const RequirementPage = () => {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingItem, setDeletingItem] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchRequirementItems = useMemo(
         () => async (typeValue) => {
@@ -38,6 +48,7 @@ const RequirementPage = () => {
                                 item?.id ??
                                 item?.code ??
                                 `${group?.requirementId ?? groupIndex + 1}-${idx + 1}`,
+                            requirementItemId: item?.requirementItemId ?? item?.id,
                             title: item?.title || item?.name || "Requirement item",
                             description: item?.description || item?.detail || "",
                         }));
@@ -66,6 +77,64 @@ const RequirementPage = () => {
         console.log(`TODO: ${action}`, payload);
     };
 
+    const handleCreateSuccess = () => {
+        // Refresh the list after creating a new item
+        fetchRequirementItems(selectedType);
+    };
+
+    const handleEditClick = (item) => {
+        setEditingItem(item);
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditSuccess = () => {
+        // Refresh the list after updating an item
+        fetchRequirementItems(selectedType);
+    };
+
+    const handleEditModalClose = () => {
+        setIsEditModalOpen(false);
+        setEditingItem(null);
+    };
+
+    const handleDeleteClick = (item) => {
+        setDeletingItem(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deletingItem) return;
+
+        const itemId = deletingItem?.requirementItemId || deletingItem?.id;
+        setIsDeleting(true);
+
+        try {
+            const result = await deleteRequirementItem(selectedType, itemId);
+
+            if (result.success) {
+                toast.success("Delete requirement item successfully!");
+                setIsDeleteModalOpen(false);
+                setDeletingItem(null);
+                // Refresh the list after deleting an item
+                fetchRequirementItems(selectedType);
+            } else {
+                toast.error(result.error || "Cannot delete requirement item");
+            }
+        } catch (error) {
+            toast.error("An error occurred while deleting requirement item");
+            console.error("Error deleting requirement item:", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleDeleteModalClose = () => {
+        if (!isDeleting) {
+            setIsDeleteModalOpen(false);
+            setDeletingItem(null);
+        }
+    };
+
     return (
         <div className="p-6 space-y-6">
             <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -78,11 +147,7 @@ const RequirementPage = () => {
                 <div className="flex flex-wrap gap-3">
                     <button
                         type="button"
-                        onClick={() =>
-                            handlePlaceholderAction("create", {
-                                type: selectedType,
-                            })
-                        }
+                        onClick={() => setIsCreateModalOpen(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
                         <FiPlus className="w-4 h-4" />
@@ -168,24 +233,14 @@ const RequirementPage = () => {
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("edit", {
-                                                            id: item.id,
-                                                            type: selectedType,
-                                                        })
-                                                    }
+                                                    onClick={() => handleEditClick(item)}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition border rounded-lg text-slate-700 border-slate-300 hover:bg-slate-50"
                                                 >
                                                     <FiEdit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("delete", {
-                                                            id: item.id,
-                                                            type: selectedType,
-                                                        })
-                                                    }
+                                                    onClick={() => handleDeleteClick(item)}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border rounded-lg border-red-200 hover:bg-red-50"
                                                 >
                                                     <FiTrash2 className="w-4 h-4" />
@@ -199,9 +254,32 @@ const RequirementPage = () => {
                     </div>
                 )}
             </section>
+
+            <CreateRequirementItemModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                requirementId={selectedType}
+                onSuccess={handleCreateSuccess}
+            />
+
+            <EditRequirementItemModal
+                isOpen={isEditModalOpen}
+                onClose={handleEditModalClose}
+                requirementId={selectedType}
+                itemId={editingItem?.requirementItemId || editingItem?.id}
+                initialData={editingItem}
+                onSuccess={handleEditSuccess}
+            />
+
+            <DeleteConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={handleDeleteModalClose}
+                onConfirm={handleDeleteConfirm}
+                itemTitle={deletingItem?.title || "this requirement item"}
+                isDeleting={isDeleting}
+            />
         </div>
     );
 };
 
 export default RequirementPage;
-

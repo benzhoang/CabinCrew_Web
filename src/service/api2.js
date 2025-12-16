@@ -844,6 +844,145 @@ export const getTestTypes = async () => {
   }
 };
 
+// API tạo loại bài test mới - POST /api/v1/test-types
+export const createTestType = async (testTypeName) => {
+  try {
+    const trimmedName =
+      typeof testTypeName === "string"
+        ? testTypeName.trim()
+        : String(testTypeName || "").trim();
+
+    if (!trimmedName) {
+      return {
+        success: false,
+        error: "Test type name is required",
+      };
+    }
+
+    const body = {
+      testTypeName: trimmedName,
+    };
+
+    const response = await api2.post("/test-types", body);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message:
+          responseData?.message || "Create test type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot create test type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create test type",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật loại bài test - PUT /api/v1/test-types/{id}
+export const updateTestType = async (id, testTypeName) => {
+  try {
+    const parsedId = typeof id === "string" ? parseInt(id, 10) : Number(id);
+    const trimmedName =
+      typeof testTypeName === "string"
+        ? testTypeName.trim()
+        : String(testTypeName || "").trim();
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Test type id is required",
+      };
+    }
+
+    if (!trimmedName) {
+      return {
+        success: false,
+        error: "Test type name is required",
+      };
+    }
+
+    // Swagger hiển thị body "string" => gửi chuỗi tên trực tiếp.
+    const body = trimmedName;
+
+    const response = await api2.put(`/test-types/${parsedId}`, body);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Update test type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot update test type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update test type",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API xoá loại bài test - DELETE /api/v1/test-types/{id}
+export const deleteTestType = async (id) => {
+  try {
+    const parsedId = typeof id === "string" ? parseInt(id, 10) : Number(id);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Test type id is required",
+      };
+    }
+
+    const response = await api2.delete(`/test-types/${parsedId}`);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Delete test type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot delete test type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot delete test type",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API tạo test mới với audio file upload - POST /api/v1/tests
 export const createTest = async (testData, audioFile) => {
   try {

@@ -709,8 +709,8 @@ const dictionaries = {
       "You haven't applied to any jobs yet. Start browsing for suitable opportunities.",
     browse_jobs: "Browse Jobs",
     //Navbar cabin crew
-    promotion_history: "Promotion History",
-    promotion_stages: "Promotion Process",
+    promotion_history: "History",
+    promotion_stages: "Process",
 
     // User Profile
     user_profile: "User Profile",

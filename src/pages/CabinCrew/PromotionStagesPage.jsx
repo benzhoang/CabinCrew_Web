@@ -144,8 +144,8 @@ const PromotionStagesPage = () => {
           }
 
           let status = "pending";
-          let statusText = "Under review";
-          let statusTextEn = "Under Review";
+          let statusText = "Ongoing";
+          let statusTextEn = "Ongoing";
 
           if (campaignData.roundStatus) {
             const roundStatus = campaignData.roundStatus.toLowerCase();

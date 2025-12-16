@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaEdit, FaPlus, FaSyncAlt, FaTrash } from "react-icons/fa";
+import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { getRoundTypes } from "../../service/api";
+import CreateRoundTypeModal from "./ModalCreate/CreateRoundTypeModal";
+import EditRoundTypeModal from "./ModalCreate/EditRoundTypeModal";
+import DeleteRoundTypeModal from "./ModalCreate/DeleteRoundTypeModal";
 
 const RoundTypePage = () => {
     const [selectedType, setSelectedType] = useState(1); // 1: Recruitement, 2: Promotion
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingRound, setEditingRound] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingRound, setDeletingRound] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchRoundTypes = useMemo(
         () => async (typeValue) => {
@@ -50,10 +59,6 @@ const RoundTypePage = () => {
         fetchRoundTypes(selectedType);
     }, [fetchRoundTypes, selectedType]);
 
-    const handlePlaceholderAction = (action, payload) => {
-        console.log(`TODO: ${action}`, payload);
-    };
-
     return (
         <div className="p-6 space-y-6">
             <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -66,7 +71,7 @@ const RoundTypePage = () => {
                 <div className="flex flex-wrap gap-3">
                     <button
                         type="button"
-                        onClick={() => handlePlaceholderAction("create", { type: selectedType })}
+                        onClick={() => setIsCreateModalOpen(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
                         <FaPlus className="w-4 h-4" />
@@ -157,24 +162,20 @@ const RoundTypePage = () => {
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("edit", {
-                                                            id: item.id,
-                                                            type: selectedType,
-                                                        })
-                                                    }
+                                                    onClick={() => {
+                                                        setEditingRound(item);
+                                                        setIsEditModalOpen(true);
+                                                    }}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition border rounded-lg text-slate-700 border-slate-300 hover:bg-slate-50"
                                                 >
                                                     <FaEdit className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("delete", {
-                                                            id: item.id,
-                                                            type: selectedType,
-                                                        })
-                                                    }
+                                                    onClick={() => {
+                                                        setDeletingRound(item);
+                                                        setIsDeleteModalOpen(true);
+                                                    }}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border rounded-lg border-red-200 hover:bg-red-50"
                                                 >
                                                     <FaTrash className="w-4 h-4" />
@@ -188,6 +189,34 @@ const RoundTypePage = () => {
                     </table>
                 </div>
             </section>
+
+            <CreateRoundTypeModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                campaignType={selectedType}
+                onSuccess={() => fetchRoundTypes(selectedType)}
+            />
+            <EditRoundTypeModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setEditingRound(null);
+                }}
+                roundType={editingRound}
+                onSuccess={() => fetchRoundTypes(selectedType)}
+            />
+            <DeleteRoundTypeModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    if (isDeleting) return;
+                    setIsDeleteModalOpen(false);
+                    setDeletingRound(null);
+                }}
+                roundType={deletingRound}
+                onSuccess={() => fetchRoundTypes(selectedType)}
+                isDeleting={isDeleting}
+                setIsDeleting={setIsDeleting}
+            />
         </div>
     );
 };
