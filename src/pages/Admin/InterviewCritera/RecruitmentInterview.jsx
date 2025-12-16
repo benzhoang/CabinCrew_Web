@@ -1,34 +1,44 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { FiLoader, FiAlertCircle, FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
-import { getInterviewCriterias } from "../../../service/api";
+import { deleteInterviewCriteriaItem, getInterviewCriterias } from "../../../service/api";
+import CreateInterviewCriteriaItemModal from "../ModalCreate/CreateInterviewCriteriaItemModal";
+import EditInterviewCriteriaItemModal from "../ModalCreate/EditInterviewCriteriaItemModal";
+import DeleteConfirmModal from "../ModalCreate/DeleteConfirmModal";
 
 const RecruitmentInterview = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedGroupId, setSelectedGroupId] = useState(null);
+    const [selectedCriteriaId, setSelectedCriteriaId] = useState(null);
+    const [editingItem, setEditingItem] = useState(null);
+    const [editingCriteriaId, setEditingCriteriaId] = useState(null);
+    const [deletingItem, setDeletingItem] = useState(null);
+    const [deletingCriteriaId, setDeletingCriteriaId] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await getInterviewCriterias();
+            if (res?.success && Array.isArray(res.data)) {
+                setData(res.data);
+            } else if (Array.isArray(res)) {
+                setData(res);
+            } else {
+                setError(res?.error || "Unable to load recruitment interview criteria");
+            }
+        } catch (e) {
+            setError(e.message || "Unable to load recruitment interview criteria");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const res = await getInterviewCriterias();
-                if (res?.success && Array.isArray(res.data)) {
-                    setData(res.data);
-                } else if (Array.isArray(res)) {
-                    setData(res);
-                } else {
-                    setError(res?.error || "Unable to load recruitment interview criteria");
-                }
-            } catch (e) {
-                setError(e.message || "Unable to load recruitment interview criteria");
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     const groups = useMemo(() => {
         // The API sample returns an array of groups: [{ title, items: [{ interviewCriteriaItemId, criteria }] }]
@@ -105,7 +115,7 @@ const RecruitmentInterview = () => {
 
             {!loading && !error && groups.length > 0 && (
                 <div className="divide-y divide-slate-100">
-                    {groups.map((group) => (
+                    {groups.map((group, index) => (
                         <div key={group.id} className="p-6 space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="uppercase text-xs font-semibold text-slate-500 tracking-wide">
@@ -114,7 +124,12 @@ const RecruitmentInterview = () => {
                                 <button
                                     type="button"
                                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                                    onClick={() => setSelectedGroupId(group.id)}
+                                    onClick={() => {
+                                        // Recruitment: id 1 cho group đầu, id 2 cho group thứ 2
+                                        const criteriaId = index === 0 ? 1 : 2;
+                                        setSelectedGroupId(group.id);
+                                        setSelectedCriteriaId(criteriaId);
+                                    }}
                                 >
                                     <FiPlus className="w-4 h-4" />
                                     Add criteria
@@ -139,14 +154,36 @@ const RecruitmentInterview = () => {
                                             </div>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => { }}
+                                                    onClick={() => {
+                                                        const criteriaId = index === 0 ? 1 : 2;
+                                                        setEditingCriteriaId(criteriaId);
+                                                        setEditingItem({
+                                                            id: item.interviewCriteriaItemId || item.id,
+                                                            criteria:
+                                                                item.criteria ||
+                                                                item.text ||
+                                                                item.title ||
+                                                                "",
+                                                        });
+                                                    }}
                                                     className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
                                                     title="Edit"
                                                 >
                                                     <FiEdit2 className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    onClick={() => { }}
+                                                    onClick={() => {
+                                                        const criteriaId = index === 0 ? 1 : 2;
+                                                        setDeletingCriteriaId(criteriaId);
+                                                        setDeletingItem({
+                                                            id: item.interviewCriteriaItemId || item.id,
+                                                            criteria:
+                                                                item.criteria ||
+                                                                item.text ||
+                                                                item.title ||
+                                                                "",
+                                                        });
+                                                    }}
                                                     className="p-2 rounded-lg border border-slate-200 text-red-600 hover:bg-red-50"
                                                     title="Delete"
                                                 >
@@ -162,6 +199,58 @@ const RecruitmentInterview = () => {
                     ))}
                 </div>
             )}
+
+            <CreateInterviewCriteriaItemModal
+                isOpen={!!selectedGroupId}
+                interviewCriteriaId={selectedCriteriaId}
+                onClose={() => {
+                    setSelectedGroupId(null);
+                    setSelectedCriteriaId(null);
+                }}
+                onSuccess={fetchData}
+            />
+            <DeleteConfirmModal
+                isOpen={!!deletingItem}
+                onClose={() => {
+                    if (isDeleting) return;
+                    setDeletingItem(null);
+                    setDeletingCriteriaId(null);
+                }}
+                itemTitle={deletingItem?.criteria || "this criteria"}
+                isDeleting={isDeleting}
+                onConfirm={async () => {
+                    if (!deletingItem || !deletingCriteriaId) return;
+                    setIsDeleting(true);
+                    try {
+                        const result = await deleteInterviewCriteriaItem(
+                            deletingCriteriaId,
+                            deletingItem.id
+                        );
+                        if (result.success) {
+                            await fetchData();
+                            setDeletingItem(null);
+                            setDeletingCriteriaId(null);
+                        } else {
+                            console.error(result.error || "Cannot delete interview criteria item");
+                        }
+                    } catch (error) {
+                        console.error("Error deleting interview criteria item:", error);
+                    } finally {
+                        setIsDeleting(false);
+                    }
+                }}
+            />
+            <EditInterviewCriteriaItemModal
+                isOpen={!!editingItem}
+                interviewCriteriaId={editingCriteriaId}
+                itemId={editingItem?.id}
+                initialCriteria={editingItem?.criteria}
+                onClose={() => {
+                    setEditingItem(null);
+                    setEditingCriteriaId(null);
+                }}
+                onSuccess={fetchData}
+            />
         </div>
     );
 };

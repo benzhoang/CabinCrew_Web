@@ -308,6 +308,122 @@ export const getWardsForCity = async (cityId) => {
   }
 };
 
+// API tạo phường/xã theo cityId
+export const createWardForCity = async (cityId, wardName) => {
+  const parsedCityId = Number(cityId);
+  const trimmedName = wardName?.trim();
+
+  if (!parsedCityId || Number.isNaN(parsedCityId)) {
+    return {
+      success: false,
+      error: "City id is required",
+    };
+  }
+
+  if (!trimmedName) {
+    return {
+      success: false,
+      error: "Ward name is required",
+    };
+  }
+
+  try {
+    const response = await api.post(
+      `/cities/${parsedCityId}/wards`,
+      null,
+      {
+        params: { wardName: trimmedName },
+      }
+    );
+    const responseData = response.data;
+
+    const isSuccess =
+      response.status >= 200 &&
+      response.status < 300 &&
+      (responseData?.code === 0 || responseData);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Create ward successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot create ward",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create ward",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật tên phường/xã theo wardId
+export const updateWard = async (wardId, wardName) => {
+  const parsedId = Number(wardId);
+  const trimmedName = wardName?.trim();
+
+  if (!parsedId || Number.isNaN(parsedId)) {
+    return {
+      success: false,
+      error: "Ward id is required",
+    };
+  }
+
+  if (!trimmedName) {
+    return {
+      success: false,
+      error: "Ward name is required",
+    };
+  }
+
+  try {
+    const response = await api.put(
+      `/cities/wards/${parsedId}`,
+      null,
+      {
+        params: { wardName: trimmedName },
+      }
+    );
+    const responseData = response.data;
+
+    const isSuccess =
+      response.status >= 200 &&
+      response.status < 300 &&
+      (responseData?.code === 0 || responseData);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Update ward successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot update ward",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update ward",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách tiêu chí phỏng vấn
 export const getInterviewCriterias = async () => {
   try {
@@ -399,8 +515,8 @@ export const getRoundTypes = async (type) => {
       const list = Array.isArray(responseData?.data)
         ? responseData.data
         : Array.isArray(responseData)
-        ? responseData
-        : null;
+          ? responseData
+          : null;
 
       if (list) {
         return {
@@ -427,6 +543,160 @@ export const getRoundTypes = async (type) => {
   }
 };
 
+// API tạo round type mới
+export const createRoundType = async (payload) => {
+  try {
+    const trimmedName = payload?.roundTypeName?.trim();
+    const rawType = payload?.campaignType;
+
+    const parsedType =
+      typeof rawType === "string" ? parseInt(rawType, 10) : Number(rawType);
+
+    if (!trimmedName) {
+      return {
+        success: false,
+        error: "Round type name is required",
+      };
+    }
+
+    if (!parsedType || Number.isNaN(parsedType) || parsedType <= 0) {
+      return {
+        success: false,
+        error: "Campaign type (campaignType) is required",
+      };
+    }
+
+    const body = {
+      roundTypeName: trimmedName,
+      campaignType: parsedType,
+    };
+
+    const response = await api.post("/round-types", body);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message:
+          responseData?.message || "Create round type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot create round type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create round type",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật round type
+export const updateRoundType = async (id, roundTypeName) => {
+  try {
+    const parsedId = typeof id === "string" ? parseInt(id, 10) : Number(id);
+    const trimmedName =
+      typeof roundTypeName === "string"
+        ? roundTypeName.trim()
+        : String(roundTypeName || "").trim();
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Round type id is required",
+      };
+    }
+
+    if (!trimmedName || !String(trimmedName).trim()) {
+      return {
+        success: false,
+        error: "Round type name is required",
+      };
+    }
+
+    // Theo swagger PUT /round-types/{id} body là một chuỗi (example: "string")
+    // => Gửi trực tiếp chuỗi tên round type.
+    const body = trimmedName;
+
+    const response = await api.put(`/round-types/${parsedId}`, body);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message:
+          responseData?.message || "Update round type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot update round type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update round type",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API xóa round type
+export const deleteRoundType = async (id) => {
+  try {
+    const parsedId = typeof id === "string" ? parseInt(id, 10) : Number(id);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Round type id is required",
+      };
+    }
+
+    const response = await api.delete(`/round-types/${parsedId}`);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message:
+          responseData?.message || "Delete round type successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot delete round type",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot delete round type",
+      status: error.response?.status,
+    };
+  }
+};
+
+
+
+
 // API lấy requirement items theo requirement id (1: Recruitment, 2: Promotion)
 export const getRequirementItems = async (requirementId) => {
   try {
@@ -450,22 +720,22 @@ export const getRequirementItems = async (requirementId) => {
     const list = Array.isArray(payload?.data)
       ? payload.data
       : Array.isArray(payload?.data?.requirementItems)
-      ? [
+        ? [
           {
             requirementId: payload?.data?.requirementId,
             requirementItems: payload.data.requirementItems,
           },
         ]
-      : Array.isArray(payload?.requirementItems)
-      ? [
-          {
-            requirementId: payload?.requirementId,
-            requirementItems: payload.requirementItems,
-          },
-        ]
-      : Array.isArray(payload)
-      ? payload
-      : null;
+        : Array.isArray(payload?.requirementItems)
+          ? [
+            {
+              requirementId: payload?.requirementId,
+              requirementItems: payload.requirementItems,
+            },
+          ]
+          : Array.isArray(payload)
+            ? payload
+            : null;
 
     if (response.status >= 200 && response.status < 300 && list) {
       return {
@@ -486,6 +756,358 @@ export const getRequirementItems = async (requirementId) => {
         error.response?.data?.message ||
         error.message ||
         "Cannot get requirement items",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API tạo requirement item mới
+export const createRequirementItem = async (requirementId, requirementItemData) => {
+  try {
+    const parsedId =
+      typeof requirementId === "string"
+        ? parseInt(requirementId, 10)
+        : Number(requirementId);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Requirement id is required",
+      };
+    }
+
+    if (!requirementItemData || !requirementItemData.title) {
+      return {
+        success: false,
+        error: "Title is required",
+      };
+    }
+
+    const response = await api.post(
+      `/requirements/${parsedId}/requirement-items`,
+      requirementItemData
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Create requirement item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot create requirement item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create requirement item",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API tạo interview criteria item mới
+// interviewCriteriaId: số (1,2 cho Recruitment; 3,4 cho Promotion)
+// criteriaText: string nội dung tiêu chí
+export const createInterviewCriteriaItem = async (
+  interviewCriteriaId,
+  criteriaText
+) => {
+  try {
+    const parsedId =
+      typeof interviewCriteriaId === "string"
+        ? parseInt(interviewCriteriaId, 10)
+        : Number(interviewCriteriaId);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Interview criteria id is required",
+      };
+    }
+
+    if (!criteriaText || !`${criteriaText}`.trim()) {
+      return {
+        success: false,
+        error: "Criteria is required",
+      };
+    }
+
+    const response = await api.post(
+      `/interview-criterias/${parsedId}/interview-criteria-items`,
+      `${criteriaText}`.trim()
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Create interview criteria item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot create interview criteria item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create interview criteria item",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật interview criteria item
+// interviewCriteriaId: số (1,2 cho Recruitment; 3,4 cho Promotion)
+// itemId: id của criteria item cụ thể
+// criteriaText: string nội dung tiêu chí
+export const updateInterviewCriteriaItem = async (
+  interviewCriteriaId,
+  itemId,
+  criteriaText
+) => {
+  try {
+    const parsedCriteriaId =
+      typeof interviewCriteriaId === "string"
+        ? parseInt(interviewCriteriaId, 10)
+        : Number(interviewCriteriaId);
+    const parsedItemId =
+      typeof itemId === "string" ? parseInt(itemId, 10) : Number(itemId);
+
+    if (!parsedCriteriaId || Number.isNaN(parsedCriteriaId) || parsedCriteriaId <= 0) {
+      return {
+        success: false,
+        error: "Interview criteria id is required",
+      };
+    }
+
+    if (!parsedItemId || Number.isNaN(parsedItemId) || parsedItemId <= 0) {
+      return {
+        success: false,
+        error: "Interview criteria item id is required",
+      };
+    }
+
+    if (!criteriaText || !`${criteriaText}`.trim()) {
+      return {
+        success: false,
+        error: "Criteria is required",
+      };
+    }
+
+    const response = await api.put(
+      `/interview-criterias/${parsedCriteriaId}/interview-criteria-items/${parsedItemId}`,
+      `${criteriaText}`.trim()
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Update interview criteria item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot update interview criteria item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update interview criteria item",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API xóa interview criteria item
+// interviewCriteriaId: số (1,2 cho Recruitment; 3,4 cho Promotion)
+// itemId: id của criteria item cụ thể
+export const deleteInterviewCriteriaItem = async (interviewCriteriaId, itemId) => {
+  try {
+    const parsedCriteriaId =
+      typeof interviewCriteriaId === "string"
+        ? parseInt(interviewCriteriaId, 10)
+        : Number(interviewCriteriaId);
+    const parsedItemId =
+      typeof itemId === "string" ? parseInt(itemId, 10) : Number(itemId);
+
+    if (!parsedCriteriaId || Number.isNaN(parsedCriteriaId) || parsedCriteriaId <= 0) {
+      return {
+        success: false,
+        error: "Interview criteria id is required",
+      };
+    }
+
+    if (!parsedItemId || Number.isNaN(parsedItemId) || parsedItemId <= 0) {
+      return {
+        success: false,
+        error: "Interview criteria item id is required",
+      };
+    }
+
+    const response = await api.delete(
+      `/interview-criterias/${parsedCriteriaId}/interview-criteria-items/${parsedItemId}`
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Delete interview criteria item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot delete interview criteria item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot delete interview criteria item",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật requirement item
+export const updateRequirementItem = async (requirementId, itemId, requirementItemData) => {
+  try {
+    const parsedRequirementId =
+      typeof requirementId === "string"
+        ? parseInt(requirementId, 10)
+        : Number(requirementId);
+
+    const parsedItemId =
+      typeof itemId === "string"
+        ? parseInt(itemId, 10)
+        : Number(itemId);
+
+    if (!parsedRequirementId || Number.isNaN(parsedRequirementId) || parsedRequirementId <= 0) {
+      return {
+        success: false,
+        error: "Requirement id is required",
+      };
+    }
+
+    if (!parsedItemId || Number.isNaN(parsedItemId) || parsedItemId <= 0) {
+      return {
+        success: false,
+        error: "Requirement item id is required",
+      };
+    }
+
+    if (!requirementItemData || !requirementItemData.title) {
+      return {
+        success: false,
+        error: "Title is required",
+      };
+    }
+
+    const response = await api.put(
+      `/requirements/${parsedRequirementId}/requirement-items/${parsedItemId}`,
+      requirementItemData
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Update requirement item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot update requirement item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update requirement item",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API xóa requirement item
+export const deleteRequirementItem = async (requirementId, itemId) => {
+  try {
+    const parsedRequirementId =
+      typeof requirementId === "string"
+        ? parseInt(requirementId, 10)
+        : Number(requirementId);
+
+    const parsedItemId =
+      typeof itemId === "string"
+        ? parseInt(itemId, 10)
+        : Number(itemId);
+
+    if (!parsedRequirementId || Number.isNaN(parsedRequirementId) || parsedRequirementId <= 0) {
+      return {
+        success: false,
+        error: "Requirement id is required",
+      };
+    }
+
+    if (!parsedItemId || Number.isNaN(parsedItemId) || parsedItemId <= 0) {
+      return {
+        success: false,
+        error: "Requirement item id is required",
+      };
+    }
+
+    const response = await api.delete(
+      `/requirements/${parsedRequirementId}/requirement-items/${parsedItemId}`
+    );
+    const payload = response.data;
+
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: payload?.data || payload,
+        message: payload?.message || "Delete requirement item successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: payload?.message || "Cannot delete requirement item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot delete requirement item",
       status: error.response?.status,
     };
   }
@@ -2011,8 +2633,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
           message:
             responseData?.message ||
             responseData?.errorMessage ||
-            `Created successfully ${
-              responseData?.data?.length || questionsData.length
+            `Created successfully ${responseData?.data?.length || questionsData.length
             } questions.`,
         };
       }
@@ -2026,8 +2647,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              `Đã tạo thành công ${
-                responseData?.data?.length || questionsData.length
+              `Đã tạo thành công ${responseData?.data?.length || questionsData.length
               } câu hỏi.`,
           };
         } else {
@@ -2059,8 +2679,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
             data: responseData.data,
             message:
               responseData.message ||
-              `Created successfully ${
-                responseData?.data?.length || questionsData.length
+              `Created successfully ${responseData?.data?.length || questionsData.length
               } questions.`,
           };
         } else {
@@ -2080,8 +2699,7 @@ export const createBulkTestQuestions = async (testId, questionsData) => {
         data: responseData?.data || responseData,
         message:
           responseData?.message ||
-          `Created successfully ${
-            responseData?.data?.length || questionsData.length
+          `Created successfully ${responseData?.data?.length || questionsData.length
           } questions.`,
       };
     } else {
@@ -2208,10 +2826,9 @@ export const importQuestionsFromExcel = async (testId, file) => {
           message:
             responseData?.message ||
             responseData?.errorMessage ||
-            `Imported successfully ${
-              responseData?.data?.totalQuestionsCreated ||
-              responseData?.totalQuestionsCreated ||
-              0
+            `Imported successfully ${responseData?.data?.totalQuestionsCreated ||
+            responseData?.totalQuestionsCreated ||
+            0
             } questions.`,
         };
       }
@@ -2225,8 +2842,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
             message:
               responseData.message ||
               responseData.errorMessage ||
-              `Imported successfully ${
-                responseData?.data?.totalQuestionsCreated || 0
+              `Imported successfully ${responseData?.data?.totalQuestionsCreated || 0
               } questions.`,
           };
         } else {
@@ -2258,8 +2874,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
             data: responseData.data,
             message:
               responseData.message ||
-              `Imported successfully ${
-                responseData?.data?.totalQuestionsCreated || 0
+              `Imported successfully ${responseData?.data?.totalQuestionsCreated || 0
               } questions.`,
           };
         } else {
@@ -2279,8 +2894,7 @@ export const importQuestionsFromExcel = async (testId, file) => {
         data: responseData?.data || responseData,
         message:
           responseData?.message ||
-          `Imported successfully ${
-            responseData?.data?.totalQuestionsCreated || 0
+          `Imported successfully ${responseData?.data?.totalQuestionsCreated || 0
           } questions.`,
       };
     } else {
@@ -3890,8 +4504,7 @@ export const importFlightHoursConfirmation = async (roundId, file) => {
         data: responseData.data || responseData,
         message:
           responseData.message ||
-          `Import successfully. Processed ${
-            responseData.data?.totalProcessed || 0
+          `Import successfully. Processed ${responseData.data?.totalProcessed || 0
           } applicants.`,
         totalProcessed: responseData.data?.totalProcessed || 0,
         passedCount: responseData.data?.passedCount || 0,
@@ -3938,7 +4551,7 @@ export const updateFlightExperience = async (activityId, payload) => {
     const requestBody = {
       totalFlightHours:
         payload.totalFlightHours !== undefined &&
-        payload.totalFlightHours !== null
+          payload.totalFlightHours !== null
           ? parseInt(payload.totalFlightHours, 10)
           : 0,
       experience: payload.experience || null,

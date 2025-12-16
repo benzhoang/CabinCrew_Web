@@ -104,10 +104,10 @@ const ApplicationFormPage = () => {
       if (decoded) {
         return (
           decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -370,7 +370,6 @@ const ApplicationFormPage = () => {
       !formData.dateOfBirth ||
       !formData.gender ||
       !formData.mobileNumber ||
-      !formData.workingExperience ||
       !formData.height ||
       !formData.weight ||
       formData.termsAccepted !== "yes"
@@ -445,10 +444,10 @@ const ApplicationFormPage = () => {
 
         alert(
           t("application_form_submitted_successfully") ||
-            result.message ||
-            "Nộp đơn thành công!"
+          result.message ||
+          "Nộp đơn thành công!"
         );
-        navigate("/ca");
+        navigate("/cabin-crew/promotion-stages");
       } else {
         alert(result.error || "Nộp đơn thất bại. Vui lòng thử lại.");
       }
@@ -518,10 +517,10 @@ const ApplicationFormPage = () => {
 
         alert(
           t("application_form_draft_saved") ||
-            result.message ||
-            "Đã lưu bản nháp thành công!"
+          result.message ||
+          "Đã lưu bản nháp thành công!"
         );
-        navigate("/recruitment-stages");
+        navigate("/cabin-crew/promotion-stages");
       } else {
         alert(result.error || "Lưu bản nháp thất bại. Vui lòng thử lại.");
       }

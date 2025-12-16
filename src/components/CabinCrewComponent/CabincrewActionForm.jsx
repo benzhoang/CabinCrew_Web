@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import { t } from '../../i18n'
 import { updateFlightExperience } from '../../service/api'
+import { toast } from 'react-toastify'
 
 const CabincrewActionForm = ({
     children,
@@ -22,7 +23,7 @@ const CabincrewActionForm = ({
 
     const validateCaptcha = useCallback(() => {
         if (captchaInput.toUpperCase() !== captchaCode) {
-            alert(t('application_form_captcha_incorrect'))
+            toast.error(t('application_form_captcha_incorrect'))
             refreshCaptcha()
             return false
         }
@@ -46,7 +47,7 @@ const CabincrewActionForm = ({
             return
         }
         if (!applicationId) {
-            alert('Không tìm thấy mã hồ sơ. Vui lòng tải lại trang và thử lại.')
+            toast.error('Không tìm thấy mã hồ sơ. Vui lòng tải lại trang và thử lại.')
             return
         }
 
@@ -66,15 +67,15 @@ const CabincrewActionForm = ({
             // Gọi API với applicationId (được sử dụng làm activityId trong API endpoint)
             const result = await updateFlightExperience(applicationId, payload)
             if (result.success) {
-                alert(result.message || 'Đã cập nhật thông tin thành công!')
+                toast.success(result.message || 'Đã cập nhật thông tin thành công!')
                 setIsEditing(false)
                 setOriginalFormData(null)
             } else {
-                alert(result.error || 'Không thể cập nhật hồ sơ. Vui lòng thử lại.')
+                toast.error(result.error || 'Không thể cập nhật hồ sơ. Vui lòng thử lại.')
             }
         } catch (error) {
             console.error('Update flight experience error:', error)
-            alert('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại sau.')
+            toast.error('Có lỗi xảy ra khi cập nhật hồ sơ. Vui lòng thử lại sau.')
         } finally {
             setIsSaving(false)
         }

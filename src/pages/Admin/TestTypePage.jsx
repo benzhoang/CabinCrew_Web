@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { FaEdit, FaPlus, FaSyncAlt, FaTrash } from "react-icons/fa";
 import { getTestTypes } from "../../service/api2";
+import CreateTestTypeModal from "./ModalCreate/CreateTestTypeModal";
+import EditTestTypeModal from "./ModalCreate/EditTestTypeModal";
+import DeleteTestTypeModal from "./ModalCreate/DeleteTestTypeModal";
 
 const TestTypePage = () => {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTestType, setEditingTestType] = useState(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingTestType, setDeletingTestType] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchTestTypes = useMemo(
         () => async () => {
@@ -56,11 +65,6 @@ const TestTypePage = () => {
         fetchTestTypes();
     }, [fetchTestTypes]);
 
-    const handlePlaceholderAction = (action, payload) => {
-        // Placeholder UI action for future API wiring
-        console.log(`TODO: ${action}`, payload);
-    };
-
     return (
         <div className="p-6 space-y-6">
             <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -73,7 +77,7 @@ const TestTypePage = () => {
                 <div className="flex flex-wrap gap-3">
                     <button
                         type="button"
-                        onClick={() => handlePlaceholderAction("create")}
+                        onClick={() => setIsCreateModalOpen(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
                     >
                         <FaPlus className="w-4 h-4" />
@@ -143,17 +147,20 @@ const TestTypePage = () => {
                                             <div className="flex justify-end gap-2">
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("edit", { id: item.id })
-                                                    }
+                                                    onClick={() => {
+                                                        setEditingTestType(item);
+                                                        setIsEditModalOpen(true);
+                                                    }}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium transition border rounded-lg text-slate-700 border-slate-300 hover:bg-slate-50"
                                                 >
                                                     <FaEdit className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() =>
-                                                        handlePlaceholderAction("delete", { id: item.id })
+                                                    onClick={() => {
+                                                        setDeletingTestType(item);
+                                                        setIsDeleteModalOpen(true);
+                                                    }
                                                     }
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border rounded-lg border-red-200 hover:bg-red-50"
                                                 >
@@ -168,6 +175,33 @@ const TestTypePage = () => {
                     </table>
                 </div>
             </section>
+
+            <CreateTestTypeModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={fetchTestTypes}
+            />
+            <EditTestTypeModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setEditingTestType(null);
+                }}
+                testType={editingTestType}
+                onSuccess={fetchTestTypes}
+            />
+            <DeleteTestTypeModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    if (isDeleting) return;
+                    setIsDeleteModalOpen(false);
+                    setDeletingTestType(null);
+                }}
+                testType={deletingTestType}
+                onSuccess={fetchTestTypes}
+                isDeleting={isDeleting}
+                setIsDeleting={setIsDeleting}
+            />
         </div>
     );
 };
