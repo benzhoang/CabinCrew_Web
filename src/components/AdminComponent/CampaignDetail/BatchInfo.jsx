@@ -2,7 +2,13 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDate2 } from "../../../config/formatDate";
 
-const BatchCard = ({ batch, statusCfg, percent, onViewApplicants }) => {
+const BatchCard = ({
+  batch,
+  statusCfg,
+  percent,
+  onViewApplicants,
+  showStatus,
+}) => {
   const [openStats, setOpenStats] = useState(false);
   const isUpcoming = batch.status === "upcoming";
 
@@ -17,9 +23,11 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants }) => {
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
           {batch.name}
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
-          {statusCfg.text}
-        </span>
+        {showStatus && (
+          <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
+            {statusCfg.text}
+          </span>
+        )}
       </div>
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
@@ -247,6 +255,7 @@ const BatchInfo = ({ campaign }) => {
                   statusCfg={statusCfg}
                   percent={progressPercent}
                   onViewApplicants={handleViewCandidates}
+                  showStatus={false}
                 />
               );
             })}

@@ -46,8 +46,8 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                         </svg>
                     </button>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mt-4">{formData.fullname || 'Tên đầy đủ'}</h2>
-                <p className="text-gray-600">{formData.role || 'Vai trò'}</p>
+                <h2 className="text-xl font-bold text-gray-900 mt-4">{formData.fullname || 'Full name'}</h2>
+                <p className="text-gray-600">{formData.role || 'Role'}</p>
             </div>
 
             {/* Personal Information */}
@@ -133,7 +133,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                     value={formData.age}
                                     readOnly
                                     className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed text-sm"
-                                    placeholder="Tự động tính"
+                                    placeholder="Automatically calculated"
                                 />
                             </div>
                         </div>
@@ -146,7 +146,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                         <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Liên hệ
+                        Contact
                     </h3>
 
                     <div className="space-y-4">

@@ -39,7 +39,7 @@ const hardcodedStages = [
 ];
 
 const PromotionHistoryPage = () => {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [promotionHistory, setPromotionHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -526,10 +526,11 @@ const PromotionHistoryPage = () => {
                             <div
                               className="h-full transition-all duration-500 bg-blue-500"
                               style={{
-                                width: `${(application.currentStage /
+                                width: `${
+                                  (application.currentStage /
                                     application.stages.length) *
                                   100
-                                  }%`,
+                                }%`,
                               }}
                             ></div>
                           </div>
@@ -595,11 +596,11 @@ const PromotionHistoryPage = () => {
                                 <strong>Trạng thái hiện tại:</strong>{" "}
                                 {stageStatus === "rejected"
                                   ? `Not qualified at ${getStageName(
-                                    currentStage
-                                  )}`
+                                      currentStage
+                                    )}`
                                   : currentStage?.completed
-                                    ? `Completed ${getStageName(currentStage)}`
-                                    : `In progress ${getStageName(currentStage)}`}
+                                  ? `Completed ${getStageName(currentStage)}`
+                                  : `In progress ${getStageName(currentStage)}`}
                               </p>
                             </div>
                           );
