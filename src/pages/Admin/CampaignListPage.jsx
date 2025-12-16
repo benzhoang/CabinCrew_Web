@@ -1,11 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
+import { getCampaignList } from "../../service/api2";
 import CampaignList from "../../components/AdminComponent/CampaignList";
 
 const CampaignListPage = () => {
   const [search, setSearch] = useState("");
   const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const [partners, setPartners] = useState([]);
+
+  // Fetch partners list from API
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const result = await getCampaignList({
+          page: 1,
+          pageSize: 1000,
+        });
+
+        if (result.success && result.data && Array.isArray(result.data)) {
+          // Extract unique partner names
+          const uniquePartners = [
+            ...new Set(
+              result.data
+                .map((item) => item.partnerName)
+                .filter((name) => name && name.trim() !== "")
+            ),
+          ].sort();
+
+          setPartners(uniquePartners);
+        }
+      } catch (error) {
+        console.error("Error fetching partners:", error);
+      }
+    };
+
+    fetchPartners();
+  }, []);
 
   return (
     <div className="w-full h-full">
@@ -22,6 +54,18 @@ const CampaignListPage = () => {
               />
               <FaSearch className="absolute text-gray-500 -translate-y-1/2 right-3 top-1/2" />
             </div>
+            <select
+              value={partnerFilter}
+              onChange={(e) => setPartnerFilter(e.target.value)}
+              className="px-3 text-sm border border-gray-300 rounded-lg h-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            >
+              <option value="all">All partners</option>
+              {partners.map((partner) => (
+                <option key={partner} value={partner}>
+                  {partner}
+                </option>
+              ))}
+            </select>
             <select
               value={campaignTypeFilter}
               onChange={(e) => setCampaignTypeFilter(e.target.value)}
@@ -52,6 +96,7 @@ const CampaignListPage = () => {
             search={search}
             campaignTypeFilter={campaignTypeFilter}
             statusFilter={statusFilter}
+            partnerFilter={partnerFilter}
           />
         </div>
       </div>

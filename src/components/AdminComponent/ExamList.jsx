@@ -263,7 +263,15 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
         <table className="min-w-full border-collapse table-fixed">
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">
-              <th className="w-16 px-5 py-3 font-semibold">No.</th>
+              <th className="w-16 px-5 py-3 font-semibold">
+                <SortButton
+                  field="id"
+                  label="No."
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </th>
               <th className="px-5 py-3 font-semibold w-52">
                 <SortButton
                   field="testName"
@@ -282,15 +290,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
                   onSort={handleSort}
                 />
               </th>
-              <th className="px-5 py-3 font-semibold w-36">
-                <SortButton
-                  field="testType"
-                  label="Test Type"
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-              </th>
+              <th className="px-5 py-3 font-semibold w-36">Test Type</th>
               <th className="w-24 px-5 py-3 font-semibold text-right">
                 Actions
               </th>

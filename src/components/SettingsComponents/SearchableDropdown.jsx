@@ -91,7 +91,7 @@ const SearchableDropdown = ({
                             type="text"
                             value={searchTerm}
                             onChange={handleInputChange}
-                            placeholder={`Tìm kiếm ${label.toLowerCase()}...`}
+                            placeholder={`Search ${label.toLowerCase()}...`}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                         />
                     </div>
@@ -109,7 +109,7 @@ const SearchableDropdown = ({
                             ))
                         ) : (
                             <div className="px-4 py-2 text-gray-500 text-sm">
-                                Không tìm thấy kết quả
+                                No results found
                             </div>
                         )}
                     </div>

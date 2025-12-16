@@ -6,12 +6,14 @@ const ScoreReportPage = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEmptyState, setIsEmptyState] = useState(false); // Track if it's an empty state (0 tests) vs actual error
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTests = async () => {
       setLoading(true);
       setError(null);
+      setIsEmptyState(false);
       try {
         const result = await getMyTests();
         console.log("=== getMyTests result ===", result);
@@ -19,17 +21,25 @@ const ScoreReportPage = () => {
         if (result?.status === 401) {
           setError("Please login to view your test scores.");
           setTests([]);
+          setIsEmptyState(false);
           return;
         }
 
-        if (result.success && result.data) {
+        if (result.success) {
           // Lấy mảng tests từ result.data.tests
-          const testsArray = result.data.tests || [];
+          const testsArray = result.data?.tests || [];
 
           if (testsArray.length === 0) {
             setTests([]);
+            setError(null); // Clear any error when there are 0 tests (this is a valid state, not an error)
+            setIsEmptyState(true); // Mark as empty state, not an error
+            // Don't show any message when there are 0 tests, even if API returns a success message like "Retrieved 0 test(s) for user successfully"
             return;
           }
+
+          // If we have tests, also clear any previous error state
+          setError(null);
+          setIsEmptyState(false);
 
           // Map dữ liệu từ API response
           const mappedTests = testsArray.map((test) => {
@@ -53,9 +63,20 @@ const ScoreReportPage = () => {
           });
 
           setTests(mappedTests);
+          setIsEmptyState(false);
         } else {
-          setError(result.error || "Cannot load test list");
-          setTests([]);
+          // Only set error if it's a real error, not just empty data
+          const testsArray = result.data?.tests || [];
+          if (testsArray.length === 0) {
+            // If there are 0 tests, treat it as empty state, not error
+            setTests([]);
+            setError(null);
+            setIsEmptyState(true);
+          } else {
+            setError(result.error || "Cannot load test list");
+            setTests([]);
+            setIsEmptyState(false);
+          }
         }
       } catch (err) {
         const status = err?.response?.status;
@@ -65,6 +86,7 @@ const ScoreReportPage = () => {
           setError(err.message || "Cannot load test list");
         }
         setTests([]);
+        setIsEmptyState(false);
       } finally {
         setLoading(false);
       }
@@ -129,7 +151,7 @@ const ScoreReportPage = () => {
           <p className="text-gray-600">View your test scores</p>
         </div>
 
-        {error && (
+        {error && !isEmptyState && (
           <div className="p-4 mb-6 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50">
             {error}
           </div>

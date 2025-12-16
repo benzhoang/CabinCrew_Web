@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { getCampaignList } from "../../service/api2";
-import Loading from "../Loading";
 import Pagination from "./Pagination";
 import { useNavigate } from "react-router-dom";
 
@@ -135,6 +134,14 @@ const CampaignTypeBadge = ({ type }) => {
   );
 };
 
+const PartnerBadge = ({ partnerName }) => {
+  return (
+    <span className="bg-gray-100 text-gray-700 border-gray-200 inline-block rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap">
+      {partnerName || "No partner"}
+    </span>
+  );
+};
+
 const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
   const getIcon = () => {
     if (sortField !== field || !sortDirection)
@@ -160,6 +167,7 @@ const CampaignList = ({
   search = "",
   campaignTypeFilter = "all",
   statusFilter = "all",
+  partnerFilter = "all",
 }) => {
   const navigate = useNavigate();
   const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
@@ -205,6 +213,7 @@ const CampaignList = ({
           id: item.campaignId || item.id || item.campaignID || item.Id,
           campaignName: item.campaignName || item.name || "No campaign name",
           targetQuantity: item.targetQuantity || 0,
+          partnerName: item.partnerName || null,
           campaignType: mapCampaignType(item.campaignType),
           status: mapStatus(item.status),
         }));
@@ -229,7 +238,7 @@ const CampaignList = ({
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     fetchCampaigns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, campaignTypeFilter, statusFilter]);
+  }, [search, campaignTypeFilter, statusFilter, partnerFilter]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -247,7 +256,7 @@ const CampaignList = ({
     }
   };
 
-  // Filter campaigns by campaignType (client-side)
+  // Filter campaigns by campaignType and partner (client-side)
   const filteredCampaigns = useMemo(() => {
     let filtered = allCampaigns;
 
@@ -256,8 +265,15 @@ const CampaignList = ({
       filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
     }
 
+    // Filter by partner
+    if (partnerFilter !== "all") {
+      filtered = filtered.filter(
+        (c) => c.partnerName && c.partnerName === partnerFilter
+      );
+    }
+
     return filtered;
-  }, [allCampaigns, campaignTypeFilter]);
+  }, [allCampaigns, campaignTypeFilter, partnerFilter]);
 
   const sortedCampaigns = useMemo(() => {
     if (!sortField || !sortDirection) return filteredCampaigns;
@@ -340,7 +356,15 @@ const CampaignList = ({
         <table className="min-w-full border-collapse table-fixed">
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">
-              <th className="w-16 px-5 py-3 font-semibold">No.</th>
+              <th className="w-16 px-5 py-3 font-semibold">
+                <SortButton
+                  field="id"
+                  label="No."
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </th>
               <th className="px-5 py-3 font-semibold w-52">
                 <SortButton
                   field="campaignName"
@@ -359,24 +383,9 @@ const CampaignList = ({
                   onSort={handleSort}
                 />
               </th>
-              <th className="px-5 py-3 font-semibold w-36">
-                <SortButton
-                  field="campaignType"
-                  label="Campaign Type"
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-              </th>
-              <th className="px-5 py-3 font-semibold w-36">
-                <SortButton
-                  field="status"
-                  label="Status"
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-              </th>
+              <th className="w-40 px-5 py-3 font-semibold">Partner</th>
+              <th className="px-5 py-3 font-semibold w-36">Campaign Type</th>
+              <th className="px-5 py-3 font-semibold w-36">Status</th>
               <th className="w-24 px-5 py-3 font-semibold text-right">
                 Actions
               </th>
@@ -385,7 +394,7 @@ const CampaignList = ({
           <tbody>
             {paginatedCampaigns.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-5 py-8 text-center text-gray-500">
+                <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
@@ -405,6 +414,9 @@ const CampaignList = ({
                   </td>
                   <td className="px-5 py-4 text-sm text-gray-700">
                     {c.targetQuantity}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-700">
+                    <PartnerBadge partnerName={c.partnerName} />
                   </td>
                   <td className="px-5 py-4 text-sm text-gray-700">
                     <CampaignTypeBadge type={c.campaignType} />

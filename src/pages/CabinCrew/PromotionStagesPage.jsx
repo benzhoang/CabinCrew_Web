@@ -31,6 +31,19 @@ const PromotionStagesPage = () => {
           const campaignData = result.data;
           const rounds = campaignData.rounds || [];
 
+          // Kiểm tra xem data có thực sự có giá trị không (không phải empty)
+          const hasValidData =
+            campaignData.campaignRoundId !== null &&
+            campaignData.campaignRoundId !== undefined &&
+            campaignData.campaignRoundId !== "";
+
+          // Nếu không có data hợp lệ, hiển thị empty state
+          if (!hasValidData && rounds.length === 0) {
+            setPromotionStages([]);
+            setLoading(false);
+            return;
+          }
+
           // Định nghĩa 5 stage cố định
           const hardcodedStages = [
             {
@@ -434,11 +447,12 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 0
-                              ? `${(application.stages.filter((s) => s.completed)
-                                .length /
-                                application.stages.length) *
-                              100
-                              }%`
+                              ? `${
+                                  (application.stages.filter((s) => s.completed)
+                                    .length /
+                                    application.stages.length) *
+                                  100
+                                }%`
                               : "0%",
                         }}
                       ></div>
@@ -496,18 +510,18 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Current status:</strong>{" "}
                         {application.stages.length > 0 &&
-                          application.currentStage > 0 &&
-                          application.currentStage <= application.stages.length
+                        application.currentStage > 0 &&
+                        application.currentStage <= application.stages.length
                           ? (() => {
-                            const currentStageData =
-                              application.stages[
-                              application.currentStage - 1
-                              ];
-                            if (currentStageData?.completed) {
-                              return `Completed ${currentStageData.name}`;
-                            }
-                            return `In progress ${currentStageData.name}`;
-                          })()
+                              const currentStageData =
+                                application.stages[
+                                  application.currentStage - 1
+                                ];
+                              if (currentStageData?.completed) {
+                                return `Completed ${currentStageData.name}`;
+                              }
+                              return `In progress ${currentStageData.name}`;
+                            })()
                           : "Pending"}
                       </p>
 
@@ -588,14 +602,6 @@ const PromotionStagesPage = () => {
                   {t("no_applications_desc") ||
                     "You have not submitted any applications. Start searching for suitable job opportunities."}
                 </p>
-                <div className="mt-6">
-                  <button
-                    onClick={() => navigate("/cabin-crew/promotion")}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700"
-                  >
-                    Browse Promotion
-                  </button>
-                </div>
               </div>
             )}
           </div>

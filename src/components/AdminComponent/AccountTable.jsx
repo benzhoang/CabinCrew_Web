@@ -389,42 +389,10 @@ const AccountTable = ({
                 {getSortIcon("fullName")}
               </button>
             </th>
-            <th className="px-5 py-3 font-semibold">
-              <button
-                type="button"
-                onClick={() => handleSort("email")}
-                className="flex items-center hover:text-gray-900"
-              >
-                Contact Email {getSortIcon("email")}
-              </button>
-            </th>
-            <th className="px-5 py-3 font-semibold">
-              <button
-                type="button"
-                onClick={() => handleSort("phone")}
-                className="flex items-center hover:text-gray-900"
-              >
-                Phone Number {getSortIcon("phone")}
-              </button>
-            </th>
-            <th className="px-5 py-3 font-semibold">
-              <button
-                type="button"
-                onClick={() => handleSort("position")}
-                className="flex items-center hover:text-gray-900"
-              >
-                Position {getSortIcon("position")}
-              </button>
-            </th>
-            <th className="px-5 py-3 font-semibold">
-              <button
-                type="button"
-                onClick={() => handleSort("status")}
-                className="flex items-center hover:text-gray-900"
-              >
-                Status {getSortIcon("status")}
-              </button>
-            </th>
+            <th className="px-5 py-3 font-semibold">Contact Email</th>
+            <th className="px-5 py-3 font-semibold">Phone Number</th>
+            <th className="px-5 py-3 font-semibold">Position</th>
+            <th className="px-5 py-3 font-semibold">Status</th>
             <th className="px-5 py-3 font-semibold text-right w-28">Actions</th>
           </tr>
         </thead>
