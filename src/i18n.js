@@ -127,8 +127,8 @@ const dictionaries = {
     account_information: "Thông tin tài khoản",
     city_province: "Thành phố/Tỉnh",
     ward_commune: "Phường/Xã",
-    update_profile: "Cập nhật thông tin",
-    profile_updated: "Cập nhật thông tin thành công",
+    update_profile: "Update profile",
+    profile_updated: "Update profile successful",
     select_city: "Chọn thành phố/tỉnh",
     select_ward: "Chọn phường/xã",
     required_field: "Trường này là bắt buộc",
@@ -497,7 +497,7 @@ const dictionaries = {
     application_form_height_weight: "Chiều cao (cm) & cân nặng (kg) của bạn:",
     application_form_height: "Chiều cao (cm)",
     application_form_weight: "Cân nặng (kg)",
-    application_form_height_example: "Ví dụ: Nam: 165 cm - 53kg, Nữ: 155 cm - 48kg",
+    application_form_height_example: "Ví dụ: Nam: 170-185 cm - 53kg, Nữ: 160-175 cm - 48kg",
     application_form_english_certificate_info:
       "Chứng chỉ tiếng Anh (TOEIC/IELTS/TOEFL) & Ngày hết hạn:",
     application_form_certificate_number: "Số chứng chỉ",
@@ -762,7 +762,7 @@ const dictionaries = {
     exam_password_placeholder: "Enter exam password",
     exam_password_required: "Please enter exam password",
     enter_exam: "Start Exam",
-    exam_login_success: "Login successful. Redirecting to exam page...",
+    exam_login_success: "Redirecting to exam page...",
     loading: "Processing...",
     exam_list_title: "Exam List",
     exam_list_subtitle: "Select an exam and enter password to start",
@@ -1063,12 +1063,12 @@ const dictionaries = {
       "REMEMBER TO UPLOAD THESE DOCUMENT BEFORE YOU APPLY",
     application_form_application_form_file:
       "Form Job Application (file đính kèm/attached file)",
-    application_form_profile_photo: "Ảnh chân dung 4x6 / Profile photo 4x6cm",
+    application_form_profile_photo: "Profile photo 4x6cm",
     application_form_education_degree:
-      "Bằng tốt nghiệp (THPT trở lên)/Education degree (high school diploma or higher)",
+      "Education degree (high school diploma or higher)",
     application_form_english_certificate:
-      "Chứng chỉ tiếng Anh (bắt buộc)/English certificate (must have)",
-    application_form_id_card: "CCCD",
+      "English certificate (must have)",
+    application_form_id_card: "Citizen identification card",
     application_form_click_to_select:
       "Click to select file or drag and drop here",
     application_form_click_to_select_image:
@@ -1101,7 +1101,7 @@ const dictionaries = {
     application_form_height_weight: "Your height (in cm) & weight (in kg):",
     application_form_height: "Height (cm)",
     application_form_weight: "Weight (kg)",
-    application_form_height_example: "Example: Male: 165 cm - 53kg, Female: 155 cm - 48kg",
+    application_form_height_example: "Example: Male: 170-185 cm, Female: 160-175 cm",
     application_form_english_certificate_info:
       "English Certificate (TOEIC/IELTS/TOEFL) & Expire Date:",
     application_form_certificate_number: "Number",

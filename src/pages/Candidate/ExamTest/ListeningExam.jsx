@@ -325,7 +325,7 @@ const ListeningExam = ({ examInfo }) => {
     });
 
     // Hiển thị loading
-    toast.info("Đang nộp bài...", { autoClose: false });
+    toast.info("Submitting exam...", { autoClose: false });
 
     try {
       // Gọi API submit với chữ ký hàm (testId, startTime, endTime, answers)
@@ -392,7 +392,7 @@ const ListeningExam = ({ examInfo }) => {
 
         toast.dismiss();
         setHasSubmitted(true);
-        toast.success("Nộp bài thành công!");
+        toast.success("Submit exam successfully");
 
         // Chuyển đến trang kết quả với dữ liệu từ API
         navigate(`/exam-result/${examData?.testId}`, {

@@ -278,7 +278,7 @@ const SpeakingExam = ({ examInfo }) => {
           }_${index}.mp3`,
       }));
 
-      toast.info("Đang nộp bài thi nói...", { autoClose: 2000 });
+      toast.info("Submitting exam...", { autoClose: 2000 });
       setIsSubmitting(true);
 
       const result = await submitSpeakingExam({

@@ -130,7 +130,7 @@ const CabincrewActionForm = ({
                             className={`flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md text-lg ${applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                         >
-                            Cập nhật thông tin
+                            Update profile
                         </button>
                     </>
                 ) : (
@@ -140,7 +140,7 @@ const CabincrewActionForm = ({
                             onClick={handleCancelClick}
                             className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-md text-lg"
                         >
-                            Hủy
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -149,7 +149,7 @@ const CabincrewActionForm = ({
                             className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md text-lg ${isSaving || applicationStatus === 'passed' ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                         >
-                            {isSaving ? 'Đang lưu...' : 'Lưu'}
+                            {isSaving ? 'Saving...' : 'Save'}
                         </button>
                     </>
                 )}

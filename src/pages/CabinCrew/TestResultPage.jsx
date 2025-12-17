@@ -210,8 +210,8 @@ const TestResultPage = () => {
           <div className="space-y-6">
             {/* Điểm số lớn */}
             <div className="text-center">
-              <div className="inline-block p-6 bg-red-100 rounded-full">
-                <div className="text-5xl font-bold text-red-600">
+              <div className="inline-block p-6 bg-green-100 rounded-full">
+                <div className="text-5xl font-bold text-green-600">
                   {finalMaxScore > 0
                     ? `${finalTotalScore}/${finalMaxScore}`
                     : `${safeScore}/${safeTotalQuestions}`}
@@ -361,123 +361,6 @@ const TestResultPage = () => {
             </div>
           </div>
         </div>
-
-        {/* Chi tiết từng câu hỏi */}
-        {questions && answers && (
-          <div className="p-8 bg-white shadow-lg rounded-xl">
-            <h2 className="mb-6 text-xl font-bold text-gray-800">
-              {t("detailed_results") || "Chi tiết kết quả"}
-            </h2>
-            <div className="space-y-4">
-              {questions.map((question, index) => {
-                const submittedAnswer = submittedAnswers?.find(
-                  (ans) => Number(ans.questionId) === Number(question.id)
-                );
-                const userAnswer =
-                  answers[question.id] || submittedAnswer?.selectedOptionKey;
-                const isCorrect =
-                  typeof submittedAnswer?.isCorrect === "boolean"
-                    ? submittedAnswer.isCorrect
-                    : question.correctAnswer
-                    ? userAnswer === question.correctAnswer
-                    : false;
-                const isAnswered =
-                  userAnswer !== undefined &&
-                  userAnswer !== null &&
-                  userAnswer !== "";
-
-                const mappedOptions =
-                  question.options?.map((option, optIndex) => {
-                    const optionKey =
-                      option?.key || String.fromCharCode(65 + optIndex);
-                    const optionLabel =
-                      typeof option === "string"
-                        ? option
-                        : option?.label || option?.optionContent || "";
-                    return {
-                      key: optionKey,
-                      label: optionLabel,
-                    };
-                  }) || [];
-
-                return (
-                  <div
-                    key={question.id}
-                    className={`border-2 rounded-lg p-4 ${
-                      isCorrect
-                        ? "border-green-200 bg-green-50"
-                        : isAnswered
-                        ? "border-red-200 bg-red-50"
-                        : "border-gray-200 bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="mb-2 font-semibold text-gray-800">
-                          {t("question") || "Question"} {index + 1}:{" "}
-                          {question.question}
-                        </div>
-                        <div className="space-y-2">
-                          {mappedOptions.map((option) => {
-                            const isUserAnswer = userAnswer === option.key;
-                            const baseClasses = "flex items-center p-2 rounded";
-                            const stateClasses = isUserAnswer
-                              ? isCorrect
-                                ? " bg-green-100 border border-green-300"
-                                : " bg-red-100 border border-red-300"
-                              : " bg-gray-50";
-
-                            return (
-                              <div
-                                key={option.key}
-                                className={`${baseClasses}${stateClasses}`}
-                              >
-                                <span className="mr-2 font-medium">
-                                  {option.key}.
-                                </span>
-                                <span className="text-gray-700">
-                                  {option.label}
-                                </span>
-                                {isUserAnswer && (
-                                  <span className="ml-auto font-semibold">
-                                    {isCorrect ? (
-                                      <span className="text-green-600">
-                                        ✓ {t("your_answer") || "Your answer"}
-                                      </span>
-                                    ) : (
-                                      <span className="text-red-600">
-                                        ✗ {t("your_answer") || "Your answer"}
-                                      </span>
-                                    )}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        {isCorrect ? (
-                          <span className="px-3 py-1 text-sm font-semibold text-green-700 bg-green-100 rounded-full">
-                            ✓ {t("correct") || "Correct"}
-                          </span>
-                        ) : isAnswered ? (
-                          <span className="px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                            ✗ {t("incorrect") || "Incorrect"}
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-full">
-                            {t("not_answered") || "Not answered"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Nút quay lại và phúc khảo */}
         <div className="flex justify-center gap-4 mt-8">

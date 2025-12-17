@@ -400,10 +400,9 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${
-                isActive
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
+              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${isActive
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`
             }
           >

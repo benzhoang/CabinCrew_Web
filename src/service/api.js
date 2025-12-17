@@ -3277,6 +3277,98 @@ export const getScoringCriterias = async () => {
   }
 };
 
+export const createScoringCriteriaItem = async (scoringCriteriaId, data) => {
+  if (!scoringCriteriaId) {
+    return {
+      success: false,
+      error: "Missing scoringCriteriaId to create scoring criteria item",
+    };
+  }
+
+  try {
+    const response = await api.post(
+      `/scoring-criterias/${scoringCriteriaId}/scoring-criteria-items`,
+      data
+    );
+    const responseData = response.data;
+
+    if (responseData?.code === 0 || response.status === 200 || response.status === 201) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Scoring criteria item created successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Cannot create scoring criteria item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Cannot create scoring criteria item",
+      status: error.response?.status,
+    };
+  }
+};
+
+export const deleteScoringCriteriaItem = async (scoringCriteriaId, itemId) => {
+  if (!scoringCriteriaId) {
+    return {
+      success: false,
+      error: "Missing scoringCriteriaId to delete scoring criteria item",
+    };
+  }
+
+  if (!itemId) {
+    return {
+      success: false,
+      error: "Missing itemId to delete scoring criteria item",
+    };
+  }
+
+  try {
+    const response = await api.delete(
+      `/scoring-criterias/${scoringCriteriaId}/scoring-criteria-items/${itemId}`
+    );
+    const responseData = response.data;
+
+    if (responseData?.code === 0 || response.status === 200 || response.status === 204) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Scoring criteria item deleted successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        responseData?.message ||
+        responseData?.errorMessage ||
+        "Cannot delete scoring criteria item",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Cannot delete scoring criteria item",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API lấy danh sách Interview Result Forms
 export const getInterviewResults = async (activityId) => {
   if (!activityId) {

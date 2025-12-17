@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getInterviewCriterias, getInterviewResultDetail } from '../../service/api'
+import { getInterviewCriteriasPromotion, getInterviewResultDetail } from '../../service/api'
 
 const formatDateTime = (value) => {
     if (!value) return '—'
@@ -39,7 +39,7 @@ const getStatusBadge = (flag) => {
     return 'bg-gray-100 text-gray-700'
 }
 
-const DetailResultPage = () => {
+const PromoInterDetailPage = () => {
     const { id } = useParams()
     const navigate = useNavigate()
 
@@ -79,7 +79,7 @@ const DetailResultPage = () => {
 
     const fetchCriterias = useCallback(async () => {
         try {
-            const response = await getInterviewCriterias()
+            const response = await getInterviewCriteriasPromotion()
             if (response.success) {
                 const dataArray = Array.isArray(response.data) ? response.data : []
                 setCriteriaGroups(dataArray)
@@ -255,16 +255,16 @@ const DetailResultPage = () => {
                                                             <p className="text-sm text-gray-600 mt-1">{group.description}</p>
                                                         )}
                                                     </div>
-                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
                                                         <thead className="bg-gray-50">
                                                             <tr>
-                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-[50%]">
                                                                     Criteria
                                                                 </th>
-                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
+                                                                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-[15%]">
                                                                     Score
                                                                 </th>
-                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                                <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-[35%]">
                                                                     Comment
                                                                 </th>
                                                             </tr>
@@ -287,10 +287,10 @@ const DetailResultPage = () => {
                                                                                     </p>
                                                                                 )}
                                                                             </td>
-                                                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-center">
                                                                                 {resultItem.score !== undefined && resultItem.score !== null ? resultItem.score : '—'}
                                                                             </td>
-                                                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                                            <td className="px-4 py-3 text-sm text-gray-600 text-right">
                                                                                 {resultItem.comment || '—'}
                                                                             </td>
                                                                         </tr>
@@ -320,7 +320,7 @@ const DetailResultPage = () => {
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
@@ -335,7 +335,7 @@ const DetailResultPage = () => {
                                                         <td className="px-4 py-3 text-sm font-semibold text-gray-900">
                                                             {item.score !== undefined && item.score !== null ? item.score : '—'}
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
                                                             {item.comment || '—'}
                                                         </td>
                                                     </tr>
@@ -355,7 +355,7 @@ const DetailResultPage = () => {
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
@@ -367,7 +367,7 @@ const DetailResultPage = () => {
                                                         <td className="px-4 py-3 text-sm font-semibold text-gray-900">
                                                             {item.score !== undefined && item.score !== null ? item.score : '—'}
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-600">
+                                                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
                                                             {item.comment || '—'}
                                                         </td>
                                                     </tr>
@@ -396,5 +396,5 @@ const DetailResultPage = () => {
     )
 }
 
-export default DetailResultPage
+export default PromoInterDetailPage
 

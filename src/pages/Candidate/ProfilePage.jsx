@@ -663,7 +663,7 @@ const ProfilePage = () => {
                                                             ✓ {files.applicationForm instanceof File ? files.applicationForm.name : (files.applicationForm.name || files.applicationForm.file?.name || 'Form Job Application')}
                                                             {files.applicationForm.url && !(files.applicationForm instanceof File) && (
                                                                 <a href={files.applicationForm.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                    (Xem)
+                                                                    (View)
                                                                 </a>
                                                             )}
                                                         </span>
@@ -718,7 +718,7 @@ const ProfilePage = () => {
                                                             ✓ {files.profilePhoto instanceof File ? files.profilePhoto.name : (files.profilePhoto.name || files.profilePhoto.file?.name || 'Ảnh 4x6')}
                                                             {files.profilePhoto.url && !(files.profilePhoto instanceof File) && (
                                                                 <a href={files.profilePhoto.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                    (Xem)
+                                                                    (View)
                                                                 </a>
                                                             )}
                                                         </span>
@@ -773,7 +773,7 @@ const ProfilePage = () => {
                                                             ✓ {files.educationDegree instanceof File ? files.educationDegree.name : (files.educationDegree.name || files.educationDegree.file?.name || 'Education Degree')}
                                                             {files.educationDegree.url && !(files.educationDegree instanceof File) && (
                                                                 <a href={files.educationDegree.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                    (Xem)
+                                                                    (View)
                                                                 </a>
                                                             )}
                                                         </span>
@@ -828,7 +828,7 @@ const ProfilePage = () => {
                                                             ✓ {files.englishCertificate instanceof File ? files.englishCertificate.name : (files.englishCertificate.name || files.englishCertificate.file?.name || 'English Certificate')}
                                                             {files.englishCertificate.url && !(files.englishCertificate instanceof File) && (
                                                                 <a href={files.englishCertificate.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                    (Xem)
+                                                                    (View)
                                                                 </a>
                                                             )}
                                                         </span>
@@ -885,7 +885,7 @@ const ProfilePage = () => {
                                                                     ✓ {files.idCard instanceof File ? files.idCard.name : (files.idCard.name || files.idCard.file?.name || 'Citizen identification card - Mặt trước')}
                                                                     {files.idCard.url && !(files.idCard instanceof File) && (
                                                                         <a href={files.idCard.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                            (Xem)
+                                                                            (View)
                                                                         </a>
                                                                     )}
                                                                 </span>
@@ -940,7 +940,7 @@ const ProfilePage = () => {
                                                                     ✓ {files.idCardBack instanceof File ? files.idCardBack.name : (files.idCardBack.name || files.idCardBack.file?.name || 'Citizen identification card - Mặt sau')}
                                                                     {files.idCardBack.url && !(files.idCardBack instanceof File) && (
                                                                         <a href={files.idCardBack.url} target="_blank" rel="noopener noreferrer" className="ml-2 text-blue-600 underline">
-                                                                            (Xem)
+                                                                            (View)
                                                                         </a>
                                                                     )}
                                                                 </span>

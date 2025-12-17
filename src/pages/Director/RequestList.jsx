@@ -7,7 +7,7 @@ const RequestList = () => {
     const [campaigns, setCampaigns] = useState([])
     const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState('all')
+    const [statusFilter, setStatusFilter] = useState('pending_approval')
     const [langVersion, setLangVersion] = useState(0)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -232,7 +232,7 @@ const RequestList = () => {
     const getStatusBadge = (status) => {
         const normalizedStatus = normalizeStatus(status)
         const statusConfig = {
-            pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending approval' },
+            pending_approval: { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
             rejected: { color: 'bg-red-100 text-red-800', text: 'Rejected' },
             approved: { color: 'bg-green-100 text-green-800', text: 'Approved' }
         }
@@ -305,7 +305,7 @@ const RequestList = () => {
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
                                 }`}
                         >
-                            Pending approval
+                            Pending
                         </button>
                         <button
                             onClick={() => setStatusFilter('rejected')}

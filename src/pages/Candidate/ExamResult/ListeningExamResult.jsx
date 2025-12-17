@@ -245,8 +245,8 @@ const ListeningExamResult = () => {
                                     </div>
 
                                     <div className="flex justify-center md:justify-end w-full md:w-auto">
-                                        <div className="inline-block p-6 rounded-full bg-red-100">
-                                            <div className="text-4xl font-bold text-red-600">
+                                        <div className="inline-block p-6 rounded-full bg-green-100">
+                                            <div className="text-4xl font-bold text-green-600">
                                                 {finalMaxScore > 0
                                                     ? `${finalTotalScore}/${finalMaxScore}`
                                                     : `${safeScore}/${safeTotalQuestions}`

@@ -99,7 +99,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
             )}
         </div>
 
-        {/* Applicant Statistics Dropdown */}
+        {/* Applicant Statistics Dropdown
         {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
             <div className="border-t border-slate-100 pt-3">
@@ -137,9 +137,9 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
                 </div>
               )}
             </div>
-          )}
+          )} */}
 
-        {/* Recruitment Progress */}
+        {/* Recruitment Progress
         {batch.target !== undefined && (
           <div className="border-t border-slate-100 pt-3">
             <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
@@ -153,7 +153,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
               ></div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* View Applicants Button */}
         <div className="border-t border-slate-100 pt-3 space-y-2">

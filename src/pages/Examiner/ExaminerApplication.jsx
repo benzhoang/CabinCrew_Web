@@ -173,8 +173,11 @@ const normalizeStageId = (stageValue) => {
     if (!text) return null
 
     if (text.includes('screening')) return 'screening'
+    // Map Flight Hour Confirmation vào cùng vị trí với English Listening Test trên timeline
+    if (text.includes('flight') || text.includes('hour')) return 'english-listening'
     if (text.includes('appearance') || text.includes('grooming')) return 'appearance'
     if (text.includes('listening')) return 'english-listening'
+    // Practical Test được gắn với English Speaking Test
     if (text.includes('speaking') || text.includes('practical')) return 'english-speaking'
     if (text.includes('interview')) return 'interview'
     if (text.includes('final')) return 'final'
@@ -345,7 +348,14 @@ const ExaminerApplication = () => {
         'screening'
 
     const applicationTimeline = buildTimelineForCandidate(candidate, derivedStageId)
-    const currentStageName = defaultStageTemplates.find(stage => stage.id === derivedStageId)?.name || 'Screening'
+
+    // Ưu tiên dùng tên vòng từ dữ liệu truyền vào (ví dụ: "Flight Hour Confirmation", "Practical Test")
+    const currentStageName =
+        viewingRound?.roundName ||
+        viewingRound?.stageName ||
+        viewingRound?.stageId?.toString().replace(/-/g, ' ') ||
+        defaultStageTemplates.find(stage => stage.id === derivedStageId)?.name ||
+        'Screening'
 
     useEffect(() => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
@@ -596,95 +606,6 @@ const ExaminerApplication = () => {
                         {error}
                     </div>
                 )}
-                {/* Progress Timeline - same style as RecruitmentStages (without action buttons) */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">Application Progress</h3>
-                    <p className="text-sm text-slate-600 mb-6">Track candidate progress through rounds</p>
-                    {applicationTimeline && (
-                        <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
-                            {(() => {
-                                const stageMap = {}
-                                const stageIndexMap = {}
-                                applicationTimeline.stages.forEach((stage, index) => {
-                                    if (stage.templateId) {
-                                        stageMap[stage.templateId] = stage
-                                        stageIndexMap[stage.templateId] = index
-                                    }
-                                })
-
-                                const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final']
-
-                                const renderStageInfo = (stage, stageIndex, stageReached, position) => (
-                                    <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-32 text-center`}>
-                                        <p className="text-xs font-medium text-gray-900">
-                                            {stage.name}
-                                        </p>
-                                        {stage.date && (
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {new Date(stage.date).toLocaleDateString('en-US')}
-                                            </p>
-                                        )}
-                                    </div>
-                                )
-
-                                return (
-                                    <>
-                                        {/* Horizontal progress line */}
-                                        <div
-                                            className="absolute bg-gray-200"
-                                            style={{
-                                                top: `${BASELINE_Y - 7}px`, // căn giữa với tâm hình tròn (line dày 2px)
-                                                left: `${LINE_START_PERCENT}%`,
-                                                width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
-                                                height: '2px'
-                                            }}
-                                        >
-                                            <div
-                                                className="h-full bg-blue-500 transition-all duration-500"
-                                                style={{ width: `${getProgressPercentage(applicationTimeline)}%` }}
-                                            ></div>
-                                        </div>
-
-                                        {/* Vertical branch for English tests */}
-                                        <div
-                                            className="absolute bg-gray-200"
-                                            style={{
-                                                left: `${getAxisPercent('english-listening')}%`,
-                                                top: `${BASELINE_Y - BRANCH_OFFSET - 1}px`, // căn giữa nhánh dọc với line 2px
-                                                height: `${BRANCH_OFFSET * 2}px`,
-                                                width: '2px',
-                                                transform: 'translateX(-50%)'
-                                            }}
-                                        ></div>
-
-                                        {/* Stage nodes */}
-                                        {timelineStageIds.map((templateId) => {
-                                            const stage = stageMap[templateId]
-                                            if (!stage) return null
-                                            const stageIndex = stageIndexMap[templateId]
-                                            const stageReached = isStageReached(stage, stageIndex, applicationTimeline.currentStage)
-                                            const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom'
-
-                                            return (
-                                                <div
-                                                    key={templateId}
-                                                    className="absolute flex flex-col items-center"
-                                                    style={getStagePositionStyle(templateId)}
-                                                >
-                                                    {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
-                                                    <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}`}>
-                                                        {getStageIcon(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}
-                                                    </div>
-                                                    {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
-                                                </div>
-                                            )
-                                        })}
-                                    </>
-                                )
-                            })()}
-                        </div>
-                    )}
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column - CV and Documents */}

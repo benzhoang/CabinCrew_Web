@@ -70,6 +70,7 @@ const MainPage = () => {
       director: "director",
       seniorrecruiter: "senior-recruiter",
       "senior-recruiter": "senior-recruiter",
+      purser: "purser",
     };
 
     const normalizedRole = apiRole.toLowerCase().replace(/\s+/g, "");
@@ -86,6 +87,7 @@ const MainPage = () => {
     examiner: "/examiner/campaigns",
     director: "/director/requirements",
     "senior-recruiter": "/senior-recruiter/requests",
+    purser: "/cabin-crew/settings",
   };
 
   // Hàm tự động điều hướng theo role
@@ -213,7 +215,7 @@ const MainPage = () => {
         };
 
         // Lưu thông tin vào localStorage theo role
-        if (mappedRole === "candidate" || mappedRole === "cabin-crew") {
+        if (mappedRole === "candidate" || mappedRole === "cabin-crew" || mappedRole === "purser") {
           localStorage.setItem("user", JSON.stringify(userInfo));
           localStorage.removeItem("employee");
         } else if (
