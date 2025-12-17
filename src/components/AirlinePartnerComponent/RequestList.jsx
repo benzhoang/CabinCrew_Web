@@ -147,6 +147,17 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasPreviousPage: false,
   });
 
+  // Get username from localStorage
+  const getPartnerUsername = () => {
+    try {
+      const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
+      return employeeData?.username || null;
+    } catch (error) {
+      console.error("Error reading employee data from localStorage:", error);
+      return null;
+    }
+  };
+
   // Fetch data from API - fetch tất cả data để filter và phân trang client-side
   const fetchRequests = async (showLoading = false) => {
     try {
@@ -176,6 +187,9 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
 
       if (result.success) {
         const allItems = result.data.items || [];
+
+        // Get partner username from localStorage
+        const partnerUsername = getPartnerUsername();
 
         // Normalize status function
         const normalizeStatus = (status) => {
@@ -212,6 +226,55 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
 
         // Filter items
         const filteredItems = allItems.filter((request) => {
+          // Filter by partner username if available
+          if (partnerUsername) {
+            const usernameLower = partnerUsername.toLowerCase().trim();
+            // Remove all spaces and special characters for comparison
+            const usernameNormalized = usernameLower.replace(/\s+/g, "");
+
+            const requestPartnerName = (request.partnerName || "")
+              .toLowerCase()
+              .trim();
+            const requestPartnerUsername = (request.partnerUsername || "")
+              .toLowerCase()
+              .trim();
+
+            // Normalize partner names (remove spaces)
+            const partnerNameNormalized = requestPartnerName.replace(
+              /\s+/g,
+              ""
+            );
+            const partnerUsernameNormalized = requestPartnerUsername.replace(
+              /\s+/g,
+              ""
+            );
+
+            // Check if request belongs to the partner
+            // Multiple matching strategies:
+            const belongsToPartner =
+              // 1. Exact match (case-insensitive)
+              requestPartnerName === usernameLower ||
+              requestPartnerUsername === usernameLower ||
+              // 2. Normalized match (removes spaces) - handles "vietnamairlines" vs "Vietnam Airlines"
+              partnerNameNormalized === usernameNormalized ||
+              partnerUsernameNormalized === usernameNormalized ||
+              // 3. Starts with match
+              requestPartnerName.startsWith(usernameLower) ||
+              requestPartnerUsername.startsWith(usernameLower) ||
+              partnerNameNormalized.startsWith(usernameNormalized) ||
+              partnerUsernameNormalized.startsWith(usernameNormalized) ||
+              // 4. Contains as whole word
+              requestPartnerName.split(/\s+/).includes(usernameLower) ||
+              requestPartnerUsername.split(/\s+/).includes(usernameLower) ||
+              // 5. Contains match (normalized)
+              partnerNameNormalized.includes(usernameNormalized) ||
+              partnerUsernameNormalized.includes(usernameNormalized);
+
+            if (!belongsToPartner) {
+              return false;
+            }
+          }
+
           const normalizedStatus = normalizeStatus(request.status);
           const statusFilter = getNormalizedStatusFilter();
 

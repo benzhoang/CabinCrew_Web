@@ -173,7 +173,7 @@ const BatchManagement = ({
       current: round.actualQuantiy || round.actualQuantity || 0,
       target: round.targetQuantity || 0,
       totalApplicants: round.totalApplicants || 0,
-      appliedCandidates: round.appliedCandidates || 0,
+      appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: use actualQuantity like ExaminerBatchManage
       note: round.description || round.note || "",
     };
   };

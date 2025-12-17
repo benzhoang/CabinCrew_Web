@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaTrash, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { FaArrowsRotate } from "react-icons/fa6";
 import { toast } from "react-toastify";
@@ -44,7 +44,7 @@ const AccountTable = ({
   onDataLoad,
   refreshKey = 0,
 }) => {
-  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // Store all users for client-side sorting
   const [loading, setLoading] = useState(false);
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
@@ -60,87 +60,52 @@ const AccountTable = ({
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        // Only fetch all pages if roleName is provided but roleId is not available
-        // AND we need to filter by roleName on client side
-        // If roleId is provided, always use server-side pagination (only fetch current page)
-        const shouldFetchAllForRole =
-          roleId === null || roleId === undefined
-            ? roleName && !searchTerm?.trim() // Only fetch all if no roleId, has roleName, and no search term
-            : false; // If roleId exists, never fetch all pages
-
+        // Always fetch all data for client-side sorting and pagination
         const baseParams = {
           searchTerm: searchTerm?.trim() || undefined,
           roleId: roleId ?? undefined,
           partnerId: partnerId ?? undefined,
           isActive: typeof isActive === "boolean" ? isActive : undefined,
-          page: shouldFetchAllForRole ? 1 : page ?? undefined,
-          pageSize: shouldFetchAllForRole ? 100 : pageSize ?? undefined, // Use larger pageSize when fetching all
+          page: 1, // Always fetch from page 1 to get all data
+          pageSize: 1000, // Fetch large pageSize to get all users for client-side sorting
         };
 
-        const sortColumnMap = {
-          fullName: "fullName",
-          position: "role",
-          email: "email",
-          phone: "phoneNumber",
-          status: "isActive",
-        };
-
-        if (sortField && sortDirection && sortField !== "no") {
-          baseParams.sortColumn = sortColumnMap[sortField] || sortField;
-          baseParams.sortOrder = sortDirection;
-        }
+        // Remove server-side sorting - we'll do client-side sorting instead
 
         let aggregatedItems = [];
         let lastPagination = null;
 
-        if (shouldFetchAllForRole) {
-          // Only fetch all if really necessary (no roleId and no search)
-          // Limit to reasonable number of pages to avoid too many requests
-          const MAX_PAGES_TO_FETCH = 10;
-          let currentPage = 1;
-          let totalPages = 1;
+        // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+        const MAX_PAGES_TO_FETCH = 10;
+        let currentPage = 1;
+        let totalPages = 1;
 
-          while (
-            currentPage <= totalPages &&
-            currentPage <= MAX_PAGES_TO_FETCH
-          ) {
-            const result = await getAllUsers({
-              ...baseParams,
-              page: currentPage,
-            });
+        while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+          const result = await getAllUsers({
+            ...baseParams,
+            page: currentPage,
+          });
 
-            if (!result.success) {
-              console.error("Error fetching users:", result.error);
-              aggregatedItems = [];
-              break;
-            }
-
-            aggregatedItems = aggregatedItems.concat(result.data.items || []);
-            lastPagination = result.data.pagination;
-
-            const nextTotalPages = lastPagination?.totalPages ?? totalPages;
-            totalPages = Math.max(totalPages, nextTotalPages);
-
-            if (
-              !lastPagination?.hasNextPage ||
-              currentPage >= MAX_PAGES_TO_FETCH
-            ) {
-              break;
-            }
-
-            currentPage += 1;
-          }
-        } else {
-          // Normal pagination - only fetch current page
-          const result = await getAllUsers(baseParams);
-
-          if (result.success) {
-            aggregatedItems = result.data.items || [];
-            lastPagination = result.data.pagination;
-          } else {
+          if (!result.success) {
             console.error("Error fetching users:", result.error);
             aggregatedItems = [];
+            break;
           }
+
+          aggregatedItems = aggregatedItems.concat(result.data.items || []);
+          lastPagination = result.data.pagination;
+
+          const nextTotalPages = lastPagination?.totalPages ?? totalPages;
+          totalPages = Math.max(totalPages, nextTotalPages);
+
+          if (
+            !lastPagination?.hasNextPage ||
+            currentPage >= MAX_PAGES_TO_FETCH
+          ) {
+            break;
+          }
+
+          currentPage += 1;
         }
 
         if (roleName) {
@@ -160,64 +125,30 @@ const AccountTable = ({
           originalData: user,
         }));
 
-        if (shouldFetchAllForRole) {
-          const effectivePageSize =
-            pageSize || mappedUsers.length || lastPagination?.pageSize || 1;
-          const currentPage = page ?? 1;
-          const startIndex = (currentPage - 1) * effectivePageSize;
-          const paginatedUsers = mappedUsers.slice(
-            startIndex,
-            startIndex + effectivePageSize
+        // Store all users for client-side sorting and pagination
+        setAllUsers(mappedUsers);
+
+        // Update pagination info for parent component
+        if (onDataLoad) {
+          const totalRecords = mappedUsers.length;
+          const effectivePageSize = pageSize || 5;
+          const totalPages = Math.max(
+            1,
+            Math.ceil(totalRecords / effectivePageSize)
           );
 
-          setUsers(paginatedUsers);
-
-          if (onDataLoad) {
-            const totalRecords = mappedUsers.length;
-            const totalPages = Math.max(
-              1,
-              Math.ceil(totalRecords / effectivePageSize)
-            );
-
-            onDataLoad({
-              currentPage,
-              pageSize: effectivePageSize,
-              totalRecords,
-              totalPages,
-              hasNextPage: currentPage < totalPages,
-              hasPreviousPage: currentPage > 1,
-            });
-          }
-        } else {
-          setUsers(mappedUsers);
-
-          if (onDataLoad && lastPagination) {
-            onDataLoad({
-              ...lastPagination,
-              currentPage: lastPagination.currentPage ?? baseParams.page ?? 1,
-              pageSize:
-                baseParams.pageSize ??
-                lastPagination.pageSize ??
-                (mappedUsers.length || 1),
-              totalRecords: lastPagination.totalRecords ?? mappedUsers.length,
-              totalPages:
-                lastPagination.totalPages ||
-                Math.max(
-                  1,
-                  Math.ceil(
-                    (lastPagination.totalRecords ?? mappedUsers.length) /
-                      (baseParams.pageSize ||
-                        lastPagination.pageSize ||
-                        mappedUsers.length ||
-                        1)
-                  )
-                ),
-            });
-          }
+          onDataLoad({
+            currentPage: page ?? 1,
+            pageSize: effectivePageSize,
+            totalRecords,
+            totalPages,
+            hasNextPage: (page ?? 1) < totalPages,
+            hasPreviousPage: (page ?? 1) > 1,
+          });
         }
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUsers([]);
+        setAllUsers([]);
       } finally {
         setLoading(false);
       }
@@ -238,6 +169,35 @@ const AccountTable = ({
     refreshKey,
     internalRefreshKey,
   ]);
+
+  // Client-side sorting (similar to CampaignList and ExamList)
+  const sortedUsers = useMemo(() => {
+    if (!sortField || !sortDirection || sortField === "no") return allUsers;
+    const copy = [...allUsers];
+    const getValue = (u) => {
+      const v = u?.[sortField];
+      if (v == null) return "";
+      if (typeof v === "string") return v.toLowerCase();
+      return v;
+    };
+    copy.sort((a, b) => {
+      const va = getValue(a);
+      const vb = getValue(b);
+      if (va < vb) return sortDirection === "asc" ? -1 : 1;
+      if (va > vb) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    return copy;
+  }, [allUsers, sortField, sortDirection]);
+
+  // Client-side pagination
+  const paginatedUsers = useMemo(() => {
+    const pageSizeValue = pageSize || 5;
+    const currentPageValue = page ?? 1;
+    const startIndex = (currentPageValue - 1) * pageSizeValue;
+    const endIndex = startIndex + pageSizeValue;
+    return sortedUsers.slice(startIndex, endIndex);
+  }, [sortedUsers, page, pageSize]);
 
   // Sorting function
   const handleSort = (field) => {
@@ -348,7 +308,7 @@ const AccountTable = ({
     setActionType("delete");
   };
 
-  if (loading) {
+  if (loading && allUsers.length === 0) {
     return (
       <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
         <div className="py-8 text-center text-gray-600">Loading data...</div>
@@ -356,29 +316,12 @@ const AccountTable = ({
     );
   }
 
-  // Client-side sorting for "no" column
-  const sortedUsers = [...users];
-  if (sortField === "no" && sortDirection) {
-    if (sortDirection === "desc") {
-      sortedUsers.reverse();
-    }
-    // For "asc", keep original order (already sorted)
-  }
-
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
       <table className="min-w-full border-collapse table-fixed">
         <thead>
           <tr className="text-sm text-left text-gray-600 bg-gray-50">
-            <th className="w-16 px-5 py-3 font-semibold">
-              <button
-                type="button"
-                onClick={() => handleSort("no")}
-                className="flex items-center hover:text-gray-900"
-              >
-                No. {getSortIcon("no")}
-              </button>
-            </th>
+            <th className="w-16 px-5 py-3 font-semibold">No.</th>
             <th className="px-5 py-3 font-semibold">
               <button
                 type="button"
@@ -389,7 +332,15 @@ const AccountTable = ({
                 {getSortIcon("fullName")}
               </button>
             </th>
-            <th className="px-5 py-3 font-semibold">Contact Email</th>
+            <th className="px-5 py-3 font-semibold">
+              <button
+                type="button"
+                onClick={() => handleSort("email")}
+                className="flex items-center hover:text-gray-900"
+              >
+                Contact Email {getSortIcon("email")}
+              </button>
+            </th>
             <th className="px-5 py-3 font-semibold">Phone Number</th>
             <th className="px-5 py-3 font-semibold">Position</th>
             <th className="px-5 py-3 font-semibold">Status</th>
@@ -397,29 +348,16 @@ const AccountTable = ({
           </tr>
         </thead>
         <tbody>
-          {sortedUsers.length === 0 ? (
+          {paginatedUsers.length === 0 ? (
             <tr>
               <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
                 Không có dữ liệu
               </td>
             </tr>
           ) : (
-            sortedUsers.map((u, idx) => {
-              // Calculate row number based on page and sort direction
-              // Always calculate based on page and pageSize to reflect correct position
-              let rowNumber;
-              if (sortField === "no" && sortDirection === "desc") {
-                // When sorting "no" column desc, reverse the numbers
-                const totalInPage = sortedUsers.length;
-                rowNumber = (page - 1) * pageSize + (totalInPage - idx);
-              } else if (sortDirection === "asc") {
-                // When sorting asc (any column), reverse the numbers
-                const totalInPage = sortedUsers.length;
-                rowNumber = (page - 1) * pageSize + (totalInPage - idx);
-              } else {
-                // For desc (other columns) or no sort, calculate normally
-                rowNumber = (page - 1) * pageSize + idx + 1;
-              }
+            paginatedUsers.map((u, idx) => {
+              // Calculate row number based on current page and position in filtered/sorted list
+              const rowNumber = (page - 1) * pageSize + idx + 1;
               return (
                 <tr
                   key={u.userId || idx}

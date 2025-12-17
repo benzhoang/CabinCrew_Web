@@ -94,7 +94,7 @@ const AdminCampaignDetailPage = () => {
 
       <div className="space-y-5">
         <CampaignInfo campaign={campaignData} />
-        <BatchInfo campaign={campaignData} />
+        <BatchInfo campaign={campaignData} showBatchStatus={true} />
       </div>
     </div>
   );

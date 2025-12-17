@@ -2,7 +2,13 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDate2 } from "../../../config/formatDate";
 
-const BatchCard = ({ batch, statusCfg, percent, onViewApplicants, showStatus }) => {
+const BatchCard = ({
+  batch,
+  statusCfg,
+  percent,
+  onViewApplicants,
+  showStatus,
+}) => {
   const [openStats, setOpenStats] = useState(false);
   const isUpcoming = batch.status === "upcoming";
 
@@ -17,7 +23,7 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants, showStatus }) 
         <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
           {batch.name}
         </div>
-        {showStatus && (
+        {showStatus && batch.status?.toLowerCase() !== "pending" && (
           <span className={`text-xs px-2 py-1 rounded-full ${statusCfg.color}`}>
             {statusCfg.text}
           </span>
@@ -44,7 +50,7 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants, showStatus }) 
               onClick={() => setOpenStats(!openStats)}
               className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
             >
-              <span>Candidate statistics</span>
+              <span>Applicant statistics</span>
               <span>{openStats ? "▲" : "▼"}</span>
             </button>
             {openStats && (
@@ -125,7 +131,7 @@ const BatchCard = ({ batch, statusCfg, percent, onViewApplicants, showStatus }) 
   );
 };
 
-const BatchInfo = ({ campaign }) => {
+const BatchInfo = ({ campaign, showBatchStatus = false }) => {
   const navigate = useNavigate();
 
   const mapRoundToBatch = (round) => {
@@ -151,8 +157,8 @@ const BatchInfo = ({ campaign }) => {
       current:
         round.actualQuantiy || round.actualQuantity || round.current || 0,
       target: round.targetQuantity || round.target || 0,
-      totalApplicants: round.totalApplicants,
-      appliedCandidates: round.appliedCandidates,
+      totalApplicants: round.totalApplicants || 0,
+      appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: use actualQuantity like BatchManagement
       note: round.description || round.note || "",
     };
   };
@@ -254,7 +260,7 @@ const BatchInfo = ({ campaign }) => {
                   statusCfg={statusCfg}
                   percent={progressPercent}
                   onViewApplicants={handleViewCandidates}
-                  showStatus={false}
+                  showStatus={showBatchStatus}
                 />
               );
             })}

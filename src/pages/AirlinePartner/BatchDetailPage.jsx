@@ -501,7 +501,7 @@ const BatchDetailPage = () => {
         if (campaignRoundIdToUse) {
           setTimeout(() => {
             navigate(
-              `/airline-partner/campaigns/${params.id}/candidate/${campaignRoundIdToUse}`
+              `/airline-partner/campaigns/${params.id}/applications/${campaignRoundIdToUse}`
             );
           }, 1000); // Đợi 1 giây để người dùng thấy toast
         }

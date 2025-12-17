@@ -26,6 +26,7 @@ const SettingsPage = () => {
     ward: "",
     wardId: "",
     role: "",
+    airlinePartner: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -252,6 +253,7 @@ const SettingsPage = () => {
                   : null) ||
                 "",
               role: userData.role || "",
+              airlinePartner: userData.airlinePartner || "",
             }));
             setIsLoading(false);
             return;
@@ -412,6 +414,7 @@ const SettingsPage = () => {
             ward: wardName,
             wardId: wardId || "",
             role: profileData.role || userData.role || "",
+            airlinePartner: profileData.airlinePartner || "",
           }));
 
           // Update localStorage with new data from API
@@ -473,6 +476,7 @@ const SettingsPage = () => {
                 : null) ||
               "",
             role: userData.role || "",
+            airlinePartner: userData.airlinePartner || "",
           }));
         }
       } catch (error) {
@@ -524,6 +528,7 @@ const SettingsPage = () => {
                 : null) ||
               "",
             role: userData.role || "",
+            airlinePartner: userData.airlinePartner || "",
           }));
         }
       } finally {
