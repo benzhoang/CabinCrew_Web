@@ -72,7 +72,7 @@ const ModalVerifySubmit = ({
     if (answersArray.length === 0) {
       const confirmEmpty = window.confirm(
         t("submit_no_answers_warning") ||
-          "Bạn chưa trả lời câu hỏi nào. Bạn vẫn muốn nộp bài?"
+        "Bạn chưa trả lời câu hỏi nào. Bạn vẫn muốn nộp bài?"
       );
       if (!confirmEmpty) {
         return;
@@ -100,7 +100,7 @@ const ModalVerifySubmit = ({
 
     setIsSubmitting(true);
     const toastId = "submitting-exam";
-    toast.info(t("submitting_exam") || "Đang nộp bài...", { toastId });
+    toast.info(t("submitting_exam") || "Submitting exam...", { toastId });
 
     try {
       const result = await submitMultipleChoiceTest(
@@ -167,7 +167,7 @@ const ModalVerifySubmit = ({
         }
 
         toast.success(
-          result.message || t("submit_success") || "Nộp bài thành công"
+          result.message || t("submit_success") || "Submit exam successfully"
         );
         onClose();
       } else {
@@ -251,14 +251,13 @@ const ModalVerifySubmit = ({
           <button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className={`px-4 py-2 text-white rounded-lg ${
-              isSubmitting
-                ? "bg-green-300 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
+            className={`px-4 py-2 text-white rounded-lg ${isSubmitting
+              ? "bg-green-300 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+              }`}
           >
             {isSubmitting
-              ? t("submitting_exam") || "Đang nộp bài..."
+              ? t("submitting_exam") || "Submitting exam..."
               : t("Nộp bài") || "Nộp bài"}
           </button>
         </div>

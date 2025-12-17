@@ -446,11 +446,14 @@ const PromotionStagesPage = () => {
                         className="h-full transition-all duration-500 bg-blue-500"
                         style={{
                           width:
-                            application.stages.length > 0
+                            application.stages.length > 1
                               ? `${
-                                  (application.stages.filter((s) => s.completed)
-                                    .length /
-                                    application.stages.length) *
+                                  ((Math.min(
+                                    Math.max(application.currentStage || 1, 1),
+                                    application.stages.length
+                                  ) -
+                                    1) /
+                                    (application.stages.length - 1)) *
                                   100
                                 }%`
                               : "0%",
@@ -499,6 +502,22 @@ const PromotionStagesPage = () => {
                                 View profile
                               </button>
                             )}
+                            {stage.name
+                              ?.toLowerCase()
+                              .includes("interview") &&
+                              stage.activityId && (
+                                <button
+                                  onClick={() =>
+                                    navigate(
+                                      `/cabin-crew/interview-result/${stage.activityId || stage.roundId || ""
+                                      }`
+                                    )
+                                  }
+                                  className="mt-2 text-xs font-semibold text-blue-600 underline hover:text-blue-800"
+                                >
+                                  {t("view_result")}
+                                </button>
+                              )}
                           </div>
                         </div>
                       ))}
@@ -510,18 +529,18 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Current status:</strong>{" "}
                         {application.stages.length > 0 &&
-                        application.currentStage > 0 &&
-                        application.currentStage <= application.stages.length
+                          application.currentStage > 0 &&
+                          application.currentStage <= application.stages.length
                           ? (() => {
-                              const currentStageData =
-                                application.stages[
-                                  application.currentStage - 1
-                                ];
-                              if (currentStageData?.completed) {
-                                return `Completed ${currentStageData.name}`;
-                              }
-                              return `In progress ${currentStageData.name}`;
-                            })()
+                            const currentStageData =
+                              application.stages[
+                              application.currentStage - 1
+                              ];
+                            if (currentStageData?.completed) {
+                              return `Completed ${currentStageData.name}`;
+                            }
+                            return `In progress ${currentStageData.name}`;
+                          })()
                           : "Pending"}
                       </p>
 

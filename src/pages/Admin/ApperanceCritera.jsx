@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiLoader } from "react-icons/fi";
-import { getScoringCriterias } from "../../service/api";
+import { getScoringCriterias, deleteScoringCriteriaItem } from "../../service/api";
 import CreateAppearanceCriteriaModal from "./ModalCreate/CreateAppearanceCriteriaModal";
+import DeleteScoringCriteriaItemModal from "./ModalCreate/DeleteScoringCriteriaItemModal";
 
 const EmptyState = ({ message }) => (
     <div className="p-6 text-center text-slate-500 border border-dashed border-slate-200 rounded-lg bg-white">
@@ -16,6 +17,12 @@ const ApperanceCritera = () => {
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [selectedGroupTitle, setSelectedGroupTitle] = useState(null);
+    const [selectedScoringCriteriaId, setSelectedScoringCriteriaId] = useState(null);
+    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
+    const [groupOfItemToDelete, setGroupOfItemToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,6 +48,8 @@ const ApperanceCritera = () => {
 
     const grouped = useMemo(() => {
         return (criterias || []).map((group) => ({
+            ...group,
+            id: group.scoringCriteriaId || group.id || group.scoringCriteriaId,
             title: group.title || "Criteria",
             items: (group.items || []).map((item) => ({
                 ...item,
@@ -49,9 +58,30 @@ const ApperanceCritera = () => {
         }));
     }, [criterias]);
 
-    const handleAdd = (groupTitle) => {
+    const handleAdd = (group) => {
         setEditing(null);
-        setSelectedGroupTitle(groupTitle);
+        setSelectedGroupTitle(group.title);
+        // Tìm scoringCriteriaId từ criterias gốc dựa trên title
+        const groupIndex = criterias.findIndex(c =>
+            c.title === group.title ||
+            (c.scoringCriteriaId && c.scoringCriteriaId === group.scoringCriteriaId) ||
+            (group.scoringCriteriaId && c.scoringCriteriaId === group.scoringCriteriaId)
+        );
+        const originalGroup = groupIndex >= 0 ? criterias[groupIndex] : null;
+
+        // Lấy scoringCriteriaId: từ group gốc, từ group hiện tại, hoặc index + 1 (từ 1 trở đi)
+        const scoringId = originalGroup?.scoringCriteriaId ||
+            originalGroup?.id ||
+            group.scoringCriteriaId ||
+            group.id ||
+            (groupIndex >= 0 ? groupIndex + 1 : criterias.length + 1);
+
+        console.log('Selected Group:', group);
+        console.log('Scoring Criteria ID:', scoringId);
+        console.log('All Criterias:', criterias);
+
+        setSelectedScoringCriteriaId(scoringId);
+        setSelectedGroup(group);
         setShowModal(true);
     };
 
@@ -60,10 +90,88 @@ const ApperanceCritera = () => {
         setShowModal(true);
     };
 
-    const handleSubmit = () => {
-        // Placeholder: UI only, no API calls yet
+    const refreshData = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await getScoringCriterias();
+            if (res.success) {
+                setCriterias(res.data || []);
+            } else if (Array.isArray(res)) {
+                setCriterias(res);
+            } else {
+                setError(res.error || "Unable to load criterias");
+            }
+        } catch (e) {
+            setError(e.message || "Unable to load criterias");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSubmit = async () => {
+        // Refresh data after successful creation
+        await refreshData();
         setShowModal(false);
         setEditing(null);
+        setSelectedGroupTitle(null);
+        setSelectedScoringCriteriaId(null);
+        setSelectedGroup(null);
+    };
+
+    const handleDeleteClick = (item, group) => {
+        setItemToDelete(item);
+        setGroupOfItemToDelete(group);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!itemToDelete || !groupOfItemToDelete) {
+            return;
+        }
+
+        // Tìm scoringCriteriaId từ group
+        const groupIndex = criterias.findIndex(c =>
+            c.title === groupOfItemToDelete.title ||
+            (c.scoringCriteriaId && c.scoringCriteriaId === groupOfItemToDelete.scoringCriteriaId) ||
+            (groupOfItemToDelete.scoringCriteriaId && c.scoringCriteriaId === groupOfItemToDelete.scoringCriteriaId)
+        );
+        const originalGroup = groupIndex >= 0 ? criterias[groupIndex] : null;
+
+        const scoringId = originalGroup?.scoringCriteriaId ||
+            originalGroup?.id ||
+            groupOfItemToDelete.scoringCriteriaId ||
+            groupOfItemToDelete.id ||
+            (groupIndex >= 0 ? groupIndex + 1 : null);
+
+        const itemId = itemToDelete.scoringCriteriaItemId || itemToDelete.id;
+
+        if (!scoringId || !itemId) {
+            setError("Không thể xóa: Thiếu scoring criteria ID hoặc item ID");
+            setShowDeleteModal(false);
+            return;
+        }
+
+        setIsDeleting(true);
+        setError(null);
+
+        try {
+            const result = await deleteScoringCriteriaItem(scoringId, itemId);
+
+            if (result.success) {
+                // Refresh data after successful deletion
+                await refreshData();
+                setShowDeleteModal(false);
+                setItemToDelete(null);
+                setGroupOfItemToDelete(null);
+            } else {
+                setError(result.error || "Không thể xóa tiêu chí");
+            }
+        } catch (err) {
+            setError(err.message || "Đã xảy ra lỗi khi xóa");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     return (
@@ -92,7 +200,7 @@ const ApperanceCritera = () => {
                                         {group.title}
                                     </div>
                                     <button
-                                        onClick={() => handleAdd(group.title)}
+                                        onClick={() => handleAdd(group)}
                                         className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
                                     >
                                         <FiPlus className="w-4 h-4" />
@@ -125,7 +233,7 @@ const ApperanceCritera = () => {
                                                         <FiEdit2 className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => { }}
+                                                        onClick={() => handleDeleteClick(item, group)}
                                                         className="p-2 rounded-lg border border-slate-200 text-red-600 hover:bg-red-50"
                                                         title="Delete"
                                                     >
@@ -156,13 +264,14 @@ const ApperanceCritera = () => {
             <CreateAppearanceCriteriaModal
                 isOpen={showModal}
                 title={editing ? "Edit criteria" : "Add criteria"}
+                scoringCriteriaId={selectedScoringCriteriaId}
                 initial={
                     editing
                         ? {
                             title: editing.groupTitle,
                             text: editing.text,
-                            itemType: editing.itemType,
-                            detailText: editing.details?.[0]?.detailText,
+                            englishText: editing.englishText,
+                            details: editing.details || [],
                         }
                         : {
                             title: selectedGroupTitle || "",
@@ -172,8 +281,22 @@ const ApperanceCritera = () => {
                     setShowModal(false);
                     setEditing(null);
                     setSelectedGroupTitle(null);
+                    setSelectedScoringCriteriaId(null);
+                    setSelectedGroup(null);
                 }}
                 onSubmit={handleSubmit}
+            />
+
+            <DeleteScoringCriteriaItemModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setItemToDelete(null);
+                    setGroupOfItemToDelete(null);
+                }}
+                onConfirm={handleDeleteConfirm}
+                itemTitle={itemToDelete?.text || itemToDelete?.scoringCriteriaItemId || "tiêu chí này"}
+                isDeleting={isDeleting}
             />
         </div>
     );

@@ -175,7 +175,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                 </div>
             </div>
 
-            {campaign.targetHires > 0 && (
+            {/* {campaign.targetHires > 0 && (
                 <div className="mt-4">
                     <div className="flex justify-between mb-1 text-sm text-slate-600">
                         <span className="text-gray-500">Hiring progress</span>{' '}
@@ -188,7 +188,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                         />
                     </div>
                 </div>
-            )}
+            )} */}
 
             {campaign.description && (
                 <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>

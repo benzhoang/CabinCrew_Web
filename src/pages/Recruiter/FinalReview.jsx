@@ -167,7 +167,7 @@ const FinalReview = () => {
         const statusConfig = {
             passed: { color: 'bg-green-100 text-green-800', text: 'Passed' },
             failed: { color: 'bg-red-100 text-red-800', text: 'Failed' },
-            ongoing: { color: 'bg-blue-100 text-blue-800', text: 'In progress' }
+            ongoing: { color: 'bg-yellow-100 text-yellow-800', text: 'Ongoing' }
         }
         const config = statusConfig[normalized] || statusConfig.ongoing
         return (
@@ -228,8 +228,8 @@ const FinalReview = () => {
                                 </svg>
                             </button>
                             <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold">Final Review</h1>
-                        <p className="text-white/90 mt-1 text-sm">List of candidates with final results</p>
+                                <h1 className="text-2xl md:text-3xl font-extrabold">Final Review</h1>
+                                <p className="text-white/90 mt-1 text-sm">List of candidates with final results</p>
                             </div>
                         </div>
                     </div>

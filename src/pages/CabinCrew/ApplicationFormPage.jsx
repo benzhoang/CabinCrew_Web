@@ -442,18 +442,18 @@ const ApplicationFormPage = () => {
         // Xóa bản nháp trong localStorage sau khi nộp thành công
         localStorage.removeItem("applicationFormDraft");
 
-        alert(
+        toast.success(
           t("application_form_submitted_successfully") ||
           result.message ||
           "Nộp đơn thành công!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
-        alert(result.error || "Nộp đơn thất bại. Vui lòng thử lại.");
+        toast.error(result.error || "Nộp đơn thất bại. Vui lòng thử lại.");
       }
     } catch (error) {
       console.error("Error submitting application:", error);
-      alert("Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.");
+      toast.error("Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -515,18 +515,20 @@ const ApplicationFormPage = () => {
           JSON.stringify(localDraftData)
         );
 
-        alert(
+        toast.success(
           t("application_form_draft_saved") ||
           result.message ||
           "Đã lưu bản nháp thành công!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
-        alert(result.error || "Lưu bản nháp thất bại. Vui lòng thử lại.");
+        toast.error(
+          result.error || "Lưu bản nháp thất bại. Vui lòng thử lại."
+        );
       }
     } catch (error) {
       console.error("Error saving draft:", error);
-      alert("Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.");
+      toast.error("Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.");
     } finally {
       setIsSavingDraft(false);
     }
@@ -795,7 +797,7 @@ const ApplicationFormPage = () => {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
-                      <span>{t("application_form_id_card")} - Mặt trước *</span>
+                      <span>{t("application_form_id_card")} - Front side *</span>
                       {files.idCard && (
                         <DeleteFileButton
                           onDelete={() => handleClearFile("idCard")}
@@ -850,7 +852,7 @@ const ApplicationFormPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
-                      <span>{t("application_form_id_card")} - Mặt sau *</span>
+                      <span>{t("application_form_id_card")} - Back side *</span>
                       {files.idCardBack && (
                         <DeleteFileButton
                           onDelete={() => handleClearFile("idCardBack")}
@@ -1017,7 +1019,7 @@ const ApplicationFormPage = () => {
                       name="height"
                       value={formData.height}
                       onChange={handleInputChange}
-                      placeholder="165"
+                      placeholder=""
                       className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
@@ -1031,7 +1033,7 @@ const ApplicationFormPage = () => {
                       name="weight"
                       value={formData.weight}
                       onChange={handleInputChange}
-                      placeholder="53"
+                      placeholder=""
                       className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />

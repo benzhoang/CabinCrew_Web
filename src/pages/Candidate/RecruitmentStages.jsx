@@ -9,25 +9,25 @@ const screeningKeywords = ['screening', 'sang loc', 'sàng lọc'];
 const defaultStageTemplates = [
     {
         id: 'screening',
-        name: 'Sàng lọc hồ sơ',
+        name: 'Screening',
         nameEn: 'Screening',
         aliases: ['screening', 'sang loc']
     },
     {
         id: 'appearance',
-        name: 'Vòng ngoại hình',
+        name: 'Appearance',
         nameEn: 'Appearance',
         aliases: ['appearance', 'ngoai hinh', 'appearence']
     },
     {
         id: 'english-listening',
-        name: 'Bài kiểm tra Nghe tiếng Anh',
+        name: 'English Listening Test',
         nameEn: 'English Listening Test',
         aliases: ['listening', 'english listening', 'listening test']
     },
     {
         id: 'english-speaking',
-        name: 'Bài kiểm tra Nói tiếng Anh',
+        name: 'English Speaking Test',
         nameEn: 'English Speaking Test',
         aliases: ['speaking', 'english speaking', 'speaking test']
     },

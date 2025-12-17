@@ -77,7 +77,7 @@ const Signup = () => {
             const response = await register(payload);
             if (response.success) {
                 // On successful registration, show toast and navigate to login
-                toast.success('Đăng ký thành công');
+                toast.success('Registration successful');
                 navigate('/login');
             } else {
                 // Display API error message

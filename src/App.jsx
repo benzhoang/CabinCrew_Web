@@ -110,6 +110,8 @@ import AirlineCandidateDetailPage from "./pages/AirlinePartner/AirlineCandidateD
 import AdminCandidateDetailPage from "./pages/Admin/AdminCandidateDetailPage";
 import SeniorApplyListPage from "./pages/SeniorRecruiter/SeniorApplyListPage";
 import SeniorCandidateDetailPage from "./pages/SeniorRecruiter/SeniorCandidateDetailPage";
+import PromotionInterviewCard from "./pages/CabinCrew/PromotionInterviewCard";
+import PromoInterDetailPage from "./pages/CabinCrew/PromoInterDetailPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -749,6 +751,22 @@ function App() {
           element={
             <CabinCrewLayout>
               <ContactPage />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/interview-result/:activityId"
+          element={
+            <CabinCrewLayout>
+              <PromotionInterviewCard />
+            </CabinCrewLayout>
+          }
+        />
+        <Route
+          path="/cabin-crew/detail-result/:id"
+          element={
+            <CabinCrewLayout>
+              <PromoInterDetailPage />
             </CabinCrewLayout>
           }
         />

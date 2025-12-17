@@ -852,7 +852,7 @@ const ApplicationForm = () => {
                                             name="height"
                                             value={formData.height}
                                             onChange={handleInputChange}
-                                            placeholder="165"
+                                            placeholder=""
                                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             required
                                         />
@@ -864,7 +864,7 @@ const ApplicationForm = () => {
                                             name="weight"
                                             value={formData.weight}
                                             onChange={handleInputChange}
-                                            placeholder="53"
+                                            placeholder=""
                                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             required
                                         />

@@ -39,7 +39,7 @@ const getStatusBadge = (flag) => {
     return 'bg-gray-100 text-gray-700'
 }
 
-const InterviewResultPage = () => {
+const PromotionInterviewCard = () => {
     const { activityId } = useParams()
     const navigate = useNavigate()
 
@@ -147,7 +147,7 @@ const InterviewResultPage = () => {
                                                 </div>
                                                 <button
                                                     type="button"
-                                                    onClick={() => navigate(`/detail-result/${result.evaluationId}`)}
+                                                    onClick={() => navigate(`/cabin-crew/detail-result/${result.evaluationId}`)}
                                                     className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
                                                 >
                                                     View details →
@@ -186,4 +186,4 @@ const InterviewResultPage = () => {
     )
 }
 
-export default InterviewResultPage
+export default PromotionInterviewCard
