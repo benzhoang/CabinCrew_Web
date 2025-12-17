@@ -356,15 +356,7 @@ const CampaignList = ({
         <table className="min-w-full border-collapse table-fixed">
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">
-              <th className="w-16 px-5 py-3 font-semibold">
-                <SortButton
-                  field="id"
-                  label="No."
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-              </th>
+              <th className="w-16 px-5 py-3 font-semibold">No.</th>
               <th className="px-5 py-3 font-semibold w-52">
                 <SortButton
                   field="campaignName"
@@ -405,6 +397,7 @@ const CampaignList = ({
                   className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
                   <td className="px-5 py-4 text-sm text-gray-700">
+                    {/* Calculate index based on current page and position in filtered/sorted list */}
                     {(pagination.currentPage - 1) * pagination.pageSize +
                       idx +
                       1}

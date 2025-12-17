@@ -185,6 +185,17 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasPreviousPage: false,
   });
 
+  // Get username from localStorage
+  const getPartnerUsername = () => {
+    try {
+      const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
+      return employeeData?.username || null;
+    } catch (error) {
+      console.error("Error reading employee data from localStorage:", error);
+      return null;
+    }
+  };
+
   const fetchCampaigns = async (showLoading = false) => {
     try {
       // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
@@ -212,6 +223,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       const result = await getCampaignList(params);
 
       if (result.success && result.data && Array.isArray(result.data)) {
+        // Get partner username from localStorage
+        const partnerUsername = getPartnerUsername();
+
         // Map API data to component structure
         const mappedCampaigns = result.data.map((item) => ({
           id: item.campaignId || item.id || item.campaignID || item.Id,
@@ -223,10 +237,88 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           status: mapStatus(item.status),
           campaignType: mapCampaignType(item.campaignType),
           progress: { current: 0, total: item.targetQuantity || 0 },
+          partnerName: item.partnerName || item.partnerUsername || null,
+          partnerUsername: item.partnerUsername || item.partnerName || null,
         }));
 
-        // Store all campaigns from server for client-side filtering and pagination
-        setAllCampaigns(mappedCampaigns);
+        // Filter campaigns by partner username if available
+        let filteredCampaigns = mappedCampaigns;
+        if (partnerUsername) {
+          const usernameLower = partnerUsername.toLowerCase().trim();
+          // Remove all spaces and special characters for comparison
+          const usernameNormalized = usernameLower.replace(/\s+/g, "");
+
+          filteredCampaigns = mappedCampaigns.filter((campaign) => {
+            // Check if campaign belongs to the partner by comparing username
+            // Match by partnerName or partnerUsername (case-insensitive)
+            const campaignPartnerName = (campaign.partnerName || "")
+              .toLowerCase()
+              .trim();
+            const campaignPartnerUsername = (campaign.partnerUsername || "")
+              .toLowerCase()
+              .trim();
+
+            // Normalize partner names (remove spaces)
+            const partnerNameNormalized = campaignPartnerName.replace(
+              /\s+/g,
+              ""
+            );
+            const partnerUsernameNormalized = campaignPartnerUsername.replace(
+              /\s+/g,
+              ""
+            );
+
+            // Multiple matching strategies:
+            // 1. Exact match (case-insensitive)
+            if (
+              campaignPartnerName === usernameLower ||
+              campaignPartnerUsername === usernameLower
+            ) {
+              return true;
+            }
+
+            // 2. Normalized match (removes spaces) - handles "vietnamairlines" vs "Vietnam Airlines"
+            if (
+              partnerNameNormalized === usernameNormalized ||
+              partnerUsernameNormalized === usernameNormalized
+            ) {
+              return true;
+            }
+
+            // 3. Check if partnerName starts with username (handles cases like "vietjet" matching "VietJet Air")
+            if (
+              campaignPartnerName.startsWith(usernameLower) ||
+              campaignPartnerUsername.startsWith(usernameLower) ||
+              partnerNameNormalized.startsWith(usernameNormalized) ||
+              partnerUsernameNormalized.startsWith(usernameNormalized)
+            ) {
+              return true;
+            }
+
+            // 4. Check if username is contained in partnerName as a whole word
+            const partnerNameWords = campaignPartnerName.split(/\s+/);
+            const partnerUsernameWords = campaignPartnerUsername.split(/\s+/);
+            if (
+              partnerNameWords.includes(usernameLower) ||
+              partnerUsernameWords.includes(usernameLower)
+            ) {
+              return true;
+            }
+
+            // 5. Contains match (normalized) - handles partial matches
+            if (
+              partnerNameNormalized.includes(usernameNormalized) ||
+              partnerUsernameNormalized.includes(usernameNormalized)
+            ) {
+              return true;
+            }
+
+            return false;
+          });
+        }
+
+        // Store filtered campaigns from server for client-side filtering and pagination
+        setAllCampaigns(filteredCampaigns);
         setError(null);
       } else {
         console.error("Error fetching campaigns:", result.error);

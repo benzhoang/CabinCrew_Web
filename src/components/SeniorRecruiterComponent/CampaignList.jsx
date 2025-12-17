@@ -424,14 +424,14 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("rejected")}
+            onClick={() => setSelectedStatus("ongoing")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "rejected"
-                ? "bg-red-600 text-white border-red-600"
+              selectedStatus === "ongoing"
+                ? "bg-cyan-600 text-white border-cyan-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
-            Rejected
+            Ongoing
           </button>
           <button
             type="button"
@@ -446,17 +446,6 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "ongoing"
-                ? "bg-cyan-600 text-white border-cyan-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Ongoing
-          </button>
-          <button
-            type="button"
             onClick={() => setSelectedStatus("ended")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "ended"
@@ -465,6 +454,17 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Ended
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("rejected")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "rejected"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Rejected
           </button>
           <button
             type="button"

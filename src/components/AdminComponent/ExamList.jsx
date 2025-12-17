@@ -74,8 +74,9 @@ const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
 
 const ExamList = ({ search = "", testTypeFilter = "all" }) => {
   const navigate = useNavigate();
-  const [tests, setTests] = useState([]);
+  const [allTests, setAllTests] = useState([]); // Store all tests from server
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState(null);
@@ -87,18 +88,23 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
   });
 
   const fetchTests = useCallback(
-    async (page = 1) => {
+    async (showLoading = false) => {
       try {
-        setLoading(true);
+        // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
+        if (showLoading) {
+          setLoading(true);
+        }
         setError(null);
 
+        // Fetch all data for client-side filtering and pagination
+        // This ensures that when filters change, data from later pages will move up
         const params = {
-          page: page,
-          pageSize: 5,
+          page: 1, // Always fetch from page 1 to get all data
+          pageSize: 1000, // Fetch large page size to get all tests
           searchTerm: search || undefined,
         };
 
-        const result = await getTests(page, 5, params);
+        const result = await getTests(1, 1000, params);
 
         if (result.success && result.data && Array.isArray(result.data)) {
           // Map API data to component structure
@@ -109,42 +115,42 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
             testType: item.testType || "Unknown",
           }));
 
-          setTests(mappedTests);
-
-          // Update pagination
-          if (result.pagination) {
-            setPagination({
-              currentPage: result.pagination.currentPage || page,
-              pageSize: result.pagination.pageSize || 5,
-              totalItems: result.pagination.totalRecords || mappedTests.length,
-              totalPages: result.pagination.totalPages || 1,
-            });
-          } else {
-            setPagination({
-              currentPage: page,
-              pageSize: 5,
-              totalItems: mappedTests.length,
-              totalPages: Math.ceil(mappedTests.length / 5) || 1,
-            });
-          }
+          // Store all tests from server for client-side filtering and pagination
+          setAllTests(mappedTests);
+          setError(null);
         } else {
-          setTests([]);
+          setAllTests([]);
           setError(result.error || "Error when fetching test list");
         }
       } catch (error) {
         console.error("Error fetching tests:", error);
-        setTests([]);
+        setAllTests([]);
         setError(error.message || "Error when fetching test list");
       } finally {
-        setLoading(false);
+        if (showLoading) {
+          setLoading(false);
+          setIsInitialLoad(false);
+        }
       }
     },
     [search]
   );
 
+  // Initial load - chỉ chạy một lần khi component mount
   useEffect(() => {
-    fetchTests(1);
-  }, [fetchTests, testTypeFilter]);
+    fetchTests(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch lại khi filter thay đổi (không hiển thị loading)
+  useEffect(() => {
+    if (!isInitialLoad) {
+      // Reset to page 1 when filters change
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+      fetchTests(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testTypeFilter, search]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -164,7 +170,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
 
   // Filter tests by search and testType (client-side)
   const filteredTests = useMemo(() => {
-    let filtered = tests;
+    let filtered = allTests;
 
     // Apply search filter
     if (search) {
@@ -204,7 +210,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
     }
 
     return filtered;
-  }, [tests, search, testTypeFilter]);
+  }, [allTests, search, testTypeFilter]);
 
   const sortedTests = useMemo(() => {
     if (!sortField || !sortDirection) return filteredTests;
@@ -225,17 +231,42 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
     return copy;
   }, [filteredTests, sortField, sortDirection]);
 
+  // Calculate pagination based on filtered data
+  const paginatedTests = useMemo(() => {
+    const pageSize = pagination.pageSize;
+    const startIndex = (pagination.currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return sortedTests.slice(startIndex, endIndex);
+  }, [sortedTests, pagination.currentPage, pagination.pageSize]);
+
+  // Update pagination when filtered data changes
+  useEffect(() => {
+    const totalItems = sortedTests.length;
+    const totalPages = Math.ceil(totalItems / pagination.pageSize);
+
+    setPagination((prev) => {
+      const currentPage = Math.min(prev.currentPage, totalPages || 1);
+      return {
+        ...prev,
+        totalItems: totalItems,
+        totalPages: totalPages || 1,
+        currentPage: currentPage || 1,
+      };
+    });
+  }, [sortedTests.length, pagination.pageSize]);
+
   const handlePageChange = (page) => {
-    if (
-      page > 0 &&
-      page <= pagination.totalPages &&
-      page !== pagination.currentPage
-    ) {
-      fetchTests(page);
-    }
+    if (page === pagination.currentPage) return;
+    if (page < 1) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: page,
+    }));
   };
 
-  if (loading && tests.length === 0) {
+  if (loading && allTests.length === 0) {
     return (
       <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
         <div className="py-8 text-center text-gray-600">Loading data...</div>
@@ -248,7 +279,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
       <div className="py-8 text-center">
         <div className="mb-2 text-red-600">{error}</div>
         <button
-          onClick={() => fetchTests(pagination.currentPage)}
+          onClick={() => fetchTests(true)}
           className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           Try again
@@ -263,15 +294,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
         <table className="min-w-full border-collapse table-fixed">
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">
-              <th className="w-16 px-5 py-3 font-semibold">
-                <SortButton
-                  field="id"
-                  label="No."
-                  sortField={sortField}
-                  sortDirection={sortDirection}
-                  onSort={handleSort}
-                />
-              </th>
+              <th className="w-16 px-5 py-3 font-semibold">No.</th>
               <th className="px-5 py-3 font-semibold w-52">
                 <SortButton
                   field="testName"
@@ -297,14 +320,14 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
             </tr>
           </thead>
           <tbody>
-            {sortedTests.length === 0 ? (
+            {paginatedTests.length === 0 ? (
               <tr>
                 <td colSpan="5" className="px-5 py-8 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
             ) : (
-              sortedTests.map((t, idx) => (
+              paginatedTests.map((t, idx) => (
                 <tr
                   key={t.id}
                   className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
