@@ -202,7 +202,7 @@ const CreatePromotionRequestPage = () => {
 
       if (response.success) {
         toast.success("Create promotion request successfully!");
-        navigate("/airline-partner/requests");
+        navigate("/airline-partner/requests?status=1&page=1");
       } else {
         throw new Error("Create promotion request failed");
       }

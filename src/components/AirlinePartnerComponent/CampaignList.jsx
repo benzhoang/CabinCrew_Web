@@ -10,6 +10,7 @@ const mapStatus = (status) => {
     Approved: "approved",
     Ongoing: "ongoing",
     Ended: "ended",
+    Upcoming: "upcoming",
   };
   return statusMap[status] || status.toLowerCase();
 };
@@ -61,6 +62,11 @@ const StatusBadge = ({ status }) => {
         return {
           className: "bg-emerald-100 text-emerald-700 border-emerald-200",
           text: "Approved",
+        };
+      case "upcoming":
+        return {
+          className: "bg-sky-100 text-sky-700 border-sky-200",
+          text: "Upcoming",
         };
       default:
         return {
@@ -477,6 +483,17 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Ongoing
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("upcoming")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "upcoming"
+                ? "bg-sky-100 text-sky-700 border-sky-200"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Upcoming
           </button>
           <button
             type="button"

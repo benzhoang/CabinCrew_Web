@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 import { formatDate } from "../../config/formatDate.js";
 
@@ -22,6 +22,11 @@ const StatusBadge = ({ status }) => {
         return {
           className: "bg-red-100 text-red-600 border-red-200",
           text: "Rejected",
+        };
+      case "cancelled":
+        return {
+          className: "bg-slate-200 text-slate-700 border-slate-300",
+          text: "Cancelled",
         };
       default:
         return {
@@ -132,14 +137,46 @@ const CampaignCard = ({ request }) => {
   );
 };
 
+// Helper function to map status number to status string for RequestList
+// status: integer (1: Pending, 2: Approved, 3: Rejected, 4: Cancelled)
+const mapStatusNumberToStatus = (statusNumber) => {
+  const statusMap = {
+    1: "Pending",
+    2: "Approved",
+    3: "Rejected",
+    4: "Cancelled",
+  };
+  return statusMap[statusNumber] || "all";
+};
+
+// Helper function to map status string to status number for API
+const mapStatusToStatusNumber = (status) => {
+  const statusMap = {
+    Pending: 1,
+    Approved: 2,
+    Rejected: 3,
+    Cancelled: 4,
+  };
+  return statusMap[status] ?? undefined;
+};
+
 const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Đọc status và page từ URL query params
+  const statusFromUrl = searchParams.get("status");
+  const statusFromUrlNumber = statusFromUrl
+    ? mapStatusNumberToStatus(parseInt(statusFromUrl, 10))
+    : "all";
+  const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+
+  const [selectedStatus, setSelectedStatus] = useState(statusFromUrlNumber);
   const [allFilteredRequests, setAllFilteredRequests] = useState([]); // Lưu tất cả filtered requests
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
-    currentPage: 1,
+    currentPage: pageFromUrl,
     pageSize: 5,
     totalRecords: 0,
     totalPages: 0,
@@ -147,16 +184,36 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasPreviousPage: false,
   });
 
-  // Get username from localStorage
-  const getPartnerUsername = () => {
-    try {
-      const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
-      return employeeData?.username || null;
-    } catch (error) {
-      console.error("Error reading employee data from localStorage:", error);
-      return null;
+  // Cập nhật selectedStatus và pagination khi URL thay đổi
+  useEffect(() => {
+    if (statusFromUrlNumber !== selectedStatus) {
+      setSelectedStatus(statusFromUrlNumber);
     }
-  };
+    if (pageFromUrl !== pagination.currentPage) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: pageFromUrl,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFromUrl, pageFromUrl]);
+
+  // Cập nhật URL query params khi selectedStatus hoặc pagination.currentPage thay đổi (trừ lần đầu load từ URL)
+  useEffect(() => {
+    if (isInitialLoad) return; // Bỏ qua lần đầu load từ URL
+
+    const newSearchParams = new URLSearchParams();
+    if (selectedStatus && selectedStatus !== "all") {
+      const statusNumber = mapStatusToStatusNumber(selectedStatus);
+      if (statusNumber !== undefined) {
+        newSearchParams.set("status", String(statusNumber));
+      }
+    }
+    if (pagination.currentPage > 1) {
+      newSearchParams.set("page", String(pagination.currentPage));
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  }, [selectedStatus, pagination.currentPage, isInitialLoad, setSearchParams]);
 
   // Fetch data from API - fetch tất cả data để filter và phân trang client-side
   const fetchRequests = async (showLoading = false) => {
@@ -188,15 +245,13 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       if (result.success) {
         const allItems = result.data.items || [];
 
-        // Get partner username from localStorage
-        const partnerUsername = getPartnerUsername();
-
         // Normalize status function
         const normalizeStatus = (status) => {
           if (!status) return "pending_approval";
           if (typeof status === "number") {
             if (status === 2) return "approved";
             if (status === 3) return "rejected";
+            if (status === 4) return "cancelled";
             return "pending_approval";
           }
           const statusLower = String(status).toLowerCase().trim();
@@ -204,6 +259,8 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             return "approved";
           if (statusLower === "rejected" || statusLower === "reject")
             return "rejected";
+          if (statusLower === "cancelled" || statusLower === "cancel")
+            return "cancelled";
           if (
             statusLower === "pending" ||
             statusLower === "pending_approval" ||
@@ -220,61 +277,13 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             Approved: "approved",
             Pending: "pending_approval",
             Rejected: "rejected",
+            Cancelled: "cancelled",
           };
           return statusMap[selectedStatus] || null;
         };
 
         // Filter items
         const filteredItems = allItems.filter((request) => {
-          // Filter by partner username if available
-          if (partnerUsername) {
-            const usernameLower = partnerUsername.toLowerCase().trim();
-            // Remove all spaces and special characters for comparison
-            const usernameNormalized = usernameLower.replace(/\s+/g, "");
-
-            const requestPartnerName = (request.partnerName || "")
-              .toLowerCase()
-              .trim();
-            const requestPartnerUsername = (request.partnerUsername || "")
-              .toLowerCase()
-              .trim();
-
-            // Normalize partner names (remove spaces)
-            const partnerNameNormalized = requestPartnerName.replace(
-              /\s+/g,
-              ""
-            );
-            const partnerUsernameNormalized = requestPartnerUsername.replace(
-              /\s+/g,
-              ""
-            );
-
-            // Check if request belongs to the partner
-            // Multiple matching strategies:
-            const belongsToPartner =
-              // 1. Exact match (case-insensitive)
-              requestPartnerName === usernameLower ||
-              requestPartnerUsername === usernameLower ||
-              // 2. Normalized match (removes spaces) - handles "vietnamairlines" vs "Vietnam Airlines"
-              partnerNameNormalized === usernameNormalized ||
-              partnerUsernameNormalized === usernameNormalized ||
-              // 3. Starts with match
-              requestPartnerName.startsWith(usernameLower) ||
-              requestPartnerUsername.startsWith(usernameLower) ||
-              partnerNameNormalized.startsWith(usernameNormalized) ||
-              partnerUsernameNormalized.startsWith(usernameNormalized) ||
-              // 4. Contains as whole word
-              requestPartnerName.split(/\s+/).includes(usernameLower) ||
-              requestPartnerUsername.split(/\s+/).includes(usernameLower) ||
-              // 5. Contains match (normalized)
-              partnerNameNormalized.includes(usernameNormalized) ||
-              partnerUsernameNormalized.includes(usernameNormalized);
-
-            if (!belongsToPartner) {
-              return false;
-            }
-          }
-
           const normalizedStatus = normalizeStatus(request.status);
           const statusFilter = getNormalizedStatusFilter();
 
@@ -423,17 +432,6 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus("Approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Approved"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Approved
-          </button>
-          <button
-            type="button"
             onClick={() => setSelectedStatus("Pending")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "Pending"
@@ -445,6 +443,17 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
           <button
             type="button"
+            onClick={() => setSelectedStatus("Approved")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "Approved"
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Approved
+          </button>
+          <button
+            type="button"
             onClick={() => setSelectedStatus("Rejected")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "Rejected"
@@ -453,6 +462,17 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Rejected
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedStatus("Cancelled")}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "Cancelled"
+                ? "bg-slate-200 text-slate-700 border-slate-300"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            Cancelled
           </button>
         </div>
       </div>

@@ -16,6 +16,7 @@ const SeniorCreateCampaignPage = () => {
   const [formData, setFormData] = useState({
     campaignName: "",
     targetQuantity: "",
+    dueDate: "",
     startDate: "",
     endDate: "",
     description: "",
@@ -64,6 +65,22 @@ const SeniorCreateCampaignPage = () => {
         if (result.success && result.data) {
           const detailData = result.data;
           setCampaignDetail(detailData);
+
+          // Convert dueDate from "dd/mm/yyyy" to "yyyy-mm-dd" for date input
+          const convertDueDate = (dateString) => {
+            if (!dateString) return "";
+            // Format: "10/02/2026" -> "2026-02-10"
+            const parts = dateString.split("/");
+            if (parts.length === 3) {
+              const [day, month, year] = parts;
+              return `${year}-${month.padStart(2, "0")}-${day.padStart(
+                2,
+                "0"
+              )}`;
+            }
+            return "";
+          };
+
           setFormData((prev) => ({
             ...prev,
             campaignName: detailData.campaignName || "",
@@ -72,6 +89,7 @@ const SeniorCreateCampaignPage = () => {
               detailData.targetQuantity !== null
                 ? String(detailData.targetQuantity)
                 : "",
+            dueDate: convertDueDate(detailData.dueDate) || "",
             description: detailData.description || "",
           }));
 
@@ -170,12 +188,171 @@ const SeniorCreateCampaignPage = () => {
     };
   }, [campaignId]);
 
+  // Helper functions để xử lý reset roundsData
+  const getRoundNameByIndex = (index, campaignType, roundTypes = []) => {
+    const filteredRoundTypes = roundTypes.filter(
+      (rt) => rt.roundTypeId && rt.roundTypeName
+    );
+    if (filteredRoundTypes.length > 0 && index < filteredRoundTypes.length) {
+      return filteredRoundTypes[index].roundTypeName;
+    }
+    return `Round ${index + 1}`;
+  };
+
+  const getRoundsCountByCampaignType = (campaignType, roundTypes = []) => {
+    if (roundTypes.length > 0) {
+      return roundTypes.length;
+    }
+    if (campaignType === "Recruitment") {
+      return 6;
+    } else if (campaignType === "Promotion") {
+      return 5;
+    }
+    return 6;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // Nếu startDate của campaign thay đổi, tự động cập nhật roundStartDate và roundEndDate của tất cả các rounds
+    if (name === "startDate") {
+      setFormData((prev) => {
+        // Tính roundEndDate = roundStartDate + 7 ngày
+        const calculateEndDate = (startDateStr) => {
+          if (!startDateStr) return "";
+          const startDate = new Date(startDateStr);
+          const endDate = new Date(startDate);
+          endDate.setDate(endDate.getDate() + 7);
+          return endDate.toISOString().split("T")[0]; // Format: yyyy-mm-dd
+        };
+
+        const roundEndDateValue = calculateEndDate(value);
+
+        const updatedRounds = prev.rounds.map((round) => ({
+          ...round,
+          roundStartDate: value, // Tự động điền startDate của campaign vào roundStartDate
+          roundEndDate: roundEndDateValue, // Tự động điền endDate = startDate + 7 ngày
+        }));
+
+        // Reset roundsData khi startDate thay đổi, nhưng giữ lại startDate của round đầu tiên
+        if (roundsData.length > 0) {
+          const campaignType = campaignDetail?.campaignType || "Recruitment";
+          const roundsCount = getRoundsCountByCampaignType(
+            campaignType,
+            roundTypes
+          );
+          const expectedRoundNames = Array.from(
+            { length: roundsCount },
+            (_, idx) => getRoundNameByIndex(idx, campaignType, roundTypes)
+          );
+          const firstRoundName = expectedRoundNames[0];
+
+          setRoundsData((prevRoundsData) => {
+            const updatedRoundsData = [];
+            updatedRounds.forEach((round, roundIndex) => {
+              // Tìm các roundsData tương ứng với campaign round này
+              let relatedRounds = [];
+              if (round.campaignRoundId) {
+                relatedRounds = prevRoundsData.filter(
+                  (r) => r.campaignRoundId === round.campaignRoundId
+                );
+              } else {
+                const startIdx = roundIndex * roundsCount;
+                const endIdx = startIdx + roundsCount;
+                relatedRounds = prevRoundsData
+                  .slice(startIdx, endIdx)
+                  .filter(
+                    (r) =>
+                      expectedRoundNames.includes(r.roundName) &&
+                      !r.campaignRoundId
+                  );
+              }
+
+              // Reset tất cả các date, chỉ giữ lại startDate và endDate của round đầu tiên
+              relatedRounds.forEach((relatedRound) => {
+                const isFirstRound = relatedRound.roundName === firstRoundName;
+                updatedRoundsData.push({
+                  ...relatedRound,
+                  startDate: isFirstRound ? value : "",
+                  endDate: isFirstRound ? roundEndDateValue : "",
+                });
+              });
+            });
+
+            return updatedRoundsData;
+          });
+        }
+
+        return {
+          ...prev,
+          [name]: value,
+          rounds: updatedRounds,
+        };
+      });
+    } else if (name === "endDate") {
+      setFormData((prev) => {
+        // Reset roundsData khi endDate thay đổi, nhưng giữ lại endDate của round cuối cùng
+        if (roundsData.length > 0) {
+          const campaignType = campaignDetail?.campaignType || "Recruitment";
+          const roundsCount = getRoundsCountByCampaignType(
+            campaignType,
+            roundTypes
+          );
+          const expectedRoundNames = Array.from(
+            { length: roundsCount },
+            (_, idx) => getRoundNameByIndex(idx, campaignType, roundTypes)
+          );
+          const lastRoundName =
+            expectedRoundNames[expectedRoundNames.length - 1];
+
+          setRoundsData((prevRoundsData) => {
+            const updatedRoundsData = [];
+            prev.rounds.forEach((round, roundIndex) => {
+              // Tìm các roundsData tương ứng với campaign round này
+              let relatedRounds = [];
+              if (round.campaignRoundId) {
+                relatedRounds = prevRoundsData.filter(
+                  (r) => r.campaignRoundId === round.campaignRoundId
+                );
+              } else {
+                const startIdx = roundIndex * roundsCount;
+                const endIdx = startIdx + roundsCount;
+                relatedRounds = prevRoundsData
+                  .slice(startIdx, endIdx)
+                  .filter(
+                    (r) =>
+                      expectedRoundNames.includes(r.roundName) &&
+                      !r.campaignRoundId
+                  );
+              }
+
+              // Reset tất cả các date, chỉ giữ lại endDate của round cuối cùng
+              relatedRounds.forEach((relatedRound) => {
+                const isLastRound = relatedRound.roundName === lastRoundName;
+                updatedRoundsData.push({
+                  ...relatedRound,
+                  startDate: "",
+                  endDate:
+                    isLastRound && round.roundEndDate ? round.roundEndDate : "",
+                });
+              });
+            });
+
+            return updatedRoundsData;
+          });
+        }
+
+        return {
+          ...prev,
+          [name]: value,
+        };
+      });
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
 
     if (errors[name]) {
       setErrors((prev) => ({
@@ -283,7 +460,7 @@ const SeniorCreateCampaignPage = () => {
         toast.success("Create campaign successfully!");
 
         setTimeout(() => {
-          navigate(`/senior-recruiter/campaigns`);
+          navigate(`/senior-recruiter/campaigns?campaignStatus=1&page=1`);
         }, 2000);
       } else {
         // Nếu API trả về error, không lưu rounds
@@ -325,7 +502,7 @@ const SeniorCreateCampaignPage = () => {
         <div className="flex-1 mr-50">
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Campaign Name *
+              Campaign Name
             </label>
             <input
               type="text"
@@ -387,7 +564,7 @@ const SeniorCreateCampaignPage = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Target quantity *
+                      Target quantity
                     </label>
                     <input
                       type="number"
@@ -401,6 +578,24 @@ const SeniorCreateCampaignPage = () => {
                           : ""
                       }`}
                       placeholder="Nhập số lượng cần tuyển"
+                      disabled={isRequestDataLocked}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 text-sm font-medium text-slate-700">
+                      Due date
+                    </label>
+                    <input
+                      type="date"
+                      name="dueDate"
+                      value={formData.dueDate}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-slate-300 ${
+                        isRequestDataLocked
+                          ? "bg-slate-100 cursor-not-allowed"
+                          : ""
+                      }`}
                       disabled={isRequestDataLocked}
                     />
                   </div>
@@ -439,6 +634,18 @@ const SeniorCreateCampaignPage = () => {
                         errors.endDate ? "border-red-300" : "border-slate-300"
                       }`}
                       min={formData.startDate || todayString}
+                      max={
+                        formData.dueDate
+                          ? (() => {
+                              const dueDateObj = new Date(formData.dueDate);
+                              const twoDaysBefore = new Date(dueDateObj);
+                              twoDaysBefore.setDate(
+                                twoDaysBefore.getDate() - 2
+                              );
+                              return twoDaysBefore.toISOString().split("T")[0];
+                            })()
+                          : undefined
+                      }
                     />
                     {errors.endDate && (
                       <p className="mt-1 text-sm text-red-600">
@@ -450,7 +657,7 @@ const SeniorCreateCampaignPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Description *
+                    Description
                   </label>
                   <textarea
                     name="description"
@@ -470,7 +677,7 @@ const SeniorCreateCampaignPage = () => {
                 {/* Job Requirements - Dynamic from API (getRequirementItems) */}
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Requirements *
+                    Requirements
                   </label>
                   <div
                     className={`rounded-md border p-4 bg-green-50 border-green-300`}

@@ -51,7 +51,7 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
         </div>
 
         {/* Applicant Statistics Dropdown */}
-        {(batch.totalApplicants !== undefined ||
+        {/* {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
           <div className="pt-3 border-t border-slate-100">
             <button
@@ -86,10 +86,10 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Recruitment Progress */}
-        {batch.target !== undefined && (
+        {/* {batch.target !== undefined && (
           <div className="pt-3 border-t border-slate-100">
             <div className="flex items-center justify-between mb-1 text-xs text-slate-600">
               <span>Recruitment progress</span>
@@ -102,7 +102,7 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
               ></div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* View Applicants Button */}
         <div className="pt-3 border-t border-slate-100">
@@ -148,12 +148,22 @@ const BatchManagement = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Check if campaign status is one of: upcoming, ongoing, ended
+  const shouldShowBatchStatus =
+    showBatchStatus &&
+    ["ongoing", "upcoming", "ended"].includes(
+      String(campaign?.status || "")
+        .trim()
+        .toLowerCase()
+    );
+
   // Map rounds from API to batch format
   const mapRoundToBatch = (round) => {
     const statusMap = {
       Ongoing: "ongoing",
       Completed: "completed",
       Upcoming: "upcoming",
+      Ended: "ended",
     };
 
     return {
@@ -197,9 +207,10 @@ const BatchManagement = ({
     const map = {
       ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
       completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
+      ended: { text: "Ended", color: "bg-slate-100 text-slate-700" },
       upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
     };
-    return map[status] || map.upcoming;
+    return map[status] || map.ended;
   };
 
   const percent = (current, target) => {
@@ -275,7 +286,7 @@ const BatchManagement = ({
                 statusCfg={statusCfg}
                 percent={progressPercent}
                 campaignId={campaign?.campaignId || campaign?.id || 1}
-                showStatus={showBatchStatus}
+                showStatus={shouldShowBatchStatus}
               />
             );
           })}

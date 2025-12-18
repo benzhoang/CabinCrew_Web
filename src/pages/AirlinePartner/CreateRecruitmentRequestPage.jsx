@@ -202,7 +202,7 @@ const CreateRecruitmentRequestPage = () => {
 
       if (response.success) {
         toast.success("Create campaign request successfully!");
-        navigate("/airline-partner/requests");
+        navigate("/airline-partner/requests?status=1&page=1");
       } else {
         toast.error("Create campaign request failed");
       }

@@ -85,7 +85,7 @@ const MainPage = () => {
     "cabin-crew": "/cabin-crew/promotion",
     examiner: "/examiner/campaigns",
     director: "/director/requirements",
-    "senior-recruiter": "/senior-recruiter/requests",
+    "senior-recruiter": "/senior-recruiter/campaigns",
     purser: "/cabin-crew/settings",
   };
 
@@ -168,7 +168,7 @@ const MainPage = () => {
         // Lấy role từ JWT token (có thể nằm ở nhiều vị trí khác nhau)
         const apiRole =
           decodedToken[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
           ] ||
           decodedToken.role ||
           decodedToken.Role ||
@@ -193,7 +193,7 @@ const MainPage = () => {
         // Lấy user ID từ token
         const userId =
           decodedToken[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decodedToken.sub ||
           decodedToken.userId ||
@@ -211,7 +211,11 @@ const MainPage = () => {
         };
 
         // Lưu thông tin vào localStorage theo role
-        if (mappedRole === "candidate" || mappedRole === "cabin-crew" || mappedRole === "purser") {
+        if (
+          mappedRole === "candidate" ||
+          mappedRole === "cabin-crew" ||
+          mappedRole === "purser"
+        ) {
           localStorage.setItem("user", JSON.stringify(userInfo));
           localStorage.removeItem("employee");
         } else if (
@@ -260,7 +264,9 @@ const MainPage = () => {
       setIsLoading(false);
       setLoadingMessageKey("");
       const errorData = error.response?.data || {};
-      const backendErrors = Array.isArray(errorData.errors) ? errorData.errors : [];
+      const backendErrors = Array.isArray(errorData.errors)
+        ? errorData.errors
+        : [];
       const errorMsg =
         (backendErrors.length ? backendErrors.join(", ") : "") ||
         errorData.errorMessage ||
@@ -311,9 +317,7 @@ const MainPage = () => {
             <h1 className="mb-2 text-2xl font-bold text-gray-800">
               {t("mainpage_title")}
             </h1>
-            <p className="text-gray-600">
-              {t("mainpage_subtitle")}
-            </p>
+            <p className="text-gray-600">{t("mainpage_subtitle")}</p>
           </div>
 
           {/* Login Form */}

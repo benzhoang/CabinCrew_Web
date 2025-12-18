@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import CampaignList from "../../components/SeniorRecruiterComponent/CampaignList";
 
 const SeniorCampaignPage = () => {
+  const [searchParams] = useSearchParams();
+  const campaignTypeFromUrl = searchParams.get("campaignType") || "all";
+  
   const [search, setSearch] = useState("");
-  const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState(campaignTypeFromUrl);
+  
+  // Cập nhật campaignTypeFilter khi URL thay đổi
+  useEffect(() => {
+    if (campaignTypeFromUrl !== campaignTypeFilter) {
+      setCampaignTypeFilter(campaignTypeFromUrl);
+    }
+  }, [campaignTypeFromUrl]);
 
   return (
     <div className="w-full h-full">
