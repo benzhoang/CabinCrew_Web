@@ -55,7 +55,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                   // Only include criteria with ID from 18 to 27
                   if (criteriaId >= 18 && criteriaId <= 27) {
                     initialEvaluations[criteriaId] = {
-                      score: 1,
+                      score: 10,
                       comment: "",
                       criteria: item.criteria,
                     };
@@ -280,46 +280,45 @@ const ExaminerCabinCrewEvaluationPage = () => {
                 </p>
               </div>
             </div>
-            {/* Countdown Timer */}
-            <div
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg ${
-                isTimerExpired
-                  ? "bg-red-500/20 border-2 border-red-400"
-                  : timeRemaining <= 300
-                  ? "bg-orange-500/20 border-2 border-orange-400"
-                  : "bg-white/10 border-2 border-white/20"
-              } transition-all duration-300`}
-            >
-              <svg
-                className={`w-5 h-5 ${
-                  isTimerExpired ? "text-red-300" : "text-white"
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="flex flex-col">
-                <span className="text-xs text-white/80">Time remaining</span>
-                <span
-                  className={`text-2xl font-bold tracking-wider ${
-                    isTimerExpired
-                      ? "text-red-200"
-                      : timeRemaining <= 300
-                      ? "text-orange-200"
-                      : "text-white"
-                  }`}
-                >
-                  {formatTime(timeRemaining)}
-                </span>
-              </div>
-            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Countdown Timer (fixed, follows scroll) */}
+      <div className="fixed top-4 right-4 z-50">
+        <div
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${
+            isTimerExpired
+              ? "border-red-500"
+              : timeRemaining <= 300
+              ? "border-orange-500"
+              : "border-slate-300"
+          } transition-all duration-300`}
+        >
+          <svg
+            className={`w-5 h-5 ${
+              isTimerExpired
+                ? "text-red-500"
+                : timeRemaining <= 300
+                ? "text-orange-500"
+                : "text-slate-700"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div className="flex flex-col">
+            <span className="text-xs text-slate-600">Time remaining</span>
+            <span className="text-2xl font-bold tracking-wider text-black">
+              {formatTime(timeRemaining)}
+            </span>
           </div>
         </div>
       </div>
@@ -330,7 +329,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
           <h2 className="mb-4 text-xl font-semibold text-slate-800">
             Cabin Crew Information
           </h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 w-24 h-32 overflow-hidden rounded-md bg-slate-100">
                 <img
@@ -474,7 +473,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
                       {filteredItems.map((item, itemIndex) => {
                         const criteriaId = item.interviewCriteriaItemId;
                         const evaluation = evaluations[criteriaId] || {
-                          score: 1,
+                          score: 10,
                           comment: "",
                         };
 

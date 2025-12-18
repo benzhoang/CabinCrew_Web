@@ -61,7 +61,9 @@ const navItems = [
 ];
 
 const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
-  const initials = getInitials(username);
+  // Lấy thông tin recruiter từ localStorage (được lưu sau khi đăng nhập)
+  const [displayName, setDisplayName] = useState(username);
+  const initials = getInitials(displayName);
   const [, setLangTick] = useState(0);
 
   // Khởi tạo notificationCount từ localStorage để persist qua các lần re-mount
@@ -90,6 +92,24 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
       Notification.requestPermission();
     }
   }, []);
+
+  // Load tên hiển thị từ localStorage (username / fullName / displayName)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("employee");
+      if (stored) {
+        const employee = JSON.parse(stored);
+        const nameFromStorage =
+          employee.username ||
+          employee.displayName ||
+          employee.fullName ||
+          username;
+        setDisplayName(nameFromStorage);
+      }
+    } catch (error) {
+      console.error("SidebarRecruiter: Cannot parse employee from localStorage", error);
+    }
+  }, [username]);
 
   // Load số thông báo chưa đọc ban đầu (CHỈ 1 LẦN)
   useEffect(() => {
@@ -281,7 +301,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           {initials}
         </div>
         <div className="flex flex-col flex-1">
-          <span className="text-sm text-slate-800 font-semibold tracking-tight">{username}</span>
+          <span className="text-sm text-slate-800 font-semibold tracking-tight">{displayName}</span>
           <span className="text-xs text-slate-500">{t("sidebar_role")}</span>
         </div>
 

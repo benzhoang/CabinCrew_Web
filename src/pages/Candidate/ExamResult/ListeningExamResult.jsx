@@ -120,7 +120,8 @@ const ListeningExamResult = () => {
     // Ưu tiên dữ liệu từ location.state, nếu không có thì dùng từ API
     const finalTotalScore = totalScore !== undefined ? totalScore : (apiData?.totalScore || 0);
     const finalMaxScore = maxScore !== undefined ? maxScore : (apiData?.maxScore || 0);
-    const finalExamInfo = examInfo || apiData?.examInfo || {};
+    // Ưu tiên examInfo lấy từ API (đúng theo từng loại test), nếu không có mới dùng từ location.state
+    const finalExamInfo = apiData?.examInfo || examInfo || {};
     const finalUserFullName = apiData?.userFullName || "";
     const finalUserEmail = apiData?.userEmail || "";
     const finalImgURL = apiData?.imgURL || "";

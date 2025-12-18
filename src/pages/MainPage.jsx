@@ -16,7 +16,6 @@ const MainPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageKey, setLoadingMessageKey] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [, forceRender] = useState(0);
   const loginTimeoutRef = useRef(null);
 
@@ -96,8 +95,8 @@ const MainPage = () => {
     if (route) {
       navigate(route);
     } else {
-      const errorMsg = `${t("role_unsupported")}: ${role || ""}`;
-      setErrorMessage(errorMsg.trim());
+      const errorMsg = `${t("role_unsupported")}: ${role || ""}`.trim();
+      toast.error(errorMsg);
       console.error("Unsupported role:", role);
     }
   };
@@ -112,13 +111,10 @@ const MainPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // Clear error message
-    setErrorMessage("");
-
     // Kiểm tra thông tin đăng nhập cơ bản
     if (!loginData.username || !loginData.password) {
       const errorMsg = t("signin_missing_fields");
-      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -136,7 +132,7 @@ const MainPage = () => {
       setIsLoading(false);
       setLoadingMessageKey("");
       const errorMsg = t("signin_timeout_error");
-      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
       navigate("/");
       loginTimeoutRef.current = null;
     }, 30000);
@@ -165,7 +161,7 @@ const MainPage = () => {
           setIsLoading(false);
           setLoadingMessageKey("");
           const errorMsg = t("signin_token_invalid");
-          setErrorMessage(errorMsg);
+          toast.error(errorMsg);
           return;
         }
 
@@ -189,7 +185,7 @@ const MainPage = () => {
           setIsLoading(false);
           setLoadingMessageKey("");
           const errorMsg = t("signin_role_unknown");
-          setErrorMessage(errorMsg);
+          toast.error(errorMsg);
           console.error("Decoded token:", decodedToken);
           return;
         }
@@ -240,7 +236,6 @@ const MainPage = () => {
 
         setIsLoading(false);
         setLoadingMessageKey("");
-        setErrorMessage("");
 
         // Hiển thị toast thành công
         toast.success(t("signin_success"));
@@ -255,7 +250,7 @@ const MainPage = () => {
         setIsLoading(false);
         setLoadingMessageKey("");
         const errorMsg = result.error || t("signin_invalid_credentials");
-        setErrorMessage(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       if (loginTimeoutRef.current) {
@@ -264,8 +259,15 @@ const MainPage = () => {
       }
       setIsLoading(false);
       setLoadingMessageKey("");
-      const errorMsg = t("signin_error_generic");
-      setErrorMessage(errorMsg);
+      const errorData = error.response?.data || {};
+      const backendErrors = Array.isArray(errorData.errors) ? errorData.errors : [];
+      const errorMsg =
+        (backendErrors.length ? backendErrors.join(", ") : "") ||
+        errorData.errorMessage ||
+        errorData.message ||
+        error.message ||
+        t("signin_error_generic");
+      toast.error(errorMsg);
       console.error("Login error:", error);
     }
   };
@@ -332,13 +334,6 @@ const MainPage = () => {
               </div>
 
               <form onSubmit={handleLogin} className="space-y-4">
-                {/* Error Message */}
-                {errorMessage && (
-                  <div className="px-4 py-3 text-red-600 bg-red-100 border border-red-300 rounded-lg">
-                    <p className="text-sm font-medium">{errorMessage}</p>
-                  </div>
-                )}
-
                 {/* Username Field */}
                 <div>
                   <label
@@ -353,10 +348,7 @@ const MainPage = () => {
                     type="text"
                     autoComplete="username"
                     value={loginData.username}
-                    onChange={(e) => {
-                      handleInputChange(e);
-                      setErrorMessage("");
-                    }}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={t("username_placeholder")}
                   />
@@ -377,10 +369,7 @@ const MainPage = () => {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       value={loginData.password}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setErrorMessage("");
-                      }}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-3 pr-12 text-sm text-gray-900 placeholder-gray-500 transition-colors duration-200 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder={t("password_placeholder")}
                     />

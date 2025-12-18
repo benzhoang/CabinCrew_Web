@@ -104,8 +104,40 @@ const navItems = [
 ];
 
 const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
-  const [displayName] = useState(username);
-  const [role] = useState("Examiner");
+  // Lấy thông tin examiner từ localStorage (được lưu sau khi đăng nhập)
+  const [displayName] = useState(() => {
+    try {
+      const stored = localStorage.getItem("employee");
+      if (stored) {
+        const employee = JSON.parse(stored);
+        // Ưu tiên full name / displayName, fallback sang username hoặc prop username
+        return (
+          employee.displayName ||
+          employee.fullName ||
+          employee.username ||
+          username
+        );
+      }
+    } catch (err) {
+      console.error("ExaminerSidebar: Cannot parse employee from localStorage", err);
+    }
+    return username;
+  });
+
+  const [role] = useState(() => {
+    try {
+      const stored = localStorage.getItem("employee");
+      if (stored) {
+        const employee = JSON.parse(stored);
+        if (employee.role) {
+          return employee.role;
+        }
+      }
+    } catch (err) {
+      console.error("ExaminerSidebar: Cannot read role from localStorage", err);
+    }
+    return "Examiner";
+  });
   const initials = getInitials(displayName);
   //const [, setLangTick] = useState(0);
 

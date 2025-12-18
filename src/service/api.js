@@ -177,16 +177,35 @@ export const register = async (payload) => {
       };
     }
 
+    // Trường hợp API trả về lỗi nhưng không ném exception
+    // Ưu tiên hiển thị rõ ràng errors / errorMessage từ backend
+    const backendErrors = Array.isArray(data?.errors) ? data.errors : [];
+    const errorMessage =
+      (backendErrors.length ? backendErrors.join(", ") : "") ||
+      data?.errorMessage ||
+      data?.message ||
+      "Registration failed";
+
     return {
       success: false,
-      error: data?.message || "Registration failed",
+      error: errorMessage,
+      errors: backendErrors,
       status,
     };
   } catch (error) {
+    const errorData = error.response?.data || {};
+    const backendErrors = Array.isArray(errorData.errors) ? errorData.errors : [];
+    const errorMessage =
+      (backendErrors.length ? backendErrors.join(", ") : "") ||
+      errorData.errorMessage ||
+      errorData.message ||
+      error.message ||
+      "Registration failed";
+
     return {
       success: false,
-      error:
-        error.response?.data?.message || error.message || "Registration failed",
+      error: errorMessage,
+      errors: backendErrors,
       status: error.response?.status,
     };
   }

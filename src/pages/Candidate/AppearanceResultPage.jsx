@@ -289,7 +289,7 @@ const AppearanceResultPage = () => {
                                                         <tbody className="bg-white divide-y divide-gray-200">
                                                             {criteriaGroup.map((criteria) => {
                                                                 const criteriaInfo = criteria.criteriaInfo
-                                                                const criteriaName = criteriaInfo.name || `Tiêu chí ${criteria.originalIndex + 1}`
+                                                                const criteriaName = criteriaInfo.englishText || `Tiêu chí ${criteria.originalIndex + 1}`
                                                                 const isPassed = criteria.isPassed ?? criteria.result ?? criteria.score
                                                                 return (
                                                                     <tr key={criteria.id || criteria.criteriaId || criteria.originalIndex}>
@@ -297,11 +297,6 @@ const AppearanceResultPage = () => {
                                                                             <div className="font-medium text-gray-900">
                                                                                 {criteriaName}
                                                                             </div>
-                                                                            {criteriaInfo.englishText && (
-                                                                                <div className="text-xs text-gray-500 italic mt-1">
-                                                                                    {criteriaInfo.englishText}
-                                                                                </div>
-                                                                            )}
                                                                             {Array.isArray(criteriaInfo.details) && criteriaInfo.details.length > 0 && (
                                                                                 <ul className="mt-2 space-y-1">
                                                                                     {criteriaInfo.details.map((detail, detailIndex) => (

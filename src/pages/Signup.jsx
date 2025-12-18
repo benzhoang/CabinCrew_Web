@@ -16,7 +16,6 @@ const Signup = () => {
         confirmPassword: ''
     });
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(''); // State for error messages
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -38,25 +37,24 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError(''); // Clear previous errors
 
         // Validate username length (minimum 8 characters)
         if (formData.username.length < 8) {
-            setError(t('username_min_length'));
+            toast.error('Username must be at least 8 characters long.');
             setIsLoading(false);
             return;
         }
 
         // Validate password length (minimum 8 characters)
         if (formData.password.length < 8) {
-            setError(t('password_min_length'));
+            toast.error('Password must be at least 8 characters long.');
             setIsLoading(false);
             return;
         }
 
         // Validate password and confirmPassword
         if (formData.password !== formData.confirmPassword) {
-            setError(t('password_mismatch'));
+            toast.error('Password and Confirm Password do not match.');
             setIsLoading(false);
             return;
         }
@@ -77,15 +75,22 @@ const Signup = () => {
             const response = await register(payload);
             if (response.success) {
                 // On successful registration, show toast and navigate to login
-                toast.success('Registration successful');
+                toast.success('Registration successful. You can now log in with your account.');
                 navigate('/login');
             } else {
-                // Display API error message
-                setError(response.error || t('registration_failed')); // Ensure 'registration_failed' is in i18n
+                // Display API error message with clear English reason
+                toast.error(
+                    response.error ||
+                    'Registration failed. Please check your information and try again.'
+                );
             }
         } catch (err) {
-            // Handle unexpected errors
-            setError(err.message || t('registration_failed'));
+            // Handle unexpected errors with clear English message
+            const message =
+                err.response?.data?.message ||
+                err.message ||
+                'An unexpected error occurred during registration. Please try again later.';
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
@@ -143,13 +148,6 @@ const Signup = () => {
                 {/* Form */}
                 <form onSubmit={handleSubmit}>
                     <div className="bg-white p-8 rounded-lg shadow-lg">
-                        {/* Error Message */}
-                        {error && (
-                            <div className="mb-6 text-red-600 text-sm text-center">
-                                {error}
-                            </div>
-                        )}
-
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* PERSONAL INFORMATION Section */}
                             <div className="space-y-6">

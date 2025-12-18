@@ -50,6 +50,8 @@ const SpeakingExamResult = () => {
                         imgURL: selectedSession.imgURL || "",
                         startTime: selectedSession.startTime,
                         endTime: selectedSession.endTime,
+                        // testType cho bài Nói, nếu backend chưa có thì fallback cứng
+                        testType: selectedSession.testType || "EnglishSpeaking",
                     };
 
                     setSessionData(mappedData);
@@ -240,7 +242,7 @@ const SpeakingExamResult = () => {
                             )}
 
                             {/* Test Info Section */}
-                            {sessionData?.testName && (
+                            {(sessionData?.testName || sessionData?.testType) && (
                                 <div className="border-t border-gray-200 pt-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {sessionData.testName && (
@@ -250,6 +252,17 @@ const SpeakingExamResult = () => {
                                                 </label>
                                                 <p className="text-base font-semibold text-gray-800">
                                                     {sessionData.testName}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {sessionData.testType && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("test_type") || "Loại bài thi"}
+                                                </label>
+                                                <p className="text-base font-semibold text-gray-800">
+                                                    {sessionData.testType}
                                                 </p>
                                             </div>
                                         )}

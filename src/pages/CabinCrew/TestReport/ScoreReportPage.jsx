@@ -43,8 +43,29 @@ const ScoreReportPage = () => {
 
           // Map dữ liệu từ API response
           const mappedTests = testsArray.map((test) => {
-            let examType = "Practical";
-            let examTypeClass = "bg-green-100 text-green-800";
+            // Xác định loại bài test (Listening / Speaking / Practical) từ test.testType
+            // Giống logic ở pages/Candidate/Test.jsx để đồng bộ hiển thị
+            let examType = "Listening";
+            let examTypeClass = "bg-blue-100 text-blue-800";
+
+            const rawTestType = test.testType;
+
+            if (
+              rawTestType === "English Listening" ||
+              rawTestType === "EnglishListening"
+            ) {
+              examType = "Listening";
+              examTypeClass = "bg-blue-100 text-blue-800";
+            } else if (
+              rawTestType === "English Speaking" ||
+              rawTestType === "EnglishSpeaking"
+            ) {
+              examType = "Speaking";
+              examTypeClass = "bg-purple-100 text-purple-800";
+            } else if (rawTestType === "Practical") {
+              examType = "Practical";
+              examTypeClass = "bg-green-100 text-green-800";
+            }
 
             return {
               id: test.testId,

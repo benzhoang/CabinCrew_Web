@@ -169,6 +169,23 @@ const defaultStageTemplates = [
 
 const normalizeText = (text) => (text || '').toLowerCase().trim()
 
+const normalizeStageId = (stageValue) => {
+    const text = normalizeText(stageValue)
+    if (!text) return null
+
+    if (text.includes('screening')) return 'screening'
+    // Map Flight Hour Confirmation vào cùng vị trí với English Listening Test trên timeline
+    if (text.includes('flight') || text.includes('hour')) return 'english-listening'
+    if (text.includes('appearance') || text.includes('grooming')) return 'appearance'
+    if (text.includes('listening')) return 'english-listening'
+    // Practical Test được gắn với English Speaking Test
+    if (text.includes('speaking') || text.includes('practical')) return 'english-speaking'
+    if (text.includes('interview')) return 'interview'
+    if (text.includes('final')) return 'final'
+
+    return null
+}
+
 const isStageReached = (stage, index, currentStage) => {
     if (!stage || typeof index !== 'number') return false
     if (stage.completed) return true
@@ -271,47 +288,45 @@ const getStageIcon = (stage, currentStage, stageIndex, overallStatus) => {
     )
 }
 
-// Build timeline data: chỉ hiển thị trạng thái cho vòng Sàng lọc, các vòng khác để Pending (xám)
-const buildTimelineForCandidate = (candidate) => {
+// Build timeline data với stage hiện tại linh hoạt theo vòng đang xem
+const buildTimelineForCandidate = (candidate, forcedStageId) => {
     if (!candidate) return null
 
+    const fallbackStage = normalizeStageId(candidate.currentRound) || 'screening'
+    const currentStageId = forcedStageId || fallbackStage || 'screening'
+    const currentStageIndex = Math.max(defaultStageTemplates.findIndex(t => t.id === currentStageId), 0)
     const overallStatus = normalizeText(candidate.status || 'pending')
-    const isPassed = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
-    const isFailed = ['failed', 'rejected'].some(k => overallStatus.includes(k))
+    const isPassedFinal = ['passed', 'accepted', 'approved', 'completed', 'success'].some(k => overallStatus.includes(k))
+    const isFailedFinal = ['failed', 'rejected'].some(k => overallStatus.includes(k))
 
-    const screeningStatus = isFailed ? 'Failed' : isPassed ? 'Completed' : 'Pending'
+    const stages = defaultStageTemplates.map((template, index) => {
+        const isFinal = template.id === 'final'
+        const isCurrent = index === currentStageIndex
+        const completedBefore = index < currentStageIndex
 
-    const stages = defaultStageTemplates.map((template) => {
-        const isScreening = template.id === 'screening'
+        let completed = completedBefore
+        let status = completed ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'
 
-        if (isScreening) {
-            return {
-                templateId: template.id,
-                name: template.name,
-                nameEn: template.nameEn,
-                completed: isPassed,
-                isCurrent: !isPassed && !isFailed,
-                status: screeningStatus,
-                date: null
-            }
-        }
-
-        // Các vòng khác luôn ở trạng thái Pending (xám)
         return {
             templateId: template.id,
             name: template.name,
             nameEn: template.nameEn,
-            completed: false,
-            isCurrent: false,
-            status: 'Pending',
+            completed: isFinal
+                ? (isCurrent ? isPassedFinal : completed)
+                : completed,
+            isCurrent,
+            status: isFinal
+                ? isCurrent
+                    ? (isFailedFinal ? 'Failed' : isPassedFinal ? 'Completed' : 'In Progress')
+                    : status
+                : status,
             date: null
         }
     })
 
-    // currentStage = 0 để không stage nào bị tô màu vàng "current"
     return {
         stages,
-        currentStage: 0
+        currentStage: currentStageIndex + 1
     }
 }
 
@@ -326,7 +341,25 @@ const CandidateApplyDetail = () => {
     const location = useLocation()
     const { id: routeApplicationId } = useParams()
     const candidateFromState = location.state?.candidate || null
-    const applicationTimeline = buildTimelineForCandidate(candidate)
+    const viewingRound = location.state?.viewingRound || null
+    const batchData = location.state?.batchData || null
+
+    const derivedStageId =
+        normalizeStageId(viewingRound?.stageId || viewingRound?.roundName || viewingRound?.roundId) ||
+        normalizeStageId(candidate?.currentRound) ||
+        normalizeStageId(candidateFromState?.currentRound || candidateFromState?.roundName) ||
+        'screening'
+
+    const applicationTimeline = buildTimelineForCandidate(candidate, derivedStageId)
+
+    // Ưu tiên dùng tên vòng từ dữ liệu truyền vào (ví dụ: "Flight Hour Confirmation", "Practical Test")
+    const currentStageName =
+        viewingRound?.roundName ||
+        viewingRound?.stageName ||
+        viewingRound?.stageId?.toString().replace(/-/g, ' ') ||
+        defaultStageTemplates.find(stage => stage.id === derivedStageId)?.name ||
+        'Screening'
+
     const normalizedStatus = normalizeText(candidate?.status)
     const isOngoingStatus = ['pending', 'ongoing', 'in progress', 'processing'].some(s => normalizedStatus.includes(s) || normalizedStatus === s)
 
@@ -384,7 +417,6 @@ const CandidateApplyDetail = () => {
 
     const goBack = () => {
         // Quay về danh sách ứng viên với thông tin batch
-        const batchData = location.state?.batchData
         // Lấy campaignRoundId từ nhiều nguồn có thể
         const campaignRoundId =
             batchData?.batch?.id ||
@@ -575,7 +607,7 @@ const CandidateApplyDetail = () => {
                         </button>
                         <div>
                             <h1 className="text-2xl font-bold text-slate-800">
-                                Candidate Profile - {candidate ? getRoundText(candidate.currentRound) : 'Screening'}
+                                Candidate Profile - {currentStageName}
                             </h1>
                             <p className="text-slate-600">Detailed candidate information</p>
                         </div>
@@ -589,95 +621,6 @@ const CandidateApplyDetail = () => {
                         {error}
                     </div>
                 )}
-                {/* Progress Timeline - same style as RecruitmentStages (without action buttons) */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">Application Progress</h3>
-                    <p className="text-sm text-slate-600 mb-6">Track candidate progress through rounds</p>
-                    {applicationTimeline && (
-                        <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
-                            {(() => {
-                                const stageMap = {}
-                                const stageIndexMap = {}
-                                applicationTimeline.stages.forEach((stage, index) => {
-                                    if (stage.templateId) {
-                                        stageMap[stage.templateId] = stage
-                                        stageIndexMap[stage.templateId] = index
-                                    }
-                                })
-
-                                const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final']
-
-                                const renderStageInfo = (stage, stageIndex, stageReached, position) => (
-                                    <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-32 text-center`}>
-                                        <p className="text-xs font-medium text-gray-900">
-                                            {stage.name}
-                                        </p>
-                                        {stage.date && (
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {new Date(stage.date).toLocaleDateString('en-US')}
-                                            </p>
-                                        )}
-                                    </div>
-                                )
-
-                                return (
-                                    <>
-                                        {/* Horizontal progress line */}
-                                        <div
-                                            className="absolute bg-gray-200"
-                                            style={{
-                                                top: `${BASELINE_Y - 7}px`, // căn giữa với tâm hình tròn (line dày 2px)
-                                                left: `${LINE_START_PERCENT}%`,
-                                                width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
-                                                height: '2px'
-                                            }}
-                                        >
-                                            <div
-                                                className="h-full bg-blue-500 transition-all duration-500"
-                                                style={{ width: `${getProgressPercentage(applicationTimeline)}%` }}
-                                            ></div>
-                                        </div>
-
-                                        {/* Vertical branch for English tests */}
-                                        <div
-                                            className="absolute bg-gray-200"
-                                            style={{
-                                                left: `${getAxisPercent('english-listening')}%`,
-                                                top: `${BASELINE_Y - BRANCH_OFFSET - 1}px`, // căn giữa nhánh dọc với line 2px
-                                                height: `${BRANCH_OFFSET * 2}px`,
-                                                width: '2px',
-                                                transform: 'translateX(-50%)'
-                                            }}
-                                        ></div>
-
-                                        {/* Stage nodes */}
-                                        {timelineStageIds.map((templateId) => {
-                                            const stage = stageMap[templateId]
-                                            if (!stage) return null
-                                            const stageIndex = stageIndexMap[templateId]
-                                            const stageReached = isStageReached(stage, stageIndex, applicationTimeline.currentStage)
-                                            const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom'
-
-                                            return (
-                                                <div
-                                                    key={templateId}
-                                                    className="absolute flex flex-col items-center"
-                                                    style={getStagePositionStyle(templateId)}
-                                                >
-                                                    {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
-                                                    <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}`}>
-                                                        {getStageIcon(stage, applicationTimeline.currentStage, stageIndex ?? 0, candidate.status)}
-                                                    </div>
-                                                    {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
-                                                </div>
-                                            )
-                                        })}
-                                    </>
-                                )
-                            })()}
-                        </div>
-                    )}
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Column - CV and Documents */}

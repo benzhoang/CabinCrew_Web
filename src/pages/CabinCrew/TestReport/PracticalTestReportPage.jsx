@@ -3,7 +3,11 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../../i18n";
 import { toast } from "react-toastify";
 import AppealModal from "../../../components/AppealModal";
-import { getMyPracticalSessions } from "../../../service/api";
+import {
+  getMyPracticalSessions,
+  getMyListeningSessions,
+  getMySpeakingSessions,
+} from "../../../service/api";
 
 const PracticalTestReportPage = () => {
   const { id: testId } = useParams();
@@ -25,12 +29,21 @@ const PracticalTestReportPage = () => {
     return () => off();
   }, []);
 
-  // Load dữ liệu từ API
+  // Load dữ liệu từ API (Listening / Speaking / Practical)
   useEffect(() => {
-    const loadPracticalSessions = async () => {
+    const loadSessions = async () => {
       try {
         setIsLoading(true);
-        const result = await getMyPracticalSessions();
+
+        // Chọn API theo loại bài test
+        let apiFunc = getMyPracticalSessions;
+        if (examType === "Listening") {
+          apiFunc = getMyListeningSessions;
+        } else if (examType === "Speaking") {
+          apiFunc = getMySpeakingSessions;
+        }
+
+        const result = await apiFunc();
 
         console.log("API Result getMyPracticalSessions:", result);
 
@@ -69,12 +82,22 @@ const PracticalTestReportPage = () => {
             imgURL: selectedSession.imgURL || "",
             examInfo: {
               testName: selectedSession.testName || examName || "",
-              testType: selectedSession.testType || examType || "Practical",
+              testType:
+                selectedSession.testType ||
+                examType ||
+                (examType === "Listening"
+                  ? "English Listening"
+                  : examType === "Speaking"
+                    ? "English Speaking"
+                    : "Practical"),
               testId: selectedSession.testId || testId || 0,
             },
             startTime: selectedSession.startTime,
             endTime: selectedSession.endTime,
             status: selectedSession.status,
+            // Thông tin phục vụ logic mở/khóa nút phúc khảo
+            isPassedOrFailed: selectedSession.isPassedOrFailed,
+            canRequestEnquiry: selectedSession.canRequestEnquiry,
             testSessionId: selectedSession.testSessionId,
           };
 
@@ -92,7 +115,7 @@ const PracticalTestReportPage = () => {
       }
     };
 
-    loadPracticalSessions();
+    loadSessions();
   }, [testId, examId, examName, examType, score, maxScore]);
 
   const handleBackToScoreReport = () => {
@@ -156,6 +179,27 @@ const PracticalTestReportPage = () => {
   const finalTestType = finalExamInfo?.testType || "";
   const finalStartTime = apiData?.startTime || "";
   const finalEndTime = apiData?.endTime || "";
+  const status = apiData?.status;
+  const isPassedOrFailed = apiData?.isPassedOrFailed;
+  const canRequestEnquiry = apiData?.canRequestEnquiry;
+
+  // Logic hiển thị / khóa nút phúc khảo:
+  // status = true  -> mở
+  // status = false -> khóa
+  // IsPassedOrFailed = true  -> khóa
+  // IsPassedOrFailed = false -> mở
+  // CanRequestEnquiry = true  -> mở
+  // CanRequestEnquiry = false -> khóa
+  let isAppealEnabled = true;
+  if (typeof status === "boolean") {
+    isAppealEnabled = isAppealEnabled && status;
+  }
+  if (typeof isPassedOrFailed === "boolean") {
+    isAppealEnabled = isAppealEnabled && !isPassedOrFailed;
+  }
+  if (typeof canRequestEnquiry === "boolean") {
+    isAppealEnabled = isAppealEnabled && canRequestEnquiry;
+  }
 
   return (
     <div className="min-h-screen px-4 py-8 bg-gray-100">
@@ -334,7 +378,7 @@ const PracticalTestReportPage = () => {
           >
             {"Back to score report"}
           </button>
-          {!isAppealSubmitted && (
+          {!isAppealSubmitted && isAppealEnabled && (
             <button
               onClick={openAppealModal}
               className="flex items-center gap-2 px-8 py-3 font-semibold text-white transition-colors bg-orange-600 rounded-lg hover:bg-orange-700"

@@ -69,7 +69,7 @@ const ListeningReport = () => {
                         imgURL: selectedSession.imgURL || "",
                         examInfo: {
                             testName: selectedSession.testName || examName || "",
-                            testType: selectedSession.testType || examType || "EnglishListening",
+                            testType: selectedSession.testType || examType || "English Listening",
                             testId: selectedSession.testId || testId || 0,
                         },
                         startTime: selectedSession.startTime,
