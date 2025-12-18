@@ -14,7 +14,7 @@ const mapCriteriaToEvaluations = (criteriaGroups, previousEvaluations = {}) => {
             if (typeof key === 'undefined' || key === null) return
             const previousValue = previousEvaluations[key] || {}
             mapped[key] = {
-                score: typeof previousValue.score === 'number' ? previousValue.score : 1,
+                score: typeof previousValue.score === 'number' ? previousValue.score : 10,
                 comment: previousValue.comment || ''
             }
         })
@@ -56,6 +56,10 @@ const ExaminerCandidateEvaluation = () => {
     const [checkingCount, setCheckingCount] = useState(true) // Đang kiểm tra số lần đã chấm
     const [submittedOnce, setSubmittedOnce] = useState(false) // Đã chấm trong phiên hiện tại
 
+    // Countdown timer state (30 minutes = 1800 seconds)
+    const [timeRemaining, setTimeRemaining] = useState(30 * 60) // 30 minutes in seconds
+    const [isTimerExpired, setIsTimerExpired] = useState(false)
+
     const loadInterviewCriterias = useCallback(async () => {
         setCriteriaLoading(true)
         setCriteriaError('')
@@ -83,6 +87,21 @@ const ExaminerCandidateEvaluation = () => {
     useEffect(() => {
         loadInterviewCriterias()
     }, [loadInterviewCriterias])
+
+    // Countdown timer effect
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeRemaining(prev => {
+                if (prev <= 1) {
+                    setIsTimerExpired(true)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 1000)
+
+        return () => clearInterval(timer)
+    }, []) // Only run once on mount
 
     useEffect(() => {
         if (candidate) {
@@ -126,6 +145,13 @@ const ExaminerCandidateEvaluation = () => {
     }, 0)
     const maxScore = Object.keys(evaluations).length * 10
 
+    // Format time remaining to MM:SS
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    }
+
     const handleScoreChange = (criterionKey, score) => {
         setEvaluations(prev => ({
             ...prev,
@@ -140,7 +166,7 @@ const ExaminerCandidateEvaluation = () => {
         setEvaluations(prev => ({
             ...prev,
             [criterionKey]: {
-                score: prev[criterionKey]?.score ?? 1,
+                score: prev[criterionKey]?.score ?? 10,
                 comment: comment
             }
         }))
@@ -253,24 +279,64 @@ const ExaminerCandidateEvaluation = () => {
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                 <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => {
-                                if (batchData) {
-                                    navigate('/examiner/applications', { state: batchData })
-                                } else {
-                                    navigate(-1)
-                                }
-                            }}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-extrabold">Candidate Evaluation</h1>
-                            <p className="text-white/90 mt-1 text-sm">Evaluate interview criteria for the applicant</p>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => {
+                                    if (batchData) {
+                                        navigate('/examiner/applications', { state: batchData })
+                                    } else {
+                                        navigate(-1)
+                                    }
+                                }}
+                                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-extrabold">Candidate Evaluation</h1>
+                                <p className="text-white/90 mt-1 text-sm">Evaluate interview criteria for the applicant</p>
+                            </div>
+                        </div>
+                        {/* Countdown Timer (fixed position, follows scroll) */}
+                        <div className="fixed top-4 right-4 z-50">
+                            <div
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${
+                                    isTimerExpired
+                                        ? 'border-red-500'
+                                        : timeRemaining <= 300
+                                        ? 'border-orange-500'
+                                        : 'border-slate-300'
+                                } transition-all duration-300`}
+                            >
+                                <svg
+                                    className={`w-5 h-5 ${
+                                        isTimerExpired
+                                            ? 'text-red-500'
+                                            : timeRemaining <= 300
+                                            ? 'text-orange-500'
+                                            : 'text-slate-700'
+                                    }`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                <div className="flex flex-col">
+                                    <span className="text-xs text-slate-600">Time remaining</span>
+                                    <span className="text-2xl font-bold tracking-wider text-black">
+                                        {formatTime(timeRemaining)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -278,9 +344,9 @@ const ExaminerCandidateEvaluation = () => {
 
             <div className="max-w-7xl mx-auto px-6 py-8">
                 {/* Candidate Information */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
                     <h2 className="text-xl font-semibold text-slate-800 mb-4">Candidate Information</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="flex items-center gap-4">
                             <div className="w-24 h-32 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
                                 <img
@@ -377,7 +443,7 @@ const ExaminerCandidateEvaluation = () => {
                                                 group.items.map((item, itemIndex) => {
                                                     const hasId = typeof item?.interviewCriteriaItemId !== 'undefined' && item?.interviewCriteriaItemId !== null
                                                     const criterionKey = hasId ? item.interviewCriteriaItemId : item?.criteria ?? `${groupIndex}-${itemIndex}`
-                                                    const evaluation = evaluations[criterionKey] || { score: 1, comment: '' }
+                                                    const evaluation = evaluations[criterionKey] || { score: 10, comment: '' }
                                                     const displayOrder = ++criterionCounter
                                                     return (
                                                         <tr key={`${criterionKey}-${itemIndex}`} className="border-b border-slate-200 hover:bg-slate-50">

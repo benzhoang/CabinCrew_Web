@@ -274,7 +274,7 @@ const Screening = () => {
         const normalizedStatus = status ? String(status).toLowerCase() : "";
 
         const statusConfig = {
-            ongoing: { color: "bg-blue-100 text-blue-800", text: "Ongoing" },
+            ongoing: { color: "bg-yellow-100 text-yellow-800", text: "Ongoing" },
             passed: { color: "bg-green-100 text-green-800", text: "Passed" },
             failed: { color: "bg-red-100 text-red-800", text: "Failed" },
             pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
@@ -346,6 +346,21 @@ const Screening = () => {
     const handleStatusChange = (applicantId, newStatus) => {
         // Handle status change logic here
         console.log(`Changing status of applicant ${applicantId} to ${newStatus}`)
+    }
+
+    const mapRoundToStageId = (roundData, applicant) => {
+        const roundName = (roundData?.roundName || applicant?.roundName || "").toLowerCase();
+        const testType = roundData?.testType;
+
+        if (roundName.includes("screening")) return "screening";
+        if (roundName.includes("appearance") || roundName.includes("grooming")) return "appearance";
+        if (roundName.includes("listening") || testType === 1) return "english-listening";
+        if (roundName.includes("speaking") || testType === 2) return "english-speaking";
+        if (roundName.includes("practical") || testType === 3) return "english-speaking";
+        if (roundName.includes("interview")) return "interview";
+        if (roundName.includes("final")) return "final";
+
+        return null;
     }
 
     const goBackToCampaigns = () => {
@@ -522,14 +537,30 @@ const Screening = () => {
                                                     <button
                                                         className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
                                                         title="View Details"
-                                                        onClick={() =>
+                                                        onClick={() => {
+                                                            const roundFromFilter =
+                                                                roundFilter === "final"
+                                                                    ? { roundId: "final", roundName: "Final" }
+                                                                    : availableRounds.find((r) => String(r.roundId) === String(roundFilter)) ||
+                                                                    (availableRounds.length > 0 ? availableRounds[0] : null);
+
+                                                            const stageId =
+                                                                mapRoundToStageId(roundFromFilter, applicant) ||
+                                                                mapRoundToStageId({ roundName: applicant?.roundName }, applicant) ||
+                                                                "screening";
+
                                                             navigate(`/candidate/${applicant.activityId}`, {
                                                                 state: {
                                                                     candidate: applicant,
-                                                                    batchData: batchData
+                                                                    batchData: batchData,
+                                                                    viewingRound: {
+                                                                        stageId,
+                                                                        roundId: roundFromFilter?.roundId || roundFilter || applicant?.roundId,
+                                                                        roundName: roundFromFilter?.roundName || applicant?.roundName || "",
+                                                                    },
                                                                 }
-                                                            })
-                                                        }
+                                                            });
+                                                        }}
                                                     >
                                                         <svg
                                                             className="w-4 h-4 mx-auto"

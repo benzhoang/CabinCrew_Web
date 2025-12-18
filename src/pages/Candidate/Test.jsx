@@ -66,9 +66,9 @@ const Test = () => {
                     const mappedExams = testsArray.map((test) => {
                         // Map testType từ API sang format hiện tại
                         let examType = 'Listening'; // default
-                        if (test.testType === 'EnglishListening') {
+                        if (test.testType === 'English Listening') {
                             examType = 'Listening';
-                        } else if (test.testType === 'EnglishSpeaking') {
+                        } else if (test.testType === 'English Speaking') {
                             examType = 'Speaking';
                         } else if (test.testType === 'Practical') {
                             examType = 'Practical';

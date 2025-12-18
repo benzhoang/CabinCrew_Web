@@ -1058,67 +1058,11 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Work experience:</label>
-                                        {formData.workingExperience ? (
-                                            <div className="space-y-2">
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="workingExperience"
-                                                        value="no-experience"
-                                                        checked={formData.workingExperience === 'no-experience'}
-                                                        onChange={handleInputChange}
-                                                        disabled={!isEditing}
-                                                        className="mr-2"
-                                                        required
-                                                    />
-                                                    No experience
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="workingExperience"
-                                                        value="less-than-1-year"
-                                                        checked={formData.workingExperience === 'less-than-1-year'}
-                                                        onChange={handleInputChange}
-                                                        disabled={!isEditing}
-                                                        className="mr-2"
-                                                        required
-                                                    />
-                                                    Less than 1 year
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="workingExperience"
-                                                        value="1-2-years"
-                                                        checked={formData.workingExperience === '1-2-years'}
-                                                        onChange={handleInputChange}
-                                                        disabled={!isEditing}
-                                                        className="mr-2"
-                                                        required
-                                                    />
-                                                    1-2 years
-                                                </label>
-                                                <label className="flex items-center">
-                                                    <input
-                                                        type="radio"
-                                                        name="workingExperience"
-                                                        value="3-5-years"
-                                                        checked={formData.workingExperience === '3-5-years'}
-                                                        onChange={handleInputChange}
-                                                        disabled={!isEditing}
-                                                        className="mr-2"
-                                                        required
-                                                    />
-                                                    3-5 years
-                                                </label>
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm text-slate-500">—</p>
-                                        )}
-                                    </div>
+                                    {formData.experience && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">6. Work experience:</label>
+                                        </div>
+                                    )}
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">7. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">

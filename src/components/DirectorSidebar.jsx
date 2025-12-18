@@ -81,16 +81,27 @@ const DirectorSidebar = ({ username = "Nguyễn Văn A" }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load employee data from localStorage
-    const employee = localStorage.getItem("employee");
-    if (employee) {
-      const employeeData = JSON.parse(employee);
-      if (employeeData.displayName) {
-        setDisplayName(employeeData.displayName);
+    // Load employee data from localStorage và ưu tiên username/full name
+    try {
+      const employee = localStorage.getItem("employee");
+      if (employee) {
+        const employeeData = JSON.parse(employee);
+        const nameFromStorage =
+          employeeData.username ||
+          employeeData.displayName ||
+          employeeData.fullName ||
+          username;
+
+        setDisplayName(nameFromStorage);
+
+        if (employeeData.role) {
+          setRole(employeeData.role);
+        } else if (employeeData.role === "director") {
+          setRole("Director");
+        }
       }
-      if (employeeData.role === "director") {
-        setRole("Director");
-      }
+    } catch (error) {
+      console.error("DirectorSidebar: Cannot parse employee from localStorage", error);
     }
   }, []);
 
