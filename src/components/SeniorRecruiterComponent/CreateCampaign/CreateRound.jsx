@@ -225,40 +225,10 @@ const CreateRound = forwardRef(
         if (i === index) {
           updatedRound = { ...round, [field]: value };
 
-          // Nếu thay đổi roundStartDate, đảm bảo roundEndDate >= roundStartDate
-          if (field === "roundStartDate" && updatedRound.roundEndDate) {
-            if (updatedRound.roundEndDate < value) {
-              updatedRound.roundEndDate = value;
-            }
-          }
-
-          // Nếu thay đổi roundEndDate, đảm bảo roundEndDate >= roundStartDate
-          if (field === "roundEndDate" && updatedRound.roundStartDate) {
-            if (value < updatedRound.roundStartDate) {
-              updatedRound.roundStartDate = value;
-            }
-          }
-
           return updatedRound;
         }
         return round;
       });
-
-      // Nếu thay đổi roundEndDate của đợt trước, cập nhật min của roundStartDate đợt sau
-      if (field === "roundEndDate" && index < rounds.length - 1) {
-        const nextRoundIndex = index + 1;
-        const nextRound = updatedRounds[nextRoundIndex];
-        if (
-          nextRound &&
-          nextRound.roundStartDate &&
-          nextRound.roundStartDate < value
-        ) {
-          updatedRounds[nextRoundIndex] = {
-            ...nextRound,
-            roundStartDate: value,
-          };
-        }
-      }
 
       onRoundsChange(updatedRounds);
 
@@ -325,98 +295,89 @@ const CreateRound = forwardRef(
           };
 
           if (field === "roundStartDate" && value) {
-            const firstRoundName = expectedRoundNames[0];
-            const foundRound = relatedRounds.find(
-              (r) => r.roundName === firstRoundName
-            );
-
-            if (foundRound) {
+            // Reset tất cả các date của sub-rounds, chỉ giữ startDate của round đầu tiên
+            relatedRounds.forEach((relatedRound) => {
               const roundIdx = findRoundInBatch(
-                firstRoundName,
+                relatedRound.roundName,
                 updatedRoundsData
               );
 
               if (roundIdx !== -1) {
+                const isFirstRound =
+                  relatedRound.roundName === expectedRoundNames[0];
                 updatedRoundsData[roundIdx] = {
                   ...updatedRoundsData[roundIdx],
-                  startDate: value,
-                };
-              }
-            } else {
-              const existingRoundIdx = findRoundInBatch(
-                firstRoundName,
-                updatedRoundsData
-              );
-
-              if (existingRoundIdx === -1) {
-                const newRound = {
-                  roundId: null,
-                  roundName: firstRoundName,
-                  campaignRoundId: updatedRound.campaignRoundId,
-                  startDate: value,
+                  startDate: isFirstRound ? value : "",
                   endDate: "",
                 };
-
-                if (updatedRound.campaignRoundId) {
-                  updatedRoundsData.push(newRound);
-                } else {
-                  const insertIdx = index * roundsCount;
-                  updatedRoundsData.splice(insertIdx, 0, newRound);
-                }
-              } else {
-                updatedRoundsData[existingRoundIdx] = {
-                  ...updatedRoundsData[existingRoundIdx],
-                  startDate: value,
-                };
               }
-            }
-          }
+            });
 
-          if (field === "roundEndDate" && value) {
-            const lastRoundName =
-              expectedRoundNames[expectedRoundNames.length - 1];
-            const foundRound = relatedRounds.find(
-              (r) => r.roundName === lastRoundName
+            // Nếu round đầu tiên chưa tồn tại, tạo mới
+            const firstRoundName = expectedRoundNames[0];
+            const firstRoundIdx = findRoundInBatch(
+              firstRoundName,
+              updatedRoundsData
             );
 
-            if (foundRound) {
+            if (firstRoundIdx === -1) {
+              const newRound = {
+                roundId: null,
+                roundName: firstRoundName,
+                campaignRoundId: updatedRound.campaignRoundId,
+                startDate: value,
+                endDate: "",
+              };
+
+              if (updatedRound.campaignRoundId) {
+                updatedRoundsData.push(newRound);
+              } else {
+                const insertIdx = index * roundsCount;
+                updatedRoundsData.splice(insertIdx, 0, newRound);
+              }
+            }
+          } else if (field === "roundEndDate" && value) {
+            // Reset tất cả các date của sub-rounds, chỉ giữ endDate của round cuối cùng
+            relatedRounds.forEach((relatedRound) => {
               const roundIdx = findRoundInBatch(
-                lastRoundName,
+                relatedRound.roundName,
                 updatedRoundsData
               );
 
               if (roundIdx !== -1) {
+                const isLastRound =
+                  relatedRound.roundName ===
+                  expectedRoundNames[expectedRoundNames.length - 1];
                 updatedRoundsData[roundIdx] = {
                   ...updatedRoundsData[roundIdx],
-                  endDate: value,
+                  startDate: "",
+                  endDate: isLastRound ? value : "",
                 };
               }
-            } else {
-              const existingRoundIdx = findRoundInBatch(
-                lastRoundName,
-                updatedRoundsData
-              );
+            });
 
-              if (existingRoundIdx === -1) {
-                const newRound = {
-                  roundId: null,
-                  roundName: lastRoundName,
-                  campaignRoundId: updatedRound.campaignRoundId,
-                  startDate: "",
-                  endDate: value,
-                };
+            // Nếu round cuối cùng chưa tồn tại, tạo mới
+            const lastRoundName =
+              expectedRoundNames[expectedRoundNames.length - 1];
+            const lastRoundIdx = findRoundInBatch(
+              lastRoundName,
+              updatedRoundsData
+            );
 
-                if (updatedRound.campaignRoundId) {
-                  updatedRoundsData.push(newRound);
-                } else {
-                  const insertIdx = index * roundsCount + roundsCount - 1;
-                  updatedRoundsData.splice(insertIdx, 0, newRound);
-                }
+            if (lastRoundIdx === -1) {
+              const newRound = {
+                roundId: null,
+                roundName: lastRoundName,
+                campaignRoundId: updatedRound.campaignRoundId,
+                startDate: "",
+                endDate: value,
+              };
+
+              if (updatedRound.campaignRoundId) {
+                updatedRoundsData.push(newRound);
               } else {
-                updatedRoundsData[existingRoundIdx] = {
-                  ...updatedRoundsData[existingRoundIdx],
-                  endDate: value,
-                };
+                const insertIdx = index * roundsCount + roundsCount - 1;
+                updatedRoundsData.splice(insertIdx, 0, newRound);
               }
             }
           }
@@ -435,16 +396,15 @@ const CreateRound = forwardRef(
     };
 
     const addRound = () => {
-      const newRounds = [
-        ...rounds,
-        {
-          roundName: `Round ${rounds.length + 1}`,
-          roundStartDate: "",
-          roundEndDate: "",
-          targetQuantity: "",
-          description: "",
-        },
-      ];
+      const newRound = {
+        roundName: `Round ${rounds.length + 1}`,
+        roundStartDate: "",
+        roundEndDate: "",
+        targetQuantity: "",
+        description: "",
+      };
+
+      const newRounds = [...rounds, newRound];
       onRoundsChange(newRounds);
     };
 
@@ -478,13 +438,17 @@ const CreateRound = forwardRef(
                 "Start date of round must be before the end date of campaign";
             }
 
-            // Từ đợt 2 trở đi, ngày bắt đầu phải >= ngày kết thúc đợt trước
+            // Từ đợt 2 trở đi, ngày bắt đầu phải >= ngày kết thúc đợt trước + 1 ngày
             if (index > 0) {
               const previousRound = roundsToValidate[index - 1];
               if (previousRound.roundEndDate) {
-                if (round.roundStartDate < previousRound.roundEndDate) {
+                const prevEndDate = new Date(previousRound.roundEndDate);
+                prevEndDate.setDate(prevEndDate.getDate() + 1);
+                const minAllowedDate = prevEndDate.toISOString().split("T")[0];
+
+                if (round.roundStartDate < minAllowedDate) {
                   newErrors[`rounds.${index}.roundStartDate`] =
-                    "Start date of round must be after or equal to the end date of previous round";
+                    "Start date of round must be at least 1 day after the end date of previous round";
                 }
               }
             }
@@ -793,7 +757,13 @@ const CreateRound = forwardRef(
                         }`}
                         min={
                           index > 0 && rounds[index - 1]?.roundEndDate
-                            ? rounds[index - 1].roundEndDate
+                            ? (() => {
+                                const prevEndDate = new Date(
+                                  rounds[index - 1].roundEndDate
+                                );
+                                prevEndDate.setDate(prevEndDate.getDate() + 1);
+                                return prevEndDate.toISOString().split("T")[0];
+                              })()
                             : startDate || todayString
                         }
                         max={endDate || undefined}
@@ -1093,8 +1063,16 @@ const CreateRound = forwardRef(
                         let startDateMin = minDate;
                         if (roundIndex > 0) {
                           const previousRound = defaultRounds[roundIndex - 1];
-                          startDateMin =
-                            previousRound.endDate || minDate || undefined;
+                          if (previousRound.endDate) {
+                            // Tính ngày sau endDate của round trước (thêm 1 ngày)
+                            const prevEndDate = new Date(previousRound.endDate);
+                            prevEndDate.setDate(prevEndDate.getDate() + 1);
+                            startDateMin = prevEndDate
+                              .toISOString()
+                              .split("T")[0];
+                          } else {
+                            startDateMin = minDate || undefined;
+                          }
                         }
 
                         return (
@@ -1139,14 +1117,24 @@ const CreateRound = forwardRef(
                                       if (roundIndex > 0) {
                                         const previousRound =
                                           defaultRounds[roundIndex - 1];
-                                        if (
-                                          previousRound.endDate &&
-                                          newStartDate <= previousRound.endDate
-                                        ) {
-                                          toast.error(
-                                            `Start date of this round must be after the end date of previous round (${previousRound.roundName}). Please select a different date.`
+                                        if (previousRound.endDate) {
+                                          // Tính ngày sau endDate của round trước (thêm 1 ngày)
+                                          const prevEndDate = new Date(
+                                            previousRound.endDate
                                           );
-                                          return;
+                                          prevEndDate.setDate(
+                                            prevEndDate.getDate() + 1
+                                          );
+                                          const minAllowedDate = prevEndDate
+                                            .toISOString()
+                                            .split("T")[0];
+
+                                          if (newStartDate < minAllowedDate) {
+                                            toast.error(
+                                              `Start date of this round must be at least 1 day after the end date of previous round (${previousRound.roundName}). Please select a different date.`
+                                            );
+                                            return;
+                                          }
                                         }
                                       }
 

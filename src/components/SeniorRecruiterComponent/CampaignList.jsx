@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import { formatDate, convertDateFormat } from "../../config/formatDate.js";
 
@@ -41,6 +41,21 @@ const mapStatusToCampaignStatus = (status) => {
     ended: 7,
   };
   return statusMap[status?.toLowerCase()] ?? undefined;
+};
+
+// Helper function to map campaignStatus number to status string
+const mapCampaignStatusToStatus = (campaignStatus) => {
+  const statusMap = {
+    0: "draft",
+    1: "pending",
+    2: "approved",
+    3: "rejected",
+    4: "cancelled",
+    5: "ongoing",
+    6: "upcoming",
+    7: "ended",
+  };
+  return statusMap[campaignStatus] ?? "draft";
 };
 
 const StatusBadge = ({ status }) => {
@@ -210,19 +225,59 @@ const CampaignCard = ({ campaign }) => {
 };
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("draft");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Đọc campaignStatus và page từ URL query params
+  const campaignStatusFromUrl = searchParams.get("campaignStatus");
+  const statusFromUrl = campaignStatusFromUrl
+    ? mapCampaignStatusToStatus(parseInt(campaignStatusFromUrl, 10))
+    : searchParams.get("status") || "draft"; // Fallback to status for backward compatibility
+  const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+
+  const [selectedStatus, setSelectedStatus] = useState(statusFromUrl);
   const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
-    currentPage: 1,
+    currentPage: pageFromUrl,
     pageSize: 5, // Mỗi trang 5 campaign
     totalRecords: 0,
     totalPages: 0,
     hasNextPage: false,
     hasPreviousPage: false,
   });
+
+  // Cập nhật selectedStatus và pagination khi URL thay đổi
+  useEffect(() => {
+    if (statusFromUrl !== selectedStatus) {
+      setSelectedStatus(statusFromUrl);
+    }
+    if (pageFromUrl !== pagination.currentPage) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: pageFromUrl,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFromUrl, pageFromUrl]);
+
+  // Cập nhật URL query params khi selectedStatus hoặc pagination.currentPage thay đổi (trừ lần đầu load từ URL)
+  useEffect(() => {
+    if (isInitialLoad) return; // Bỏ qua lần đầu load từ URL
+
+    const newSearchParams = new URLSearchParams();
+    if (selectedStatus && selectedStatus !== "draft") {
+      const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
+      if (campaignStatus !== undefined) {
+        newSearchParams.set("campaignStatus", String(campaignStatus));
+      }
+    }
+    if (pagination.currentPage > 1) {
+      newSearchParams.set("page", String(pagination.currentPage));
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  }, [selectedStatus, pagination.currentPage, isInitialLoad, setSearchParams]);
 
   const fetchCampaigns = async (showLoading = false) => {
     try {

@@ -43,7 +43,7 @@ const BatchCard = ({
           {batch.note && <InfoMini label="Note" value={batch.note} />}
         </div>
 
-        {(batch.totalApplicants !== undefined ||
+        {/* {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
           <div className="pt-3 border-t border-slate-100">
             <button
@@ -93,7 +93,7 @@ const BatchCard = ({
               ></div>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="pt-3 border-t border-slate-100">
           <button
@@ -134,14 +134,21 @@ const BatchCard = ({
 const BatchInfo = ({ campaign, showBatchStatus = false }) => {
   const navigate = useNavigate();
 
+  // Check if campaign status is one of: upcoming, ongoing, ended
+  const shouldShowBatchStatus =
+    showBatchStatus &&
+    ["ongoing", "upcoming", "ended"].includes(
+      String(campaign?.status || "")
+        .trim()
+        .toLowerCase()
+    );
+
   const mapRoundToBatch = (round) => {
     const statusMap = {
       Ongoing: "ongoing",
       Completed: "completed",
-      Planned: "planned",
       Upcoming: "upcoming",
-      Paused: "paused",
-      Cancelled: "cancelled",
+      Ended: "ended",
     };
 
     return {
@@ -179,15 +186,10 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
     const map = {
       ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
       completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
-      planned: {
-        text: "Planned",
-        color: "bg-slate-100 text-slate-700",
-      },
+      ended: { text: "Ended", color: "bg-slate-100 text-slate-700" },
       upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
-      paused: { text: "Paused", color: "bg-orange-100 text-orange-700" },
-      cancelled: { text: "Cancelled", color: "bg-red-100 text-red-700" },
     };
-    return map[status] || map.planned;
+    return map[status] || map.ended;
   };
 
   const percent = (current, target) => {
@@ -255,7 +257,7 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
                   statusCfg={statusCfg}
                   percent={progressPercent}
                   onViewApplicants={handleViewCandidates}
-                  showStatus={showBatchStatus}
+                  showStatus={shouldShowBatchStatus}
                 />
               );
             })}
