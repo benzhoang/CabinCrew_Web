@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { FaCheck, FaClock, FaEllipsisH } from "react-icons/fa";
 import { getPromotionHistory } from "../../service/api2";
-import { promotionStagesTemplates } from "./Templates/promotionStagesTemplates";
-import { recruitmentStageTemplates } from "./Templates/recruitmentStageTemplates";
+import { promotionStagesTemplates, renderPromotionStageActionButtons } from "./Historytemplates/PromotionStagesTemplates";
+import { recruitmentStageTemplates, renderStageActionButtons } from "./Historytemplates/RecruitmentStageTemplates";
 
 // Các hằng số & map dùng cho timeline recruitment (giống RecruitmentStages.jsx)
 const LINE_START_PERCENT = 5;
@@ -109,7 +109,7 @@ const getRecruitmentProgressPercentage = (application) => {
 };
 
 const PromotionHistoryPage = () => {
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
   const [promotionHistory, setPromotionHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -156,6 +156,7 @@ const PromotionHistoryPage = () => {
                     activityId: matchingRound?.activityId || "",
                     applicationId: matchingRound?.applicationId || "",
                     id: matchingRound?.roundId || `${template.id}-${index}`,
+                    roundId: matchingRound?.roundId || matchingRound?.id || null,
                     templateId: template.id,
                     name: matchingRound?.roundName || template.name,
                     nameEn: matchingRound?.roundName || template.nameEn,
@@ -185,6 +186,7 @@ const PromotionHistoryPage = () => {
                   return {
                     id: stageTemplate.id,
                     roundId: matchedRound.roundId || matchedRound.id,
+                    activityId: matchedRound.activityId || null,
                     name: stageTemplate.name,
                     nameEn: stageTemplate.nameEn,
                     completed: isCompleted,
@@ -196,6 +198,7 @@ const PromotionHistoryPage = () => {
                   return {
                     id: stageTemplate.id,
                     roundId: null,
+                    activityId: null,
                     name: stageTemplate.name,
                     nameEn: stageTemplate.nameEn,
                     completed: false,
@@ -267,6 +270,16 @@ const PromotionHistoryPage = () => {
               }
             }
 
+            // Lấy applicationId từ rounds (ưu tiên từ screening round, nếu không có thì lấy từ round đầu tiên) - chỉ cho recruitment
+            let activityId = "";
+            if (isRecruitment) {
+              const screeningRound = rounds.find((round) => {
+                const roundName = normalizeText(round.roundName);
+                return ['screening', 'sang loc', 'sàng lọc'].some(keyword => roundName.includes(keyword));
+              });
+              activityId = screeningRound?.activityId || rounds[0]?.activityId || "";
+            }
+
             return {
               id: item.campaignRoundId || item.id || Math.random(),
               position: item.campaignName || "Promotion campaign",
@@ -281,6 +294,7 @@ const PromotionHistoryPage = () => {
               campaignType: item.campaignType || "",
               currentStage: currentStageIndex || 1,
               stages: mappedStages,
+              activityId: activityId,
             };
           });
 
@@ -712,7 +726,10 @@ const PromotionHistoryPage = () => {
 
                                 const renderStageInfo = (
                                   stage,
-                                  position
+                                  stageIndex,
+                                  stageReached,
+                                  position,
+                                  application
                                 ) => (
                                   <div
                                     className={`${position === "top" ? "mb-3" : "mt-3"
@@ -728,6 +745,7 @@ const PromotionHistoryPage = () => {
                                         ).toLocaleDateString()}
                                       </p>
                                     )}
+                                    {renderStageActionButtons(stage, stageReached, application, navigate, t)}
                                   </div>
                                 );
 
@@ -793,7 +811,7 @@ const PromotionHistoryPage = () => {
                                           style={positionStyle}
                                         >
                                           {infoPosition === "top" &&
-                                            renderStageInfo(stage, "top")}
+                                            renderStageInfo(stage, stageIndex, stageReached, "top", application)}
                                           <div
                                             className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(
                                               stage,
@@ -808,7 +826,7 @@ const PromotionHistoryPage = () => {
                                             )}
                                           </div>
                                           {infoPosition === "bottom" &&
-                                            renderStageInfo(stage, "bottom")}
+                                            renderStageInfo(stage, stageIndex, stageReached, "bottom", application)}
                                         </div>
                                       );
                                     })}
@@ -865,6 +883,7 @@ const PromotionHistoryPage = () => {
                                           ).toLocaleDateString()}
                                         </p>
                                       )}
+                                      {renderPromotionStageActionButtons(stage, navigate, t)}
                                     </div>
                                   </div>
                                 ))}

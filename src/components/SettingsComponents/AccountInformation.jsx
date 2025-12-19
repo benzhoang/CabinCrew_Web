@@ -21,8 +21,9 @@ const AccountInformation = ({ formData, errors }) => {
         {t("account_information")}
       </h3>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
+      <div className="space-y-6 md:flex md:space-y-0 md:space-x-6">
+        {/* Left column: Username + Airline Partner */}
+        <div className="md:flex-1 space-y-4">
           <label
             htmlFor="username"
             className="block mb-2 text-sm font-medium text-gray-700"
@@ -43,9 +44,44 @@ const AccountInformation = ({ formData, errors }) => {
           {errors.username && (
             <p className="mt-1 text-sm text-red-500">{errors.username}</p>
           )}
+          {/* Airline Partner - chỉ hiển thị khi có data hợp lệ */}
+          {formData.airlinePartner &&
+            typeof formData.airlinePartner === "string" &&
+            formData.airlinePartner.trim() !== "" &&
+            formData.airlinePartner.trim().toUpperCase() !== "N/A" && (
+              <div>
+                <label
+                  htmlFor="airlinePartner"
+                  className="block mb-2 text-sm font-medium text-gray-700"
+                >
+                  Airline Partner
+                  <span className="inline-flex items-center px-2 py-1 ml-2 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                    <svg
+                      className="w-3 h-3 mr-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Has been updated
+                  </span>
+                </label>
+                <div
+                  id="airlinePartner"
+                  className="w-full px-4 py-3 text-gray-700 border border-gray-300 rounded-lg bg-gray-50"
+                >
+                  {formData.airlinePartner}
+                </div>
+              </div>
+            )}
         </div>
 
-        <div>
+        {/* Right column: Role */}
+        <div className="md:flex-1">
           <label
             htmlFor="role"
             className="block mb-2 text-sm font-medium text-gray-700"
@@ -108,41 +144,6 @@ const AccountInformation = ({ formData, errors }) => {
             for a position.
           </p>
         </div>
-
-        {/* Airline Partner - chỉ hiển thị khi có data hợp lệ */}
-        {formData.airlinePartner &&
-          typeof formData.airlinePartner === "string" &&
-          formData.airlinePartner.trim() !== "" &&
-          formData.airlinePartner.trim().toUpperCase() !== "N/A" && (
-            <div>
-              <label
-                htmlFor="airlinePartner"
-                className="block mb-2 text-sm font-medium text-gray-700"
-              >
-                Airline Partner
-                <span className="inline-flex items-center px-2 py-1 ml-2 text-xs font-medium text-green-800 bg-green-100 rounded-full">
-                  <svg
-                    className="w-3 h-3 mr-1"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Has been updated
-                </span>
-              </label>
-              <div
-                id="airlinePartner"
-                className="w-full px-4 py-3 text-gray-700 border border-gray-300 rounded-lg bg-gray-50"
-              >
-                {formData.airlinePartner}
-              </div>
-            </div>
-          )}
       </div>
     </div>
   );
