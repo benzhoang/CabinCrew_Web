@@ -323,6 +323,11 @@ const CreateRecruitmentRequestPage = () => {
                       value={formData.dueDate}
                       onChange={handleInputChange}
                       min={new Date().toISOString().split("T")[0]}
+                      max={
+                        new Date(new Date().setDate(new Date().getDate() + 45))
+                          .toISOString()
+                          .split("T")[0]
+                      }
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         errors.dueDate ? "border-red-300" : "border-slate-300"
                       }`}
