@@ -244,6 +244,19 @@ const RequestList = () => {
         )
     }
 
+    // Hàm lấy màu cho Request type
+    const getCampaignTypeColor = (requestType) => {
+        if (!requestType) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const type = requestType.toLowerCase();
+        if (type.includes("promotion")) {
+            return "bg-purple-100 text-purple-800 border-purple-300";
+        } else if (type.includes("recruitment")) {
+            return "bg-blue-100 text-blue-800 border-blue-300";
+        }
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+
     if (loading) {
         return (
             <div className="p-6">
@@ -340,7 +353,11 @@ const RequestList = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                                         <div>
                                             <span className="text-sm text-slate-600">Request type:</span>
-                                            <p className="font-medium text-slate-800">{campaign.requestType || 'N/A'}</p>
+                                            <div className="mt-1">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.requestType)}`}>
+                                                    {campaign.requestType || 'N/A'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Target quantity:</span>
