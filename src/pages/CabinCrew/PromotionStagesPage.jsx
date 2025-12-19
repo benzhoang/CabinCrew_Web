@@ -447,15 +447,14 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 1
-                              ? `${
-                                  ((Math.min(
-                                    Math.max(application.currentStage || 1, 1),
-                                    application.stages.length
-                                  ) -
-                                    1) /
-                                    (application.stages.length - 1)) *
-                                  100
-                                }%`
+                              ? `${((Math.min(
+                                Math.max(application.currentStage || 1, 1),
+                                application.stages.length
+                              ) -
+                                1) /
+                                (application.stages.length - 1)) *
+                              100
+                              }%`
                               : "0%",
                         }}
                       ></div>

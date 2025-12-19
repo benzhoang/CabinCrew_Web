@@ -760,7 +760,7 @@ const ApplicationForm = () => {
 
                     {/* Right Column - Application Form */}
                     <div className="bg-white rounded-xl border border-gray-200 p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-6">Đơn ứng tuyển</h2>
+                        <h2 className="text-xl font-bold text-slate-800 mb-6">Application form</h2>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>

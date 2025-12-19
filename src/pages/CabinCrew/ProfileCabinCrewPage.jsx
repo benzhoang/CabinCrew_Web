@@ -78,6 +78,7 @@ const ProfileCabinCrewPage = () => {
         captcha: ''
     })
 
+    const PLACEHOLDER_PROFILE_PHOTO = 'https://via.placeholder.com/128x160/cccccc/666666?text=4x6'
     const [files, setFiles] = useState({
         applicationForm: null,
         profilePhoto: null,
@@ -86,6 +87,7 @@ const ProfileCabinCrewPage = () => {
         idCard: null,
         idCardBack: null
     })
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState(PLACEHOLDER_PROFILE_PHOTO)
 
     const [captchaCode, setCaptchaCode] = useState('')
     const [captchaInput, setCaptchaInput] = useState('')
@@ -110,6 +112,29 @@ const ProfileCabinCrewPage = () => {
     useEffect(() => {
         setCaptchaCode(generateCaptcha())
     }, [])
+
+    // Preview 4x6 avatar similar to ProfilePage
+    useEffect(() => {
+        let objectUrl
+        const photo = files.profilePhoto
+
+        if (photo instanceof File) {
+            objectUrl = URL.createObjectURL(photo)
+            setProfilePhotoPreview(objectUrl)
+        } else if (photo?.url) {
+            setProfilePhotoPreview(photo.url)
+        } else if (typeof photo === 'string') {
+            setProfilePhotoPreview(photo)
+        } else {
+            setProfilePhotoPreview(PLACEHOLDER_PROFILE_PHOTO)
+        }
+
+        return () => {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl)
+            }
+        }
+    }, [files.profilePhoto])
 
     useEffect(() => {
         const loadApplicationData = async () => {
@@ -309,11 +334,11 @@ const ProfileCabinCrewPage = () => {
                     let experienceOtherValue = ''
                     if (appData.experience) {
                         const expStr = String(appData.experience).trim()
-                        const dropdownOptions = ['1 năm', '2 năm', '3-5 năm']
+                        const dropdownOptions = ['1 year', '2 years', '3-5 years']
                         if (dropdownOptions.includes(expStr)) {
                             experienceValue = expStr
                         } else {
-                            experienceValue = 'khác'
+                            experienceValue = 'Others'
                             experienceOtherValue = expStr
                         }
                     }
@@ -321,7 +346,7 @@ const ProfileCabinCrewPage = () => {
                     if (appData.experienceOther) {
                         experienceOtherValue = appData.experienceOther
                         if (!experienceValue) {
-                            experienceValue = 'khác'
+                            experienceValue = 'Others'
                         }
                     }
                     // Map API response to form data
@@ -572,25 +597,13 @@ const ProfileCabinCrewPage = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {applicationId && (
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Mã đơn ứng tuyển</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Application ID</label>
                                     <p className="text-sm font-semibold text-slate-800">#{applicationId}</p>
-                                </div>
-                            )}
-                            {applicationStatus && (
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Trạng thái</label>
-                                    <p className="text-sm font-semibold text-slate-800 capitalize">
-                                        {applicationStatus === 'pending' && 'Đang chờ'}
-                                        {applicationStatus === 'accepted' && 'Đã chấp nhận'}
-                                        {applicationStatus === 'rejected' && 'Đã từ chối'}
-                                        {applicationStatus === 'final' && 'Kết quả cuối cùng'}
-                                        {!['pending', 'accepted', 'rejected', 'final'].includes(applicationStatus) && applicationStatus}
-                                    </p>
                                 </div>
                             )}
                             {submissionDate && (
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Ngày nộp đơn</label>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Submission Date</label>
                                     <p className="text-sm font-semibold text-slate-800">
                                         {submissionDate}
                                     </p>
@@ -600,8 +613,42 @@ const ProfileCabinCrewPage = () => {
                     </div>
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Document Uploads */}
+                    {/* Left Column - Avatar + Document Uploads */}
                     <div className="space-y-6">
+                        {/* Avatar Preview (4x6) */}
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="text-lg font-semibold text-slate-800 mb-4">CANDIDATE PROFILE</h3>
+                            <div className="text-center">
+                                <div className="w-32 h-40 mx-auto bg-slate-100 rounded-lg overflow-hidden mb-4 border-2 border-slate-300 shadow-sm">
+                                    <img
+                                        src={profilePhotoPreview}
+                                        alt="Ảnh 4x6"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => { e.target.src = PLACEHOLDER_PROFILE_PHOTO }}
+                                    />
+                                </div>
+                                <p className="text-slate-600">Cabin Crew </p>
+                                {(() => {
+                                    if (!applicationStatus) return null
+                                    const status = applicationStatus.toLowerCase()
+                                    let statusDisplay
+                                    if (status === 'passed' || status === 'accepted') {
+                                        statusDisplay = { label: 'Passed', className: 'bg-green-100 text-green-800 border border-green-200' }
+                                    } else if (status === 'failed' || status === 'rejected') {
+                                        statusDisplay = { label: 'Failed', className: 'bg-red-100 text-red-800 border border-red-200' }
+                                    } else if (status === 'ongoing' || status === 'pending' || status === 'final') {
+                                        statusDisplay = { label: status === 'final' ? 'Final result' : 'Ongoing', className: 'bg-yellow-100 text-yellow-800 border border-yellow-200' }
+                                    } else {
+                                        statusDisplay = { label: applicationStatus, className: 'bg-slate-200 text-slate-800 border border-slate-300' }
+                                    }
+                                    return (
+                                        <div className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold capitalize ${statusDisplay.className}`}>
+                                            {statusDisplay.label}
+                                        </div>
+                                    )
+                                })()}
+                            </div>
+                        </div>
                         <div className="bg-white rounded-xl border border-gray-200 p-6">
                             <h3 className="text-lg font-semibold text-slate-800 mb-4">{t('application_form_remember_upload')}</h3>
                             <div className="space-y-4">
@@ -623,7 +670,7 @@ const ProfileCabinCrewPage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
+                                    <p className="text-xs text-slate-500 mb-2">(Only accepts PDF files)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -660,7 +707,7 @@ const ProfileCabinCrewPage = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-sm font-medium text-slate-700">
-                                            Ảnh 4x6 *
+                                            4x6 Photo *
                                         </label>
                                         {false && files.profilePhoto && isEditing && (
                                             <button
@@ -726,7 +773,7 @@ const ProfileCabinCrewPage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file PDF)</p>
+                                    <p className="text-xs text-slate-500 mb-2">(Only accepts PDF files)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -778,7 +825,7 @@ const ProfileCabinCrewPage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                    <p className="text-xs text-slate-500 mb-2">(Only accepts JPG files)</p>
                                     <div className="relative">
                                         <input
                                             type="file"
@@ -832,7 +879,7 @@ const ProfileCabinCrewPage = () => {
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <p className="text-xs text-slate-500 mb-2">(Only accepts JPG files)</p>
                                             <div className="relative">
                                                 <input
                                                     type="file"
@@ -884,7 +931,7 @@ const ProfileCabinCrewPage = () => {
                                                     </button>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-slate-500 mb-2">(Chỉ chấp nhận file JPG)</p>
+                                            <p className="text-xs text-slate-500 mb-2">(Only accepts JPG files)</p>
                                             <div className="relative">
                                                 <input
                                                     type="file"

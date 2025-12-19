@@ -99,7 +99,6 @@ const transformCampaign = (campaign) => {
 
 const PromotionPage = () => {
   const [search, setSearch] = useState("");
-  const [airline, setAirline] = useState("all");
   const statusFilter = "all";
   const [, setLangVersion] = useState(0);
   const [campaigns, setCampaigns] = useState([]);
@@ -116,6 +115,19 @@ const PromotionPage = () => {
   const [displayPage, setDisplayPage] = useState(1); // Trang hiển thị hiện tại
   const displayPageSize = 4; // Số campaigns hiển thị mỗi trang
   const navigate = useNavigate();
+
+  // Lấy airlinePartner từ user trong localStorage
+  const getUserAirlinePartner = () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("user") || "null");
+      if (userData && userData.airlinePartner) {
+        return userData.airlinePartner.trim();
+      }
+    } catch (error) {
+      console.error("Error getting user airline partner:", error);
+    }
+    return null;
+  };
 
   useEffect(() => {
     const off = onLangChange(() => setLangVersion((v) => v + 1));
@@ -153,9 +165,47 @@ const PromotionPage = () => {
         const response = await getCampaignList(params);
 
         if (response.success && response.data && Array.isArray(response.data)) {
-          const normalized = response.data
+          let normalized = response.data
             .map(transformCampaign)
             .filter(Boolean);
+
+          // Filter campaigns theo airlinePartner của user
+          const userAirlinePartner = getUserAirlinePartner();
+          if (userAirlinePartner) {
+            const userAirlineLower = userAirlinePartner.toLowerCase().trim();
+            const userAirlineNormalized = userAirlineLower.replace(/\s+/g, "");
+
+            normalized = normalized.filter((campaign) => {
+              const campaignAirline = (campaign.airline || "")
+                .toLowerCase()
+                .trim();
+              const campaignAirlineNormalized = campaignAirline.replace(
+                /\s+/g,
+                ""
+              );
+
+              // Exact match
+              if (campaignAirline === userAirlineLower) {
+                return true;
+              }
+
+              // Normalized match (removes spaces)
+              if (campaignAirlineNormalized === userAirlineNormalized) {
+                return true;
+              }
+
+              // Contains match
+              if (
+                campaignAirlineNormalized.includes(userAirlineNormalized) ||
+                userAirlineNormalized.includes(campaignAirlineNormalized)
+              ) {
+                return true;
+              }
+
+              return false;
+            });
+          }
+
           setCampaigns(normalized);
 
           // Lấy thông tin phân trang từ response.pagination
@@ -174,8 +224,8 @@ const PromotionPage = () => {
           setCampaigns([]);
           setError(
             response.error ||
-              response.message ||
-              "Cannot get the list of promotion campaigns"
+            response.message ||
+            "Cannot get the list of promotion campaigns"
           );
         }
       } catch (err) {
@@ -215,31 +265,9 @@ const PromotionPage = () => {
     [statusFilter, campaigns]
   );
 
-  // Lấy danh sách hãng hàng không duy nhất từ campaigns
-  const airlineOptions = useMemo(() => {
-    const airlines = new Set();
-    campaigns.forEach((c) => {
-      if (
-        c.airline &&
-        c.airline.trim() &&
-        c.airline !== "Partner not updated"
-      ) {
-        airlines.add(c.airline.trim());
-      }
-    });
-    return ["all", ...Array.from(airlines).sort()];
-  }, [campaigns]);
-
   const filtered = useMemo(() => {
-    let data = baseCampaigns;
-    if (airline !== "all") {
-      const normalized = airline.toLowerCase();
-      data = data.filter((c) =>
-        (c.airline || "").toLowerCase().includes(normalized)
-      );
-    }
-    return data;
-  }, [baseCampaigns, airline]);
+    return baseCampaigns;
+  }, [baseCampaigns]);
 
   // Phân trang cho phần hiển thị
   const paginatedCampaigns = useMemo(() => {
@@ -253,7 +281,7 @@ const PromotionPage = () => {
   // Reset về trang 1 khi filter thay đổi
   useEffect(() => {
     setDisplayPage(1);
-  }, [airline, search]);
+  }, [search]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -268,35 +296,17 @@ const PromotionPage = () => {
         </div>
 
         <div className="p-4 mb-6 bg-white border border-gray-200 shadow-sm rounded-xl md:p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-slate-700">
-                Search
-              </label>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by campaign name, current position, target position, airline"
-                className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-slate-700">
-                Airline
-              </label>
-              <select
-                value={airline}
-                onChange={(e) => setAirline(e.target.value)}
-                className="w-full px-3 py-2 text-sm border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {airlineOptions.map((a) => (
-                  <option key={a} value={a}>
-                    {a === "all" ? "All" : a}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Search
+            </label>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by campaign name, current position, target position, airline"
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
 
@@ -326,11 +336,10 @@ const PromotionPage = () => {
                       </p>
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
-                        c.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                        }`}
                     >
                       {c.status === "active" ? "Ongoing" : "Ended"}
                     </span>
