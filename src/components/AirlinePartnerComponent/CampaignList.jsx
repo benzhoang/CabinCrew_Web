@@ -202,6 +202,22 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     }
   };
 
+  // Map username to official airline name
+  // Mapping: username (from localStorage) → Official Airline Name (from API)
+  const getAirlineNameFromUsername = (username) => {
+    if (!username) return null;
+
+    const usernameLower = username.toLowerCase().trim();
+    const usernameToAirlineMap = {
+      vietjet: "VietJet Air",
+      vietnamairlines: "Vietnam Airlines",
+      bambooairways: "Bamboo Airways",
+      sunphuquoc: "Sun PhuQuoc Airways",
+    };
+
+    return usernameToAirlineMap[usernameLower] || null;
+  };
+
   const fetchCampaigns = async (showLoading = false) => {
     try {
       // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
@@ -229,8 +245,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       const result = await getCampaignList(params);
 
       if (result.success && result.data && Array.isArray(result.data)) {
-        // Get partner username from localStorage
+        // Get partner username from localStorage and map to official airline name
         const partnerUsername = getPartnerUsername();
+        const airlineName = getAirlineNameFromUsername(partnerUsername);
 
         // Map API data to component structure
         const mappedCampaigns = result.data.map((item) => ({
@@ -247,79 +264,22 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           partnerUsername: item.partnerUsername || item.partnerName || null,
         }));
 
-        // Filter campaigns by partner username if available
+        // Filter campaigns by airline name if available
         let filteredCampaigns = mappedCampaigns;
-        if (partnerUsername) {
-          const usernameLower = partnerUsername.toLowerCase().trim();
-          // Remove all spaces and special characters for comparison
-          const usernameNormalized = usernameLower.replace(/\s+/g, "");
-
+        if (airlineName) {
           filteredCampaigns = mappedCampaigns.filter((campaign) => {
-            // Check if campaign belongs to the partner by comparing username
-            // Match by partnerName or partnerUsername (case-insensitive)
-            const campaignPartnerName = (campaign.partnerName || "")
-              .toLowerCase()
-              .trim();
-            const campaignPartnerUsername = (campaign.partnerUsername || "")
-              .toLowerCase()
-              .trim();
+            // Match by partnerName or partnerUsername (case-insensitive, exact match)
+            const campaignPartnerName = (campaign.partnerName || "").trim();
+            const campaignPartnerUsername = (
+              campaign.partnerUsername || ""
+            ).trim();
 
-            // Normalize partner names (remove spaces)
-            const partnerNameNormalized = campaignPartnerName.replace(
-              /\s+/g,
-              ""
+            // Exact match with airline name (case-insensitive)
+            return (
+              campaignPartnerName.toLowerCase() === airlineName.toLowerCase() ||
+              campaignPartnerUsername.toLowerCase() ===
+                airlineName.toLowerCase()
             );
-            const partnerUsernameNormalized = campaignPartnerUsername.replace(
-              /\s+/g,
-              ""
-            );
-
-            // Multiple matching strategies:
-            // 1. Exact match (case-insensitive)
-            if (
-              campaignPartnerName === usernameLower ||
-              campaignPartnerUsername === usernameLower
-            ) {
-              return true;
-            }
-
-            // 2. Normalized match (removes spaces) - handles "vietnamairlines" vs "Vietnam Airlines"
-            if (
-              partnerNameNormalized === usernameNormalized ||
-              partnerUsernameNormalized === usernameNormalized
-            ) {
-              return true;
-            }
-
-            // 3. Check if partnerName starts with username (handles cases like "vietjet" matching "VietJet Air")
-            if (
-              campaignPartnerName.startsWith(usernameLower) ||
-              campaignPartnerUsername.startsWith(usernameLower) ||
-              partnerNameNormalized.startsWith(usernameNormalized) ||
-              partnerUsernameNormalized.startsWith(usernameNormalized)
-            ) {
-              return true;
-            }
-
-            // 4. Check if username is contained in partnerName as a whole word
-            const partnerNameWords = campaignPartnerName.split(/\s+/);
-            const partnerUsernameWords = campaignPartnerUsername.split(/\s+/);
-            if (
-              partnerNameWords.includes(usernameLower) ||
-              partnerUsernameWords.includes(usernameLower)
-            ) {
-              return true;
-            }
-
-            // 5. Contains match (normalized) - handles partial matches
-            if (
-              partnerNameNormalized.includes(usernameNormalized) ||
-              partnerUsernameNormalized.includes(usernameNormalized)
-            ) {
-              return true;
-            }
-
-            return false;
           });
         }
 

@@ -184,6 +184,33 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasPreviousPage: false,
   });
 
+  // Get username from localStorage
+  const getPartnerUsername = () => {
+    try {
+      const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
+      return employeeData?.username || null;
+    } catch (error) {
+      console.error("Error reading employee data from localStorage:", error);
+      return null;
+    }
+  };
+
+  // Map username to official airline name
+  // Mapping: username (from localStorage) → Official Airline Name (from API)
+  const getAirlineNameFromUsername = (username) => {
+    if (!username) return null;
+
+    const usernameLower = username.toLowerCase().trim();
+    const usernameToAirlineMap = {
+      vietjet: "VietJet Air",
+      vietnamairlines: "Vietnam Airlines",
+      bambooairways: "Bamboo Airways",
+      sunphuquoc: "Sun PhuQuoc Airways",
+    };
+
+    return usernameToAirlineMap[usernameLower] || null;
+  };
+
   // Cập nhật selectedStatus và pagination khi URL thay đổi
   useEffect(() => {
     if (statusFromUrlNumber !== selectedStatus) {
@@ -245,6 +272,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       if (result.success) {
         const allItems = result.data.items || [];
 
+        // Get partner username from localStorage and map to official airline name
+        const partnerUsername = getPartnerUsername();
+        const airlineName = getAirlineNameFromUsername(partnerUsername);
+
         // Normalize status function
         const normalizeStatus = (status) => {
           if (!status) return "pending_approval";
@@ -284,6 +315,24 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
 
         // Filter items
         const filteredItems = allItems.filter((request) => {
+          // Filter by airline name if available
+          if (airlineName) {
+            const requestPartnerName = (request.partnerName || "").trim();
+            const requestPartnerUsername = (
+              request.partnerUsername || ""
+            ).trim();
+
+            // Exact match with airline name (case-insensitive)
+            const matchesAirline =
+              requestPartnerName.toLowerCase() === airlineName.toLowerCase() ||
+              requestPartnerUsername.toLowerCase() ===
+                airlineName.toLowerCase();
+
+            if (!matchesAirline) {
+              return false;
+            }
+          }
+
           const normalizedStatus = normalizeStatus(request.status);
           const statusFilter = getNormalizedStatusFilter();
 
