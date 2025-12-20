@@ -350,11 +350,11 @@ const RequestList = () => {
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
                                         <div>
                                             <span className="text-sm text-slate-600">Request type:</span>
                                             <div className="mt-1">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.requestType)}`}>
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.requestType)}`}>
                                                     {campaign.requestType || 'N/A'}
                                                 </span>
                                             </div>
@@ -368,33 +368,25 @@ const RequestList = () => {
                                             <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                                        {campaign.partnerName ? (
-                                            <div>
-                                                <span className="text-sm text-slate-600">Partner:</span>
-                                                <p className="font-medium text-slate-800">{campaign.partnerName}</p>
-                                            </div>
-                                        ) : (
-                                            <div></div>
-                                        )}
-                                        {campaign.directorName && (
-                                            <div>
-                                                <span className="text-sm text-slate-600">Director:</span>
-                                                <p className="font-medium text-slate-800">{campaign.directorName}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {campaign.createdAt && (
-                                        <div className="mb-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                                        <div>
+                                            <span className="text-sm text-slate-600">Partner:</span>
+                                            <p className="font-medium text-slate-800">{campaign.partnerName || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm text-slate-600">Director:</span>
+                                            <p className="font-medium text-slate-800">{campaign.directorName || '—'}</p>
+                                        </div>
+                                        <div>
                                             <span className="text-sm text-slate-600">Created at:</span>
                                             <p className="font-medium text-slate-800">
-                                                {new Date(campaign.createdAt).toLocaleDateString('en-US')}
+                                                {campaign.createdAt ? new Date(campaign.createdAt).toLocaleDateString('en-US') : '—'}
                                             </p>
                                         </div>
-                                    )}
+                                    </div>
 
                                     {campaign.description && (
-                                        <p className="text-sm text-slate-600">{campaign.description}</p>
+                                        <p className="text-sm text-slate-600 leading-relaxed">{campaign.description}</p>
                                     )}
                                 </div>
 

@@ -21,7 +21,8 @@ const formatDateForDisplay = (dateString, fallbackTime = null, isEndDate = false
         // Try to parse as Date
         const date = new Date(dateString)
         if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('en-US')
+            // Hiển thị dd/mm/yyyy thay vì mm/dd/yyyy
+            return date.toLocaleDateString('en-GB')
         }
     } catch (e) {
         // If parsing fails, return the original string

@@ -45,7 +45,7 @@ const ScoreReportPage = () => {
           const mappedTests = testsArray.map((test) => {
             // Xác định loại bài test (Listening / Speaking / Practical) từ test.testType
             // Giống logic ở pages/Candidate/Test.jsx để đồng bộ hiển thị
-            let examType = "Listening";
+            let examType = "English Listening";
             let examTypeClass = "bg-blue-100 text-blue-800";
 
             const rawTestType = test.testType;
@@ -54,13 +54,13 @@ const ScoreReportPage = () => {
               rawTestType === "English Listening" ||
               rawTestType === "EnglishListening"
             ) {
-              examType = "Listening";
+              examType = "English Listening";
               examTypeClass = "bg-blue-100 text-blue-800";
             } else if (
               rawTestType === "English Speaking" ||
               rawTestType === "EnglishSpeaking"
             ) {
-              examType = "Speaking";
+              examType = "English Speaking";
               examTypeClass = "bg-purple-100 text-purple-800";
             } else if (rawTestType === "Practical") {
               examType = "Practical";

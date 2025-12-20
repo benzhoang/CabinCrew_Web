@@ -29,7 +29,6 @@ const CampaignDetail = () => {
                         <h1 className="text-2xl font-bold text-slate-800 mb-2">
                             {campaign?.name || 'Tuyển dụng Tiếp viên hàng không 2024'}
                         </h1>
-                        <p className="text-slate-600 mt-1 text-sm">{campaign?.position || 'Flight Attendant'} - {campaign?.department || 'Cabin Crew'}</p>
                     </div>
                     <button onClick={goBack} className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 ml-4 shrink-0">Back</button>
                 </div>

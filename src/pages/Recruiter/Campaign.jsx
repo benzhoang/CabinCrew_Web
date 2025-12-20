@@ -71,7 +71,8 @@ const Campaign = () => {
         return {
             id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
             name: item.name ?? item.campaignName ?? 'Unnamed Campaign',
-            position: item.position ?? item.role ?? item.campaignType ?? 'Undetermined',
+            position: item.position ?? item.role ?? 'Undetermined',
+            campaignType: item.campaignType ?? 'Undetermined',
             department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Undetermined',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
@@ -288,7 +289,7 @@ const Campaign = () => {
         return Number(campaign.targetHires) > 0
     }
 
-    // Hàm lấy màu cho Campaign type
+    // Hàm lấy màu cho Campaign type (Promotion = tím, Recruitment = xanh)
     const getCampaignTypeColor = (campaignType) => {
         if (!campaignType) return "bg-gray-100 text-gray-800 border-gray-300";
 
@@ -297,6 +298,19 @@ const Campaign = () => {
             return "bg-purple-100 text-purple-800 border-purple-300";
         } else if (type.includes("recruitment")) {
             return "bg-blue-100 text-blue-800 border-blue-300";
+        }
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+
+    // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+    const getPositionColor = (position) => {
+        if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const pos = position.toLowerCase();
+        if (pos.includes("purser")) {
+            return "bg-orange-100 text-orange-800 border-orange-300";
+        } else if (pos.includes("cabin crew")) {
+            return "bg-teal-100 text-teal-800 border-teal-300";
         }
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
@@ -379,10 +393,18 @@ const Campaign = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                                         <div>
+                                            <span className="text-sm text-slate-600">Position:</span>
+                                            <div className="mt-1">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(campaign.position)}`}>
+                                                    {campaign.position || 'Undetermined'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
                                             <span className="text-sm text-slate-600">Type:</span>
                                             <div className="mt-1">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.position)}`}>
-                                                    {campaign.position || 'Undetermined'}
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.campaignType)}`}>
+                                                    {campaign.campaignType || 'Undetermined'}
                                                 </span>
                                             </div>
                                         </div>
@@ -529,8 +551,16 @@ const Campaign = () => {
                                     <div>
                                         <span className="text-sm text-slate-600">Position:</span>
                                         <div className="mt-1">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(selectedCampaign.position)}`}>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(selectedCampaign.position)}`}>
                                                 {selectedCampaign.position || 'Undetermined'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm text-slate-600">Type:</span>
+                                        <div className="mt-1">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(selectedCampaign.campaignType)}`}>
+                                                {selectedCampaign.campaignType || 'Undetermined'}
                                             </span>
                                         </div>
                                     </div>
