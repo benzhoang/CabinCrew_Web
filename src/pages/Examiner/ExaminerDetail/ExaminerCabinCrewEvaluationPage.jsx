@@ -287,22 +287,20 @@ const ExaminerCabinCrewEvaluationPage = () => {
       {/* Countdown Timer (fixed, follows scroll) */}
       <div className="fixed top-4 right-4 z-50">
         <div
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${
-            isTimerExpired
-              ? "border-red-500"
-              : timeRemaining <= 300
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${isTimerExpired
+            ? "border-red-500"
+            : timeRemaining <= 300
               ? "border-orange-500"
               : "border-slate-300"
-          } transition-all duration-300`}
+            } transition-all duration-300`}
         >
           <svg
-            className={`w-5 h-5 ${
-              isTimerExpired
-                ? "text-red-500"
-                : timeRemaining <= 300
+            className={`w-5 h-5 ${isTimerExpired
+              ? "text-red-500"
+              : timeRemaining <= 300
                 ? "text-orange-500"
                 : "text-slate-700"
-            }`}
+              }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -329,53 +327,50 @@ const ExaminerCabinCrewEvaluationPage = () => {
           <h2 className="mb-4 text-xl font-semibold text-slate-800">
             Cabin Crew Information
           </h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-shrink-0 w-24 h-32 overflow-hidden rounded-md bg-slate-100">
-                <img
-                  src={
-                    candidate.photo ||
-                    "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo"
-                  }
-                  alt={candidate.name}
-                  className="object-cover w-full h-full"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo";
-                  }}
-                />
+          <div className="flex items-start gap-6">
+            <div className="w-24 h-32 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
+              <img
+                src={
+                  candidate.photo ||
+                  "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo"
+                }
+                alt={candidate.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo";
+                }}
+              />
+            </div>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <span className="text-sm text-slate-600 block mb-1">
+                  Full Name:
+                </span>
+                <p className="font-medium text-slate-800">
+                  {candidate.name || "—"}
+                </p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-slate-800">
-                  {candidate.name}
-                </h3>
-                <p className="text-sm text-slate-600">
-                  {candidate.position || "Flight Attendant"}
+                <span className="text-sm text-slate-600 block mb-1">Email:</span>
+                <p className="font-medium text-slate-800">
+                  {candidate.email || "—"}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">4x6 photo</p>
               </div>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">Email:</span>
-              <p className="font-medium text-slate-800">
-                {candidate.email || "—"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Phone number:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.phone || "—"}
-              </p>
-            </div>
-            <div>
-              <span className="block mb-1 text-sm text-slate-600">
-                Application date:
-              </span>
-              <p className="font-medium text-slate-800">
-                {candidate.appliedDate || "—"}
-              </p>
+              <div>
+                <span className="text-sm text-slate-600 block mb-1">Phone:</span>
+                <p className="font-medium text-slate-800">
+                  {candidate.phone || "—"}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-slate-600 block mb-1">
+                  Applied date:
+                </span>
+                <p className="font-medium text-slate-800">
+                  {candidate.appliedDate || "—"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -430,10 +425,10 @@ const ExaminerCabinCrewEvaluationPage = () => {
             const filteredItems =
               section.items && Array.isArray(section.items)
                 ? section.items.filter(
-                    (item) =>
-                      item.interviewCriteriaItemId >= 18 &&
-                      item.interviewCriteriaItemId <= 27
-                  )
+                  (item) =>
+                    item.interviewCriteriaItemId >= 18 &&
+                    item.interviewCriteriaItemId <= 27
+                )
                 : [];
 
             if (filteredItems.length === 0) {

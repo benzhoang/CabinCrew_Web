@@ -8,6 +8,32 @@ import {
   scoreTestSessionAnswers,
 } from "../../../service/api";
 
+// Component để hiển thị Test Type với màu sắc
+const TestTypeBadge = ({ testType }) => {
+  const getTestTypeColor = (type) => {
+    if (!type) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const normalizedType = type.toLowerCase();
+    if (normalizedType.includes("listening")) {
+      return "bg-blue-100 text-blue-800 border-blue-300";
+    } else if (normalizedType.includes("speaking") || normalizedType.includes("englishspeaking")) {
+      return "bg-purple-100 text-purple-800 border-purple-300";
+    } else if (normalizedType.includes("practical")) {
+      return "bg-teal-100 text-teal-800 border-teal-300";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  const displayType = testType || 'Undetermined';
+  const colorClass = getTestTypeColor(testType);
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+      {displayType}
+    </span>
+  );
+};
+
 const ExaminerTestSessionDetail = () => {
   const { testSessionId } = useParams();
   const navigate = useNavigate();
@@ -528,37 +554,37 @@ const ExaminerTestSessionDetail = () => {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Candidate Information
         </h3>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-32 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-              {imgURL ? (
-                <img
-                  src={imgURL}
-                  alt={userFullName || "No name"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo";
-                  }}
-                />
-              ) : (
-                <span className="flex items-center justify-center w-full h-full text-xs text-gray-400">
-                  No Photo
-                </span>
-              )}
-            </div>
-            <div>
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="w-24 h-32 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+            {imgURL ? (
+              <img
+                src={imgURL}
+                alt={userFullName || "No name"}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src =
+                    "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo";
+                }}
+              />
+            ) : (
+              <span className="flex items-center justify-center w-full h-full text-xs text-gray-400">
+                No Photo
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-start gap-8">
+            <div className="min-w-[220px]">
               <p className="text-sm text-gray-500">Full Name</p>
               <p className="mt-1 font-semibold text-gray-900">
                 {userFullName || "—"}
               </p>
             </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Email</p>
-            <p className="mt-1 font-semibold text-gray-900">
-              {userEmail || "—"}
-            </p>
+            <div className="min-w-[220px]">
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {userEmail || "—"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -577,9 +603,9 @@ const ExaminerTestSessionDetail = () => {
           </div>
           <div>
             <p className="text-gray-500">Test Type:</p>
-            <p className="mt-1 font-semibold text-gray-900">
-              {testType || "—"}
-            </p>
+            <div className="mt-1">
+              <TestTypeBadge testType={testType} />
+            </div>
           </div>
         </div>
       </div>
@@ -720,9 +746,6 @@ const ExaminerTestSessionDetail = () => {
                         Answer (Multiple Choice):
                       </p>
                       <div className="p-3 bg-white rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-600 mb-1">
-                          Option ID: {answer.selectedOptionId}
-                        </p>
                         <p className="text-gray-900">
                           {answer.selectedOptionContent || "—"}
                         </p>

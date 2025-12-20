@@ -18,6 +18,54 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
+// Component để hiển thị Campaign Type với màu sắc
+const CampaignTypeBadge = ({ type }) => {
+  const getCampaignTypeColor = (campaignType) => {
+    if (!campaignType) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const type = campaignType.toLowerCase();
+    if (type.includes("promotion")) {
+      return "bg-purple-100 text-purple-800 border-purple-300";
+    } else if (type.includes("recruitment")) {
+      return "bg-blue-100 text-blue-800 border-blue-300";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  const displayType = type || 'Undetermined';
+  const colorClass = getCampaignTypeColor(type);
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+      {displayType}
+    </span>
+  );
+};
+
+// Component để hiển thị Position với màu sắc
+const PositionBadge = ({ position }) => {
+  const getPositionColor = (position) => {
+    if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const pos = position.toLowerCase();
+    if (pos.includes("purser")) {
+      return "bg-orange-100 text-orange-800 border-orange-300";
+    } else if (pos.includes("cabin crew")) {
+      return "bg-teal-100 text-teal-800 border-teal-300";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  const displayPosition = position || 'Undetermined';
+  const colorClass = getPositionColor(position);
+
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colorClass}`}>
+      {displayPosition}
+    </span>
+  );
+};
+
 const renderStatusBadge = (statusRaw) => {
   const status = String(statusRaw || '').toLowerCase();
   const mapping = {
@@ -519,6 +567,19 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
     return quantity;
   };
 
+  // Lấy position từ nhiều field name có thể
+  const getPosition = () => {
+    if (!data) return "";
+
+    const position =
+      data.position ||
+      data.role ||
+      data.positionName ||
+      "";
+
+    return position;
+  };
+
   // Helper function to render HTML content safely
   const renderHTML = (htmlString) => {
     if (!htmlString) return null;
@@ -534,23 +595,31 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               {data.campaignName || data.name || ""}
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <InfoRow label="Description" value={data.description || ""} />
-              <InfoRow
-                label="Campaign Type"
-                value={formatCampaignType(getCampaignType())}
-              />
+              <InfoRow label="Description" value={data.description || "Undetermined"} />
+              <div className="flex items-start gap-3">
+                <div className="text-sm text-gray-500 w-36 shrink-0">Position</div>
+                <div className="text-sm text-gray-900">
+                  <PositionBadge position={getPosition()} />
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="text-sm text-gray-500 w-36 shrink-0">Campaign Type</div>
+                <div className="text-sm text-gray-900">
+                  <CampaignTypeBadge type={formatCampaignType(getCampaignType())} />
+                </div>
+              </div>
               <InfoRow label="Status" value={renderStatusBadge(data.status)} />
               <InfoRow
                 label="Target Quantity"
-                value={formatTargetQuantity(getTargetQuantity())}
+                value={formatTargetQuantity(getTargetQuantity()) || "Undetermined"}
               />
               <InfoRow
                 label="Start Date"
-                value={formatDateFromAPI(data.startDate) || ""}
+                value={formatDateFromAPI(data.startDate) || "Undetermined"}
               />
               <InfoRow
                 label="End Date"
-                value={formatDateFromAPI(data.endDate) || ""}
+                value={formatDateFromAPI(data.endDate) || "Undetermined"}
               />
             </div>
 

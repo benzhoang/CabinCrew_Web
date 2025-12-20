@@ -12,7 +12,7 @@ const StatusBadge = ({ status }) => {
         switch (normalized) {
             case 'Ongoing':
                 return {
-                    className: 'bg-blue-100 text-blue-700 border-blue-200',
+                    className: 'bg-green-100 text-green-800 border-green-300',
                     text: 'Ongoing',
                 }
             case 'Pending':
@@ -45,11 +45,16 @@ const StatusBadge = ({ status }) => {
                     className: 'bg-slate-100 text-slate-600 border-slate-200',
                     text: 'Planning',
                 }
+            case 'Canceled':
+                return {
+                    className: 'bg-orange-100 text-orange-700 border-orange-200',
+                    text: 'Canceled',
+                }
             // Backward compatibility for legacy lowercase values
             case 'ongoing':
             case 'active':
                 return {
-                    className: 'bg-blue-100 text-blue-700 border-blue-200',
+                    className: 'bg-green-100 text-green-800 border-green-300',
                     text: 'Ongoing',
                 }
             case 'pending':
@@ -72,6 +77,12 @@ const StatusBadge = ({ status }) => {
                 return {
                     className: 'bg-gray-100 text-gray-700 border-gray-200',
                     text: 'Ended',
+                }
+            case 'canceled':
+            case 'cancelled':
+                return {
+                    className: 'bg-orange-100 text-orange-700 border-orange-200',
+                    text: 'Canceled',
                 }
             default:
                 return {
@@ -113,16 +124,39 @@ const CampaignTypeBadge = ({ type }) => {
     const normalized = (type || '').toString().trim().toLowerCase()
     const className =
         normalized === 'promotion' || normalized === 'thăng bậc'
-            ? 'bg-purple-100 text-purple-700 border-purple-200'
+            ? 'bg-purple-100 text-purple-800 border-purple-300'
             : normalized === 'recruitment' || normalized === 'tuyển dụng'
-                ? 'bg-blue-100 text-blue-700 border-blue-200'
-                : 'bg-gray-100 text-gray-600 border-gray-200'
+                ? 'bg-blue-100 text-blue-800 border-blue-300'
+                : 'bg-gray-100 text-gray-800 border-gray-300'
 
     return (
         <span
-            className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+            className={`${className} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border`}
         >
             {label}
+        </span>
+    )
+}
+
+// PositionBadge component
+const PositionBadge = ({ position }) => {
+    const getPositionColor = (position) => {
+        if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const pos = position.toLowerCase();
+        if (pos.includes("purser")) {
+            return "bg-orange-100 text-orange-800 border-orange-300";
+        } else if (pos.includes("cabin crew")) {
+            return "bg-teal-100 text-teal-800 border-teal-300";
+        }
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+
+    return (
+        <span
+            className={`${getPositionColor(position)} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border`}
+        >
+            {position || 'Undetermined'}
         </span>
     )
 }
@@ -145,22 +179,32 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                         {campaign.name}
                     </h3>
 
-                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
+                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-1">
                         <div>
-                            <span className="text-gray-500">Start date:</span>{' '}
-                            {formatDate(campaign.rawStartDate) || campaign.startDate}
+                            <span className="text-gray-500">Position:</span>
+                            <div className="mt-1">
+                                <PositionBadge position={campaign.position} />
+                            </div>
                         </div>
                         <div>
-                            <span className="text-gray-500">End date:</span>{' '}
-                            {formatDate(campaign.rawEndDate) || campaign.endDate}
+                            <span className="text-gray-500">Type:</span>
+                            <div className="mt-1">
+                                <CampaignTypeBadge type={campaign.campaignType} />
+                            </div>
                         </div>
                         <div>
-                            <span className="text-gray-500">Campaign type:</span>{' '}
-                            <CampaignTypeBadge type={campaign.position || campaign.campaignType} />
+                            <span className="text-gray-500">Status:</span>
+                            <div className="mt-1">
+                                <StatusBadge status={campaign.status} />
+                            </div>
                         </div>
                         <div>
-                            <span className="text-gray-500">Status:</span>{' '}
-                            <StatusBadge status={campaign.status} />
+                            <span className="text-gray-500">Start date:</span>
+                            <p className="font-medium text-slate-800 mt-1">{formatDate(campaign.rawStartDate) || campaign.startDate}</p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">End date:</span>
+                            <p className="font-medium text-slate-800 mt-1">{formatDate(campaign.rawEndDate) || campaign.endDate}</p>
                         </div>
                     </div>
                 </div>
@@ -253,7 +297,7 @@ const DirectorCampaign = () => {
     // Preserve status from API without transforming
     const mapStatusValue = (status) => {
         if (!status) return 'Draft'
-        // Keep API statuses (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft)
+        // Keep API statuses (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft, Canceled)
         const statusStr = status.toString().trim()
         // Normalize only old lowercase values for backward compatibility
         const normalized = statusStr.toLowerCase()
@@ -264,8 +308,9 @@ const DirectorCampaign = () => {
         if (['ended', 'completed', 'done', 'finished', 'closed'].includes(normalized)) return 'Ended'
         if (['upcoming', 'scheduled'].includes(normalized)) return 'Upcoming'
         if (['draft'].includes(normalized)) return 'Draft'
+        if (['canceled', 'cancelled'].includes(normalized)) return 'Canceled'
         // If already in correct API PascalCase, keep as-is
-        if (['Upcoming', 'Ended', 'Ongoing', 'Rejected', 'Approved', 'Pending', 'Draft'].includes(statusStr)) {
+        if (['Upcoming', 'Ended', 'Ongoing', 'Rejected', 'Approved', 'Pending', 'Draft', 'Canceled'].includes(statusStr)) {
             return statusStr
         }
         // Default
@@ -279,7 +324,8 @@ const DirectorCampaign = () => {
         return {
             id: item.id ?? item.campaignId ?? item.campaignID ?? item.Id,
             name: item.name ?? item.campaignName ?? 'Untitled campaign',
-            position: item.position ?? item.role ?? item.campaignType ?? 'Unknown',
+            position: item.position ?? item.role ?? 'Unknown',
+            campaignType: item.campaignType ?? 'Unknown',
             department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Unknown',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
@@ -356,7 +402,8 @@ const DirectorCampaign = () => {
             const term = searchTerm.toLowerCase()
             filtered = filtered.filter(campaign =>
                 normalizeString(campaign.name).includes(term) ||
-                normalizeString(campaign.position).includes(term)
+                normalizeString(campaign.position).includes(term) ||
+                normalizeString(campaign.campaignType).includes(term)
             )
         }
 
@@ -547,6 +594,16 @@ const DirectorCampaign = () => {
                     </button>
                     <button
                         type="button"
+                        onClick={() => setStatusFilter('Draft')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'draft'
+                            ? 'bg-slate-600 text-white border-slate-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Planning
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => setStatusFilter('Pending')}
                         className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'pending'
                             ? 'bg-yellow-600 text-white border-yellow-600'
@@ -569,21 +626,11 @@ const DirectorCampaign = () => {
                         type="button"
                         onClick={() => setStatusFilter('Ongoing')}
                         className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'ongoing'
-                            ? 'bg-blue-600 text-white border-blue-600'
+                            ? 'bg-green-600 text-white border-green-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
                         Ongoing
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Rejected')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'rejected'
-                            ? 'bg-red-600 text-white border-red-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Rejected
                     </button>
                     <button
                         type="button"
@@ -607,13 +654,23 @@ const DirectorCampaign = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setStatusFilter('Draft')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'draft'
-                            ? 'bg-slate-600 text-white border-slate-600'
+                        onClick={() => setStatusFilter('Rejected')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'rejected'
+                            ? 'bg-red-600 text-white border-red-600'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                             }`}
                     >
-                        Planning
+                        Rejected
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter('Canceled')}
+                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'canceled'
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                            }`}
+                    >
+                        Canceled
                     </button>
                 </div>
             </div>
@@ -711,9 +768,15 @@ const DirectorCampaign = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <span className="text-sm text-slate-600">Campaign type:</span>
+                                        <span className="text-sm text-slate-600">Position:</span>
                                         <div className="mt-1">
-                                            <CampaignTypeBadge type={selectedCampaign.position || selectedCampaign.campaignType} />
+                                            <PositionBadge position={selectedCampaign.position} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm text-slate-600">Type:</span>
+                                        <div className="mt-1">
+                                            <CampaignTypeBadge type={selectedCampaign.campaignType} />
                                         </div>
                                     </div>
                                     <div>
@@ -721,15 +784,15 @@ const DirectorCampaign = () => {
                                         <div className="mt-1"><StatusBadge status={selectedCampaign.status} /></div>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Start date:</span>
+                                        <span className="text-sm text-slate-600">Start Date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.startDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">End date:</span>
+                                        <span className="text-sm text-slate-600">End Date:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.endDate}</p>
                                     </div>
                                     <div>
-                                        <span className="text-sm text-slate-600">Hiring target:</span>
+                                        <span className="text-sm text-slate-600">Recruitment Target:</span>
                                         <p className="font-medium text-slate-800">{selectedCampaign.targetHires} people</p>
                                     </div>
                                     <div>

@@ -526,19 +526,18 @@ const Apply = () => {
                                                         </span>
                                                     </div>
                                                     <div className="p-4 space-y-4">
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
                                                             <InfoMini label="Time" value={b.time || '—'} />
                                                             <InfoMini label="Method" value={b.method || '—'} />
-                                                            {b.owner && <InfoMini label="In charge" value={b.owner} />}
                                                             {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} candidates`} />}
                                                             {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} candidates`} />}
+                                                            {b.description && (
+                                                                <>
+                                                                    <InfoMini label="Description" value={b.description} />
+                                                                    <div></div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                        {b.description && (
-                                                            <div className="text-xs">
-                                                                <div className="text-slate-500 mb-1">Description</div>
-                                                                <div className="text-slate-700 bg-slate-50 p-2 rounded border">{b.description}</div>
-                                                            </div>
-                                                        )}
                                                         {b.slots && b.applied !== undefined && (
                                                             <div className="text-xs">
                                                                 <div className="text-slate-500 mb-1">Application progress</div>
