@@ -9,7 +9,9 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
   const showBatchStatus = ["ongoing", "upcoming", "ended"].includes(
-    String(campaign?.status || "").trim().toLowerCase()
+    String(campaign?.status || "")
+      .trim()
+      .toLowerCase()
   );
 
   // Fetch requirement items based on campaignType
@@ -132,11 +134,11 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(campaign?.campaignType?.toLowerCase() === "promotion" ||
               campaign?.campaignType === "Promotion") && (
-              <Info label="Position" value={"Purser"} />
+              <Info label="Position" value={campaign?.position || "N/A"} />
             )}
             {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
               campaign?.campaignType === "Recruitment") && (
-              <Info label="Position" value={"Cabin Crew"} />
+              <Info label="Position" value={campaign?.position || "N/A"} />
             )}
             <Info
               label="Target quantity"

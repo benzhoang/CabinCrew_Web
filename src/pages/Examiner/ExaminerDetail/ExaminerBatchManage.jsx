@@ -37,8 +37,8 @@ const formatDateForDisplay = (
   return dateString.split(" ")[0] || "—";
 };
 
-const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
-  const [openStats, setOpenStats] = useState(false);
+const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
+  //const [openStats, setOpenStats] = useState(false);
   const navigate = useNavigate();
 
   // Kiểm tra xem đợt có đang "sắp diễn ra" không
@@ -79,7 +79,6 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
             label="End date"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
-          <InfoMini label="Method" value={batch.method || "—"} />
           {batch.target !== undefined && batch.target !== null && (
             <InfoMini label="Target" value={batch.target.toString()} />
           )}
@@ -94,7 +93,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
         </div>
 
         {/* Applicant Statistics Dropdown */}
-        {(batch.totalApplicants !== undefined ||
+        {/* {(batch.totalApplicants !== undefined ||
           batch.appliedCandidates !== undefined) && (
           <div className="pt-3 border-t border-slate-100">
             <button
@@ -131,10 +130,10 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Recruitment Progress */}
-        {batch.target !== undefined && (
+        {/* {batch.target !== undefined && (
           <div className="pt-3 border-t border-slate-100">
             <div className="flex items-center justify-between mb-1 text-xs text-slate-600">
               <span>Hiring progress</span>
@@ -147,7 +146,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
               ></div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* View Applicants Button */}
         <div className="pt-3 space-y-2 border-t border-slate-100">
@@ -178,7 +177,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, campaignType }) => {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            {isUpcoming ? "Not available yet" : "View applicants"}
+            {isUpcoming ? "Cannot view list" : "View Applicants List"}
           </button>
         </div>
       </div>
@@ -249,14 +248,8 @@ const convertRoundsToBatches = (rounds) => {
       name: round.roundName || round.name || `Round ${index + 1}`,
       startDate: startDate,
       endDate: endDate,
-      time: timeString,
-      location: round.location || "",
-      method: round.method || "In-person",
-      owner: round.owner || "",
       status: mappedStatus,
       target: round.targetQuantity || round.target || 0,
-      totalApplicants: round.totalApplicants || 0,
-      appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: actualQuantity is correct spelling
       note: round.description || round.note || "",
       description: round.description || "",
     };
@@ -320,17 +313,17 @@ const ExaminerBatchManage = ({ campaign }) => {
     }
   }, [campaign]);
 
-const getStatus = (status) => {
-  const map = {
-    ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
-    completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
-    planned: { text: "Ended", color: "bg-slate-100 text-slate-700" },
-    upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
-    paused: { text: "Paused", color: "bg-orange-100 text-orange-700" },
-    cancelled: { text: "Cancelled", color: "bg-red-100 text-red-700" },
+  const getStatus = (status) => {
+    const map = {
+      ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
+      completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
+      planned: { text: "Ended", color: "bg-slate-100 text-slate-700" },
+      upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
+      paused: { text: "Paused", color: "bg-orange-100 text-orange-700" },
+      cancelled: { text: "Cancelled", color: "bg-red-100 text-red-700" },
+    };
+    return map[status] || map.planned;
   };
-  return map[status] || map.planned;
-};
 
   const percent = (current, target) => {
     if (!target || target <= 0) return 0;

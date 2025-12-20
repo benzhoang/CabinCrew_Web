@@ -359,7 +359,7 @@ const PromotionApplyPage = () => {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  <Info label="Position" value={"Purser"} />
+                  <Info label="Position" value={campaign.position || "N/A"} />
                   <Info label="Type" value={campaign.campaignType || "—"} />
                   <Info label="Airline" value={campaign.airline || "—"} />
                   <Info

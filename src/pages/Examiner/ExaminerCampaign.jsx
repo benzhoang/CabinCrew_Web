@@ -73,9 +73,9 @@ const ExaminerCampaign = () => {
 
       return {
         id: item.campaignId,
-        name: item.campaignName || "Chiến dịch chưa có tên",
-        type: item.campaignType || "Không xác định",
-        partner: item.partnerName || "Không xác định",
+        name: item.campaignName || "Campaign name not available",
+        type: item.campaignType || "Campaign type not available",
+        partner: item.partnerName || "Partner name not available",
         status: mapStatusValue(item.status),
         startDate: formatDateValue(item.startDate),
         endDate: formatDateValue(item.endDate),
@@ -83,7 +83,8 @@ const ExaminerCampaign = () => {
         rawEndDate: item.endDate,
         targetHires: targetQuantity,
         currentHires: currentQuantity,
-        description: item.description || "Không có mô tả",
+        description: item.description || "No description available",
+        position: item.position || "Position not available",
       };
     },
     [formatDateValue, mapStatusValue]
@@ -102,12 +103,12 @@ const ExaminerCampaign = () => {
         } else {
           setCampaigns([]);
           setFilteredCampaigns([]);
-          setError(response.error || "Không thể lấy danh sách chiến dịch");
+          setError(response.error || "Cannot get the list of campaigns");
         }
       } catch (err) {
         setCampaigns([]);
         setFilteredCampaigns([]);
-        setError(err.message || "Không thể lấy danh sách chiến dịch");
+        setError(err.message || "Cannot get the list of campaigns");
       } finally {
         setIsLoading(false);
       }
@@ -177,11 +178,11 @@ const ExaminerCampaign = () => {
     navigate(`/examiner/campaigns/${campaign.id}`, { state: { campaign } });
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa chiến dịch này?")) {
-      setCampaigns(campaigns.filter((campaign) => campaign.id !== id));
-    }
-  };
+  // const handleDelete = (id) => {
+  //   if (window.confirm("Bạn có chắc chắn muốn xóa chiến dịch này?")) {
+  //     setCampaigns(campaigns.filter((campaign) => campaign.id !== id));
+  //   }
+  // };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -341,7 +342,7 @@ const ExaminerCampaign = () => {
                         <span className="text-sm text-slate-600">Partner:</span>
                         <div className="mt-1">
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
-                            {campaign.partner || "Không xác định"}
+                            {campaign.partner || "Partner name not available"}
                           </span>
                         </div>
                       </div>
@@ -351,26 +352,18 @@ const ExaminerCampaign = () => {
                           {getStatusBadge(campaign.status)}
                         </div>
                       </div>
-                      {campaign.type?.toLowerCase() === "promotion" && (
-                        <div>
-                          <span className="text-sm text-slate-600">
-                            Position:
-                          </span>{" "}
-                          <p className="font-medium text-slate-800">
-                            Chief Flight Attendant
-                          </p>
-                        </div>
-                      )}
-                      {campaign.type?.toLowerCase() === "recruitment" && (
-                        <div>
-                          <span className="text-sm text-slate-600">
-                            Position:
-                          </span>{" "}
-                          <p className="font-medium text-slate-800">
-                            Flight Attendant
-                          </p>
-                        </div>
-                      )}
+                      {(campaign.type?.toLowerCase() === "promotion" ||
+                        campaign.type?.toLowerCase() === "recruitment") &&
+                        campaign.position && (
+                          <div>
+                            <span className="text-sm text-slate-600">
+                              Position:
+                            </span>{" "}
+                            <p className="font-medium text-slate-800">
+                              {campaign.position}
+                            </p>
+                          </div>
+                        )}
                       <div>
                         <span className="text-sm text-slate-600">
                           Start date:
