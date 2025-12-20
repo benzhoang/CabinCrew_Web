@@ -180,13 +180,13 @@ const CampaignCard = ({ campaign }) => {
             {campaign.campaignType === "promotion" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Purser</span>
+                <span>{campaign.position || "N/A"}</span>
               </div>
             )}
             {campaign.campaignType === "recruitment" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Cabin Crew</span>
+                <span>{campaign.position || "N/A"}</span>
               </div>
             )}
           </div>
@@ -309,12 +309,14 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         // Map API data to component structure
         const mappedCampaigns = result.data.map((item) => ({
           id: item.campaignId || item.id || item.campaignID || item.Id,
-          title: item.campaignName || item.name || "Chiến dịch chưa có tên",
+          title:
+            item.campaignName || item.name || "Campaign name not available",
           description: item.description || "",
           startDate: convertDateFormat(item.startDate),
           endDate: convertDateFormat(item.endDate),
           status: mapStatus(item.status),
           campaignType: mapCampaignType(item.campaignType),
+          position: item.position || "",
           progress: { current: 0, total: item.targetQuantity || 0 },
         }));
 

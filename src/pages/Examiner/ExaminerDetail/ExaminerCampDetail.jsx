@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getCampaignById, getRequirementItems, getRoundTypes } from "../../../service/api";
+import {
+  getCampaignById,
+  getRequirementItems,
+  getRoundTypes,
+} from "../../../service/api";
 import ExaminerBatchManage from "./ExaminerBatchManage";
 import { formatDate } from "../../../config/formatDate";
 
@@ -19,9 +23,9 @@ const ExaminerCampDetail = ({ campaign }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const [requirementItems, setRequirementItems] = useState([]);
-  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [, setIsLoadingRequirements] = useState(false);
   const [roundTypes, setRoundTypes] = useState([]);
-  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+  const [, setIsLoadingRoundTypes] = useState(false);
 
   useEffect(() => {
     const fetchCampaignData = async () => {
@@ -175,7 +179,7 @@ const ExaminerCampDetail = ({ campaign }) => {
           "DetailInfo - Rounds length:",
           Array.isArray(campaignData.rounds)
             ? campaignData.rounds.length
-            : "N/A"
+            : "No rounds found"
         );
         if (
           Array.isArray(campaignData.rounds) &&
@@ -210,9 +214,9 @@ const ExaminerCampDetail = ({ campaign }) => {
       const campaignTypeStr = String(campaignData.campaignType).trim();
       let requirementId = null;
 
-      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
         requirementId = 1;
-      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
         requirementId = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -227,8 +231,16 @@ const ExaminerCampDetail = ({ campaign }) => {
       setIsLoadingRequirements(true);
       try {
         const response = await getRequirementItems(requirementId);
-        console.log('ExaminerCampDetail - Requirement Items Response:', response);
-        console.log('ExaminerCampDetail - Campaign Type:', campaignTypeStr, 'Requirement ID:', requirementId);
+        console.log(
+          "ExaminerCampDetail - Requirement Items Response:",
+          response
+        );
+        console.log(
+          "ExaminerCampDetail - Campaign Type:",
+          campaignTypeStr,
+          "Requirement ID:",
+          requirementId
+        );
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -238,10 +250,15 @@ const ExaminerCampDetail = ({ campaign }) => {
           if (Array.isArray(response.data)) {
             if (response.data.length > 0) {
               const firstItem = response.data[0];
-              if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+              if (
+                firstItem.requirementItems &&
+                Array.isArray(firstItem.requirementItems)
+              ) {
                 // It's array of objects like [{ requirementId, requirementItems }]
-                items = response.data.flatMap(item =>
-                  Array.isArray(item.requirementItems) ? item.requirementItems : []
+                items = response.data.flatMap((item) =>
+                  Array.isArray(item.requirementItems)
+                    ? item.requirementItems
+                    : []
                 );
               } else if (firstItem.requirementItemId || firstItem.title) {
                 // It's array of requirement items directly
@@ -269,15 +286,24 @@ const ExaminerCampDetail = ({ campaign }) => {
             items = response.data.data;
           }
 
-          console.log('ExaminerCampDetail - Extracted Requirement Items:', items);
-          console.log('ExaminerCampDetail - Items count:', items.length);
+          console.log(
+            "ExaminerCampDetail - Extracted Requirement Items:",
+            items
+          );
+          console.log("ExaminerCampDetail - Items count:", items.length);
           setRequirementItems(items || []);
         } else {
-          console.log('ExaminerCampDetail - No requirement items found or API failed:', response);
+          console.log(
+            "ExaminerCampDetail - No requirement items found or API failed:",
+            response
+          );
           setRequirementItems([]);
         }
       } catch (error) {
-        console.error('ExaminerCampDetail - Error fetching requirement items:', error);
+        console.error(
+          "ExaminerCampDetail - Error fetching requirement items:",
+          error
+        );
         setRequirementItems([]);
       } finally {
         setIsLoadingRequirements(false);
@@ -296,9 +322,9 @@ const ExaminerCampDetail = ({ campaign }) => {
       const campaignTypeStr = String(campaignData.campaignType).trim();
       let type = null;
 
-      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
         type = 1;
-      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
         type = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -313,7 +339,7 @@ const ExaminerCampDetail = ({ campaign }) => {
       setIsLoadingRoundTypes(true);
       try {
         const response = await getRoundTypes(type);
-        console.log('ExaminerCampDetail - Round Types Response:', response);
+        console.log("ExaminerCampDetail - Round Types Response:", response);
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -325,14 +351,20 @@ const ExaminerCampDetail = ({ campaign }) => {
             types = response.data.data;
           }
 
-          console.log('ExaminerCampDetail - Extracted Round Types:', types);
+          console.log("ExaminerCampDetail - Extracted Round Types:", types);
           setRoundTypes(types);
         } else {
-          console.log('ExaminerCampDetail - No round types found or API failed:', response);
+          console.log(
+            "ExaminerCampDetail - No round types found or API failed:",
+            response
+          );
           setRoundTypes([]);
         }
       } catch (error) {
-        console.error('ExaminerCampDetail - Error fetching round types:', error);
+        console.error(
+          "ExaminerCampDetail - Error fetching round types:",
+          error
+        );
         setRoundTypes([]);
       } finally {
         setIsLoadingRoundTypes(false);
@@ -377,16 +409,12 @@ const ExaminerCampDetail = ({ campaign }) => {
         return {
           campaignRoundId: round.campaignRoundId || round.id || index + 1,
           roundName: round.roundName || round.name || `Round ${index + 1}`,
-          description: round.description || "",
+          description: round.description || "No description available",
           targetQuantity: round.targetQuantity || round.target || 0,
-          actualQuantity: round.actualQuantity || round.actualQuantiy || 0, // Handle typo in API
+          actualQuantity: round.actualQuantity || 0,
           status: round.status || "Draft",
-          startDate: round.startDate || "",
-          endDate: round.endDate || "",
-          location: round.location || "",
-          method: round.method || "In-person",
-          owner: round.owner || "",
-          totalApplicants: round.totalApplicants || 0,
+          startDate: round.startDate || "No start date available ",
+          endDate: round.endDate || "No end date available",
         };
       });
 
@@ -419,17 +447,6 @@ const ExaminerCampDetail = ({ campaign }) => {
     return formatDate(dateString);
   };
 
-  // Format campaignType for display - check multiple field names
-  const formatCampaignType = (type) => {
-    if (!type) return "";
-    const typeMap = {
-      Promotion: "Promotion",
-      Recruitment: "Recruitment",
-      Replacement: "Replacement",
-    };
-    return typeMap[type] || type;
-  };
-
   // Format targetQuantity để hiển thị - kiểm tra nhiều field name
   const formatTargetQuantity = (quantity) => {
     if (quantity === null || quantity === undefined || quantity === "")
@@ -437,23 +454,6 @@ const ExaminerCampDetail = ({ campaign }) => {
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
     return num.toLocaleString("vi-VN");
-  };
-
-  // Get campaignType from many possible fields
-  // note: props/state may be transformed
-  const getCampaignType = () => {
-    if (!data) return "";
-
-    // Kiểm tra tất cả các field name có thể (bao gồm cả format đã transform)
-    const type =
-      data.campaignType || // Format gốc từ API
-      data.position || // Format đã transform từ Campaign.jsx
-      data.campaign_type ||
-      data.type ||
-      data.campaignTypeName ||
-      "";
-
-    return type;
   };
 
   // Get targetQuantity from many possible fields
@@ -497,9 +497,9 @@ const ExaminerCampDetail = ({ campaign }) => {
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="space-y-1">
-            <div className="text-sm text-slate-500">Proposal info</div>
+            <div className="text-sm text-slate-500">Information</div>
             <div className="font-semibold text-slate-800">
-              {data.partnerName || "N/A"}
+              {data.partnerName || "Partner name not available"}
             </div>
           </div>
         </div>
@@ -509,12 +509,11 @@ const ExaminerCampDetail = ({ campaign }) => {
             {/* Overview grid */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {(data?.campaignType?.toLowerCase() === "promotion" ||
-                data?.campaignType === "Promotion") && (
-                  <InfoRow label="Position" value="Chief Flight Attendant" />
-                )}
-              {(data?.campaignType?.toLowerCase() === "recruitment" ||
-                data?.campaignType === "Recruitment") && (
-                  <InfoRow label="Position" value="Flight Attendant" />
+                data?.campaignType === "Promotion" ||
+                data?.campaignType?.toLowerCase() === "recruitment" ||
+                data?.campaignType === "Recruitment") &&
+                data?.position && (
+                  <InfoRow label="Position" value={data.position} />
                 )}
               <InfoRow
                 label="Target quantity"
@@ -533,17 +532,22 @@ const ExaminerCampDetail = ({ campaign }) => {
             {/* Job Requirements */}
             {requirementItems.length > 0 && (
               <div className="mt-6">
-                <div className="mb-3 text-sm font-semibold text-slate-800">📝 Requirements</div>
-                <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                <div className="mb-3 text-sm font-semibold text-slate-800">
+                  📝 Requirements
+                </div>
+                <div className="p-4 border border-green-300 rounded-lg bg-green-50">
                   <ul className="space-y-2">
                     {requirementItems.map((item) => (
-                      <li key={item.requirementItemId} className="flex items-start">
+                      <li
+                        key={item.requirementItemId}
+                        className="flex items-start"
+                      >
                         <span className="mr-2 text-blue-600">•</span>
                         <span className="text-sm text-slate-700">
                           <span className="font-medium">{item.title}</span>
                           {item.description && (
                             <span className="text-slate-600">
-                              {' : '}
+                              {" : "}
                               {item.description}
                             </span>
                           )}
@@ -558,25 +562,25 @@ const ExaminerCampDetail = ({ campaign }) => {
             {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
             <div className="mt-6">
               <div className="mb-3 text-sm font-semibold text-slate-800">
-                🔄{' '}
+                🔄{" "}
                 {(() => {
-                  const campaignTypeStr = String(data.campaignType || '')
+                  const campaignTypeStr = String(data.campaignType || "")
                     .trim()
                     .toLowerCase();
-                  if (campaignTypeStr === 'recruitment') {
-                    return 'Recruitment';
-                  } else if (campaignTypeStr === 'promotion') {
-                    return 'Promotion';
+                  if (campaignTypeStr === "recruitment") {
+                    return "Recruitment";
+                  } else if (campaignTypeStr === "promotion") {
+                    return "Promotion";
                   } else {
                     const parsed = Number(data.campaignType);
-                    if (parsed === 1) return 'Recruitment';
-                    if (parsed === 2) return 'Promotion';
-                    return '';
+                    if (parsed === 1) return "Recruitment";
+                    if (parsed === 2) return "Promotion";
+                    return "";
                   }
-                })()}{' '}
+                })()}{" "}
                 process
               </div>
-              <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+              <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
                 {roundTypes.length > 0 ? (
                   <div className="space-y-3">
                     {roundTypes.map((roundType, index) => (

@@ -147,13 +147,13 @@ const CampaignCard = ({ campaign }) => {
             {campaign.campaignType === "promotion" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Purser</span>
+                <span>{campaign.position || "N/A"}</span>
               </div>
             )}
             {campaign.campaignType === "recruitment" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>Cabin Crew</span>
+                <span>{campaign.position || "N/A"}</span>
               </div>
             )}
           </div>
@@ -259,6 +259,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           endDate: convertDateFormat(item.endDate),
           status: mapStatus(item.status),
           campaignType: mapCampaignType(item.campaignType),
+          position: item.position || "",
           progress: { current: 0, total: item.targetQuantity || 0 },
           partnerName: item.partnerName || item.partnerUsername || null,
           partnerUsername: item.partnerUsername || item.partnerName || null,
