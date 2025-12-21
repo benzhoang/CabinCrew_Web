@@ -5,7 +5,7 @@ import {
   getRequirementItems,
   getRoundTypes,
 } from "../../service/api2";
-import { formatDate2 } from "../../config/formatDate";
+import { formatDate2, formatDate } from "../../config/formatDate";
 
 const getRoundTime = (start, end) => {
   const startLabel = formatDate2(start);
@@ -72,27 +72,27 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
     jobRequirement: apiData.jobRequirement,
     batches: Array.isArray(rounds)
       ? rounds.map((round, index) => ({
-          campaignRoundId:
-            round.campaignRoundId || round.id || round.roundId || index,
-          name:
-            round.roundName || round.name || round.round || `Đợt ${index + 1}`,
-          roundName: round.roundName || round.name || "",
-          time: getRoundTime(round.startDate, round.endDate),
-          location: round.location || "",
-          method: round.method || "Trực tiếp",
-          status: mapRoundStatus(round.status),
-          owner: round.owner || "",
-          description: round.description || "",
-          slots: round.targetQuantity || round.slots || 0,
-          targetQuantity: round.targetQuantity || 0,
-          applied:
-            round.actualQuantiy !== undefined
-              ? round.actualQuantiy
-              : round.applied || 0,
-          actualQuantiy: round.actualQuantiy || 0,
-          startDate: round.startDate || "",
-          endDate: round.endDate || "",
-        }))
+        campaignRoundId:
+          round.campaignRoundId || round.id || round.roundId || index,
+        name:
+          round.roundName || round.name || round.round || `Đợt ${index + 1}`,
+        roundName: round.roundName || round.name || "",
+        time: getRoundTime(round.startDate, round.endDate),
+        location: round.location || "",
+        method: round.method || "Trực tiếp",
+        status: mapRoundStatus(round.status),
+        owner: round.owner || "",
+        description: round.description || "",
+        slots: round.targetQuantity || round.slots || 0,
+        targetQuantity: round.targetQuantity || 0,
+        applied:
+          round.actualQuantiy !== undefined
+            ? round.actualQuantiy
+            : round.applied || 0,
+        actualQuantiy: round.actualQuantiy || 0,
+        startDate: round.startDate || "",
+        endDate: round.endDate || "",
+      }))
       : [],
     ...apiData,
   };
@@ -162,7 +162,7 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-              "Cannot load campaign information, please try again."
+            "Cannot load campaign information, please try again."
           );
         }
       } catch (err) {
@@ -348,11 +348,10 @@ const PromotionApplyPage = () => {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
-                    isCampaignActive(campaign)
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign)
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                    }`}
                 >
                   {isCampaignActive(campaign) ? "Ongoing" : "Ended"}
                 </span>
@@ -470,45 +469,44 @@ const PromotionApplyPage = () => {
                     {(Array.isArray(campaign.batches) && campaign.batches.length
                       ? campaign.batches
                       : [
-                          {
-                            name: "Đợt 1",
-                            time: `${campaign.startDate || "2025-10-01"} - ${
-                              campaign.endDate || "2025-10-15"
+                        {
+                          name: "Đợt 1",
+                          time: `${campaign.startDate || "2025-10-01"} - ${campaign.endDate || "2025-10-15"
                             }`,
-                            location: campaign.location || "Hà Nội",
-                            method: "Trực tiếp",
-                            status: "completed",
-                            owner: "HR Team A",
-                            description:
-                              "Tuyển dụng trực tiếp tại văn phòng Hà Nội",
-                            slots: 50,
-                            applied: 45,
-                          },
-                          {
-                            name: "Đợt 2",
-                            time: "2025-11-01 - 2025-11-20",
-                            location: "TP.HCM",
-                            method: "Trực tiếp + Online",
-                            status: "ongoing",
-                            owner: "HR Team B",
-                            description:
-                              "Tuyển dụng kết hợp trực tiếp và online tại TP.HCM",
-                            slots: 80,
-                            applied: 32,
-                          },
-                          {
-                            name: "Đợt 3",
-                            time: "2025-12-01 - 2025-12-15",
-                            location: "Đà Nẵng",
-                            method: "Online",
-                            status: "upcoming",
-                            owner: "HR Team C",
-                            description:
-                              "Tuyển dụng online cho khu vực miền Trung",
-                            slots: 30,
-                            applied: 0,
-                          },
-                        ]
+                          location: campaign.location || "Hà Nội",
+                          method: "Trực tiếp",
+                          status: "completed",
+                          owner: "HR Team A",
+                          description:
+                            "Tuyển dụng trực tiếp tại văn phòng Hà Nội",
+                          slots: 50,
+                          applied: 45,
+                        },
+                        {
+                          name: "Đợt 2",
+                          time: "2025-11-01 - 2025-11-20",
+                          location: "TP.HCM",
+                          method: "Trực tiếp + Online",
+                          status: "ongoing",
+                          owner: "HR Team B",
+                          description:
+                            "Tuyển dụng kết hợp trực tiếp và online tại TP.HCM",
+                          slots: 80,
+                          applied: 32,
+                        },
+                        {
+                          name: "Đợt 3",
+                          time: "2025-12-01 - 2025-12-15",
+                          location: "Đà Nẵng",
+                          method: "Online",
+                          status: "upcoming",
+                          owner: "HR Team C",
+                          description:
+                            "Tuyển dụng online cho khu vực miền Trung",
+                          slots: 30,
+                          applied: 0,
+                        },
+                      ]
                     ).map((b, i) => (
                       <div
                         key={i}
@@ -519,25 +517,24 @@ const PromotionApplyPage = () => {
                             {b.name}
                           </div>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              b.status === "completed"
-                                ? "bg-red-100 text-red-700"
-                                : b.status === "ongoing"
+                            className={`text-xs px-2 py-1 rounded-full ${b.status === "completed"
+                              ? "bg-red-100 text-red-700"
+                              : b.status === "ongoing"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-yellow-100 text-yellow-700"
-                            }`}
+                              }`}
                           >
                             {b.status === "completed"
                               ? "Completed"
                               : b.status === "ongoing"
-                              ? "Ongoing"
-                              : "Upcoming"}
+                                ? "Ongoing"
+                                : "Upcoming"}
                           </span>
                         </div>
-                        <div className="p-4 space-y-4">
+                        <div className="p-4">
                           <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-                            <InfoMini label="Time" value={b.time || "—"} />
-                            <InfoMini label="Method" value={b.method || "—"} />
+                            <InfoMini label="Start Date" value={b.startDate ? formatDate(b.startDate) : "—"} />
+                            <InfoMini label="End Date" value={b.endDate ? formatDate(b.endDate) : "—"} />
                             {b.owner && (
                               <InfoMini label="Owner" value={b.owner} />
                             )}
@@ -553,25 +550,20 @@ const PromotionApplyPage = () => {
                                 value={`${b.applied} people`}
                               />
                             )}
+                            {b.description && (
+                              <InfoMini
+                                label="Description"
+                                value={b.description}
+                              />
+                            )}
                           </div>
-                          {b.description && (
-                            <div className="text-xs">
-                              <div className="mb-1 text-slate-500">
-                                Description
-                              </div>
-                              <div className="p-2 border rounded text-slate-700 bg-slate-50">
-                                {b.description}
-                              </div>
-                            </div>
-                          )}
                         </div>
                         <div className="flex items-center justify-end px-4 pt-0 pb-4">
                           {b.status === "ongoing" && (
                             <button
                               onClick={() =>
                                 navigate(
-                                  `/cabin-crew/application-form/${
-                                    b.campaignRoundId || b.id || ""
+                                  `/cabin-crew/application-form/${b.campaignRoundId || b.id || ""
                                   }`,
                                   {
                                     state: { campaign: campaign, batch: b },

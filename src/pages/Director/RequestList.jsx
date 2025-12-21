@@ -69,9 +69,10 @@ const RequestList = () => {
                         rejectedAt: item.rejectedAt || '',
                         partnerName: item.partnerName || '',
                         directorName: item.directorName || '',
-                        createdAt: item.createdAt || '',
+                        dueDate: item.dueDate || '',
+                        // Map position từ API, fallback về requestType nếu không có
+                        position: item.position || item.role || item.requestType || '',
                         // Map legacy fields for compatibility
-                        position: item.requestType || '',
                         department: item.partnerName || '',
                     }))
                     setCampaigns(mappedCampaigns)
@@ -160,8 +161,9 @@ const RequestList = () => {
                         rejectedAt: item.rejectedAt || '',
                         partnerName: item.partnerName || '',
                         directorName: item.directorName || '',
-                        createdAt: item.createdAt || '',
-                        position: item.requestType || '',
+                        dueDate: item.dueDate || '',
+                        // Map position từ API, fallback về requestType nếu không có
+                        position: item.position || item.role || item.requestType || '',
                         department: item.partnerName || '',
                     }))
                     setCampaigns(mappedCampaigns)
@@ -257,6 +259,38 @@ const RequestList = () => {
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
 
+    // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+    const getPositionColor = (position) => {
+        if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const pos = position.toLowerCase();
+        if (pos.includes("purser")) {
+            return "bg-orange-100 text-orange-800 border-orange-300";
+        } else if (pos.includes("cabin crew")) {
+            return "bg-teal-100 text-teal-800 border-teal-300";
+        }
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+
+    // Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+    const getPartnerColor = (partnerName) => {
+        if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const partner = partnerName.toLowerCase();
+        // Có thể thêm các airline cụ thể với màu riêng
+        if (partner.includes("vietnam airlines") || partner.includes("vietnamairlines")) {
+            return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+            return "bg-red-100 text-red-800 border-red-300";
+        } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+            return "bg-green-100 text-green-800 border-green-300";
+        } else if (partner.includes("jetstar") || partner.includes("jet star")) {
+            return "bg-indigo-100 text-indigo-800 border-indigo-300";
+        }
+        // Màu mặc định cho các partner khác
+        return "bg-cyan-100 text-cyan-800 border-cyan-300";
+    }
+
     if (loading) {
         return (
             <div className="p-6">
@@ -350,7 +384,15 @@ const RequestList = () => {
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 mb-2">
+                                        <div>
+                                            <span className="text-sm text-slate-600">Position:</span>
+                                            <div className="mt-1">
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPositionColor(campaign.position)}`}>
+                                                    {campaign.position || 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
                                         <div>
                                             <span className="text-sm text-slate-600">Request type:</span>
                                             <div className="mt-1">
@@ -367,20 +409,18 @@ const RequestList = () => {
                                             <span className="text-sm text-slate-600">Status:</span>
                                             <div className="mt-1">{getStatusBadge(campaign.status)}</div>
                                         </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
                                         <div>
                                             <span className="text-sm text-slate-600">Partner:</span>
-                                            <p className="font-medium text-slate-800">{campaign.partnerName || '—'}</p>
+                                            <div className="mt-1">
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPartnerColor(campaign.partnerName)}`}>
+                                                    {campaign.partnerName || '—'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div>
-                                            <span className="text-sm text-slate-600">Director:</span>
-                                            <p className="font-medium text-slate-800">{campaign.directorName || '—'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-slate-600">Created at:</span>
+                                            <span className="text-sm text-slate-600">Due Date:</span>
                                             <p className="font-medium text-slate-800">
-                                                {campaign.createdAt ? new Date(campaign.createdAt).toLocaleDateString('en-US') : '—'}
+                                                {campaign.dueDate ? new Date(campaign.dueDate).toLocaleDateString('en-US') : '—'}
                                             </p>
                                         </div>
                                     </div>

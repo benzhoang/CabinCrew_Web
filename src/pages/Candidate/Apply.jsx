@@ -4,6 +4,7 @@ import { FiLoader } from 'react-icons/fi'
 import { getCampaignById, getOngoingCampaign, getRequirementItems, getRoundTypes } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
+import { formatDate } from '../../config/formatDate'
 
 // Helper function to render HTML content safely
 const renderHTML = (htmlString) => {
@@ -527,8 +528,8 @@ const Apply = () => {
                                                     </div>
                                                     <div className="p-4 space-y-4">
                                                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
-                                                            <InfoMini label="Time" value={b.time || '—'} />
-                                                            <InfoMini label="Method" value={b.method || '—'} />
+                                                            <InfoMini label="Start Date" value={b.startDate ? formatDate(b.startDate) : '—'} />
+                                                            <InfoMini label="End Date" value={b.endDate ? formatDate(b.endDate) : '—'} />
                                                             {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} candidates`} />}
                                                             {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} candidates`} />}
                                                             {b.description && (
@@ -538,7 +539,7 @@ const Apply = () => {
                                                                 </>
                                                             )}
                                                         </div>
-                                                        {b.slots && b.applied !== undefined && (
+                                                        {/* {b.slots && b.applied !== undefined && (
                                                             <div className="text-xs">
                                                                 <div className="text-slate-500 mb-1">Application progress</div>
                                                                 <div className="bg-gray-200 rounded-full h-2">
@@ -549,7 +550,7 @@ const Apply = () => {
                                                                 </div>
                                                                 <div className="text-slate-600 mt-1">{b.applied}/{b.slots} ({Math.round((b.applied / b.slots) * 100)}%)</div>
                                                             </div>
-                                                        )}
+                                                        )} */}
                                                     </div>
                                                     <div className="px-4 pb-4 pt-0 flex items-center justify-end">
                                                         {b.status === 'ongoing' && (

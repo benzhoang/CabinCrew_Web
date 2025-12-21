@@ -630,7 +630,7 @@ const dictionaries = {
     recruitment_search_placeholder: "Search by name, type, airline, location",
     recruitment_airline_label: "Airline",
     recruitment_airline_all: "All",
-    recruitment_status_active: "Active",
+    recruitment_status_active: "Ongoing",
     recruitment_status_inactive: "Ended",
     recruitment_fetch_error: "Unable to fetch campaign list",
     recruitment_no_campaigns: "No matching campaigns.",

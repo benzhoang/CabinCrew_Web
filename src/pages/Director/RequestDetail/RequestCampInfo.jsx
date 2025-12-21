@@ -27,9 +27,9 @@ const Section = ({ title, children }) => (
 );
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex items-start gap-3">
-    <div className="w-36 shrink-0 text-gray-500 text-sm">{label}</div>
-    <div className="text-gray-900 text-sm whitespace-pre-wrap">{value}</div>
+  <div className="flex items-start">
+    <div className="text-sm text-gray-500 shrink-0 mr-3">{label}:</div>
+    <div className="text-sm text-gray-900">{value}</div>
   </div>
 );
 
@@ -56,6 +56,54 @@ const renderStatusBadge = (statusRaw) => {
 
   const preset = mapping[status] || {
     text: statusRaw || 'N/A',
+    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+  };
+
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+      {preset.text}
+    </span>
+  );
+};
+
+const renderRequestTypeBadge = (requestTypeRaw) => {
+  if (!requestTypeRaw) {
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200">
+        N/A
+      </span>
+    );
+  }
+
+  const requestTypeStr = String(requestTypeRaw).trim().toLowerCase();
+  let type = null;
+
+  // Map string to number
+  if (requestTypeStr === 'recruitment') {
+    type = 1;
+  } else if (requestTypeStr === 'promotion') {
+    type = 2;
+  } else {
+    // Try to parse as number
+    const parsed = Number(requestTypeStr);
+    if (parsed === 1 || parsed === 2) {
+      type = parsed;
+    }
+  }
+
+  const mapping = {
+    1: {
+      text: 'Recruitment',
+      cls: 'bg-blue-50 text-blue-700 border border-blue-200',
+    },
+    2: {
+      text: 'Promotion',
+      cls: 'bg-purple-50 text-purple-700 border border-purple-200',
+    },
+  };
+
+  const preset = mapping[type] || {
+    text: requestTypeRaw,
     cls: 'bg-slate-50 text-slate-700 border border-slate-200',
   };
 
@@ -97,10 +145,10 @@ const RequestCampInfo = () => {
               code: apiData.code || `REQ-${apiData.requestId || apiData.id}`,
               title:
                 apiData.campaignName || apiData.title || "Recruitment request",
-              proposer: apiData.proposerName || apiData.proposer || "N/A",
-              position: apiData.requestType || apiData.position || "N/A",
-              department: apiData.partnerName || apiData.department || "N/A",
-              unit: apiData.unit || "N/A",
+              proposer: apiData.proposerName || apiData.proposer || "",
+              position: apiData.requestType || apiData.position || "",
+              department: apiData.partnerName || apiData.department || "",
+              unit: apiData.unit || "",
               quantity: apiData.targetQuantity || apiData.quantity || 0,
               startDate: apiData.startDate || "",
               endDate: apiData.endDate || "",
@@ -321,9 +369,8 @@ const RequestCampInfo = () => {
           <div className="text-gray-900 font-medium">{data.proposer}</div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-            <InfoRow label="Request type" value={data.requestType} />
+            <InfoRow label="Request type" value={renderRequestTypeBadge(data.requestType)} />
             <InfoRow label="Partner" value={data.partnerName} />
-            <InfoRow label="Director" value={data.directorName || "N/A"} />
             <InfoRow label="Target quantity" value={data.quantity} />
             <InfoRow label="Created at" value={formatDate(data.createdAt)} />
             <InfoRow label="Status" value={renderStatusBadge(data.status)} />
