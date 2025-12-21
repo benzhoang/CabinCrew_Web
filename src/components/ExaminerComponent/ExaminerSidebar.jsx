@@ -9,8 +9,8 @@ import {
   getNotifications,
   getUnreadNotificationCount,
 } from "../../service/api";
-import { FaBullhorn } from "react-icons/fa6";
-import { FaListCheck, FaBell, FaSignOutAlt, FaFileAlt } from "react-icons/fa";
+import { FaBullhorn, FaListCheck } from "react-icons/fa6";
+import { FaBell, FaSignOutAlt, FaFileAlt } from "react-icons/fa";
 
 function getInitials(name) {
   if (!name) return "U";

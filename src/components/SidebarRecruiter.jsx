@@ -6,8 +6,8 @@ import { t } from "../i18n";
 import RecruiterNotificationModal from "./RecruiterNotificationModal";
 import signalRService from "../service/signalrService";
 import { getNotifications, getUnreadNotificationCount } from "../service/api";
-import { FaBullhorn } from "react-icons/fa6";
-import { FaListCheck, FaBell, FaSignOutAlt } from "react-icons/fa";
+import { FaBullhorn, FaListCheck } from "react-icons/fa6";
+import { FaBell, FaSignOutAlt } from "react-icons/fa";
 
 // Hàm lấy chữ cái đầu tên
 function getInitials(name) {
