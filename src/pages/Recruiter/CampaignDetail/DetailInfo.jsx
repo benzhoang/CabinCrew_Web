@@ -12,8 +12,8 @@ const Section = ({ title, children }) => (
 );
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-sm text-gray-500 w-36 shrink-0">{label}</div>
+  <div className="flex items-start">
+    <div className="text-sm text-gray-500 shrink-0 mr-3">{label}:</div>
     <div className="text-sm text-gray-900">{value}</div>
   </div>
 );
@@ -596,14 +596,14 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <InfoRow label="Description" value={data.description || "Undetermined"} />
-              <div className="flex items-start gap-3">
-                <div className="text-sm text-gray-500 w-36 shrink-0">Position</div>
+              <div className="flex items-start">
+                <div className="text-sm text-gray-500 shrink-0 mr-1">Position:</div>
                 <div className="text-sm text-gray-900">
                   <PositionBadge position={getPosition()} />
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="text-sm text-gray-500 w-36 shrink-0">Campaign Type</div>
+              <div className="flex items-start">
+                <div className="text-sm text-gray-500 shrink-0 mr-1">Campaign Type:</div>
                 <div className="text-sm text-gray-900">
                   <CampaignTypeBadge type={formatCampaignType(getCampaignType())} />
                 </div>

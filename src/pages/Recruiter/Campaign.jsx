@@ -74,6 +74,7 @@ const Campaign = () => {
             position: item.position ?? item.role ?? 'Undetermined',
             campaignType: item.campaignType ?? 'Undetermined',
             department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Undetermined',
+            partnerName: item.partnerName ?? item.partner ?? item.airline ?? 'Undetermined',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
             endDate: formatDateValue(item.endDate),
@@ -315,6 +316,25 @@ const Campaign = () => {
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
 
+    // Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+    const getPartnerColor = (partnerName) => {
+        if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const partner = partnerName.toLowerCase();
+        // Có thể thêm các airline cụ thể với màu riêng
+        if (partner.includes("vietnam airlines") || partner.includes("vietnamairlines")) {
+            return "bg-red-100 text-red-800 border-red-300";
+        } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+            return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+            return "bg-green-100 text-green-800 border-green-300";
+        } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+            return "bg-indigo-100 text-indigo-800 border-indigo-300";
+        }
+        // Màu mặc định cho các partner khác
+        return "bg-cyan-100 text-cyan-800 border-cyan-300";
+    }
+
     return (
         <div className="p-6">
             <div className="mb-6">
@@ -391,7 +411,7 @@ const Campaign = () => {
                                         <h4 className="text-lg font-semibold text-slate-800">{campaign.name}</h4>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-3">
                                         <div>
                                             <span className="text-sm text-slate-600">Position:</span>
                                             <div className="mt-1">
@@ -405,6 +425,14 @@ const Campaign = () => {
                                             <div className="mt-1">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(campaign.campaignType)}`}>
                                                     {campaign.campaignType || 'Undetermined'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="text-sm text-slate-600">Partner:</span>
+                                            <div className="mt-1">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(campaign.partnerName)}`}>
+                                                    {campaign.partnerName || 'Undetermined'}
                                                 </span>
                                             </div>
                                         </div>
@@ -561,6 +589,14 @@ const Campaign = () => {
                                         <div className="mt-1">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(selectedCampaign.campaignType)}`}>
                                                 {selectedCampaign.campaignType || 'Undetermined'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm text-slate-600">Partner:</span>
+                                        <div className="mt-1">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(selectedCampaign.partnerName)}`}>
+                                                {selectedCampaign.partnerName || 'Undetermined'}
                                             </span>
                                         </div>
                                     </div>

@@ -21,8 +21,8 @@ const Section = ({ title, children }) => (
 );
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-sm text-gray-500 w-36 shrink-0">{label}</div>
+  <div className="flex items-start">
+    <div className="text-sm text-gray-500 shrink-0 mr-3">{label}:</div>
     <div className="text-sm text-gray-900">{value}</div>
   </div>
 );
@@ -37,6 +37,10 @@ const renderStatusBadge = (statusRaw) => {
     pending_approval: {
       text: 'Pending approval',
       cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    },
+    ongoing: {
+      text: 'Ongoing',
+      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
     },
     approved: {
       text: 'Approved',

@@ -28,7 +28,7 @@ const ScoreReport = () => {
 
                 // Nếu chưa đăng nhập (401) thì hiển thị thông báo thân thiện
                 if (result?.status === 401) {
-                    setError('Vui lòng đăng nhập để xem điểm thi của bạn.');
+                    setError('Please log in to view your exam scores.');
                     setTests([]);
                     return;
                 }
@@ -105,7 +105,7 @@ const ScoreReport = () => {
                 // Nếu lỗi 401 ở mức axios (phòng trường hợp api.js đổi logic sau này)
                 const status = err?.response?.status;
                 if (status === 401) {
-                    setError('Vui lòng đăng nhập để xem điểm thi của bạn.');
+                    setError('Please log in to view your exam scores.');
                 } else {
                     setError(err.message || 'Không thể tải danh sách đề thi');
                 }
@@ -220,7 +220,7 @@ const ScoreReport = () => {
                 </div>
 
                 {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
                         {error}
                     </div>
                 )}

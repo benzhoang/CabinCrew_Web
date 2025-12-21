@@ -62,7 +62,7 @@ const Footer = () => {
                     {/* Column 3: SkyCabin.com */}
                     <div>
                         <h3 className="text-gray-800 font-medium mb-3 text-sm">
-                            SkyCabin.com
+                            CabinCrew.com
                         </h3>
                         <ul className="space-y-1">
                             <li>

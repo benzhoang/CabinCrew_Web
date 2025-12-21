@@ -129,7 +129,8 @@ const DetailResultPage = () => {
             { label: 'Round', value: result?.roundName || '—' },
             { label: 'Evaluation date', value: formatDateTime(result?.evaluatedDate) },
             { label: 'Total score', value: result?.finalScore !== undefined && result?.finalScore !== null ? result.finalScore : '—' },
-            { label: 'Result', value: getPassLabel(result?.isPassed), valueClass: resultBadgeClass, isBadge: true }
+            { label: 'Result', value: getPassLabel(result?.isPassed), valueClass: resultBadgeClass, isBadge: true },
+            { label: 'Comments', value: result?.comment || '—', fullWidth: true, isComment: true }
         ]
     }, [result])
 
@@ -212,15 +213,15 @@ const DetailResultPage = () => {
                             <section>
                                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {summaryItems.map((item) => (
-                                        <div key={item.label} className="bg-gray-50 rounded-lg p-4">
+                                        <div key={item.label} className={`bg-gray-50 rounded-lg p-4 ${item.fullWidth ? 'sm:col-span-2' : ''}`}>
                                             <dt className="text-sm text-gray-500">{item.label}</dt>
-                                            <dd className={`text-base font-semibold mt-1 ${item.isBadge ? 'inline-block' : 'text-gray-900'}`}>
+                                            <dd className={`text-base font-semibold mt-1 ${item.isBadge ? 'inline-block' : item.isComment ? 'text-gray-600 font-normal whitespace-pre-wrap' : 'text-gray-900'}`}>
                                                 {item.isBadge ? (
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${item.valueClass || 'bg-gray-100 text-gray-700'}`}>
                                                         {item.value || '—'}
                                                     </span>
                                                 ) : (
-                                                    <span className={item.valueClass || 'text-gray-900'}>{item.value || '—'}</span>
+                                                    <span className={item.valueClass || ''}>{item.value || '—'}</span>
                                                 )}
                                             </dd>
                                         </div>

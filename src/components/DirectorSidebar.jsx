@@ -80,16 +80,62 @@ const DirectorSidebar = ({ username = "Nguyễn Văn A" }) => {
   const [, setLangTick] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Load employee data from localStorage và ưu tiên username/full name
+  // Hàm decode JWT token để lấy thông tin từ token
+  const decodeJWT = (token) => {
+    if (!token) return null;
     try {
+      const base64Url = token.split(".")[1];
+      if (!base64Url) return null;
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error("DirectorSidebar: Error decoding JWT:", error);
+      return null;
+    }
+  };
+
+  // Load tên hiển thị từ token (ưu tiên fullName từ token)
+  useEffect(() => {
+    try {
+      // Ưu tiên 1: Lấy từ token
+      const token = localStorage.getItem("token");
+      if (token) {
+        const decodedToken = decodeJWT(token);
+        if (decodedToken) {
+          // Thử các trường có thể chứa fullName trong token
+          const nameFromToken =
+            decodedToken.fullName ||
+            decodedToken.FullName ||
+            decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+            decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/name"] ||
+            decodedToken.name ||
+            decodedToken.unique_name ||
+            decodedToken.displayName ||
+            decodedToken.DisplayName;
+
+          if (nameFromToken) {
+            setDisplayName(nameFromToken);
+            return;
+          }
+        }
+      }
+
+      // Ưu tiên 2: Lấy từ localStorage employee (fallback)
       const employee = localStorage.getItem("employee");
       if (employee) {
         const employeeData = JSON.parse(employee);
         const nameFromStorage =
-          employeeData.username ||
-          employeeData.displayName ||
           employeeData.fullName ||
+          employeeData.FullName ||
+          employeeData.displayName ||
+          employeeData.DisplayName ||
+          employeeData.username ||
           username;
 
         setDisplayName(nameFromStorage);
@@ -99,11 +145,16 @@ const DirectorSidebar = ({ username = "Nguyễn Văn A" }) => {
         } else if (employeeData.role === "director") {
           setRole("Director");
         }
+        return;
       }
+
+      // Fallback cuối cùng: dùng username prop
+      setDisplayName(username);
     } catch (error) {
-      console.error("DirectorSidebar: Cannot parse employee from localStorage", error);
+      console.error("DirectorSidebar: Cannot parse employee from localStorage or token", error);
+      setDisplayName(username);
     }
-  }, []);
+  }, [username]);
 
   useEffect(() => {
     const off = onLangChange(() => setLangTick((v) => v + 1));

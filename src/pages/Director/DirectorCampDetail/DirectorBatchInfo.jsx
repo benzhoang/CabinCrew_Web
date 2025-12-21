@@ -83,9 +83,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
             label="End time"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
-          <InfoMini label="Location" value={batch.location || "-"} />
           <InfoMini label="Method" value={batch.method || "-"} />
-          <InfoMini label="Owner" value={batch.owner || "-"} />
           {batch.target !== undefined && batch.target !== null && (
             <InfoMini label="Target" value={batch.target.toString()} />
           )}

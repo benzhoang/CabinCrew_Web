@@ -427,7 +427,12 @@ const ExaminerCandidateEvaluation = () => {
                                     )}
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full">
+                                    <table className="w-full table-fixed">
+                                        <colgroup>
+                                            <col className="w-[45%]" />
+                                            <col className="w-[20%]" />
+                                            <col className="w-[35%]" />
+                                        </colgroup>
                                         <thead>
                                             <tr className="border-b border-slate-300">
                                                 <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Criteria</th>
@@ -444,7 +449,7 @@ const ExaminerCandidateEvaluation = () => {
                                                     const displayOrder = ++criterionCounter
                                                     return (
                                                         <tr key={`${criterionKey}-${itemIndex}`} className="border-b border-slate-200 hover:bg-slate-50">
-                                                            <td className="py-3 px-4">
+                                                            <td className="py-3 px-4 align-top">
                                                                 <div className="font-medium text-slate-800">
                                                                     {displayOrder}. {item?.criteria || '—'}
                                                                 </div>
@@ -452,18 +457,20 @@ const ExaminerCandidateEvaluation = () => {
                                                                     <div className="text-xs text-slate-500 mt-1">{item.description}</div>
                                                                 )}
                                                             </td>
-                                                            <td className="py-3 px-4 text-center">
-                                                                <select
-                                                                    value={evaluation.score}
-                                                                    onChange={(e) => handleScoreChange(criterionKey, e.target.value)}
-                                                                    className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                                >
-                                                                    {SCORE_OPTIONS.map(num => (
-                                                                        <option key={num} value={num}>{num}</option>
-                                                                    ))}
-                                                                </select>
+                                                            <td className="py-3 px-4 text-center align-middle">
+                                                                <div className="flex justify-center">
+                                                                    <select
+                                                                        value={evaluation.score}
+                                                                        onChange={(e) => handleScoreChange(criterionKey, e.target.value)}
+                                                                        className="w-20 px-2 py-1 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                                                                    >
+                                                                        {SCORE_OPTIONS.map(num => (
+                                                                            <option key={num} value={num}>{num}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
                                                             </td>
-                                                            <td className="py-3 px-4">
+                                                            <td className="py-3 px-4 align-middle">
                                                                 <input
                                                                     type="text"
                                                                     value={evaluation.comment}
