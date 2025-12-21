@@ -290,7 +290,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
 
   return (
     <>
-      <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
+      <div className="mt-10 overflow-hidden bg-white border border-gray-200 rounded-xl">
         <table className="min-w-full border-collapse table-fixed">
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">

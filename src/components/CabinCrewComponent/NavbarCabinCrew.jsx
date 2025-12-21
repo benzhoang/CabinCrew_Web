@@ -253,11 +253,11 @@ const NavbarCabinCrew = () => {
                 {t("home")}
               </Link>
               <Link
-                to="/recruitment"
+                to="/cabin-crew/promotion"
                 className="block px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:text-sky-200 hover:bg-white/10"
                 onClick={() => setIsMenuOpen(false)}
               >
-                {t("recruitment")}
+                {t("promotion")}
               </Link>
               {/* <Link
                 to="/appointment"

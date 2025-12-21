@@ -178,12 +178,6 @@ const ExaminerCampaign = () => {
     navigate(`/examiner/campaigns/${campaign.id}`, { state: { campaign } });
   };
 
-  // const handleDelete = (id) => {
-  //   if (window.confirm("Bạn có chắc chắn muốn xóa chiến dịch này?")) {
-  //     setCampaigns(campaigns.filter((campaign) => campaign.id !== id));
-  //   }
-  // };
-
   const getStatusBadge = (status) => {
     const statusConfig = {
       ongoing: { color: "bg-green-100 text-green-800", text: "Ongoing" },
@@ -241,6 +235,19 @@ const ExaminerCampaign = () => {
 
   const hasProgressData = (campaign) => {
     return Number(campaign.targetHires) > 0;
+  };
+
+  // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+  const getPositionColor = (position) => {
+    if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const pos = position.toLowerCase();
+    if (pos.includes("purser")) {
+      return "bg-orange-100 text-orange-800 border-orange-300";
+    } else if (pos.includes("cabin crew")) {
+      return "bg-teal-100 text-teal-800 border-teal-300";
+    }
+    return "bg-gray-100 text-gray-800 border-gray-300";
   };
 
   return (
@@ -358,10 +365,16 @@ const ExaminerCampaign = () => {
                           <div>
                             <span className="text-sm text-slate-600">
                               Position:
-                            </span>{" "}
-                            <p className="font-medium text-slate-800">
-                              {campaign.position}
-                            </p>
+                            </span>
+                            <div className="mt-1">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                                  campaign.position
+                                )}`}
+                              >
+                                {campaign.position}
+                              </span>
+                            </div>
                           </div>
                         )}
                       <div>

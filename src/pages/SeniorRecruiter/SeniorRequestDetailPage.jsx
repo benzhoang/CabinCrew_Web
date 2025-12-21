@@ -70,9 +70,6 @@ const SeniorRequestDetailPage = () => {
           <h1 className="mb-2 text-2xl font-bold text-slate-800">
             {request.campaignName || "N/A"}
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Request ID: {request.requestId || "N/A"}
-          </p>
         </div>
         <button
           onClick={() => navigate("/senior-recruiter/requests")}

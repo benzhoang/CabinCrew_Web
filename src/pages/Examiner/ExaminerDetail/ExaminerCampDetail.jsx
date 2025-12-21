@@ -8,10 +8,35 @@ import {
 import ExaminerBatchManage from "./ExaminerBatchManage";
 import { formatDate } from "../../../config/formatDate";
 
-const InfoRow = ({ label, value }) => (
+// Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+const getPositionColor = (position) => {
+  if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const pos = position.toLowerCase();
+  if (pos.includes("purser")) {
+    return "bg-orange-100 text-orange-800 border-orange-300";
+  } else if (pos.includes("cabin crew")) {
+    return "bg-teal-100 text-teal-800 border-teal-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
+const InfoRow = ({ label, value, isPosition = false }) => (
   <div className="flex items-start gap-3">
     <div className="text-sm text-gray-500 w-36 shrink-0">{label}</div>
-    <div className="text-sm text-gray-900">{value}</div>
+    {isPosition ? (
+      <div>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+            value
+          )}`}
+        >
+          {value || "N/A"}
+        </span>
+      </div>
+    ) : (
+      <div className="text-sm text-gray-900">{value}</div>
+    )}
   </div>
 );
 
@@ -513,7 +538,11 @@ const ExaminerCampDetail = ({ campaign }) => {
                 data?.campaignType?.toLowerCase() === "recruitment" ||
                 data?.campaignType === "Recruitment") &&
                 data?.position && (
-                  <InfoRow label="Position" value={data.position} />
+                  <InfoRow
+                    label="Position"
+                    value={data.position}
+                    isPosition={true}
+                  />
                 )}
               <InfoRow
                 label="Target quantity"

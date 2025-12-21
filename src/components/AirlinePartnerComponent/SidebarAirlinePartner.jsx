@@ -1,142 +1,225 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Logo from "../../images/Logo.png";
 import { FaBullhorn } from "react-icons/fa6";
 import { FaClipboardCheck, FaInfoCircle, FaSignOutAlt } from "react-icons/fa";
+
+function getInitials(name) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase() || "U";
+}
 
 const SidebarAirlinePartner = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
-  const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
-  const username = employeeData?.username;
-  const role = employeeData?.role;
+  const [displayName, setDisplayName] = useState("Airline Partner");
+  const [role, setRole] = useState("Airline Partner");
+  const initials = getInitials(displayName);
+
+  // Hàm decode JWT token
+  const decodeJwt = (token) => {
+    if (!token) {
+      return null;
+    }
+    try {
+      const parts = token.split(".");
+      if (parts.length !== 3) {
+        return null;
+      }
+      const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const paddedPayload =
+        payload + "=".repeat((4 - (payload.length % 4)) % 4);
+      const decoded = atob(paddedPayload);
+      return JSON.parse(decoded);
+    } catch (error) {
+      console.error("Error decoding JWT:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Load user data from token first, then fallback to localStorage
+    try {
+      const token = localStorage.getItem("token");
+      let nameFromToken = null;
+      let roleFromToken = null;
+
+      // Try to get name and role from token
+      if (token) {
+        const decoded = decodeJwt(token);
+        if (decoded) {
+          // Get name from token claims
+          nameFromToken =
+            decoded[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            decoded.name ||
+            null;
+
+          // Get role from token claims
+          roleFromToken =
+            decoded[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ] ||
+            decoded.role ||
+            null;
+        }
+      }
+
+      // Set from token if available, otherwise fallback to localStorage
+      if (nameFromToken) {
+        setDisplayName(nameFromToken);
+      } else {
+        // Fallback to localStorage
+        const employee = localStorage.getItem("employee");
+        if (employee) {
+          const employeeData = JSON.parse(employee);
+          const nameFromStorage =
+            employeeData.username ||
+            employeeData.displayName ||
+            employeeData.fullName ||
+            "Airline Partner";
+          setDisplayName(nameFromStorage);
+        }
+      }
+
+      if (roleFromToken) {
+        setRole(roleFromToken);
+      } else {
+        // Fallback to localStorage
+        const employee = localStorage.getItem("employee");
+        if (employee) {
+          const employeeData = JSON.parse(employee);
+          if (employeeData.role) {
+            setRole(employeeData.role);
+          } else {
+            setRole("Airline Partner");
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        "SidebarAirlinePartner: Error loading user data from token or localStorage",
+        error
+      );
+    }
+  }, []);
 
   const isActive = (path) => currentPath.startsWith(path);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
+  const handleLogout = () => {
     localStorage.removeItem("employee");
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
+    window.dispatchEvent(new Event("auth-changed"));
     navigate("/");
   };
 
   return (
-    <div className="h-full p-5 bg-gray-100 w-74">
+    <aside className="flex flex-col w-64 h-screen overflow-y-auto border-r bg-white/95 backdrop-blur-sm border-slate-200">
       {/* Logo */}
-      <div className="px-2 mb-6">
-        <img src={Logo} alt="Logo" className="object-contain h-9" />
+      <div className="flex items-center justify-center px-4 border-b shadow-inner h-36 border-slate-200 bg-slate-50/70">
+        <img
+          src={Logo}
+          alt="Logo"
+          className="object-contain w-auto h-24 drop-shadow-sm"
+        />
       </div>
 
-      {/* User card */}
-      <div className="flex items-center p-4 mb-4 bg-white shadow-sm rounded-xl">
-        <div className="flex items-center justify-center w-12 h-12 mr-3 font-semibold text-white bg-indigo-600 rounded-full">
-          NA
+      {/* User Profile */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-200">
+        <div className="flex items-center justify-center font-semibold text-white rounded-full shadow-sm h-11 w-11 bg-gradient-to-br from-indigo-700 to-indigo-500">
+          {initials}
         </div>
-        <div>
-          <div className="font-semibold text-gray-900">{username}</div>
-          <div className="text-sm text-gray-500">{role}</div>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold tracking-tight text-slate-800">
+            {displayName}
+          </span>
+          <span className="text-xs text-slate-500">{role}</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <ul className="p-0 mt-0 space-y-1 list-none">
-        <li>
-          <Link
-            to="/airline-partner/requests"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
-              isActive("/airline-partner/requests")
-                ? "text-blue-600 bg-cyan-50"
-                : "text-gray-700 hover:text-blue-600"
-            }`}
-          >
-            <FaInfoCircle
-              className={`mr-3 transition-colors duration-300 text-lg ${
+      <nav className="flex-1 p-3 overflow-y-auto">
+        <ul className="space-y-1 list-none">
+          <li>
+            <Link
+              to="/airline-partner/requests"
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
                 isActive("/airline-partner/requests")
-                  ? "text-blue-600"
-                  : "text-gray-500"
+                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                  : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`}
-            />
-            <span
-              className={
-                isActive("/airline-partner/requests")
-                  ? "text-blue-600"
-                  : "text-gray-700 hover:text-blue-600"
-              }
             >
-              Request
-            </span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/airline-partner/campaigns"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
-              isActive("/airline-partner/campaigns")
-                ? "text-blue-600 bg-cyan-50"
-                : "text-gray-700 hover:text-blue-600"
-            }`}
-          >
-            <FaBullhorn
-              className={`mr-3 transition-colors duration-300 text-lg ${
+              <FaInfoCircle
+                className={`h-4 w-4 shrink-0 transition-colors ${
+                  isActive("/airline-partner/requests")
+                    ? "text-white"
+                    : "text-slate-600 group-hover:text-slate-800"
+                }`}
+              />
+              <span className="leading-5">Requests</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/airline-partner/campaigns"
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
                 isActive("/airline-partner/campaigns")
-                  ? "text-blue-600"
-                  : "text-gray-500"
+                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                  : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`}
-            />
-            <span
-              className={
-                isActive("/airline-partner/campaigns")
-                  ? "text-blue-600"
-                  : "text-gray-700 hover:text-blue-600"
-              }
             >
-              Campaign
-            </span>
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/airline-partner/criteria"
-            className={`flex items-center p-3 no-underline transition-all duration-300 text-base font-medium rounded-lg hover:bg-gray-50 ${
-              isActive("/airline-partner/criteria")
-                ? "text-blue-600 bg-cyan-50"
-                : "text-gray-700 hover:text-blue-600"
-            }`}
-          >
-            <FaClipboardCheck
-              className={`mr-3 transition-colors duration-300 text-lg ${
+              <FaBullhorn
+                className={`h-4 w-4 shrink-0 transition-colors ${
+                  isActive("/airline-partner/campaigns")
+                    ? "text-white"
+                    : "text-slate-600 group-hover:text-slate-800"
+                }`}
+              />
+              <span className="leading-5">Campaigns</span>
+            </Link>
+          </li>
+          {/* <li>
+            <Link
+              to="/airline-partner/criteria"
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
                 isActive("/airline-partner/criteria")
-                  ? "text-blue-600"
-                  : "text-gray-500"
+                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                  : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`}
-            />
-            <span
-              className={
-                isActive("/airline-partner/criteria")
-                  ? "text-blue-600"
-                  : "text-gray-700 hover:text-blue-600"
-              }
             >
-              Criteria
-            </span>
-          </Link>
-        </li>
-        <li>
-          <button
-            type="button"
-            className="flex items-center w-full p-3 text-base font-medium text-left text-gray-500 transition-all duration-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:text-red-600"
-            onClick={handleLogout}
-          >
-            <FaSignOutAlt className="mr-3" />
-            <span>Logout</span>
-          </button>
-        </li>
-      </ul>
+              <FaClipboardCheck
+                className={`h-4 w-4 shrink-0 transition-colors ${
+                  isActive("/airline-partner/criteria")
+                    ? "text-white"
+                    : "text-slate-600 group-hover:text-slate-800"
+                }`}
+              />
+              <span className="leading-5">Criteria</span>
+            </Link>
+          </li> */}
+        </ul>
+      </nav>
 
-      {/* Footer */}
-      <div className="absolute bottom-4 left-5 right-5"></div>
-    </div>
+      {/* Footer with Logout */}
+      <div className="p-3 border-t border-slate-200">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
+        >
+          <FaSignOutAlt className="w-4 h-4 shrink-0" />
+          <span className="leading-5">Logout</span>
+        </button>
+        <div className="mt-2 text-xs text-slate-500 text-center">
+          © {new Date().getFullYear()} Cabin HR
+        </div>
+      </div>
+    </aside>
   );
 };
 
