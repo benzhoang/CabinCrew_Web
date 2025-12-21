@@ -1,15 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDate2 } from "../../../config/formatDate";
 
-const BatchCard = ({
-  batch,
-  statusCfg,
-  percent,
-  onViewApplicants,
-  showStatus,
-}) => {
-  const [openStats, setOpenStats] = useState(false);
+const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
   const isUpcoming = batch.status === "upcoming";
 
   const handleViewApplicants = () => {
@@ -33,7 +26,6 @@ const BatchCard = ({
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini label="Start time" value={formatDate2(batch.startDate)} />
           <InfoMini label="End time" value={formatDate2(batch.endDate)} />
-          <InfoMini label="Method" value={batch.method || "—"} />
           {batch.target !== undefined && (
             <InfoMini
               label="Target"
@@ -156,15 +148,11 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
       name: round.roundName || round.name || `Round ${round.campaignRoundId}`,
       startDate: round.startDate,
       endDate: round.endDate,
-      location: round.location || "—",
-      method: round.method || "Direct",
-      owner: round.owner || "—",
       status:
         statusMap[round.status] || round.status?.toLowerCase() || "planned",
       current:
         round.actualQuantiy || round.actualQuantity || round.current || 0,
       target: round.targetQuantity || round.target || 0,
-      totalApplicants: round.totalApplicants || 0,
       appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: use actualQuantity like BatchManagement
       note: round.description || round.note || "",
     };

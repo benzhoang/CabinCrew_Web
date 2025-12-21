@@ -1,10 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { FaSearch, FaBell } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { FaEye, FaFilePen } from "react-icons/fa6";
 import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
 import TestModal from "../../../components/ExaminerComponent/TestModal";
-import NotificationModal from "../../../components/ExaminerComponent/NotificationModal";
 import { getTestById, getTestSessionsByType } from "../../../service/api2";
 
 // const RoundBadge = ({ value }) => {
@@ -20,7 +19,6 @@ const ScoreListPage = () => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showTestModal, setShowTestModal] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [testSessions, setTestSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -149,19 +147,6 @@ const ScoreListPage = () => {
     };
   }, [derivedTestId]);
 
-  const handleNotificationClick = (notification) => {
-    // Find candidate by candidateId from testSessions and show complaint modal
-    const candidate = testSessions.find(
-      (c) =>
-        c.id === notification.candidateId ||
-        c.testSessionId === notification.candidateId
-    );
-    if (candidate) {
-      setSelectedCandidate(candidate);
-      setShowComplaintModal(true);
-    }
-  };
-
   const handleViewTestDetails = () => {
     setShowComplaintModal(false);
     setShowTestModal(true);
@@ -170,11 +155,6 @@ const ScoreListPage = () => {
   const handleBackToComplaint = () => {
     setShowTestModal(false);
     setShowComplaintModal(true);
-  };
-
-  const handleBackToNotifications = () => {
-    setShowComplaintModal(false);
-    setShowNotificationModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -254,18 +234,10 @@ const ScoreListPage = () => {
           </div>
           {testInfoLoading ? (
             <div className="py-4 text-center">
-              <p className="text-gray-500">
-                Loading test information...
-              </p>
+              <p className="text-gray-500">Loading test information...</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <p className="text-gray-500">Test ID:</p>
-                <p className="mt-1 font-semibold text-gray-900">
-                  {testInfo?.testId || "N/A"}
-                </p>
-              </div>
               <div>
                 <p className="text-gray-500">Test Name:</p>
                 <p className="mt-1 font-semibold text-gray-900">
@@ -290,15 +262,6 @@ const ScoreListPage = () => {
               Score List ({filteredCandidates.length})
             </h1>
             <div className="flex items-center gap-3">
-              {/* Notification Icon */}
-              <button
-                onClick={() => setShowNotificationModal(true)}
-                className="relative p-2 transition-colors rounded-lg hover:bg-gray-100"
-                aria-label="Notifications"
-              >
-                <FaBell className="w-5 h-5 text-gray-600" />
-                <span className="absolute w-2 h-2 bg-red-500 rounded-full top-1 right-1"></span>
-              </button>
               {/* Search Bar */}
               <div className="relative w-72">
                 <input
@@ -388,11 +351,12 @@ const ScoreListPage = () => {
                       <td className="px-5 py-4">
                         {candidate.maxScore > 0 || candidate.totalScore > 0 ? (
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${candidate.maxScore > 0 &&
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                              candidate.maxScore > 0 &&
                               candidate.totalScore / candidate.maxScore >= 0.7
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                              }`}
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
                           >
                             {candidate.totalScore}/{candidate.maxScore}
                           </span>
@@ -468,7 +432,6 @@ const ScoreListPage = () => {
           setSelectedCandidate(null);
         }}
         onViewDetails={handleViewTestDetails}
-        onBack={handleBackToNotifications}
         candidate={selectedCandidate}
       />
       <TestModal
@@ -479,11 +442,6 @@ const ScoreListPage = () => {
         }}
         onBack={handleBackToComplaint}
         candidate={selectedCandidate}
-      />
-      <NotificationModal
-        isOpen={showNotificationModal}
-        onClose={() => setShowNotificationModal(false)}
-        onViewDetails={handleNotificationClick}
       />
     </div>
   );

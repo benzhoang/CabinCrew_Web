@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
-import { formatDate } from "../../config/formatDate.js";
 
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
@@ -64,6 +63,19 @@ const RequestTypeBadge = ({ type }) => {
   );
 };
 
+// Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+const getPositionColor = (position) => {
+  if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const pos = position.toLowerCase();
+  if (pos.includes("purser")) {
+    return "bg-orange-100 text-orange-800 border-orange-300";
+  } else if (pos.includes("cabin crew")) {
+    return "bg-teal-100 text-teal-800 border-teal-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
 const CampaignCard = ({ request }) => {
   const navigate = useNavigate();
 
@@ -75,10 +87,6 @@ const CampaignCard = ({ request }) => {
             <h3 className="text-base font-semibold text-gray-900 truncate">
               {request.campaignName}
             </h3>
-            <div className="text-xs text-slate-500">
-              Request ID:{" "}
-              <span className="font-medium">{request.requestId}</span>
-            </div>
           </div>
           <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 md:grid-cols-3 gap-x-8 gap-y-2">
             <div>
@@ -95,13 +103,27 @@ const CampaignCard = ({ request }) => {
               <span className="text-gray-500">Status:</span>{" "}
               <StatusBadge status={request.status} />
             </div>
+            {(request.requestType?.toLowerCase() === "promotion" ||
+              request.requestType?.toLowerCase() === "recruitment") &&
+              request.position && (
+                <div>
+                  <span className="text-gray-500">Position:</span>{" "}
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                      request.position
+                    )}`}
+                  >
+                    {request.position || "No position"}
+                  </span>
+                </div>
+              )}
             <div>
               <span className="text-gray-500">Target Quantity:</span>{" "}
               {request.targetQuantity}
             </div>
             <div>
               <span className="text-gray-500">Due date:</span>{" "}
-              {request.dueDate ? formatDate(request.dueDate) : "N/A"}
+              {request.dueDate || "No due date"}
             </div>
           </div>
           <div className="mt-4">{request.description || "No description"}</div>

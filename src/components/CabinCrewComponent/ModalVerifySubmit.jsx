@@ -72,7 +72,7 @@ const ModalVerifySubmit = ({
     if (answersArray.length === 0) {
       const confirmEmpty = window.confirm(
         t("submit_no_answers_warning") ||
-        "Bạn chưa trả lời câu hỏi nào. Bạn vẫn muốn nộp bài?"
+          "You have not answered any questions. Do you still want to submit the exam?"
       );
       if (!confirmEmpty) {
         return;
@@ -82,7 +82,7 @@ const ModalVerifySubmit = ({
     const testIdNum =
       typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (isNaN(testIdNum) || testIdNum <= 0) {
-      toast.error("Test ID không hợp lệ");
+      toast.error("Test ID not valid");
       return;
     }
 
@@ -172,7 +172,7 @@ const ModalVerifySubmit = ({
         onClose();
       } else {
         toast.error(
-          result.error || t("submit_exam_failed") || "Không thể nộp bài"
+          result.error || t("submit_exam_failed") || "Cannot submit exam"
         );
       }
     } catch (error) {
@@ -180,7 +180,7 @@ const ModalVerifySubmit = ({
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Đã xảy ra lỗi khi nộp bài";
+        "An error occurred while submitting the exam";
       toast.dismiss(toastId);
       toast.error(message);
     } finally {
@@ -220,10 +220,11 @@ const ModalVerifySubmit = ({
           </div>
           <div className="flex-1">
             <h3 className="mb-1 text-lg font-semibold text-gray-900">
-              {t("submit_exam") || "Nộp bài"}
+              {t("submit_exam") || "Submit exam"}
             </h3>
             <p className="text-sm text-gray-600">
-              {t("submit_confirm") || "Bạn có chắc chắn muốn nộp bài?"}
+              {t("submit_confirm") ||
+                "Are you sure you want to submit the exam?"}
             </p>
           </div>
         </div>
@@ -232,11 +233,12 @@ const ModalVerifySubmit = ({
         {hasUnanswered && (
           <div className="p-3 mt-3 border rounded-lg bg-amber-50 border-amber-200">
             <p className="text-sm font-medium text-amber-800">
-              ⚠️ {t("unanswered_questions") || "Số câu hỏi chưa làm"}:{" "}
+              ⚠️ {t("unanswered_questions") || "Number of unanswered questions"}
+              :{" "}
               <span className="font-bold text-amber-900">
                 {unansweredCount}
               </span>{" "}
-              {t("questions") || "câu"}
+              {t("questions") || "questions"}
             </p>
           </div>
         )}
@@ -246,19 +248,20 @@ const ModalVerifySubmit = ({
             onClick={handleClose}
             className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            {t("Hủy") || "Hủy"}
+            {t("Cancel") || "Cancel"}
           </button>
           <button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className={`px-4 py-2 text-white rounded-lg ${isSubmitting
-              ? "bg-green-300 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-              }`}
+            className={`px-4 py-2 text-white rounded-lg ${
+              isSubmitting
+                ? "bg-green-300 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
           >
             {isSubmitting
               ? t("submitting_exam") || "Submitting exam..."
-              : t("Nộp bài") || "Nộp bài"}
+              : t("Submit exam") || "Submit exam"}
           </button>
         </div>
       </div>

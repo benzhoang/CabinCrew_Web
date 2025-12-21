@@ -9,6 +9,8 @@ import {
   getNotifications,
   getUnreadNotificationCount,
 } from "../../service/api";
+import { FaBullhorn } from "react-icons/fa6";
+import { FaListCheck, FaBell, FaSignOutAlt, FaFileAlt } from "react-icons/fa";
 
 function getInitials(name) {
   if (!name) return "U";
@@ -18,89 +20,11 @@ function getInitials(name) {
   return (first + last).toUpperCase() || "U";
 }
 
-const StarIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M11.48 3.5a1 1 0 011.04 0l3.12 1.87 3.54.52a1 1 0 01.55 1.7l-2.56 2.5.6 3.5a1 1 0 01-1.45 1.06L12 13.9 8.68 15.7a1 1 0 01-1.45-1.06l.6-3.5L5.27 7.6a1 1 0 01.55-1.7l3.54-.52 3.12-1.87z" />
-  </svg>
-);
-
-const CampaignIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <path d="M3 3h18v18H3V3z" />
-    <path d="M9 9h6v6H9V9z" />
-    <path d="M12 3v18" />
-    <path d="M3 12h18" />
-  </svg>
-);
-
-// const ReportIcon = ({ className = "" }) => (
-//   <svg
-//     viewBox="0 0 24 24"
-//     fill="none"
-//     stroke="currentColor"
-//     strokeWidth="1.8"
-//     className={className}
-//   >
-//     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-//     <polyline points="14,2 14,8 20,8" />
-//     <line x1="16" y1="13" x2="8" y2="13" />
-//     <line x1="16" y1="17" x2="8" y2="17" />
-//     <polyline points="10,9 9,9 8,9" />
-//   </svg>
-// );
-
-const TaskIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <rect x="3" y="4" width="18" height="16" rx="2" />
-    <path d="M9 9h6" />
-    <path d="M9 13h6" />
-  </svg>
-);
-
-const BellIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 01-3.46 0" />
-  </svg>
-);
-
-const LogoutIcon = ({ className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    className={className}
-  >
-    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-    <polyline points="16,17 21,12 16,7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
 const navItems = [
-  { to: "/examiner/campaigns", key: "sidebar_campaign", icon: CampaignIcon },
-  { to: "/examiner/tasks", key: "sidebar_task", icon: TaskIcon },
+  { to: "/examiner/campaigns", key: "sidebar_campaign", icon: FaBullhorn },
+  { to: "/examiner/tasks", key: "sidebar_task", icon: FaListCheck },
   // { to: "/examiner/exam-campaigns", key: "Score", icon: ReportIcon },
-  { to: "/examiner/testing", key: "sidebar_testing", icon: StarIcon },
+  { to: "/examiner/testing", key: "sidebar_testing", icon: FaFileAlt },
 ];
 
 const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
@@ -142,13 +66,17 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
           const nameFromToken =
             decodedToken.fullName ||
             decodedToken.FullName ||
-            decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
-            decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/name"] ||
+            decodedToken[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            decodedToken[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/name"
+            ] ||
             decodedToken.name ||
             decodedToken.unique_name ||
             decodedToken.displayName ||
             decodedToken.DisplayName;
-          
+
           if (nameFromToken) {
             setDisplayName(nameFromToken);
             return;
@@ -181,7 +109,10 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
       // Fallback cuối cùng: dùng username prop
       setDisplayName(username);
     } catch (error) {
-      console.error("ExaminerSidebar: Cannot parse employee from localStorage or token", error);
+      console.error(
+        "ExaminerSidebar: Cannot parse employee from localStorage or token",
+        error
+      );
       setDisplayName(username);
     }
   }, [username]);
@@ -462,7 +393,7 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
           }}
           aria-label={`Thông báo (${notificationCount} chưa đọc)`}
         >
-          <BellIcon className="w-5 h-5" />
+          <FaBell className="w-5 h-5" />
           {notificationCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {notificationCount > 99 ? "99+" : notificationCount}
@@ -477,19 +408,28 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${isActive
-                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                : "text-slate-700 hover:bg-slate-100 border-transparent"
+              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${
+                isActive
+                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                  : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`
             }
           >
-            {(() => {
+            {({ isActive }) => {
               const Icon = item.icon;
               return (
-                <Icon className="h-4 w-4 shrink-0 text-slate-600 group-hover:text-slate-800 group-[.active]:text-white" />
+                <>
+                  <Icon
+                    className={`h-4 w-4 shrink-0 transition-colors ${
+                      isActive
+                        ? "text-white"
+                        : "text-slate-600 group-hover:text-slate-800"
+                    }`}
+                  />
+                  <span className="leading-5">{t(item.key)}</span>
+                </>
               );
-            })()}
-            <span className="leading-5">{t(item.key)}</span>
+            }}
           </NavLink>
         ))}
       </nav>
@@ -499,10 +439,10 @@ const ExaminerSidebar = ({ username = "Nguyễn Văn A" }) => {
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
         >
-          <LogoutIcon className="w-4 h-4 shrink-0" />
+          <FaSignOutAlt className="w-4 h-4 shrink-0" />
           <span className="leading-5">{t("sidebar_logout")}</span>
         </button>
-        <div className="mt-2 text-xs text-slate-500">
+        <div className="mt-2 text-xs text-slate-500 text-center">
           © {new Date().getFullYear()} Cabin HR
         </div>
       </div>

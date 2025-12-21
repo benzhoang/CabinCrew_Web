@@ -317,7 +317,7 @@ const AccountTable = ({
   }
 
   return (
-    <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
+    <div className="mt-10 overflow-hidden bg-white border border-gray-200 rounded-xl">
       <table className="min-w-full border-collapse table-fixed">
         <thead>
           <tr className="text-sm text-left text-gray-600 bg-gray-50">
@@ -351,7 +351,7 @@ const AccountTable = ({
           {paginatedUsers.length === 0 ? (
             <tr>
               <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
-                Không có dữ liệu
+                No data
               </td>
             </tr>
           ) : (
@@ -420,20 +420,20 @@ const AccountTable = ({
         onConfirm={handleConfirmAction}
         title={
           actionType === "enable"
-            ? "Xác nhận kích hoạt lại tài khoản"
-            : "Xác nhận vô hiệu hóa tài khoản"
+            ? "Confirm reactivate account"
+            : "Confirm disable account"
         }
         message={
           selectedUser
             ? actionType === "enable"
-              ? `Bạn có muốn kích hoạt lại tài khoản ${selectedUser.email}?`
-              : `Bạn có muốn vô hiệu hóa tài khoản ${selectedUser.email}?`
+              ? `Do you want to reactivate account ${selectedUser.email}?`
+              : `Do you want to disable account ${selectedUser.email}?`
             : actionType === "enable"
-            ? "Bạn có muốn kích hoạt lại tài khoản này?"
-            : "Bạn có muốn vô hiệu hóa tài khoản này?"
+            ? "Do you want to reactivate account?"
+            : "Do you want to disable account?"
         }
-        confirmText={actionType === "enable" ? "Kích hoạt" : "Vô hiệu hóa"}
-        cancelText="Hủy"
+        confirmText={actionType === "enable" ? "Reactivate" : "Disable"}
+        cancelText="Cancel"
         isLoading={isDeleting || isEnabling}
       />
     </div>

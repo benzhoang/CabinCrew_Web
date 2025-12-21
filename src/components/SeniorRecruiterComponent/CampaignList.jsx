@@ -149,6 +149,19 @@ const CampaignTypeBadge = ({ type }) => {
   );
 };
 
+// Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+const getPositionColor = (position) => {
+  if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const pos = position.toLowerCase();
+  if (pos.includes("purser")) {
+    return "bg-orange-100 text-orange-800 border-orange-300";
+  } else if (pos.includes("cabin crew")) {
+    return "bg-teal-100 text-teal-800 border-teal-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
 const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate();
 
@@ -180,13 +193,25 @@ const CampaignCard = ({ campaign }) => {
             {campaign.campaignType === "promotion" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>{campaign.position || "N/A"}</span>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                    campaign.position
+                  )}`}
+                >
+                  {campaign.position || "N/A"}
+                </span>
               </div>
             )}
             {campaign.campaignType === "recruitment" && (
               <div className="mt-2">
                 <span className="text-gray-500">Position:</span>{" "}
-                <span>{campaign.position || "N/A"}</span>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                    campaign.position
+                  )}`}
+                >
+                  {campaign.position || "N/A"}
+                </span>
               </div>
             )}
           </div>

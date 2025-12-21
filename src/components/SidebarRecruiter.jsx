@@ -2,10 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../images/Logo.png";
-import { t, onLangChange } from "../i18n";
+import { t } from "../i18n";
 import RecruiterNotificationModal from "./RecruiterNotificationModal";
 import signalRService from "../service/signalrService";
 import { getNotifications, getUnreadNotificationCount } from "../service/api";
+import { FaBullhorn } from "react-icons/fa6";
+import { FaListCheck, FaBell, FaSignOutAlt } from "react-icons/fa";
 
 // Hàm lấy chữ cái đầu tên
 function getInitials(name) {
@@ -16,65 +18,29 @@ function getInitials(name) {
   return (first + last).toUpperCase() || "U";
 }
 
-// Các icon
-const FolderIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <path d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-  </svg>
-);
-
-const CampaignIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <path d="M3 3h18v18H3V3z" />
-    <path d="M9 9h6v6H9V9z" />
-    <path d="M12 3v18" />
-    <path d="M3 12h18" />
-  </svg>
-);
-
-const TaskIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <rect x="3" y="4" width="18" height="16" rx="2" />
-    <path d="M9 9h6" />
-    <path d="M9 13h6" />
-  </svg>
-);
-
-const BellIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 01-3.46 0" />
-  </svg>
-);
-
-const LogoutIcon = ({ className = "" }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-    <polyline points="16,17 21,12 16,7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
 const navItems = [
-  { to: "/recruiter/campaigns", key: "sidebar_campaign", icon: CampaignIcon },
-  { to: "/recruiter/tasks", key: "sidebar_task", icon: TaskIcon }
+  { to: "/recruiter/campaigns", key: "sidebar_campaign", icon: FaBullhorn },
+  { to: "/recruiter/tasks", key: "sidebar_task", icon: FaListCheck },
 ];
 
 const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   // Lấy thông tin recruiter từ localStorage (được lưu sau khi đăng nhập)
   const [displayName, setDisplayName] = useState(username);
   const initials = getInitials(displayName);
-  const [, setLangTick] = useState(0);
 
   // Khởi tạo notificationCount từ localStorage để persist qua các lần re-mount
   const [notificationCount, setNotificationCount] = useState(() => {
-    const saved = localStorage.getItem('notificationCount');
+    const saved = localStorage.getItem("notificationCount");
     return saved ? parseInt(saved, 10) : 0;
   });
 
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [refreshModalTrigger, setRefreshModalTrigger] = useState(0);
-  const [toastData, setToastData] = useState({ show: false, title: "", body: "" });
+  const [toastData, setToastData] = useState({
+    show: false,
+    title: "",
+    body: "",
+  });
   const navigate = useNavigate();
   const hasFetchedInitialCount = useRef(false);
   const hasStartedSignalR = useRef(false);
@@ -83,7 +49,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   const updateNotificationCount = (newCount) => {
     console.log("📊 Update notification count:", newCount);
     setNotificationCount(newCount);
-    localStorage.setItem('notificationCount', newCount.toString());
+    localStorage.setItem("notificationCount", newCount.toString());
   };
 
   // Yêu cầu quyền thông báo khi lần đầu load
@@ -125,13 +91,17 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           const nameFromToken =
             decodedToken.fullName ||
             decodedToken.FullName ||
-            decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
-            decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/name"] ||
+            decodedToken[
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            ] ||
+            decodedToken[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/name"
+            ] ||
             decodedToken.name ||
             decodedToken.unique_name ||
             decodedToken.displayName ||
             decodedToken.DisplayName;
-          
+
           if (nameFromToken) {
             setDisplayName(nameFromToken);
             return;
@@ -157,7 +127,10 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
       // Fallback cuối cùng: dùng username prop
       setDisplayName(username);
     } catch (error) {
-      console.error("SidebarRecruiter: Cannot parse employee from localStorage or token", error);
+      console.error(
+        "SidebarRecruiter: Cannot parse employee from localStorage or token",
+        error
+      );
       setDisplayName(username);
     }
   }, [username]);
@@ -177,7 +150,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
         const result = await getUnreadNotificationCount();
         console.log("SidebarRecruiter: API response:", result);
 
-        if (result.success && typeof result.count === 'number') {
+        if (result.success && typeof result.count === "number") {
           console.log("SidebarRecruiter: ✅ Set count =", result.count);
           updateNotificationCount(result.count);
           return;
@@ -189,14 +162,23 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
         console.log("SidebarRecruiter: Kết quả getNotifications:", fallback);
 
         if (fallback.success && Array.isArray(fallback.data)) {
-          const unreadCount = fallback.data.filter(n => !n.isRead).length;
-          console.log("SidebarRecruiter: Tính được", unreadCount, "thông báo chưa đọc từ", fallback.data.length, "thông báo");
+          const unreadCount = fallback.data.filter((n) => !n.isRead).length;
+          console.log(
+            "SidebarRecruiter: Tính được",
+            unreadCount,
+            "thông báo chưa đọc từ",
+            fallback.data.length,
+            "thông báo"
+          );
           updateNotificationCount(unreadCount);
         } else {
           console.warn("SidebarRecruiter: Không thể lấy số thông báo");
         }
       } catch (error) {
-        console.error("SidebarRecruiter: Error fetching notification count:", error);
+        console.error(
+          "SidebarRecruiter: Error fetching notification count:",
+          error
+        );
       }
     };
 
@@ -214,23 +196,38 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
     hasStartedSignalR.current = true;
 
     const handleNewNotification = (notification) => {
-      console.log("SidebarRecruiter: Nhận được notification từ SignalR:", notification);
+      console.log(
+        "SidebarRecruiter: Nhận được notification từ SignalR:",
+        notification
+      );
 
       // Tăng badge ngay lập tức để UX tốt hơn
-      const currentCount = parseInt(localStorage.getItem('notificationCount') || '0', 10);
+      const currentCount = parseInt(
+        localStorage.getItem("notificationCount") || "0",
+        10
+      );
       const newCount = currentCount + 1;
-      console.log("SidebarRecruiter: Cập nhật badge từ", currentCount, "lên", newCount);
+      console.log(
+        "SidebarRecruiter: Cập nhật badge từ",
+        currentCount,
+        "lên",
+        newCount
+      );
       updateNotificationCount(newCount);
 
       // Trigger refresh modal
-      setRefreshModalTrigger(prev => prev + 1);
+      setRefreshModalTrigger((prev) => prev + 1);
       console.log("SidebarRecruiter: Đã trigger refresh modal");
 
       // Hiển thị toast ngay lập tức
       const toastTitle = notification.title || "Thông báo mới từ Cabin HR";
-      const toastBody = notification.body || notification.message || "Bạn có thông báo mới";
+      const toastBody =
+        notification.body || notification.message || "Bạn có thông báo mới";
 
-      console.log("SidebarRecruiter: Hiển thị toast với:", { title: toastTitle, body: toastBody });
+      console.log("SidebarRecruiter: Hiển thị toast với:", {
+        title: toastTitle,
+        body: toastBody,
+      });
       setToastData({
         show: true,
         title: toastTitle,
@@ -241,7 +238,10 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
       getUnreadNotificationCount()
         .then((res) => {
           if (res.success) {
-            console.log("SidebarRecruiter: Đồng bộ badge từ server:", res.count);
+            console.log(
+              "SidebarRecruiter: Đồng bộ badge từ server:",
+              res.count
+            );
             updateNotificationCount(res.count);
           } else {
             console.warn("SidebarRecruiter: Không thể đồng bộ badge từ server");
@@ -259,7 +259,9 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
               body: toastBody,
               icon: logo, // logo 192x192 đẹp nhất
               badge: logo,
-              tag: notification.notificationId ? `cabin-${notification.notificationId}` : "cabin-new",
+              tag: notification.notificationId
+                ? `cabin-${notification.notificationId}`
+                : "cabin-new",
               renotify: true,
               requireInteraction: false,
               silent: false,
@@ -276,11 +278,14 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
             setTimeout(() => notif.close(), 8000);
             console.log("SidebarRecruiter: Đã hiển thị browser notification");
           } catch (err) {
-            console.error("SidebarRecruiter: Lỗi khi tạo browser notification:", err);
+            console.error(
+              "SidebarRecruiter: Lỗi khi tạo browser notification:",
+              err
+            );
           }
         } else if (Notification.permission === "default") {
           // Nếu chưa cấp quyền → tự động hỏi lại (không làm phiền nhiều)
-          Notification.requestPermission().then(perm => {
+          Notification.requestPermission().then((perm) => {
             if (perm === "granted") {
               new Notification(toastTitle, {
                 body: toastBody,
@@ -296,7 +301,8 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
     const token = localStorage.getItem("token");
     if (token) {
       console.log("SidebarRecruiter: Có token, bắt đầu kết nối SignalR...");
-      signalRService.startConnection(handleNewNotification)
+      signalRService
+        .startConnection(handleNewNotification)
         .then(() => {
           console.log("SidebarRecruiter: SignalR connection đã được khởi tạo");
         })
@@ -304,11 +310,15 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           console.error("SidebarRecruiter: Không thể khởi tạo SignalR:", err);
         });
     } else {
-      console.warn("SidebarRecruiter: Không có token, không thể kết nối SignalR");
+      console.warn(
+        "SidebarRecruiter: Không có token, không thể kết nối SignalR"
+      );
     }
 
     return () => {
-      console.log("SidebarRecruiter: Component unmount, nhưng giữ SignalR connection active");
+      console.log(
+        "SidebarRecruiter: Component unmount, nhưng giữ SignalR connection active"
+      );
       // ✅ KHÔNG đóng connection để duy trì real-time notifications
       // Connection sẽ được maintain xuyên suốt session cho đến khi user logout
     };
@@ -317,7 +327,10 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
   // Tự ẩn toast sau 6s
   useEffect(() => {
     if (!toastData.show) return;
-    const timer = setTimeout(() => setToastData((prev) => ({ ...prev, show: false })), 6000);
+    const timer = setTimeout(
+      () => setToastData((prev) => ({ ...prev, show: false })),
+      6000
+    );
     return () => clearTimeout(timer);
   }, [toastData.show]);
 
@@ -343,7 +356,11 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
     <aside className="h-screen w-64 bg-white/95 backdrop-blur-sm border-r border-slate-200 flex flex-col">
       {/* Logo */}
       <div className="h-36 px-4 flex items-center justify-center border-b border-slate-200 bg-slate-50/70 shadow-inner">
-        <img src={logo} alt="Logo" className="h-24 w-auto object-contain drop-shadow-sm" />
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-24 w-auto object-contain drop-shadow-sm"
+        />
       </div>
 
       {/* User info + bell */}
@@ -352,7 +369,9 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           {initials}
         </div>
         <div className="flex flex-col flex-1">
-          <span className="text-sm text-slate-800 font-semibold tracking-tight">{displayName}</span>
+          <span className="text-sm text-slate-800 font-semibold tracking-tight">
+            {displayName}
+          </span>
           <span className="text-xs text-slate-500">{t("sidebar_role")}</span>
         </div>
 
@@ -364,7 +383,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           }}
           aria-label={`Thông báo (${notificationCount} chưa đọc)`}
         >
-          <BellIcon className="h-5 w-5" />
+          <FaBell className="h-5 w-5" />
           {notificationCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {notificationCount > 99 ? "99+" : notificationCount}
@@ -380,17 +399,28 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${isActive
-                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                : "text-slate-700 hover:bg-slate-100 border-transparent"
+              `group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all ${
+                isActive
+                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                  : "text-slate-700 hover:bg-slate-100 border-transparent"
               }`
             }
           >
-            {(() => {
+            {({ isActive }) => {
               const Icon = item.icon;
-              return <Icon className="h-4 w-4 shrink-0 text-slate-600 group-hover:text-slate-800 group-[.active]:text-white" />;
-            })()}
-            <span className="leading-5">{t(item.key)}</span>
+              return (
+                <>
+                  <Icon
+                    className={`h-4 w-4 shrink-0 transition-colors ${
+                      isActive
+                        ? "text-white"
+                        : "text-slate-600 group-hover:text-slate-800"
+                    }`}
+                  />
+                  <span className="leading-5">{t(item.key)}</span>
+                </>
+              );
+            }}
           </NavLink>
         ))}
       </nav>
@@ -401,7 +431,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
         >
-          <LogoutIcon className="h-4 w-4 shrink-0" />
+          <FaSignOutAlt className="h-4 w-4 shrink-0" />
           <span className="leading-5">{t("sidebar_logout")}</span>
         </button>
         <div className="text-xs text-slate-500 mt-2 text-center">
@@ -422,12 +452,13 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
         )}
 
       {/* Toast thông báo nhanh */}
-      {typeof window !== "undefined" && toastData.show && (
+      {typeof window !== "undefined" &&
+        toastData.show &&
         createPortal(
           <div
             className="fixed bottom-6 right-6 z-[9999] max-w-xs w-full bg-slate-900 text-white shadow-2xl rounded-lg overflow-hidden toast-enter"
             style={{
-              pointerEvents: "auto"
+              pointerEvents: "auto",
             }}
             role="alert"
             aria-live="assertive"
@@ -435,8 +466,12 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
             <div className="px-4 py-3 flex items-start gap-3">
               <div className="mt-0.5 h-2 w-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold break-words">{toastData.title || "Thông báo mới"}</div>
-                <div className="text-xs text-slate-200 mt-1 break-words">{toastData.body || "Bạn có thông báo mới"}</div>
+                <div className="text-sm font-semibold break-words">
+                  {toastData.title || "Thông báo mới"}
+                </div>
+                <div className="text-xs text-slate-200 mt-1 break-words">
+                  {toastData.body || "Bạn có thông báo mới"}
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -452,8 +487,7 @@ const SidebarRecruiter = ({ username = "Nguyễn Văn A" }) => {
             </div>
           </div>,
           document.body
-        )
-      )}
+        )}
     </aside>
   );
 };

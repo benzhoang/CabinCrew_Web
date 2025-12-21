@@ -1,15 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDate2 } from "../../../config/formatDate";
 
-const BatchCard = ({
-  batch,
-  statusCfg,
-  percent,
-  onViewApplicants,
-  showStatus,
-}) => {
-  const [openStats, setOpenStats] = useState(false);
+const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
   const isUpcoming = batch.status === "upcoming";
 
   const handleViewApplicants = () => {
@@ -33,7 +26,6 @@ const BatchCard = ({
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini label="Start time" value={formatDate2(batch.startDate)} />
           <InfoMini label="End time" value={formatDate2(batch.endDate)} />
-          <InfoMini label="Method" value={batch.method || "—"} />
           {batch.target !== undefined && (
             <InfoMini
               label="Target"
@@ -42,58 +34,6 @@ const BatchCard = ({
           )}
           {batch.note && <InfoMini label="Note" value={batch.note} />}
         </div>
-
-        {/* {(batch.totalApplicants !== undefined ||
-          batch.appliedCandidates !== undefined) && (
-          <div className="pt-3 border-t border-slate-100">
-            <button
-              onClick={() => setOpenStats(!openStats)}
-              className="flex items-center justify-between w-full text-xs font-medium transition text-slate-700 hover:text-blue-600"
-            >
-              <span>Applicant statistics</span>
-              <span>{openStats ? "▲" : "▼"}</span>
-            </button>
-            {openStats && (
-              <div className="mt-3">
-                <div className="grid grid-cols-2 gap-3">
-                  {batch.totalApplicants !== undefined && (
-                    <div className="p-3 rounded-lg bg-blue-50">
-                      <div className="mb-1 text-xs text-blue-600">
-                        Interested
-                      </div>
-                      <div className="text-lg font-bold text-blue-700">
-                        {batch.totalApplicants}
-                      </div>
-                    </div>
-                  )}
-                  {batch.appliedCandidates !== undefined && (
-                    <div className="p-3 rounded-lg bg-green-50">
-                      <div className="mb-1 text-xs text-green-600">Applied</div>
-                      <div className="text-lg font-bold text-green-700">
-                        {batch.appliedCandidates}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {batch.target !== undefined && (
-          <div className="pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-1 text-xs text-slate-600">
-              <span>Recruitment progress</span>
-              <span>{percent}%</span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-slate-200">
-              <div
-                className="h-2 transition-all duration-300 bg-blue-600 rounded-full"
-                style={{ width: `${percent}%` }}
-              ></div>
-            </div>
-          </div>
-        )} */}
 
         <div className="pt-3 border-t border-slate-100">
           <button
@@ -156,9 +96,6 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
       name: round.roundName || round.name || `Round ${round.campaignRoundId}`,
       startDate: round.startDate,
       endDate: round.endDate,
-      location: round.location || "—",
-      method: round.method || "Direct",
-      owner: round.owner || "—",
       status:
         statusMap[round.status] || round.status?.toLowerCase() || "planned",
       current:
