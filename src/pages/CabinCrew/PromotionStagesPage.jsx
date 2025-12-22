@@ -301,10 +301,11 @@ const PromotionStagesPage = () => {
           </div>
           <div className="p-6">
             {loading && (
-              <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
-                <div className="py-8 text-center text-gray-600">
-                  Loading data...
-                </div>
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-sm text-gray-600">
+                  {t("loading_data") || "Loading data..."}
+                </p>
               </div>
             )}
 

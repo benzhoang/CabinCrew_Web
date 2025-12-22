@@ -142,9 +142,14 @@ const PracticalTestReportPage = () => {
   // Nếu đang loading, hiển thị loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
-        <div className="text-center">
-          <p className="text-gray-600">{t("loading") || "Loading..."}</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-sm text-gray-600">
+              {t("loading") || t("loading_data") || "Loading..."}
+            </p>
+          </div>
         </div>
       </div>
     );

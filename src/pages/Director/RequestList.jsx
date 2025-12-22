@@ -294,8 +294,11 @@ const RequestList = () => {
     if (loading) {
         return (
             <div className="p-6">
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-slate-600">Loading data...</p>
+                <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-sm text-gray-600">
+                        {t('loading_data') || 'Loading data...'}
+                    </p>
                 </div>
             </div>
         )

@@ -276,8 +276,11 @@ const Recruiment = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {isLoading && (
-                        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-12 text-center text-slate-500">
-                            {t('loading_campaigns')}
+                        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 p-12 text-center">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <p className="mt-4 text-sm text-gray-600">
+                                {t('loading_campaigns') || t('loading_data') || 'Loading campaigns...'}
+                            </p>
                         </div>
                     )}
                     {!isLoading && filtered.map(c => (

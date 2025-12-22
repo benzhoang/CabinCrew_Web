@@ -92,6 +92,7 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
         actualQuantiy: round.actualQuantiy || 0,
         startDate: round.startDate || "",
         endDate: round.endDate || "",
+        hasApplied: round.hasApplied || false,
       }))
       : [],
     ...apiData,
@@ -295,8 +296,13 @@ const PromotionApplyPage = () => {
   // Show full-page loading when fetching campaign data, requirements, or round types
   if (isLoading || isLoadingRequirements || isLoadingRoundTypes) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Loading campaign information...</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl px-4 py-8 mx-auto">
+          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-sm text-gray-600">Loading campaign information...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -562,6 +568,7 @@ const PromotionApplyPage = () => {
                           {b.status === "ongoing" && (
                             <button
                               onClick={() =>
+                                !b.hasApplied &&
                                 navigate(
                                   `/cabin-crew/application-form/${b.campaignRoundId || b.id || ""
                                   }`,
@@ -570,9 +577,13 @@ const PromotionApplyPage = () => {
                                   }
                                 )
                               }
-                              className="px-5 py-2.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-semibold"
+                              disabled={b.hasApplied}
+                              className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                                }`}
                             >
-                              Apply now
+                              {b.hasApplied ? "Already applied" : "Apply now"}
                             </button>
                           )}
                         </div>

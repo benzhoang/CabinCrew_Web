@@ -398,8 +398,11 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Loading campaign information...</div>
+      <div className="w-full h-full">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading campaign information...</p>
+        </div>
       </div>
     );
   }
