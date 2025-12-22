@@ -446,8 +446,11 @@ const Tasks = () => {
 
                 <div className="divide-y divide-slate-200">
                     {isLoading && (
-                        <div className="p-6 text-center text-slate-500">
-                            Loading task list...
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <p className="mt-4 text-sm text-gray-600">
+                                {t('loading_data') || 'Loading task list...'}
+                            </p>
                         </div>
                     )}
 

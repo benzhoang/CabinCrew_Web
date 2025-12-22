@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { FiLoader } from 'react-icons/fi'
 import { getCampaignById, getOngoingCampaign, getRequirementItems, getRoundTypes } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
@@ -237,7 +236,8 @@ const Apply = () => {
                             applied: round.actualQuantiy !== undefined ? round.actualQuantiy : (round.applied || 0), // Lưu ý: API có typo actualQuantiy
                             actualQuantiy: round.actualQuantiy || 0,
                             startDate: round.startDate || '',
-                            endDate: round.endDate || ''
+                            endDate: round.endDate || '',
+                            hasApplied: round.hasApplied || false // Thêm trường hasApplied từ API
                         }
                     }) : [],
                     // Giữ lại các trường khác từ API để đảm bảo không mất dữ liệu
@@ -390,10 +390,8 @@ const Apply = () => {
             <div className="max-w-5xl mx-auto px-4 py-8">
                 {isLoading ? (
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                        <div className="flex items-center justify-center gap-3">
-                            <FiLoader className="w-6 h-6 animate-spin text-indigo-600" />
-                            <p className="text-gray-600">Loading campaign information...</p>
-                        </div>
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <p className="mt-4 text-sm text-gray-600">Loading campaign information...</p>
                     </div>
                 ) : error ? (
                     <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
@@ -556,13 +554,13 @@ const Apply = () => {
                                                         {b.status === 'ongoing' && (
                                                             <button
                                                                 onClick={() => navigate(`/application-form/${b.campaignRoundId}`, { state: { campaign: campaign, batch: b } })}
-                                                                disabled={isBatchApplied(b)}
-                                                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${isBatchApplied(b)
+                                                                disabled={b.hasApplied === true}
+                                                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied === true
                                                                     ? 'bg-gray-400 cursor-not-allowed opacity-60'
                                                                     : 'bg-green-600 hover:bg-green-700'
                                                                     }`}
                                                             >
-                                                                {isBatchApplied(b) ? 'Already applied' : 'Apply now'}
+                                                                {b.hasApplied === true ? 'Already applied' : 'Apply now'}
                                                             </button>
                                                         )}
                                                     </div>

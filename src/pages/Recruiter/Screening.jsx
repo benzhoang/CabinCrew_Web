@@ -401,8 +401,9 @@ const Screening = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
                         <h3 className="text-lg font-semibold text-slate-800 mb-4">Batch Information</h3>
                         {loadingRoundData ? (
-                            <div className="text-center py-4">
-                                <p className="text-slate-500">Loading batch information...</p>
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <p className="mt-4 text-sm text-gray-600">Loading batch information...</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -483,8 +484,9 @@ const Screening = () => {
 
                         <div className="overflow-x-auto">
                             {loadingParticipants ? (
-                                <div className="p-12 text-center">
-                                    <p className="text-slate-500">Loading applicant list...</p>
+                                <div className="text-center py-12">
+                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <p className="mt-4 text-sm text-gray-600">Loading applicant list...</p>
                                 </div>
                             ) : (
                                 <table className="w-full">

@@ -246,8 +246,8 @@ const PromotionPage = () => {
           setCampaigns([]);
           setError(
             response.error ||
-              response.message ||
-              "Cannot get the list of promotion campaigns"
+            response.message ||
+            "Cannot get the list of promotion campaigns"
           );
         }
       } catch (err) {
@@ -334,8 +334,11 @@ const PromotionPage = () => {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {isLoading && (
-            <div className="p-12 text-center bg-white border border-gray-200 md:col-span-2 rounded-xl text-slate-500">
-              Loading promotion campaigns...
+            <div className="p-12 text-center bg-white border border-gray-200 md:col-span-2 rounded-xl">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-sm text-gray-600">
+                Loading promotion campaigns...
+              </p>
             </div>
           )}
           {!isLoading &&
@@ -361,11 +364,10 @@ const PromotionPage = () => {
                       )}
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
-                        c.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                        }`}
                     >
                       {c.status === "active" ? "Ongoing" : "Ended"}
                     </span>

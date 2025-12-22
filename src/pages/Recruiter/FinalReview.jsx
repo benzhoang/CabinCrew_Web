@@ -324,8 +324,9 @@ const FinalReview = () => {
                     </div>
 
                     {loadingCandidates ? (
-                        <div className="p-12 text-center text-slate-500 text-sm">
-                            Loading candidate list...
+                        <div className="text-center py-12">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <p className="mt-4 text-sm text-gray-600">Loading candidate list...</p>
                         </div>
                     ) : (
                         <>

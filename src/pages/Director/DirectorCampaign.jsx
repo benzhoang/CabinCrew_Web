@@ -677,8 +677,11 @@ const DirectorCampaign = () => {
 
             {/* Campaign Cards */}
             {isLoading ? (
-                <div className="py-12 text-center">
-                    <p className="text-slate-500">Loading data...</p>
+                <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-sm text-gray-600">
+                        {t('loading_data') || 'Loading data...'}
+                    </p>
                 </div>
             ) : filteredCampaigns.length === 0 ? (
                 <div className="py-12 text-center">

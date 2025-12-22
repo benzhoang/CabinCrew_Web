@@ -6,7 +6,6 @@ import PersonalInformation from "../../components/SettingsComponents/PersonalInf
 import AccountInformation from "../../components/SettingsComponents/AccountInformation";
 import AddressInformation from "../../components/SettingsComponents/AddressInformation";
 import UpdateProfileButton from "../../components/SettingsComponents/UpdateProfileButton";
-import Loading from "../../components/Loading";
 
 const SettingsPage = () => {
   const [, setTick] = useState(0);
@@ -654,21 +653,26 @@ const SettingsPage = () => {
   };
 
   return (
-    <>
-      {isLoading && <Loading message={t("loading_profile_data")} />}
-      <div className="min-h-screen py-8 bg-gray-50">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {t("user_profile")}
-            </h1>
-            <p className="mt-2 text-gray-600">
-              Manage your personal information
-            </p>
-          </div>
+    <div className="min-h-screen py-8 bg-gray-50">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t("user_profile")}
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Manage your personal information
+          </p>
+        </div>
 
-          {/* CV Layout - 2 Columns */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-sm text-gray-600">{t("loading_data")}</p>
+          </div>
+        )}
+
+        {!isLoading && (
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 gap-8 lg:grid-cols-3"
@@ -701,9 +705,9 @@ const SettingsPage = () => {
               />
             </div>
           </form>
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
