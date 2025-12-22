@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 const ApplyList = ({
   campaignRoundId,
   campaignId,
+  batchData,
   availableRounds,
   loadingRoundData,
   participants,
@@ -159,30 +160,27 @@ const ApplyList = ({
   }, [activeRoundForTests]);
 
   // Find next round based on current test type
+  // Yêu cầu mới: tất cả test rounds (Listening / Speaking / Practical)
+  // đều chuyển sang Interview
   const getNextRound = useMemo(() => {
     if (!activeRoundForTests || !availableRounds.length) return null;
 
     const currentTestType = getCurrentTestType;
 
-    if (currentTestType === "listening") {
-      // Tìm Speaking Test round
-      const speakingRound = availableRounds.find((round) => {
-        const roundName = (round.roundName || "").toLowerCase();
-        const testType = round.testType;
-        return testType === 2 || roundName.includes("speaking");
-      });
-      return speakingRound;
-    }
-
-    if (currentTestType === "speaking" || currentTestType === "practical") {
-      // Tìm Interview round
-      const interviewRound = availableRounds.find((round) => {
+    const findInterviewRound = () =>
+      availableRounds.find((round) => {
         const roundName = (round.roundName || "").toLowerCase();
         return (
           roundName.includes("interview") || roundName.includes("phỏng vấn")
         );
       });
-      return interviewRound;
+
+    if (
+      currentTestType === "listening" ||
+      currentTestType === "speaking" ||
+      currentTestType === "practical"
+    ) {
+      return findInterviewRound();
     }
 
     return null;
@@ -305,21 +303,14 @@ const ApplyList = ({
 
   // Confirmation message for modal
   const confirmMessage = useMemo(() => {
-    if (!activeRoundForTests) return "Do you want to approve moving to next round?";
-
-    const currentTestType = getCurrentTestType;
-    const nextRound = getNextRound;
-
-    if (currentTestType === "listening" && nextRound) {
-      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else if (currentTestType === "speaking" && nextRound) {
-      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else if (currentTestType === "practical" && nextRound) {
-      return `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else {
-      return `Move all applicants from "${activeRoundForTests.roundName}" to the next round?`;
+    if (!activeRoundForTests) {
+      return "Do you want to finalize this round?";
     }
-  }, [activeRoundForTests, getCurrentTestType, getNextRound]);
+
+    const roundName = activeRoundForTests.roundName || "this round";
+    // Ví dụ: Do you want to finalize the "English Listening Test" round?
+    return `Do you want to finalize the "${roundName}" round?`;
+  }, [activeRoundForTests]);
 
   const getApplicantStatusBadge = (status) => {
     // Normalize status to handle case variations
@@ -443,6 +434,7 @@ const ApplyList = ({
     navigate(targetRoute, {
       state: {
         candidate: applicant,
+        batchData,
       },
     });
   };
@@ -582,21 +574,6 @@ const ApplyList = ({
     }
 
     setIsConfirmMoveOpen(false);
-
-    const currentTestType = getCurrentTestType;
-    const nextRound = getNextRound;
-
-    // Determine confirm message by test type
-    let confirmMessage = "";
-    if (currentTestType === "listening" && nextRound) {
-      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else if (currentTestType === "speaking" && nextRound) {
-      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else if (currentTestType === "practical" && nextRound) {
-      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to "${nextRound.roundName}"?`;
-    } else {
-      confirmMessage = `Move all applicants from "${activeRoundForTests.roundName}" to the next round?`;
-    }
 
     setIsMovingToInterview(true);
     try {

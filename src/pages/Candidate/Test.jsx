@@ -76,11 +76,11 @@ const Test = () => {
 
                         return {
                             id: test.testId,
-                            name: test.testName || 'Đề thi',
+                            name: test.testName || 'Test',
                             code: test.joinCode || '',
                             duration: test.durationInMinutes || 0,
                             totalQuestions: 0, // API không trả về, có thể cần gọi API khác
-                            description: `Đề thi ${examType} - Round ${test.roundId || ''}`,
+                            description: `Test ${examType}`,
                             type: examType,
                             maxScore: test.maxScore || 0,
                             roundId: test.roundId,
@@ -114,11 +114,11 @@ const Test = () => {
                             const testsArray = rawData.tests;
 
                             const mappedExams = testsArray.map((test) => {
-                                let examType = 'Listening';
+                                let examType = 'English Listening';
                                 if (test.testType === 'EnglishListening') {
-                                    examType = 'Listening';
+                                    examType = 'English Listening';
                                 } else if (test.testType === 'EnglishSpeaking') {
-                                    examType = 'Speaking';
+                                    examType = 'English Speaking';
                                 } else if (test.testType === 'Practical') {
                                     examType = 'Practical';
                                 }
@@ -237,7 +237,7 @@ const Test = () => {
 
                 navigate(`/exam/${selectedExam.id}`, {
                     state: {
-                        examType: selectedExam.type || 'Listening',
+                        examType: selectedExam.type || 'English Listening',
                         examId: selectedExam.id,
                         examName: selectedExam.name,
                         examCode: selectedExam.code,

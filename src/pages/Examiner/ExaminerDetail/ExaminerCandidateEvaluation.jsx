@@ -190,6 +190,21 @@ const ExaminerCandidateEvaluation = () => {
         })
     }
 
+    const navigateBackToApplications = () => {
+        if (batchData?.campaignId && batchData?.campaignRoundId) {
+            navigate(
+                `/examiner/campaigns/${batchData.campaignId}/applications/${batchData.campaignRoundId}`,
+                {
+                    state: {
+                        roundId: batchData.roundId
+                    }
+                }
+            )
+        } else {
+            navigate(-1)
+        }
+    }
+
     const handleSubmit = async () => {
         // Do not allow more than 3 submissions
         if (submittedCount >= 3) {
@@ -225,25 +240,14 @@ const ExaminerCandidateEvaluation = () => {
             })
 
             if (response.success) {
-                toast.success('Submitted evaluation successfully!', {
-                    style: {
-                        background: '#16a34a',
-                        color: '#ffffff'
-                    },
-                    progressStyle: { background: '#22c55e' }
-                })
+                // Thông báo kiểu mặc định (nền trắng) giống CabinCrew evaluation page
+                toast.success('Submitted evaluation successfully!')
                 // Increase submission count
                 const newCount = submittedCount + 1
                 setSubmittedCount(newCount)
                 setSubmittedOnce(true)
-                // If less than 3, go back
-                if (newCount < 3) {
-                    if (batchData) {
-                        navigate('/examiner/applications', { state: batchData })
-                    } else {
-                        navigate(-1)
-                    }
-                }
+                // Sau khi chấm (kể cả lần cuối) đều quay về danh sách applications của round
+                navigateBackToApplications()
             } else {
                 toast.error(response.error || 'Unable to submit evaluation. Please try again.')
             }
@@ -282,13 +286,7 @@ const ExaminerCandidateEvaluation = () => {
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => {
-                                    if (batchData) {
-                                        navigate('/examiner/applications', { state: batchData })
-                                    } else {
-                                        navigate(-1)
-                                    }
-                                }}
+                                onClick={navigateBackToApplications}
                                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

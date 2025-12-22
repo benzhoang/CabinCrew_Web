@@ -112,6 +112,13 @@ const RecruitmentStages = () => {
                     // Xác định currentStage dựa trên rounds
                     const rounds = campaignData.rounds || [];
 
+                    // Nếu không có round nào -> coi như chưa có ứng tuyển nào, hiển thị empty state
+                    if (!Array.isArray(rounds) || rounds.length === 0) {
+                        setRecruitmentStages([]);
+                        setError(null);
+                        return;
+                    }
+
                     // Map rounds thành stages với thông tin completed, đảm bảo luôn đủ 6 vòng
                     const mappedStages = defaultStageTemplates.map((template, index) => {
                         const matchingRound = rounds.find((round) => doesRoundMatchStage(round, template));
@@ -191,13 +198,22 @@ const RecruitmentStages = () => {
                     setRecruitmentStages([mappedData]);
                     setError(null);
                 } else {
+                    // Nếu API trả về không thành công hoặc không có data
+                    // -> coi như không có ứng tuyển, hiển thị empty state đẹp thay vì error
                     setRecruitmentStages([]);
-                    setError(result.error || 'Không có chiến dịch đang ứng tuyển');
+                    setError(null);
                 }
             } catch (err) {
                 console.error('Error fetching ongoing campaign:', err);
-                setError('Đã xảy ra lỗi khi tải dữ liệu');
-                setRecruitmentStages([]);
+                // Nếu server trả 404 hoặc tương tự -> coi như không có ứng tuyển
+                const status = err?.status || err?.response?.status;
+                if (status === 404) {
+                    setRecruitmentStages([]);
+                    setError(null);
+                } else {
+                    setError('Đã xảy ra lỗi khi tải dữ liệu');
+                    setRecruitmentStages([]);
+                }
             } finally {
                 setLoading(false);
             }
@@ -378,7 +394,31 @@ const RecruitmentStages = () => {
                                 <p className="mt-1 text-sm text-gray-500">{t('no_ongoing_campaign_desc')}</p>
                             </div>
                         )}
-                        {!loading && !error && recruitmentStages.map((application) => (
+                        {/* Empty State (if no applications) - hiển thị TRONG khung */}
+                        {!loading && !error && recruitmentStages.length === 0 && (
+                            <div className="text-center py-16">
+                                <svg
+                                    className="mx-auto h-12 w-12 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                                <h3 className="mt-4 text-base font-semibold text-gray-900">
+                                    No applications yet
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    You haven't applied to any jobs yet. Start browsing for suitable opportunities.
+                                </p>
+                            </div>
+                        )}
+                        {!loading && !error && recruitmentStages.length > 0 && recruitmentStages.map((application) => (
                             <div key={`stages-${application.id}`} className="mb-8 last:mb-0">
                                 <div className="mb-4">
                                     <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -580,22 +620,6 @@ const RecruitmentStages = () => {
                         ))}
                     </div>
                 </div>
-
-                {/* Empty State (if no applications) */}
-                {!loading && !error && recruitmentStages.length === 0 && (
-                    <div className="text-center py-12">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_applications_title')}</h3>
-                        <p className="mt-1 text-sm text-gray-500">{t('no_applications_desc')}</p>
-                        <div className="mt-6">
-                            <button className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                {t('find_jobs_now')}
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

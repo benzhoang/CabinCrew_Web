@@ -483,15 +483,9 @@ const BatchDetailPage = () => {
       console.log("Import result:", result);
 
       if (result.success) {
-        // Hiển thị toast thành công
-        const message =
-          result.message ||
-          `Import successful! Processed ${
-            result.totalProcessed || 0
-          } applicants (${result.passedCount || 0} passed, ${
-            result.failedCount || 0
-          } failed).`;
-        toast.success(message, {
+        // Hiển thị toast thành công ngắn gọn (chi tiết đã hiển thị trong modal)
+        const toastMessage = "Flight time confirmed successfully.";
+        toast.success(toastMessage, {
           position: "top-right",
           autoClose: 3000,
         });
@@ -616,12 +610,10 @@ const BatchDetailPage = () => {
                   <span className="text-sm text-slate-600">Target:</span>
                   <p className="font-medium text-slate-800">
                     {campaignRoundData
-                      ? `${campaignRoundData.actualQuantiy || 0}/${
-                          campaignRoundData.targetQuantity || 0
-                        }`
-                      : `${batchData.batch?.current || 0}/${
-                          batchData.batch?.target || 0
-                        }`}
+                      ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
+                      }`
+                      : `${batchData.batch?.current || 0}/${batchData.batch?.target || 0
+                      }`}
                   </p>
                 </div>
               </div>
@@ -779,8 +771,8 @@ const BatchDetailPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getRoundBadge(
                             applicant.roundId ||
-                              applicant.roundName ||
-                              applicant.round,
+                            applicant.roundName ||
+                            applicant.round,
                             applicant
                           )}
                         </td>

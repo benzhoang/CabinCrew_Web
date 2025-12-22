@@ -36,6 +36,21 @@ const ExaminerCabinCrewEvaluationPage = () => {
     return () => off();
   }, []);
 
+  const navigateBackToApplications = () => {
+    if (batchData?.campaignId && batchData?.campaignRoundId) {
+      navigate(
+        `/examiner/campaigns/${batchData.campaignId}/applications/${batchData.campaignRoundId}`,
+        {
+          state: {
+            roundId: batchData.roundId,
+          },
+        }
+      );
+    } else {
+      navigate(-1);
+    }
+  };
+
   // Fetch interview criteria data
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -206,15 +221,8 @@ const ExaminerCabinCrewEvaluationPage = () => {
         // Increment submitted count
         const newCount = submittedCount + 1;
         setSubmittedCount(newCount);
-        // If not yet 3 times, navigate back to list
-        if (newCount < 3) {
-          if (batchData) {
-            navigate("/examiner/applications", { state: batchData });
-          } else {
-            navigate(-1); // Go back to previous page
-          }
-        }
-        // If already 3 times, button will automatically hide (no need to reload)
+        // Sau khi chấm (kể cả lần cuối) đều quay về danh sách applications của round
+        navigateBackToApplications();
       } else {
         toast.error(
           response.error || "Failed to submit evaluation. Please try again."
@@ -254,7 +262,7 @@ const ExaminerCabinCrewEvaluationPage = () => {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate(-1)}
+                onClick={navigateBackToApplications}
                 className="p-2 transition-colors rounded-lg hover:bg-white/10"
               >
                 <svg

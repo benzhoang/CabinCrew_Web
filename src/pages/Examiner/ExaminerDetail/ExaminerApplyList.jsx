@@ -242,6 +242,11 @@ const ExaminerApplyList = () => {
         <ApplyList
           campaignRoundId={campaignRoundId}
           campaignId={campaignId}
+          batchData={{
+            campaignId,
+            campaignRoundId,
+            roundId: roundFilter,
+          }}
           availableRounds={availableRounds}
           loadingRoundData={loadingRoundData}
           participants={participants}

@@ -71,13 +71,18 @@ const ImportQuestionModal = ({ isOpen, onClose, testId, onSuccess }) => {
       const response = await importQuestionsFromExcel(testId, selectedFile);
 
       if (response.success) {
-        // Hiển thị toast thành công (màu xanh)
-        const successMessage = response.message || `Đã import thành công ${response.data?.totalQuestionsCreated || 0} câu hỏi.`;
-        toast.success(successMessage, {
+        // Thông báo toast ngắn gọn, thống nhất: nền trắng mặc định
+        const toastMessage = "Import Questions Successfully";
+        const successMessage =
+          response.message ||
+          `Đã import thành công ${response.data?.totalQuestionsCreated || 0} câu hỏi.`;
+
+        toast.success(toastMessage, {
           position: "top-right",
           autoClose: 2000,
         });
 
+        // Hiển thị chi tiết kết quả (số câu, cảnh báo...) trong panel bên trong modal
         setStatus({
           type: 'success',
           message: successMessage,
