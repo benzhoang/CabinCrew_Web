@@ -60,6 +60,7 @@ const ProfilePage = () => {
         dateOfBirth: '',
         gender: '',
         mobileNumber: '',
+        citizenId: '',
         workingExperience: '',
         height: '',
         weight: '',
@@ -374,9 +375,9 @@ const ProfilePage = () => {
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
                     }
-                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender)
+                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender, citizenId)
                     // The new API includes all user profile fields in the response
-                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined) {
+                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined || appData.citizenId) {
                         // Map gender: API returns string or integer, form needs "male" or "female"
                         let genderValue = ''
                         if (appData.gender !== undefined && appData.gender !== null) {
@@ -396,6 +397,7 @@ const ProfilePage = () => {
                                 dateOfBirth: appData.dateOfBirth ? formatDateForInput(appData.dateOfBirth) : (prev.dateOfBirth || ''),
                                 gender: genderValue || prev.gender || '',
                                 mobileNumber: appData.phoneNumber || prev.mobileNumber || '',
+                                citizenId: appData.citizenId || appData.citizenID || appData.citizen_id || prev.citizenId || '',
                             }
                             // Keep certificateExpireDate from API if it was set
                             if (prev.certificateExpireDate) {
@@ -417,6 +419,7 @@ const ProfilePage = () => {
                                     dateOfBirth: userData.dateOfBirth || prev.dateOfBirth || '',
                                     gender: userData.gender || prev.gender || '',
                                     mobileNumber: userData.mobileNumber || userData.phoneNumber || prev.mobileNumber || '',
+                                    citizenId: userData.citizenId || userData.citizenID || userData.citizen_id || prev.citizenId || '',
                                 }
                                 if (prev.certificateExpireDate) {
                                     updated.certificateExpireDate = prev.certificateExpireDate
@@ -1058,13 +1061,26 @@ const ProfilePage = () => {
                                             required
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Citizen ID:</label>
+                                        <input
+                                            type="text"
+                                            name="citizenId"
+                                            value={formData.citizenId}
+                                            onChange={handleInputChange}
+                                            placeholder="001234567890"
+                                            disabled={!isEditing}
+                                            className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing ? 'bg-slate-100 cursor-not-allowed' : 'bg-slate-50'}`}
+                                            required
+                                        />
+                                    </div>
                                     {formData.experience && (
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">6. Work experience:</label>
+                                            <label className="block text-sm font-medium text-slate-700 mb-1">7. Work experience:</label>
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Height & Weight:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>

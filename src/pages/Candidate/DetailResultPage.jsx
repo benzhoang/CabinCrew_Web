@@ -256,13 +256,18 @@ const DetailResultPage = () => {
                                                             <p className="text-sm text-gray-600 mt-1">{group.description}</p>
                                                         )}
                                                     </div>
-                                                    <table className="min-w-full divide-y divide-gray-200">
+                                                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                                                        <colgroup>
+                                                            <col className="w-1/3" />
+                                                            <col className="w-24" />
+                                                            <col className="w-1/3" />
+                                                        </colgroup>
                                                         <thead className="bg-gray-50">
                                                             <tr>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                                     Criteria
                                                                 </th>
-                                                                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-28">
+                                                                <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                                     Score
                                                                 </th>
                                                                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -288,7 +293,7 @@ const DetailResultPage = () => {
                                                                                     </p>
                                                                                 )}
                                                                             </td>
-                                                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-center">
                                                                                 {resultItem.score !== undefined && resultItem.score !== null ? resultItem.score : '—'}
                                                                             </td>
                                                                             <td className="px-4 py-3 text-sm text-gray-600">
@@ -316,11 +321,16 @@ const DetailResultPage = () => {
                             {criteriaGroups.length === 0 && interviewResults.length > 0 && (
                                 <section>
                                     <div className="overflow-hidden border border-gray-200 rounded-lg">
-                                        <table className="min-w-full divide-y divide-gray-200">
+                                        <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                                            <colgroup>
+                                                <col className="w-1/2" />
+                                                <col className="w-24" />
+                                                <col className="w-1/2" />
+                                            </colgroup>
                                             <thead className="bg-gray-50">
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
@@ -333,7 +343,7 @@ const DetailResultPage = () => {
                                                                 item?.interviewCriteriaItemId ??
                                                                 '—'}
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-center">
                                                             {item.score !== undefined && item.score !== null ? item.score : '—'}
                                                         </td>
                                                         <td className="px-4 py-3 text-sm text-gray-600">
@@ -351,11 +361,16 @@ const DetailResultPage = () => {
                                 <section>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Other criteria</h3>
                                     <div className="overflow-hidden border border-gray-200 rounded-lg">
-                                        <table className="min-w-full divide-y divide-gray-200">
+                                        <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                                            <colgroup>
+                                                <col className="w-1/2" />
+                                                <col className="w-24" />
+                                                <col className="w-1/2" />
+                                            </colgroup>
                                             <thead className="bg-gray-50">
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+                                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
                                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment</th>
                                                 </tr>
                                             </thead>
@@ -365,7 +380,7 @@ const DetailResultPage = () => {
                                                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                                             {item?.criteria || item?.interviewCriteriaItemId || '—'}
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-center">
                                                             {item.score !== undefined && item.score !== null ? item.score : '—'}
                                                         </td>
                                                         <td className="px-4 py-3 text-sm text-gray-600">
@@ -398,4 +413,3 @@ const DetailResultPage = () => {
 }
 
 export default DetailResultPage
-
