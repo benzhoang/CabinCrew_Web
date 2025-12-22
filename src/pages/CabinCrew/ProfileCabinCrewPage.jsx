@@ -61,6 +61,7 @@ const ProfileCabinCrewPage = () => {
         dateOfBirth: '',
         gender: '',
         mobileNumber: '',
+        citizenId: '',
         workingExperience: '',
         experience: '',
         experienceOther: '',
@@ -329,16 +330,27 @@ const ProfileCabinCrewPage = () => {
                         console.warn('endDate is null, undefined, or empty')
                     }
                     console.log('Final formattedEndDate:', formattedEndDate)
-                    // Map experience field - check if it matches dropdown options
+                    // Map experience field - check if it matches dropdown options (VN + EN legacy)
                     let experienceValue = ''
                     let experienceOtherValue = ''
                     if (appData.experience) {
                         const expStr = String(appData.experience).trim()
-                        const dropdownOptions = ['1 year', '2 years', '3-5 years']
-                        if (dropdownOptions.includes(expStr)) {
-                            experienceValue = expStr
+                        // Hỗ trợ cả tiếng Việt và tiếng Anh / số năm
+                        const normalized = expStr.toLowerCase()
+                        if (
+                            ['1 năm', '1 year', '1yr', '1'].includes(normalized)
+                        ) {
+                            experienceValue = '1 năm'
+                        } else if (
+                            ['2 năm', '2 years', '2yrs', '2'].includes(normalized)
+                        ) {
+                            experienceValue = '2 năm'
+                        } else if (
+                            ['3-5 năm', '3-5 years', '3 to 5 years', '3-5'].includes(normalized)
+                        ) {
+                            experienceValue = '3-5 năm'
                         } else {
-                            experienceValue = 'Others'
+                            experienceValue = 'khác'
                             experienceOtherValue = expStr
                         }
                     }
@@ -346,7 +358,7 @@ const ProfileCabinCrewPage = () => {
                     if (appData.experienceOther) {
                         experienceOtherValue = appData.experienceOther
                         if (!experienceValue) {
-                            experienceValue = 'Others'
+                            experienceValue = 'khác'
                         }
                     }
                     // Map API response to form data
@@ -404,9 +416,9 @@ const ProfileCabinCrewPage = () => {
                         })
                         setFiles(prev => ({ ...prev, ...filesMap }))
                     }
-                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender)
+                    // Map user profile data from API response (email, fullName, phoneNumber, dateOfBirth, gender, citizenId)
                     // The new API includes all user profile fields in the response
-                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined) {
+                    if (appData.email || appData.fullName || appData.phoneNumber || appData.dateOfBirth || appData.gender !== undefined || appData.citizenId) {
                         // Map gender: API returns string or integer, form needs "male" or "female"
                         let genderValue = ''
                         if (appData.gender !== undefined && appData.gender !== null) {
@@ -426,6 +438,7 @@ const ProfileCabinCrewPage = () => {
                                 dateOfBirth: appData.dateOfBirth ? formatDateForInput(appData.dateOfBirth) : (prev.dateOfBirth || ''),
                                 gender: genderValue || prev.gender || '',
                                 mobileNumber: appData.phoneNumber || prev.mobileNumber || '',
+                                citizenId: appData.citizenId || appData.citizenID || appData.citizen_id || prev.citizenId || '',
                             }
                             // Keep certificateExpireDate from API if it was set
                             if (prev.certificateExpireDate) {
@@ -447,6 +460,7 @@ const ProfileCabinCrewPage = () => {
                                     dateOfBirth: userData.dateOfBirth || prev.dateOfBirth || '',
                                     gender: userData.gender || prev.gender || '',
                                     mobileNumber: userData.mobileNumber || userData.phoneNumber || prev.mobileNumber || '',
+                                    citizenId: userData.citizenId || userData.citizenID || userData.citizen_id || prev.citizenId || '',
                                 }
                                 if (prev.certificateExpireDate) {
                                     updated.certificateExpireDate = prev.certificateExpireDate
@@ -1072,7 +1086,19 @@ const ProfileCabinCrewPage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Experience:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">6. Citizen ID:</label>
+                                        <input
+                                            type="text"
+                                            name="citizenId"
+                                            value={formData.citizenId}
+                                            onChange={handleInputChange}
+                                            disabled={true}
+                                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Experience:</label>
                                         <select
                                             name="experience"
                                             value={formData.experience}
@@ -1101,7 +1127,7 @@ const ProfileCabinCrewPage = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">7. Total Flight Hours:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Total Flight Hours:</label>
                                         <input
                                             type="number"
                                             name="totalFlightHours"
@@ -1115,7 +1141,7 @@ const ProfileCabinCrewPage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">8. Height & Weight:</label>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">9. Height & Weight:</label>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
