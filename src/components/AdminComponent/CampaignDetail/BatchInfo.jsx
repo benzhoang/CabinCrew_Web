@@ -26,11 +26,11 @@ const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
         <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini label="Start time" value={formatDate2(batch.startDate)} />
           <InfoMini label="End time" value={formatDate2(batch.endDate)} />
-          {batch.target !== undefined && (
-            <InfoMini
-              label="Target"
-              value={`${batch.current ?? 0}/${batch.target}`}
-            />
+          {batch.target !== undefined && batch.target !== null && (
+            <InfoMini label="Target" value={batch.target.toString()} />
+          )}
+          {batch.current !== undefined && batch.current !== null && (
+            <InfoMini label="Actual" value={(batch.current ?? 0).toString()} />
           )}
           {batch.note && <InfoMini label="Note" value={batch.note} />}
         </div>

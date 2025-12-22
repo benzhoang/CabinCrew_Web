@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FiEdit2, FiLoader, FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import { getRequirementItems, deleteRequirementItem } from "../../service/api";
 import CreateRequirementItemModal from "./ModalCreate/CreateRequirementItemModal";
 import EditRequirementItemModal from "./ModalCreate/EditRequirementItemModal";
@@ -194,9 +194,9 @@ const RequirementPage = () => {
                 )}
 
                 {isLoading ? (
-                    <div className="flex items-center gap-2 text-slate-600">
-                        <FiLoader className="w-5 h-5 animate-spin" />
-                        Đang tải dữ liệu...
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <p className="mt-4 text-sm text-gray-600">Đang tải dữ liệu...</p>
                     </div>
                 ) : items.length === 0 ? (
                     <EmptyState message="Không có requirement item nào cho loại chiến dịch này." />

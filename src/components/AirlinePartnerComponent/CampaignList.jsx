@@ -42,10 +42,54 @@ const mapStatusToCampaignStatus = (status) => {
 
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
-    switch (status) {
-      case "ongoing":
+    const normalized = (status || "").toString().trim();
+    // Keep case-sensitive to match API exactly
+    switch (normalized) {
+      case "Ongoing":
         return {
-          className: "bg-cyan-100 text-cyan-700 border-cyan-200",
+          className: "bg-green-100 text-green-800 border-green-300",
+          text: "Ongoing",
+        };
+      case "Pending":
+        return {
+          className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+          text: "Pending",
+        };
+      case "Approved":
+        return {
+          className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          text: "Approved",
+        };
+      case "Rejected":
+        return {
+          className: "bg-red-100 text-red-700 border-red-200",
+          text: "Rejected",
+        };
+      case "Upcoming":
+        return {
+          className: "bg-purple-100 text-purple-700 border-purple-200",
+          text: "Upcoming",
+        };
+      case "Ended":
+        return {
+          className: "bg-gray-100 text-gray-700 border-gray-200",
+          text: "Ended",
+        };
+      case "Draft":
+        return {
+          className: "bg-slate-100 text-slate-600 border-slate-200",
+          text: "Planning",
+        };
+      case "Canceled":
+        return {
+          className: "bg-orange-100 text-orange-700 border-orange-200",
+          text: "Canceled",
+        };
+      // Backward compatibility for legacy lowercase values
+      case "ongoing":
+      case "active":
+        return {
+          className: "bg-green-100 text-green-800 border-green-300",
           text: "Ongoing",
         };
       case "pending":
@@ -53,25 +97,32 @@ const StatusBadge = ({ status }) => {
           className: "bg-yellow-100 text-yellow-700 border-yellow-200",
           text: "Pending",
         };
-      case "ended":
-        return {
-          className: "bg-green-100 text-green-700 border-green-200",
-          text: "Ended",
-        };
       case "approved":
         return {
           className: "bg-emerald-100 text-emerald-700 border-emerald-200",
           text: "Approved",
         };
-      case "upcoming":
+      case "rejected":
         return {
-          className: "bg-sky-100 text-sky-700 border-sky-200",
-          text: "Upcoming",
+          className: "bg-red-100 text-red-700 border-red-200",
+          text: "Rejected",
+        };
+      case "completed":
+      case "ended":
+        return {
+          className: "bg-gray-100 text-gray-700 border-gray-200",
+          text: "Ended",
+        };
+      case "canceled":
+      case "cancelled":
+        return {
+          className: "bg-orange-100 text-orange-700 border-orange-200",
+          text: "Canceled",
         };
       default:
         return {
           className: "bg-gray-100 text-gray-600 border-gray-200",
-          text: "Unknown",
+          text: normalized || "Unknown",
         };
     }
   };
@@ -134,32 +185,16 @@ const CampaignCard = ({ campaign }) => {
 
   return (
     <div className="p-5 bg-white border border-gray-200 rounded-xl">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
           <h3 className="text-base font-semibold text-gray-900 truncate">
             {campaign.title}
           </h3>
 
-          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-1">
             <div>
-              <span className="text-gray-500">Start Date:</span>{" "}
-              {formatDate(campaign.startDate) || "-"}
-            </div>
-            <div>
-              <span className="text-gray-500">End Date:</span>{" "}
-              {formatDate(campaign.endDate) || "-"}
-            </div>
-            <div>
-              <span className="text-gray-500">Campaign Type:</span>{" "}
-              <CampaignTypeBadge type={campaign.campaignType} />
-            </div>
-            <div>
-              <span className="text-gray-500">Status:</span>{" "}
-              <StatusBadge status={campaign.status} />
-            </div>
-            {campaign.campaignType === "promotion" && (
-              <div className="mt-2">
-                <span className="text-gray-500">Position:</span>{" "}
+              <span className="text-gray-500">Position:</span>
+              <div className="mt-1">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
                     campaign.position
@@ -168,35 +203,49 @@ const CampaignCard = ({ campaign }) => {
                   {campaign.position || "N/A"}
                 </span>
               </div>
-            )}
-            {campaign.campaignType === "recruitment" && (
-              <div className="mt-2">
-                <span className="text-gray-500">Position:</span>{" "}
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                    campaign.position
-                  )}`}
-                >
-                  {campaign.position || "N/A"}
-                </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Type:</span>
+              <div className="mt-1">
+                <CampaignTypeBadge type={campaign.campaignType} />
               </div>
-            )}
+            </div>
+            <div>
+              <span className="text-gray-500">Status:</span>
+              <div className="mt-1">
+                <StatusBadge status={campaign.status} />
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Start date:</span>
+              <p className="mt-1 font-medium text-slate-800">
+                {formatDate(campaign.startDate) || "No start date"}
+              </p>
+            </div>
+            <div>
+              <span className="text-gray-500">End date:</span>
+              <p className="mt-1 font-medium text-slate-800">
+                {formatDate(campaign.endDate) || "No end date"}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 ml-4">
           <button
-            className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
             onClick={() =>
               navigate(`/airline-partner/campaigns/${campaign.id}`)
             }
           >
-            View Details
+            View details
           </button>
         </div>
       </div>
 
-      <p className="mt-5 text-sm text-gray-600">{campaign.description}</p>
+      {campaign.description && (
+        <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
+      )}
     </div>
   );
 };
@@ -259,12 +308,10 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         searchTerm: search || undefined,
       };
 
-      // Gửi status filter lên server nếu không phải "all"
-      if (selectedStatus !== "all") {
-        const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
-        if (campaignStatus !== undefined) {
-          params.campaignStatus = campaignStatus;
-        }
+      // Gửi status filter lên server
+      const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
+      if (campaignStatus !== undefined) {
+        params.campaignStatus = campaignStatus;
       }
 
       const result = await getCampaignList(params);
@@ -405,7 +452,8 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       <div className="flex flex-col gap-5">
         <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
         <div className="py-12 text-center">
-          <p className="text-slate-500">Loading data...</p>
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading data...</p>
         </div>
       </div>
     );
@@ -435,8 +483,8 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       <h2 className="mb-6 text-xl font-bold text-gray-800">
         Campaign List ({pagination.totalRecords || filteredCampaigns.length})
       </h2>
-      <div className="flex items-center gap-3">
-        <div className="inline-flex items-stretch gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="inline-flex flex-wrap items-stretch gap-3">
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
@@ -453,7 +501,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             onClick={() => setSelectedStatus("approved")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "approved"
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                ? "bg-emerald-600 text-white border-emerald-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -464,7 +512,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             onClick={() => setSelectedStatus("ongoing")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "ongoing"
-                ? "bg-cyan-600 text-white border-cyan-600"
+                ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -475,7 +523,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             onClick={() => setSelectedStatus("upcoming")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "upcoming"
-                ? "bg-sky-100 text-sky-700 border-sky-200"
+                ? "bg-purple-600 text-white border-purple-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -486,7 +534,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             onClick={() => setSelectedStatus("ended")}
             className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
               selectedStatus === "ended"
-                ? "bg-green-600 text-white border-green-600"
+                ? "bg-gray-600 text-white border-gray-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiLoader } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import { getScoringCriterias, deleteScoringCriteriaItem } from "../../service/api";
 import CreateAppearanceCriteriaModal from "./ModalCreate/CreateAppearanceCriteriaModal";
 import DeleteScoringCriteriaItemModal from "./ModalCreate/DeleteScoringCriteriaItemModal";
@@ -183,9 +183,9 @@ const ApperanceCritera = () => {
 
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
                 {isLoading ? (
-                    <div className="p-6 flex items-center gap-2 text-slate-600">
-                        <FiLoader className="w-5 h-5 animate-spin" />
-                        Loading criterias...
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <p className="mt-4 text-sm text-gray-600">Loading criterias...</p>
                     </div>
                 ) : error ? (
                     <div className="p-6 text-red-600">{error}</div>

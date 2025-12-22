@@ -69,7 +69,6 @@ import TestListPage from "./pages/CabinCrew/TestListPage";
 import TestPage from "./pages/CabinCrew/TestPage";
 import ScoreListPage from "./pages/Examiner/ExaminerDetail/ScoreListPage";
 import AppealDetail from "./pages/Examiner/ExaminerDetail/AppealUpdate/AppealDetail";
-import ExamCampaignListPage from "./pages/Examiner/ExamCampaignListPage";
 import PromotionAppointmentInterviewPage from "./pages/CabinCrew/PromotionAppointmentInterviewPage";
 import AppointmentPage from "./pages/Candidate/Appointment";
 import AppearanceResultPage from "./pages/Candidate/AppearanceResultPage";
@@ -97,7 +96,6 @@ import ExamListPage from "./pages/Admin/ExamListPage";
 import AdminExamDetailPage from "./pages/Admin/AdminExamDetailPage";
 import AdminCampaignDetailPage from "./pages/Admin/AdminCampaignDetailPage";
 import AdminApplyListPage from "./pages/Admin/AdminApplyListPage";
-import AirlineCriteriaPage from "./pages/AirlinePartner/AirlineCriteriaPage";
 import ApperanceCritera from "./pages/Admin/ApperanceCritera";
 import InterviewIndex from "./pages/Admin/InterviewCritera/InterviewIndex";
 import TestTypePage from "./pages/Admin/TestTypePage";
@@ -614,14 +612,6 @@ function App() {
             </AirlinePartnerLayout>
           }
         />
-        <Route
-          path="/airline-partner/criteria"
-          element={
-            <AirlinePartnerLayout>
-              <AirlineCriteriaPage />
-            </AirlinePartnerLayout>
-          }
-        />
       </Routes>
 
       {/* Cabin Crew Routes */}
@@ -904,17 +894,6 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <ExaminerCabinCrewEvaluationPage />
-              </main>
-            </div>
-          }
-        />
-        <Route
-          path="/examiner/exam-campaigns"
-          element={
-            <div className="flex h-screen bg-gray-50">
-              <ExaminerSidebar />
-              <main className="flex-1 overflow-auto">
-                <ExamCampaignListPage />
               </main>
             </div>
           }

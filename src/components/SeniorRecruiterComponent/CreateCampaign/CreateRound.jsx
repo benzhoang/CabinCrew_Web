@@ -422,7 +422,15 @@ const CreateRound = forwardRef(
       startDateToValidate,
       endDateToValidate
     ) => {
-      const newErrors = { ...errorsToValidate };
+      // Start with a fresh errors object, only keeping non-round errors
+      const newErrors = {};
+
+      // Preserve non-round errors (like startDate, endDate from parent form)
+      Object.keys(errorsToValidate).forEach((key) => {
+        if (!key.startsWith("rounds.")) {
+          newErrors[key] = errorsToValidate[key];
+        }
+      });
 
       // Validate ngày của các đợt
       if (startDateToValidate && endDateToValidate) {
@@ -432,8 +440,7 @@ const CreateRound = forwardRef(
             if (round.roundStartDate < startDateToValidate) {
               newErrors[`rounds.${index}.roundStartDate`] =
                 "Start date of round must be within the campaign date range";
-            }
-            if (round.roundStartDate > endDateToValidate) {
+            } else if (round.roundStartDate > endDateToValidate) {
               newErrors[`rounds.${index}.roundStartDate`] =
                 "Start date of round must be before the end date of campaign";
             }
@@ -459,8 +466,7 @@ const CreateRound = forwardRef(
             if (round.roundEndDate < startDateToValidate) {
               newErrors[`rounds.${index}.roundEndDate`] =
                 "End date of round must be within the campaign date range";
-            }
-            if (round.roundEndDate > endDateToValidate) {
+            } else if (round.roundEndDate > endDateToValidate) {
               newErrors[`rounds.${index}.roundEndDate`] =
                 "End date of round must be before the end date of campaign";
             }
@@ -481,14 +487,17 @@ const CreateRound = forwardRef(
         if (!round.roundName || !round.roundName.trim()) {
           newErrors[`rounds.${index}.roundName`] = "Round name is required";
         }
+
         if (!round.roundStartDate) {
           newErrors[`rounds.${index}.roundStartDate`] =
             "Start date of round is required";
         }
+
         if (!round.roundEndDate) {
           newErrors[`rounds.${index}.roundEndDate`] =
             "End date of round is required";
         }
+
         if (
           round.roundStartDate &&
           round.roundEndDate &&
@@ -497,11 +506,13 @@ const CreateRound = forwardRef(
           newErrors[`rounds.${index}.roundEndDate`] =
             "End date of round must be after the start date of round";
         }
+
         if (!round.targetQuantity || parseInt(round.targetQuantity, 10) <= 0) {
           newErrors[`rounds.${index}.targetQuantity`] =
             "Target quantity must be greater than 0 for each round";
         }
-        if (!round.description.trim()) {
+
+        if (!round.description || !round.description.trim()) {
           newErrors[`rounds.${index}.description`] =
             "Description of round is required";
         }

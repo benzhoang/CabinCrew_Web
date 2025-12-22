@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getApplicationById } from "../../service/api2";
+import { toast } from "react-toastify";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -291,7 +292,7 @@ const AirlineCandidateDetailPage = () => {
   const handleViewDocument = (documentSource) => {
     const documentUrl = getDocumentUrl(documentSource);
     if (!documentUrl) {
-      alert("Document URL not found.");
+      toast.error("Document URL not found.");
       return;
     }
     window.open(documentUrl, "_blank", "noopener,noreferrer");
@@ -300,7 +301,10 @@ const AirlineCandidateDetailPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }

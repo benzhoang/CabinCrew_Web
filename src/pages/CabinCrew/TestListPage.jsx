@@ -98,6 +98,7 @@ const TestListPage = () => {
     }
 
     setTimeout(() => {
+      toast.success(t("exam_login_success") || "Redirecting to exam page...");
       setIsLoading({ ...isLoading, [testId]: false });
 
       // Navigate to exam page với thông tin exam

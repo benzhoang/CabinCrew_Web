@@ -104,10 +104,10 @@ const ApplicationFormPage = () => {
       if (decoded) {
         return (
           decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -157,7 +157,7 @@ const ApplicationFormPage = () => {
       try {
         const userId = getUserId();
         if (!userId) {
-          console.warn("Không tìm thấy userId, bỏ qua việc load profile");
+          console.warn("Cannot find userId, skipping profile load");
           return;
         }
 
@@ -184,7 +184,7 @@ const ApplicationFormPage = () => {
             mobileNumber: userData.phoneNumber || prev.mobileNumber,
           }));
         } else {
-          console.warn("Không thể lấy thông tin người dùng:", result.error);
+          console.warn("Cannot load user profile:", result.error);
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -444,16 +444,17 @@ const ApplicationFormPage = () => {
 
         toast.success(
           t("application_form_submitted_successfully") ||
-          result.message ||
-          "Nộp đơn thành công!"
+            "Submit application successfully!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
-        toast.error(result.error || "Nộp đơn thất bại. Vui lòng thử lại.");
+        toast.error("Submit application failed. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting application:", error);
-      toast.error("Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.");
+      toast.error(
+        "An error occurred while submitting the application. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -516,19 +517,17 @@ const ApplicationFormPage = () => {
         );
 
         toast.success(
-          t("application_form_draft_saved") ||
-          result.message ||
-          "Đã lưu bản nháp thành công!"
+          t("application_form_draft_saved") || "Draft saved successfully!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
-        toast.error(
-          result.error || "Lưu bản nháp thất bại. Vui lòng thử lại."
-        );
+        toast.error("Draft saving failed. Please try again.");
       }
     } catch (error) {
       console.error("Error saving draft:", error);
-      toast.error("Có lỗi xảy ra khi lưu bản nháp. Vui lòng thử lại.");
+      toast.error(
+        "An error occurred while saving the draft. Please try again."
+      );
     } finally {
       setIsSavingDraft(false);
     }
@@ -537,14 +536,14 @@ const ApplicationFormPage = () => {
   if (!campaign) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-            <p className="text-gray-600 mb-4">
+        <div className="max-w-5xl px-4 py-8 mx-auto">
+          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
+            <p className="mb-4 text-gray-600">
               {t("application_form_campaign_not_found")}
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
               {t("application_form_go_back")}
             </button>
@@ -557,33 +556,33 @@ const ApplicationFormPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl px-4 py-8 mx-auto">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700"
+            className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
           >
             {t("application_form_go_back")}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left Column - Job Details and Document Uploads */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h1 className="mb-4 text-2xl font-bold text-slate-800">
                 {campaign.name}
               </h1>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h3 className="mb-4 text-lg font-semibold text-slate-800">
                 {t("application_form_remember_upload")}
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_application_form_file")} *</span>
                     {files.applicationForm && (
                       <DeleteFileButton
@@ -601,10 +600,10 @@ const ApplicationFormPage = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -618,7 +617,7 @@ const ApplicationFormPage = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.applicationForm ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.applicationForm.name}
                             </span>
                           ) : (
@@ -626,7 +625,7 @@ const ApplicationFormPage = () => {
                           )}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          Vui lòng tải lên mẫu đơn ứng tuyển ở định dạng{" "}
+                          Please upload the application form in the format of{" "}
                           <span className="font-semibold">PDF (.pdf)</span>.
                         </p>
                       </div>
@@ -635,7 +634,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_profile_photo")} *</span>
                     {files.profilePhoto && (
                       <DeleteFileButton
@@ -653,10 +652,10 @@ const ApplicationFormPage = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -670,7 +669,7 @@ const ApplicationFormPage = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.profilePhoto ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.profilePhoto.name}
                             </span>
                           ) : (
@@ -685,7 +684,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_education_degree")} *</span>
                     {files.educationDegree && (
                       <DeleteFileButton
@@ -703,10 +702,10 @@ const ApplicationFormPage = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -720,7 +719,7 @@ const ApplicationFormPage = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.educationDegree ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.educationDegree.name}
                             </span>
                           ) : (
@@ -728,7 +727,7 @@ const ApplicationFormPage = () => {
                           )}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          Ưu tiên file scan/bản chụp được lưu dưới dạng{" "}
+                          Please upload the education degree in the format of{" "}
                           <span className="font-semibold">PDF (.pdf)</span>.
                         </p>
                       </div>
@@ -737,7 +736,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
                     <span className="flex items-center gap-2">
                       {t("application_form_english_certificate")} *
                       <EyeIcon
@@ -761,10 +760,10 @@ const ApplicationFormPage = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -778,7 +777,7 @@ const ApplicationFormPage = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.englishCertificate ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.englishCertificate.name}
                             </span>
                           ) : (
@@ -786,7 +785,7 @@ const ApplicationFormPage = () => {
                           )}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          Vui lòng tải lên chứng chỉ tiếng Anh ở định dạng{" "}
+                          Please upload the English certificate in the format of
                           <span className="font-semibold">JPG (.jpg)</span>.
                         </p>
                       </div>
@@ -796,8 +795,10 @@ const ApplicationFormPage = () => {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
-                      <span>{t("application_form_id_card")} - Front side *</span>
+                    <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                      <span>
+                        {t("application_form_id_card")} - Front side *
+                      </span>
                       {files.idCard && (
                         <DeleteFileButton
                           onDelete={() => handleClearFile("idCard")}
@@ -814,10 +815,10 @@ const ApplicationFormPage = () => {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         required
                       />
-                      <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                      <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                         <div className="text-center">
                           <svg
-                            className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                            className="w-8 h-8 mx-auto mb-2 text-slate-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -831,7 +832,7 @@ const ApplicationFormPage = () => {
                           </svg>
                           <p className="text-sm text-slate-600">
                             {files.idCard ? (
-                              <span className="text-green-600 font-medium">
+                              <span className="font-medium text-green-600">
                                 ✓ {files.idCard.name}
                               </span>
                             ) : (
@@ -841,8 +842,8 @@ const ApplicationFormPage = () => {
                             )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500">
-                            Vui lòng tải lên mặt trước hộ chiếu/CCCD còn hiệu
-                            lực dưới dạng{" "}
+                            Please upload the front side of the ID card in the
+                            format of{" "}
                             <span className="font-semibold">JPG (.jpg)</span>.
                           </p>
                         </div>
@@ -851,7 +852,7 @@ const ApplicationFormPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                    <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
                       <span>{t("application_form_id_card")} - Back side *</span>
                       {files.idCardBack && (
                         <DeleteFileButton
@@ -869,10 +870,10 @@ const ApplicationFormPage = () => {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         required
                       />
-                      <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                      <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                         <div className="text-center">
                           <svg
-                            className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                            className="w-8 h-8 mx-auto mb-2 text-slate-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -886,7 +887,7 @@ const ApplicationFormPage = () => {
                           </svg>
                           <p className="text-sm text-slate-600">
                             {files.idCardBack ? (
-                              <span className="text-green-600 font-medium">
+                              <span className="font-medium text-green-600">
                                 ✓ {files.idCardBack.name}
                               </span>
                             ) : (
@@ -896,8 +897,8 @@ const ApplicationFormPage = () => {
                             )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500">
-                            Vui lòng tải lên mặt sau hộ chiếu/CCCD còn hiệu lực
-                            dưới dạng{" "}
+                            Please upload the back side of the ID card in the
+                            format of{" "}
                             <span className="font-semibold">JPG (.jpg)</span>.
                           </p>
                         </div>
@@ -910,14 +911,14 @@ const ApplicationFormPage = () => {
           </div>
 
           {/* Right Column - Application Form */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">
+          <div className="p-6 bg-white border border-gray-200 rounded-xl">
+            <h2 className="mb-6 text-xl font-bold text-slate-800">
               APPLICATION FORM
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   1. {t("application_form_your_email")}
                 </label>
                 <input
@@ -925,13 +926,13 @@ const ApplicationFormPage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   2. {t("application_form_your_fullname")}
                 </label>
                 <input
@@ -939,13 +940,13 @@ const ApplicationFormPage = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   3. {t("application_form_date_of_birth")}
                 </label>
                 <input
@@ -954,13 +955,13 @@ const ApplicationFormPage = () => {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   max="2003-12-31"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   4. {t("application_form_gender")}
                 </label>
                 <div className="flex gap-4">
@@ -992,7 +993,7 @@ const ApplicationFormPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   5. {t("application_form_mobile_number")}
                 </label>
                 <input
@@ -1000,18 +1001,18 @@ const ApplicationFormPage = () => {
                   name="mobileNumber"
                   value={formData.mobileNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   6. {t("application_form_height_weight")}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">
+                    <label className="block mb-1 text-xs text-slate-600">
                       {t("application_form_height")}
                     </label>
                     <input
@@ -1020,12 +1021,12 @@ const ApplicationFormPage = () => {
                       value={formData.height}
                       onChange={handleInputChange}
                       placeholder=""
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">
+                    <label className="block mb-1 text-xs text-slate-600">
                       {t("application_form_weight")}
                     </label>
                     <input
@@ -1034,21 +1035,21 @@ const ApplicationFormPage = () => {
                       value={formData.weight}
                       onChange={handleInputChange}
                       placeholder=""
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500">
                   {t("application_form_height_example")}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   7. {t("application_form_terms_conditions")}
                 </label>
-                <p className="text-sm text-slate-600 mb-3">
+                <p className="mb-3 text-sm text-slate-600">
                   {t("application_form_acknowledge_data")}{" "}
                   <a href="#" className="text-blue-600 underline">
                     {t("application_form_privacy_policy")}
@@ -1094,20 +1095,20 @@ const ApplicationFormPage = () => {
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
+                  className="flex-1 px-6 py-3 text-lg font-bold text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isSavingDraft
-                    ? "Đang lưu..."
-                    : t("application_form_save_draft") || "Lưu bản nháp"}
+                    ? "Saving..."
+                    : t("application_form_save_draft") || "Save draft"}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
+                  className="flex-1 px-6 py-3 text-lg font-bold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed"
                 >
                   {isSubmitting
-                    ? "Đang nộp đơn..."
-                    : t("application_form_finish") || "Nộp đơn"}
+                    ? "Submitting..."
+                    : t("application_form_finish") || "Submit application"}
                 </button>
               </div>
             </form>
