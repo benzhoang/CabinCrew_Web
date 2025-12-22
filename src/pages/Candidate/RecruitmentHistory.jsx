@@ -24,6 +24,7 @@ const IN_PROGRESS_STAGE_STATUSES = ['in_progress', 'processing', 'pending', 'ong
 
 const appearanceKeywords = ['appearance', 'appearence', 'ngoại hình'];
 const interviewKeywords = ['interview', 'phỏng vấn'];
+const screeningKeywords = ['screening', 'sang loc', 'sàng lọc'];
 const defaultStageTemplates = [
     {
         id: 'screening',
@@ -239,6 +240,9 @@ const normalizeHistoryData = (data = []) => {
             id: item.campaignRoundId ?? item.roundId ?? index + 1,
             position: item.campaignName || 'Chưa có tên chiến dịch',
             company: item.airlinePartner || 'N/A',
+            roundName: item.roundName || item.round || '',
+            airlinePartner: item.airlinePartner || 'N/A',
+            campaignType: item.campaignType || '',
             appliedDate: participatedDate,
             status: statusKey,
             statusText: statusLabels?.vi || 'Đang xử lý',
@@ -317,6 +321,19 @@ const RecruitmentHistory = () => {
     };
 
     const getStatusText = (item) => item.statusTextEn || item.statusText || STATUS_LABELS.pending.en;
+
+    // Hàm lấy màu cho Campaign type (giống PromotionHistoryPage.jsx)
+    const getCampaignTypeColor = (campaignType) => {
+        if (!campaignType) return 'bg-gray-100 text-gray-800 border-gray-300';
+
+        const type = campaignType.toLowerCase();
+        if (type.includes('promotion')) {
+            return 'bg-purple-100 text-purple-800 border-purple-300';
+        } else if (type.includes('recruitment')) {
+            return 'bg-blue-100 text-blue-800 border-blue-300';
+        }
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    };
 
     // Hàm lấy tên giai đoạn theo ngôn ngữ
     const getStageName = (stage) => {
@@ -404,17 +421,30 @@ const RecruitmentHistory = () => {
     };
 
     const getStagePositionStyle = (templateId) => {
-        const verticalOffset = templateId === 'english-listening'
-            ? -BRANCH_OFFSET
-            : templateId === 'english-speaking'
-                ? BRANCH_OFFSET
-                : 0;
+        // Xác định các stage chính cần nằm trên baseline
+        const isMainStage = ['screening', 'appearance', 'interview', 'final'].includes(templateId);
 
-        return {
-            left: `${getAxisPercent(templateId)}%`,
-            top: `${BASELINE_Y + verticalOffset}px`,
-            transform: 'translate(-50%, -50%)'
-        };
+        if (isMainStage) {
+            // Các stage chính: đáy hình tròn chạm baseline
+            // Đặt top = BASELINE_Y - 30px để đáy chạm baseline
+            return {
+                left: `${getAxisPercent(templateId)}%`,
+                top: `${BASELINE_Y - 30}px`,
+                transform: 'translateX(-50%)'
+            };
+        } else {
+            // Các stage nhánh (english-listening, english-speaking): căn giữa với offset
+            const verticalOffset = templateId === 'english-listening'
+                ? -BRANCH_OFFSET
+                : templateId === 'english-speaking'
+                    ? BRANCH_OFFSET
+                    : 0;
+            return {
+                left: `${getAxisPercent(templateId)}%`,
+                top: `${BASELINE_Y + verticalOffset}px`,
+                transform: 'translate(-50%, -50%)'
+            };
+        }
     };
 
     return (
@@ -433,12 +463,6 @@ const RecruitmentHistory = () => {
                 {error && (
                     <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                         {error || t('recruitment_history_fetch_error')}
-                    </div>
-                )}
-
-                {loading && (
-                    <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-                        {t('recruitment_history_loading')}
                     </div>
                 )}
 
@@ -497,168 +521,245 @@ const RecruitmentHistory = () => {
                     <div className="px-6 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-900">{t('application_history')}</h2>
                     </div>
-                    <div className="divide-y divide-gray-200">
-                        {recruitmentHistory.map((application) => {
-                            const appliedDateText = application.appliedDate
-                                ? formatDateSafe(application.appliedDate)
-                                : '—';
-                            const hasStages = Array.isArray(application.stages) && application.stages.length > 0;
+                    <div className="p-6">
+                        {loading && (
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <p className="mt-4 text-sm text-gray-600">{t('recruitment_history_loading')}</p>
+                            </div>
+                        )}
+                        {!loading && recruitmentHistory.length === 0 && !error && (
+                            <div className="text-center py-12">
+                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_applications')}</h3>
+                                <p className="mt-1 text-sm text-gray-500">{t('no_applications_desc')}</p>
+                            </div>
+                        )}
+                        {!loading && recruitmentHistory.length > 0 && (
+                            <div className="divide-y divide-gray-200">
+                                {recruitmentHistory.map((application) => {
+                                    const appliedDateText = application.appliedDate
+                                        ? formatDateSafe(application.appliedDate)
+                                        : '—';
+                                    const hasStages = Array.isArray(application.stages) && application.stages.length > 0;
 
-                            return (
-                                <div key={application.id} className="p-6 hover:bg-gray-50 transition-colors">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold text-gray-900">
-                                                    {application.position}
-                                                </h3>
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                                                    {getStatusText(application)}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-gray-600 mb-2">{application.company}</p>
-                                            <p className="text-sm text-gray-500 mb-3">{application.description}</p>
-                                            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                                <div className="flex items-center gap-1">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    {application.location}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    {t('applied_on')}: {appliedDateText}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    return (
+                                        <div key={application.id} className="p-6 hover:bg-gray-50 transition-colors">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    {/* Campaign title + status */}
+                                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                        <h3 className="text-lg font-semibold text-gray-900">
+                                                            {application.position}
+                                                        </h3>
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                                                            {getStatusText(application)}
+                                                        </span>
+                                                    </div>
 
-                                    {/* Hiển thị timeline cho các giai đoạn */}
-                                    {hasStages && (
-                                        <div className="mt-6 pt-6 border-t border-gray-200">
-                                            <h4 className="text-sm font-medium text-gray-900 mb-4">{t('recruitment_history_timeline')}</h4>
-
-                                            {/* Progress Timeline */}
-                                            <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
-                                                {(() => {
-                                                    const stageMap = {};
-                                                    const stageIndexMap = {};
-                                                    application.stages.forEach((stage, index) => {
-                                                        if (stage.templateId) {
-                                                            stageMap[stage.templateId] = stage;
-                                                            stageIndexMap[stage.templateId] = index;
-                                                        }
-                                                    });
-
-                                                    const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final'];
-                                                    const renderStageInfo = (stage, stageIndex, stageReached, position) => (
-                                                        <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-28 text-center`}>
-                                                            <p className="text-xs font-medium text-gray-900">
-                                                                {getStageName(stage)}
-                                                            </p>
-                                                            {stage.date && (
-                                                                <p className="text-xs text-gray-500 mt-1">
-                                                                    {new Date(stage.date).toLocaleDateString()}
-                                                                </p>
-                                                            )}
-                                                            {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => navigate(`/appearance-result/${stage.activityId || stage.id || ''}`)}
-                                                                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
-                                                                >
-                                                                    {t('view_result')}
-                                                                </button>
-                                                            )}
-                                                            {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => navigate(`/interview-result/${stage.activityId || stage.id || ''}`)}
-                                                                    className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
-                                                                >
-                                                                    {t('view_result')}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    );
-
-                                                    return (
-                                                        <>
-                                                            {/* Horizontal progress line */}
-                                                            <div
-                                                                className="absolute bg-gray-200"
-                                                                style={{
-                                                                    top: `${BASELINE_Y}px`,
-                                                                    left: `${LINE_START_PERCENT}%`,
-                                                                    width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
-                                                                    height: '2px'
-                                                                }}
-                                                            >
-                                                                <div
-                                                                    className="h-full bg-blue-500 transition-all duration-500"
-                                                                    style={{ width: `${getProgressPercentage(application)}%` }}
-                                                                ></div>
+                                                    {/* Round + Partner + Campaign type */}
+                                                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
+                                                        {application.roundName && (
+                                                            <div className="flex items-center gap-1">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                                </svg>
+                                                                <span className="font-medium">{t('application_round') || 'Round'}:</span>
+                                                                <span>{application.roundName}</span>
                                                             </div>
+                                                        )}
+                                                        {application.airlinePartner && (
+                                                            <div className="flex items-center gap-1">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                </svg>
+                                                                <span className="font-medium">{t('partner_label') || 'Partner'}:</span>
+                                                                <span>{application.airlinePartner}</span>
+                                                            </div>
+                                                        )}
+                                                        {application.campaignType && (
+                                                            <div className="flex items-center gap-2">
+                                                                <svg
+                                                                    className="w-4 h-4 text-gray-400"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth="2"
+                                                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                                                    />
+                                                                </svg>
+                                                                <span className="font-medium">
+                                                                    {t('campaign_type') || 'Campaign type'}:
+                                                                </span>
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(
+                                                                        application.campaignType
+                                                                    )}`}
+                                                                >
+                                                                    {application.campaignType}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
 
-                                                            {/* Vertical branch */}
-                                                            <div
-                                                                className="absolute bg-gray-200"
-                                                                style={{
-                                                                    left: `${getAxisPercent('english-listening')}%`,
-                                                                    top: `${BASELINE_Y - BRANCH_OFFSET}px`,
-                                                                    height: `${BRANCH_OFFSET * 2}px`,
-                                                                    width: '2px',
-                                                                    transform: 'translateX(-50%)'
-                                                                }}
-                                                            ></div>
+                                                    {/* Optional description */}
+                                                    {application.description && (
+                                                        <p className="text-sm text-gray-500 mb-3">{application.description}</p>
+                                                    )}
 
-                                                            {/* Stage nodes */}
-                                                            {timelineStageIds.map((templateId) => {
-                                                                const stage = stageMap[templateId];
-                                                                if (!stage) return null;
-                                                                const stageIndex = stageIndexMap[templateId];
-                                                                const stageReached = isStageReached(stage, stageIndex, application.currentStageIndex);
-                                                                const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom';
-
-                                                                return (
-                                                                    <div
-                                                                        key={templateId}
-                                                                        className="absolute flex flex-col items-center"
-                                                                        style={getStagePositionStyle(templateId)}
-                                                                    >
-                                                                        {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
-                                                                        <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStageIndex, stageIndex ?? 0)}`}>
-                                                                            {getStageIcon(stage, application.currentStageIndex, stageIndex ?? 0)}
-                                                                        </div>
-                                                                        {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </>
-                                                    );
-                                                })()}
+                                                    {/* Location + Applied on */}
+                                                    <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                                                        <div className="flex items-center gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            </svg>
+                                                            {application.location}
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                            </svg>
+                                                            {t('applied_on')}: {appliedDateText}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+
+                                            {/* Hiển thị timeline cho các giai đoạn */}
+                                            {hasStages && (
+                                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                                    <h4 className="text-sm font-medium text-gray-900 mb-4">{t('recruitment_history_timeline')}</h4>
+
+                                                    {/* Progress Timeline */}
+                                                    <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                                                        {(() => {
+                                                            const stageMap = {};
+                                                            const stageIndexMap = {};
+                                                            application.stages.forEach((stage, index) => {
+                                                                if (stage.templateId) {
+                                                                    stageMap[stage.templateId] = stage;
+                                                                    stageIndexMap[stage.templateId] = index;
+                                                                }
+                                                            });
+
+                                                            const timelineStageIds = ['screening', 'appearance', 'english-listening', 'english-speaking', 'interview', 'final'];
+                                                            const renderStageInfo = (stage, stageIndex, stageReached, position) => (
+                                                                <div className={`${position === 'top' ? 'mb-3' : 'mt-3'} w-28 text-center`}>
+                                                                    <p className="text-xs font-medium text-gray-900">
+                                                                        {getStageName(stage)}
+                                                                    </p>
+                                                                    {stage.date && (
+                                                                        <p className="text-xs text-gray-500 mt-1">
+                                                                            {new Date(stage.date).toLocaleDateString()}
+                                                                        </p>
+                                                                    )}
+                                                                    {stageReached && matchesStageKeywords(stage, screeningKeywords) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => navigate(`/profile/${stage.activityId || stage.id || ''}`)}
+                                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                                        >
+                                                                            {t('view_profile')}
+                                                                        </button>
+                                                                    )}
+                                                                    {stageReached && matchesStageKeywords(stage, appearanceKeywords) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => navigate(`/appearance-result/${stage.activityId || stage.id || ''}`)}
+                                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                                        >
+                                                                            {t('view_result')}
+                                                                        </button>
+                                                                    )}
+                                                                    {stageReached && matchesStageKeywords(stage, interviewKeywords) && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => navigate(`/interview-result/${stage.activityId || stage.id || ''}`)}
+                                                                            className="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+                                                                        >
+                                                                            {t('view_result')}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            );
+
+                                                            return (
+                                                                <>
+                                                                    {/* Horizontal progress line */}
+                                                                    <div
+                                                                        className="absolute bg-gray-200"
+                                                                        style={{
+                                                                            top: `${BASELINE_Y}px`,
+                                                                            left: `${LINE_START_PERCENT}%`,
+                                                                            width: `${LINE_END_PERCENT - LINE_START_PERCENT}%`,
+                                                                            height: '2px'
+                                                                        }}
+                                                                    >
+                                                                        <div
+                                                                            className="h-full bg-blue-500 transition-all duration-500"
+                                                                            style={{ width: `${getProgressPercentage(application)}%` }}
+                                                                        ></div>
+                                                                    </div>
+
+                                                                    {/* Vertical branch */}
+                                                                    <div
+                                                                        className="absolute bg-gray-200"
+                                                                        style={{
+                                                                            left: `${getAxisPercent('english-listening')}%`,
+                                                                            top: `${BASELINE_Y - BRANCH_OFFSET}px`,
+                                                                            height: `${BRANCH_OFFSET * 2}px`,
+                                                                            width: '2px',
+                                                                            transform: 'translateX(-50%)'
+                                                                        }}
+                                                                    ></div>
+
+                                                                    {/* Stage nodes */}
+                                                                    {timelineStageIds.map((templateId) => {
+                                                                        const stage = stageMap[templateId];
+                                                                        if (!stage) return null;
+                                                                        const stageIndex = stageIndexMap[templateId];
+                                                                        const stageReached = isStageReached(stage, stageIndex, application.currentStageIndex);
+                                                                        // Chỉ english-listening hiển thị info ở trên, các stage khác hiển thị ở dưới
+                                                                        const infoPosition = templateId === 'english-listening' ? 'top' : 'bottom';
+
+                                                                        // Đảm bảo các stage chính (screening, appearance, interview, final) nằm trên baseline
+                                                                        const isMainStage = ['screening', 'appearance', 'interview', 'final'].includes(templateId);
+                                                                        const positionStyle = getStagePositionStyle(templateId);
+
+                                                                        return (
+                                                                            <div
+                                                                                key={templateId}
+                                                                                className="absolute flex flex-col items-center"
+                                                                                style={positionStyle}
+                                                                            >
+                                                                                {infoPosition === 'top' && renderStageInfo(stage, stageIndex, stageReached, 'top')}
+                                                                                <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(stage, application.currentStageIndex, stageIndex ?? 0)}`}>
+                                                                                    {getStageIcon(stage, application.currentStageIndex, stageIndex ?? 0)}
+                                                                                </div>
+                                                                                {infoPosition === 'bottom' && renderStageInfo(stage, stageIndex, stageReached, 'bottom')}
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                {/* Empty State (if no applications) */}
-                {!loading && recruitmentHistory.length === 0 && (
-                    <div className="text-center py-12">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_applications')}</h3>
-                        <p className="mt-1 text-sm text-gray-500">{t('no_applications_desc')}</p>
-                    </div>
-                )}
             </div>
         </div>
     );

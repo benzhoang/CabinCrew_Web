@@ -60,10 +60,12 @@ const ScoreReport = () => {
 
                     // Map dữ liệu từ API response
                     const mappedTests = testsArray.map((test) => {
+                        // Đồng bộ cách map testType với trang Test.jsx
+                        // và chấp nhận cả dạng có/dưới dấu cách để tránh sai lệch dữ liệu
                         let examType = 'Listening'; // default
-                        if (test.testType === 'EnglishListening') {
+                        if (test.testType === 'English Listening' || test.testType === 'EnglishListening') {
                             examType = 'Listening';
-                        } else if (test.testType === 'EnglishSpeaking') {
+                        } else if (test.testType === 'English Speaking' || test.testType === 'EnglishSpeaking') {
                             examType = 'Speaking';
                         } else if (test.testType === 'Practical') {
                             examType = 'Practical';

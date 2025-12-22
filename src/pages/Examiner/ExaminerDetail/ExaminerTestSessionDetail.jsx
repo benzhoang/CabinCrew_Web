@@ -214,12 +214,12 @@ const ExaminerTestSessionDetail = () => {
   // Fetch answers with criteria when testType is EnglishSpeaking and answers are loaded
   useEffect(() => {
     // Reset flag when testType or testSessionId changes
-    if (testType !== "EnglishSpeaking") {
+    if (testType !== "English Speaking") {
       setCriteriaFetched(false);
       return;
     }
 
-    if (testType === "EnglishSpeaking" && testSessionId && answers.length > 0 && !criteriaFetched) {
+    if (testType === "English Speaking" && testSessionId && answers.length > 0 && !criteriaFetched) {
       fetchAnswersWithCriteria();
     }
   }, [testType, testSessionId, answers.length, criteriaFetched]);
@@ -244,7 +244,7 @@ const ExaminerTestSessionDetail = () => {
   };
 
   useEffect(() => {
-    if (testType !== "EnglishSpeaking") {
+    if (testType !== "English Speaking") {
       setSpeakingScores({});
       setSpeakingSubmitMessage("");
       setSpeakingSubmitError({});
@@ -281,7 +281,7 @@ const ExaminerTestSessionDetail = () => {
 
   // Nếu bài nói đã được chấm (có totalScore > 0), khoá nút chấm điểm
   useEffect(() => {
-    if (testType === "EnglishSpeaking" && (totalScore || 0) > 0) {
+    if (testType === "English Speaking" && (totalScore || 0) > 0) {
       setSpeakingScoresLocked(true);
     }
   }, [testType, totalScore]);
@@ -389,7 +389,7 @@ const ExaminerTestSessionDetail = () => {
 
   const handleSubmitSpeakingScores = async () => {
     if (
-      testType !== "EnglishSpeaking" ||
+      testType !== "English Speaking" ||
       answers.length === 0 ||
       submittingSpeakingScores ||
       speakingScoresLocked
@@ -691,7 +691,7 @@ const ExaminerTestSessionDetail = () => {
         ) : (
           <div className="space-y-4">
             {answers.map((answer, index) => {
-              const isEnglishSpeaking = testType === "EnglishSpeaking";
+              const isEnglishSpeaking = testType === "English Speaking";
               const showCorrectness = !isEnglishSpeaking;
               const answerKey = getAnswerKey(answer, index);
               const scoreDraft = speakingScores[answerKey] || {};
@@ -821,7 +821,7 @@ const ExaminerTestSessionDetail = () => {
                 </div>
               );
             })}
-            {testType === "EnglishSpeaking" && answers.length > 0 && (
+            {testType === "English Speaking" && answers.length > 0 && (
               <div className="pt-4 mt-6 border-t border-dashed border-gray-200">
                 {/* Hiển thị lỗi tổng quát (nếu có) */}
                 {speakingSubmitError.general && speakingSubmitError.general.length > 0 && (

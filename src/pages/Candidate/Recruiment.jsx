@@ -50,6 +50,30 @@ const mapStatusForCandidate = status => {
     return 'inactive'
 }
 
+const getAirlineBadgeClass = (airline) => {
+    if (!airline) return "bg-gray-100 text-gray-700 border-gray-200";
+
+    const airlineLower = airline.toLowerCase().trim();
+
+    if (airlineLower.includes("vietjet")) {
+        return "bg-red-100 text-red-700 border-red-200";
+    }
+    if (airlineLower.includes("vietnam airlines")) {
+        return "bg-blue-100 text-blue-700 border-blue-200";
+    }
+    if (airlineLower.includes("bamboo")) {
+        return "bg-cyan-100 text-cyan-700 border-cyan-200";
+    }
+    if (
+        airlineLower.includes("sun phuquoc") ||
+        airlineLower.includes("sunphuquoc")
+    ) {
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    }
+
+    return "bg-gray-100 text-gray-700 border-gray-200";
+};
+
 const transformCampaign = campaign => {
     if (!campaign) return null
     const id = campaign.id ?? campaign.campaignId ?? campaign.campaignID ?? campaign.Id
@@ -262,12 +286,22 @@ const Recruiment = () => {
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
                                         <h3 className="text-xl font-semibold text-slate-800">{c.name}</h3>
-                                        <p className="text-sm text-slate-600 mt-1">
-                                            {c.airline}
-                                            {c.location && c.location !== 'Chưa cập nhật' && ` • ${c.location}`}
-                                        </p>
+                                        {c.airline && (
+                                            <span
+                                                className={`inline-flex items-center mt-1 rounded-full border text-xs font-medium px-2.5 py-1 ${getAirlineBadgeClass(
+                                                    c.airline
+                                                )}`}
+                                            >
+                                                {c.airline}
+                                            </span>
+                                        )}
+                                        {c.location && c.location !== 'Chưa cập nhật' && (
+                                            <p className="text-sm text-slate-600 mt-1">
+                                                {c.location}
+                                            </p>
+                                        )}
                                     </div>
-                                    <span className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                    <span className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                                         {c.status === 'active' ? t('recruitment_status_active') : t('recruitment_status_inactive')}
                                     </span>
                                 </div>
