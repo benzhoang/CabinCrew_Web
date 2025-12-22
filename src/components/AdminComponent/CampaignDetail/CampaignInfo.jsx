@@ -128,15 +128,12 @@ const CampaignInfo = ({ campaign }) => {
 
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+      <div className="px-5 py-4 border-b border-slate-200">
         <div className="space-y-1">
-          <div className="text-sm text-slate-500">Proposal information</div>
+          <div className="text-sm text-slate-500">Campaign information</div>
           <div className="font-semibold text-slate-800">
             {campaign?.partnerName || "N/A"}
           </div>
-        </div>
-        <div className="text-xs text-right text-slate-500">
-          Campaign ID: {campaign?.campaignId || campaign?.id || "N/A"}
         </div>
       </div>
 

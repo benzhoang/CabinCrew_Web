@@ -180,7 +180,10 @@ const CityWardPage = () => {
           </select>
         </div>
         {isLoadingCities && (
-          <p className="text-sm text-slate-500">Loading city list...</p>
+          <div className="text-center py-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-sm text-gray-600">Loading city list...</p>
+          </div>
         )}
       </section>
 
@@ -221,9 +224,10 @@ const CityWardPage = () => {
                 <tr>
                   <td
                     colSpan={3}
-                    className="px-4 py-6 text-sm text-center text-slate-500"
+                    className="px-4 py-6 text-center"
                   >
-                    Loading ward list...
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-sm text-gray-600">Loading ward list...</p>
                   </td>
                 </tr>
               ) : displayedWards.length === 0 ? (

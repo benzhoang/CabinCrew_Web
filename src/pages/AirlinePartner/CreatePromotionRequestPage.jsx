@@ -334,7 +334,7 @@ const CreatePromotionRequestPage = () => {
                     />
                     <div className="flex items-center gap-2 mt-2">
                       <svg
-                        className="flex-shrink-0 w-4 h-4 text-red-600"
+                        className="flex-shrink-0 w-4 h-4 text-yellow-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -344,7 +344,7 @@ const CreatePromotionRequestPage = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <p className="text-xs italic text-red-500">
+                      <p className="text-xs italic text-yellow-600">
                         The due date is at least 45 days from today
                       </p>
                     </div>

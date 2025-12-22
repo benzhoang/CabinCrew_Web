@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
-  FiLoader,
   FiMusic,
   FiPlay,
   FiPause,
@@ -255,7 +254,10 @@ const AdminExamDetailPage = () => {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <FiLoader className="w-12 h-12 text-indigo-600 animate-spin" />
+          <div className="text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">Loading...</p>
+          </div>
         </div>
       </div>
     );
@@ -339,8 +341,11 @@ const AdminExamDetailPage = () => {
             })`}
           >
             {isLoadingQuestions ? (
-              <div className="flex items-center justify-center py-8">
-                <FiLoader className="w-6 h-6 text-indigo-600 animate-spin" />
+              <div className="py-8 text-center">
+                <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                <p className="mt-4 text-sm text-gray-600">
+                  Loading questions...
+                </p>
               </div>
             ) : questionsData?.questions?.length > 0 ? (
               <div className="space-y-4">

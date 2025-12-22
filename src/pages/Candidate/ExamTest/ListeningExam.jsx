@@ -131,12 +131,12 @@ const ListeningExam = ({ examInfo }) => {
           }
         } else {
           console.error("API Error:", result.error);
-          toast.error(result.error || "Không thể tải câu hỏi đề thi");
+          toast.error(result.error || "Cannot load exam questions");
           navigate("/test");
         }
       } catch (error) {
         console.error("Error fetching exam questions:", error);
-        toast.error("Đã xảy ra lỗi khi tải câu hỏi đề thi");
+        toast.error("An error occurred while loading exam questions");
         navigate("/test");
       } finally {
         setIsLoadingQuestions(false);
@@ -243,7 +243,7 @@ const ListeningExam = ({ examInfo }) => {
     const testId = examData?.testId || examInfo?.examId || testIdFromUrl;
 
     if (!testId) {
-      toast.error("Không tìm thấy thông tin đề thi");
+      toast.error("Cannot find exam information");
       return;
     }
 
@@ -285,7 +285,7 @@ const ListeningExam = ({ examInfo }) => {
           }
         } else {
           console.warn(
-            `Không tìm thấy optionId cho câu hỏi ${question.id} với đáp án ${userAnswer}`,
+            `Cannot find optionId for question ${question.id} with answer ${userAnswer}`,
             {
               question,
               optionsWithIds: question.optionsWithIds,
@@ -299,7 +299,7 @@ const ListeningExam = ({ examInfo }) => {
     // (hoặc có thể hiển thị cảnh báo - tùy yêu cầu)
     if (answersArray.length === 0) {
       const confirmEmpty = window.confirm(
-        "Bạn chưa trả lời câu hỏi nào. Bạn có chắc chắn muốn nộp bài không?"
+        "You have not answered any questions. Do you still want to submit the exam?"
       );
       if (!confirmEmpty) {
         setIsSubmitModalOpen(true);
@@ -311,7 +311,7 @@ const ListeningExam = ({ examInfo }) => {
     const testIdNum =
       typeof testId === "string" ? parseInt(testId, 10) : Number(testId);
     if (isNaN(testIdNum) || testIdNum <= 0) {
-      toast.error("Test ID không hợp lệ");
+      toast.error("Test ID not valid");
       return;
     }
 
@@ -460,9 +460,9 @@ const ListeningExam = ({ examInfo }) => {
   // Loading state
   if (isLoadingQuestions) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">
             {t("loading") || "Đang tải câu hỏi..."}
           </p>
@@ -474,7 +474,7 @@ const ListeningExam = ({ examInfo }) => {
   // Nếu không có câu hỏi
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 px-4 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen px-4 py-8 bg-gray-100">
         <div className="text-center">
           <p className="text-gray-600">
             {t("no_questions") || "Không có câu hỏi nào"}
@@ -488,12 +488,12 @@ const ListeningExam = ({ examInfo }) => {
   const currentAnswer = answers[currentQuestion.id];
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="min-h-screen px-4 py-8 bg-gray-100">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Ô lớn - Hiển thị câu hỏi */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="p-8 bg-white shadow-lg rounded-xl">
               {/* Header */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-4">
@@ -505,10 +505,11 @@ const ListeningExam = ({ examInfo }) => {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleMarkQuestion(currentQuestion.id)}
-                      className={`p-2 rounded-lg transition-colors ${markedQuestions.has(currentQuestion.id)
-                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
+                      className={`p-2 rounded-lg transition-colors ${
+                        markedQuestions.has(currentQuestion.id)
+                          ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                       title={
                         markedQuestions.has(currentQuestion.id)
                           ? t("unmark_question") || "Bỏ đánh dấu"
@@ -540,9 +541,9 @@ const ListeningExam = ({ examInfo }) => {
                     </span>
                   </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full h-2 bg-gray-200 rounded-full">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="h-2 transition-all duration-300 bg-blue-600 rounded-full"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
@@ -564,10 +565,10 @@ const ListeningExam = ({ examInfo }) => {
               {/* Hiển thị câu hỏi */}
               {currentQuestion.question && (
                 <div className="mb-6">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                  <p className="mb-2 text-sm font-semibold text-gray-700">
                     {t("question") || "Câu hỏi"}:
                   </p>
-                  <p className="text-base text-gray-900 font-medium">
+                  <p className="text-base font-medium text-gray-900">
                     {currentQuestion.question}
                   </p>
                 </div>
@@ -575,7 +576,7 @@ const ListeningExam = ({ examInfo }) => {
 
               {/* Các lựa chọn */}
               <div className="mb-8">
-                <p className="text-sm font-medium text-gray-700 mb-4">
+                <p className="mb-4 text-sm font-medium text-gray-700">
                   {t("select_answer") || "Chọn đáp án của bạn:"}
                 </p>
                 <div className="space-y-3">
@@ -586,10 +587,11 @@ const ListeningExam = ({ examInfo }) => {
                     return (
                       <label
                         key={index}
-                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${isSelected
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                          }`}
+                        className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          isSelected
+                            ? "border-blue-600 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
                       >
                         <input
                           type="radio"
@@ -599,7 +601,7 @@ const ListeningExam = ({ examInfo }) => {
                           onChange={() =>
                             handleAnswerSelect(currentQuestion.id, optionKey)
                           }
-                          className="mr-4 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                          className="w-5 h-5 mr-4 text-blue-600 focus:ring-blue-500"
                         />
                         <span className="text-gray-700">{option}</span>
                       </label>
@@ -609,18 +611,18 @@ const ListeningExam = ({ examInfo }) => {
               </div>
 
               {/* Nút điều hướng */}
-              <div className="flex justify-between items-center pt-6 border-t">
+              <div className="flex items-center justify-between pt-6 border-t">
                 <button
                   onClick={handlePrevious}
                   disabled={currentQuestionIndex === 0}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 text-gray-700 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t("previous") || "Câu trước"}
                 </button>
                 <button
                   onClick={handleNext}
                   disabled={currentQuestionIndex === questions.length - 1}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-6 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t("next") || "Câu sau"}
                 </button>
@@ -630,15 +632,16 @@ const ListeningExam = ({ examInfo }) => {
 
           {/* Ô nhỏ - Số câu hỏi, thời gian, thanh tiến trình */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-8">
+            <div className="sticky p-6 bg-white shadow-lg rounded-xl top-8">
               {/* Thời gian */}
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                <h3 className="mb-2 text-sm font-semibold text-gray-700">
                   {t("time_remaining") || "Thời gian còn lại"}
                 </h3>
                 <div
-                  className={`text-2xl font-bold ${timeRemaining < 300 ? "text-red-600" : "text-blue-600"
-                    }`}
+                  className={`text-2xl font-bold ${
+                    timeRemaining < 300 ? "text-red-600" : "text-blue-600"
+                  }`}
                 >
                   {formatTime(timeRemaining)}
                 </div>
@@ -646,16 +649,16 @@ const ListeningExam = ({ examInfo }) => {
 
               {/* Thanh tiến trình */}
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                <h3 className="mb-2 text-sm font-semibold text-gray-700">
                   {t("progress") || "Tiến trình"}
                 </h3>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full h-3 bg-gray-200 rounded-full">
                   <div
-                    className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                    className="h-3 transition-all duration-300 bg-green-500 rounded-full"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1 text-center">
+                <p className="mt-1 text-xs text-center text-gray-500">
                   {answeredCount} / {questions.length}{" "}
                   {t("questions") || "câu hỏi"} {t("answered") || "đã trả lời"}
                 </p>
@@ -663,7 +666,7 @@ const ListeningExam = ({ examInfo }) => {
 
               {/* Danh sách số câu hỏi */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                <h3 className="mb-3 text-sm font-semibold text-gray-700">
                   {t("question_list") || "Danh sách câu hỏi"}
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
@@ -676,12 +679,13 @@ const ListeningExam = ({ examInfo }) => {
                       <button
                         key={question.id}
                         onClick={() => handleQuestionClick(index)}
-                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${isCurrent
-                          ? "bg-blue-600 text-white ring-2 ring-blue-300"
-                          : isAnswered
+                        className={`relative w-full h-10 rounded-lg font-semibold text-sm transition-all ${
+                          isCurrent
+                            ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                            : isAnswered
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
+                        }`}
                       >
                         {index + 1}
                         {isMarked && (
@@ -704,10 +708,11 @@ const ListeningExam = ({ examInfo }) => {
               <button
                 onClick={openSubmitModal}
                 disabled={hasSubmitted}
-                className={`w-full mt-6 px-4 py-3 rounded-lg font-semibold transition-colors ${hasSubmitted
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-red-700"
-                  }`}
+                className={`w-full mt-6 px-4 py-3 rounded-lg font-semibold transition-colors ${
+                  hasSubmitted
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-green-600 text-white hover:bg-red-700"
+                }`}
               >
                 {t("submit_exam") || "Nộp bài"}
               </button>
@@ -722,7 +727,7 @@ const ListeningExam = ({ examInfo }) => {
             className="absolute inset-0 bg-black/50"
             onClick={closeSubmitModal}
           ></div>
-          <div className="relative z-10 w-full max-w-md mx-4 bg-white rounded-xl shadow-2xl p-6">
+          <div className="relative z-10 w-full max-w-md p-6 mx-4 bg-white shadow-2xl rounded-xl">
             <div className="flex items-start">
               <div className="flex-shrink-0 mr-3">
                 <svg
@@ -740,15 +745,15 @@ const ListeningExam = ({ examInfo }) => {
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <h3 className="mb-1 text-lg font-semibold text-gray-900">
                   {t("submit_exam") || "Nộp bài"}
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="mb-2 text-sm text-gray-600">
                   {t("submit_confirm") || "Bạn có chắc chắn muốn nộp bài?"}
                 </p>
                 {unansweredCount > 0 && (
-                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-800 font-medium">
+                  <div className="p-3 mt-3 border rounded-lg bg-amber-50 border-amber-200">
+                    <p className="text-sm font-medium text-amber-800">
                       ⚠️ {t("unanswered_questions") || "Số câu hỏi chưa làm"}:{" "}
                       <span className="font-bold text-amber-900">
                         {unansweredCount}
@@ -759,16 +764,16 @@ const ListeningExam = ({ examInfo }) => {
                 )}
               </div>
             </div>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={closeSubmitModal}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 {t("cancel") || "Hủy"}
               </button>
               <button
                 onClick={handleConfirmSubmit}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+                className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700"
               >
                 {t("submit_exam") || "Nộp bài"}
               </button>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getApplicationById } from "../../service/api2";
+import { toast } from "react-toastify";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -291,7 +292,7 @@ const SeniorCandidateDetailPage = () => {
   const handleViewDocument = (documentSource) => {
     const documentUrl = getDocumentUrl(documentSource);
     if (!documentUrl) {
-      alert("Document URL not found.");
+      toast.error("Document URL not found.");
       return;
     }
     window.open(documentUrl, "_blank", "noopener,noreferrer");

@@ -125,6 +125,180 @@ const PendingCampaignInfo = ({ campaign }) => {
     return "bg-gray-100 text-gray-800 border-gray-300";
   };
 
+  // StatusBadge component - matching CampaignList.jsx
+  const StatusBadge = ({ status }) => {
+    const getStatusConfig = (status) => {
+      const normalized = (status || "").toString().trim();
+      switch (normalized) {
+        case "Ongoing":
+          return {
+            className: "bg-green-100 text-green-800 border-green-300",
+            text: "Ongoing",
+          };
+        case "Pending":
+          return {
+            className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+            text: "Pending",
+          };
+        case "Approved":
+          return {
+            className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+            text: "Approved",
+          };
+        case "Rejected":
+          return {
+            className: "bg-red-100 text-red-700 border-red-200",
+            text: "Rejected",
+          };
+        case "Upcoming":
+          return {
+            className: "bg-purple-100 text-purple-700 border-purple-200",
+            text: "Upcoming",
+          };
+        case "Ended":
+          return {
+            className: "bg-gray-100 text-gray-700 border-gray-200",
+            text: "Ended",
+          };
+        case "Draft":
+          return {
+            className: "bg-slate-100 text-slate-600 border-slate-200",
+            text: "Planning",
+          };
+        case "Canceled":
+        case "Cancelled":
+          return {
+            className: "bg-orange-100 text-orange-700 border-orange-200",
+            text: "Canceled",
+          };
+        case "ongoing":
+          return {
+            className: "bg-green-100 text-green-800 border-green-300",
+            text: "Ongoing",
+          };
+        case "pending":
+          return {
+            className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+            text: "Pending",
+          };
+        case "approved":
+          return {
+            className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+            text: "Approved",
+          };
+        case "rejected":
+          return {
+            className: "bg-red-100 text-red-700 border-red-200",
+            text: "Rejected",
+          };
+        case "ended":
+          return {
+            className: "bg-gray-100 text-gray-700 border-gray-200",
+            text: "Ended",
+          };
+        case "canceled":
+        case "cancelled":
+          return {
+            className: "bg-orange-100 text-orange-700 border-orange-200",
+            text: "Canceled",
+          };
+        case "upcoming":
+          return {
+            className: "bg-purple-100 text-purple-700 border-purple-200",
+            text: "Upcoming",
+          };
+        case "draft":
+          return {
+            className: "bg-slate-100 text-slate-600 border-slate-200",
+            text: "Planning",
+          };
+        default:
+          return {
+            className: "bg-gray-100 text-gray-600 border-gray-200",
+            text: normalized || "Unknown",
+          };
+      }
+    };
+
+    const config = getStatusConfig(status);
+
+    return (
+      <span
+        className={`${config.className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+      >
+        {config.text}
+      </span>
+    );
+  };
+
+  // CampaignTypeBadge component - matching CampaignList.jsx
+  const CampaignTypeBadge = ({ type }) => {
+    const getCampaignTypeLabel = (campaignType) => {
+      switch (campaignType?.toLowerCase()) {
+        case "recruitment":
+          return "Recruitment";
+        case "promotion":
+          return "Promotion";
+        default:
+          return campaignType || "Unknown";
+      }
+    };
+
+    const label = getCampaignTypeLabel(type);
+    const className =
+      type?.toLowerCase() === "promotion"
+        ? "bg-purple-100 text-purple-700 border-purple-200"
+        : type?.toLowerCase() === "recruitment"
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
+
+    return (
+      <span
+        className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+      >
+        {label}
+      </span>
+    );
+  };
+
+  // PartnerBadge component - matching CampaignList.jsx
+  const PartnerBadge = ({ partnerName }) => {
+    const getPartnerColor = (partnerName) => {
+      if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+      const partner = partnerName.toLowerCase();
+      if (
+        partner.includes("vietnam airlines") ||
+        partner.includes("vietnamairlines")
+      ) {
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+        return "bg-red-100 text-red-800 border-red-300";
+      } else if (
+        partner.includes("bamboo") ||
+        partner.includes("bamboo airways")
+      ) {
+        return "bg-green-100 text-green-800 border-green-300";
+      } else if (
+        partner.includes("jetstar") ||
+        partner.includes("sun phuquoc")
+      ) {
+        return "bg-indigo-100 text-indigo-800 border-indigo-300";
+      }
+      return "bg-cyan-100 text-cyan-800 border-cyan-300";
+    };
+
+    return (
+      <span
+        className={`${getPartnerColor(
+          partnerName
+        )} inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap`}
+      >
+        {partnerName || "No partner"}
+      </span>
+    );
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -151,7 +325,7 @@ const PendingCampaignInfo = ({ campaign }) => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {campaign?.campaignName || "N/A"}
+              {campaign?.campaignName || "No campaign name"}
             </h1>
           </div>
         </div>
@@ -189,59 +363,71 @@ const PendingCampaignInfo = ({ campaign }) => {
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="space-y-1">
             <div className="text-sm text-slate-500">Proposal information</div>
-            <div className="font-semibold text-slate-800">
-              {campaign?.partnerName || "N/A"}
-            </div>
-          </div>
-          <div className="text-xs text-right text-slate-500">
-            Campaign ID: {campaign?.campaignId || "N/A"}
           </div>
         </div>
 
         <div className="p-5">
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <InfoRow
+                label="Description"
+                value={campaign?.description || "No description"}
+              />
+              <InfoRow
+                label="Campaign Type"
+                value={<CampaignTypeBadge type={campaign?.campaignType} />}
+              />
+              <InfoRow
+                label="Status"
+                value={<StatusBadge status={campaign?.status} />}
+              />
+              <InfoRow
+                label="Partner"
+                value={<PartnerBadge partnerName={campaign?.partnerName} />}
+              />
               {(campaign?.campaignType?.toLowerCase() === "promotion" ||
                 campaign?.campaignType === "Promotion") && (
-                <div>
-                  <div className="mb-1 text-sm text-slate-600">Position</div>
-                  <div>
+                <InfoRow
+                  label="Position"
+                  value={
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
                         campaign?.position
                       )}`}
                     >
-                      {campaign?.position || "N/A"}
+                      {campaign?.position || "No position"}
                     </span>
-                  </div>
-                </div>
+                  }
+                />
               )}
               {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
                 campaign?.campaignType === "Recruitment") && (
-                <div>
-                  <div className="mb-1 text-sm text-slate-600">Position</div>
-                  <div>
+                <InfoRow
+                  label="Position"
+                  value={
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
                         campaign?.position
                       )}`}
                     >
-                      {campaign?.position || "N/A"}
+                      {campaign?.position || "No position"}
                     </span>
-                  </div>
-                </div>
+                  }
+                />
               )}
-              <Info
+              <InfoRow
                 label="Target quantity"
-                value={`${campaign?.targetQuantity || 0}`}
+                value={`${
+                  campaign?.targetQuantity || campaign?.targetHires || 0
+                } people`}
               />
-              <Info
+              <InfoRow
                 label="Start date"
-                value={formatDate2(campaign?.startDate) || "N/A"}
+                value={formatDate2(campaign?.startDate) || "No start date"}
               />
-              <Info
+              <InfoRow
                 label="End date"
-                value={formatDate2(campaign?.endDate) || "N/A"}
+                value={formatDate2(campaign?.endDate) || "No end date"}
               />
             </div>
 
@@ -343,10 +529,10 @@ const PendingCampaignInfo = ({ campaign }) => {
   );
 };
 
-const Info = ({ label, value }) => (
-  <div>
-    <div className="text-sm text-slate-600">{label}</div>
-    <div className="font-medium text-slate-800">{value}</div>
+const InfoRow = ({ label, value }) => (
+  <div className="flex items-start">
+    <div className="mr-3 text-sm text-slate-600 shrink-0">{label}:</div>
+    <div className="text-sm text-slate-800">{value}</div>
   </div>
 );
 

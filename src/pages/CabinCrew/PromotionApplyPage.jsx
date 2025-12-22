@@ -72,28 +72,28 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
     jobRequirement: apiData.jobRequirement,
     batches: Array.isArray(rounds)
       ? rounds.map((round, index) => ({
-        campaignRoundId:
-          round.campaignRoundId || round.id || round.roundId || index,
-        name:
-          round.roundName || round.name || round.round || `Đợt ${index + 1}`,
-        roundName: round.roundName || round.name || "",
-        time: getRoundTime(round.startDate, round.endDate),
-        location: round.location || "",
-        method: round.method || "Trực tiếp",
-        status: mapRoundStatus(round.status),
-        owner: round.owner || "",
-        description: round.description || "",
-        slots: round.targetQuantity || round.slots || 0,
-        targetQuantity: round.targetQuantity || 0,
-        applied:
-          round.actualQuantiy !== undefined
-            ? round.actualQuantiy
-            : round.applied || 0,
-        actualQuantiy: round.actualQuantiy || 0,
-        startDate: round.startDate || "",
-        endDate: round.endDate || "",
-        hasApplied: round.hasApplied || false,
-      }))
+          campaignRoundId:
+            round.campaignRoundId || round.id || round.roundId || index,
+          name:
+            round.roundName || round.name || round.round || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || "",
+          time: getRoundTime(round.startDate, round.endDate),
+          location: round.location || "",
+          method: round.method || "Trực tiếp",
+          status: mapRoundStatus(round.status),
+          owner: round.owner || "",
+          description: round.description || "",
+          slots: round.targetQuantity || round.slots || 0,
+          targetQuantity: round.targetQuantity || 0,
+          applied:
+            round.actualQuantiy !== undefined
+              ? round.actualQuantiy
+              : round.applied || 0,
+          actualQuantiy: round.actualQuantiy || 0,
+          startDate: round.startDate || "",
+          endDate: round.endDate || "",
+          hasApplied: round.hasApplied || false,
+        }))
       : [],
     ...apiData,
   };
@@ -133,6 +133,54 @@ const isCampaignActive = (data) => {
   return false;
 };
 
+// Hàm lấy màu cho Campaign type (Promotion = tím, Recruitment = xanh)
+const getCampaignTypeColor = (campaignType) => {
+  if (!campaignType) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const type = campaignType.toLowerCase();
+  if (type.includes("promotion")) {
+    return "bg-purple-100 text-purple-800 border-purple-300";
+  } else if (type.includes("recruitment")) {
+    return "bg-blue-100 text-blue-800 border-blue-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
+// Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+const getPositionColor = (position) => {
+  if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const pos = position.toLowerCase();
+  if (pos.includes("purser")) {
+    return "bg-orange-100 text-orange-800 border-orange-300";
+  } else if (pos.includes("cabin crew")) {
+    return "bg-teal-100 text-teal-800 border-teal-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const partner = partnerName.toLowerCase();
+  // Có thể thêm các airline cụ thể với màu riêng
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
+  }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
+
 const PromotionApplyPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -163,7 +211,7 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-            "Cannot load campaign information, please try again."
+              "Cannot load campaign information, please try again."
           );
         }
       } catch (err) {
@@ -298,9 +346,11 @@ const PromotionApplyPage = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-5xl px-4 py-8 mx-auto">
-          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-sm text-gray-600">Loading campaign information...</p>
+          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">
+              Loading campaign information...
+            </p>
           </div>
         </div>
       </div>
@@ -354,19 +404,53 @@ const PromotionApplyPage = () => {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign)
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                    }`}
+                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
+                    isCampaignActive(campaign)
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
                 >
                   {isCampaignActive(campaign) ? "Ongoing" : "Ended"}
                 </span>
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
-                  <Info label="Position" value={campaign.position || "N/A"} />
-                  <Info label="Type" value={campaign.campaignType || "—"} />
-                  <Info label="Airline" value={campaign.airline || "—"} />
+                  <div>
+                    <span className="text-sm text-slate-600">Position:</span>
+                    <div className="mt-1">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                          campaign.position
+                        )}`}
+                      >
+                        {campaign.position || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-slate-600">Type:</span>
+                    <div className="mt-1">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(
+                          campaign.campaignType
+                        )}`}
+                      >
+                        {campaign.campaignType || "—"}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-slate-600">Airline:</span>
+                    <div className="mt-1">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
+                          campaign.airline
+                        )}`}
+                      >
+                        {campaign.airline || "—"}
+                      </span>
+                    </div>
+                  </div>
                   <Info
                     label="Start Date"
                     value={formatDateLabel(campaign.startDate)}
@@ -472,123 +556,100 @@ const PromotionApplyPage = () => {
                     Recruitment schedule
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {(Array.isArray(campaign.batches) && campaign.batches.length
-                      ? campaign.batches
-                      : [
-                        {
-                          name: "Đợt 1",
-                          time: `${campaign.startDate || "2025-10-01"} - ${campaign.endDate || "2025-10-15"
-                            }`,
-                          location: campaign.location || "Hà Nội",
-                          method: "Trực tiếp",
-                          status: "completed",
-                          owner: "HR Team A",
-                          description:
-                            "Tuyển dụng trực tiếp tại văn phòng Hà Nội",
-                          slots: 50,
-                          applied: 45,
-                        },
-                        {
-                          name: "Đợt 2",
-                          time: "2025-11-01 - 2025-11-20",
-                          location: "TP.HCM",
-                          method: "Trực tiếp + Online",
-                          status: "ongoing",
-                          owner: "HR Team B",
-                          description:
-                            "Tuyển dụng kết hợp trực tiếp và online tại TP.HCM",
-                          slots: 80,
-                          applied: 32,
-                        },
-                        {
-                          name: "Đợt 3",
-                          time: "2025-12-01 - 2025-12-15",
-                          location: "Đà Nẵng",
-                          method: "Online",
-                          status: "upcoming",
-                          owner: "HR Team C",
-                          description:
-                            "Tuyển dụng online cho khu vực miền Trung",
-                          slots: 30,
-                          applied: 0,
-                        },
-                      ]
-                    ).map((b, i) => (
-                      <div
-                        key={i}
-                        className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
-                      >
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
-                          <div className="text-sm font-semibold text-slate-800">
-                            {b.name}
-                          </div>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${b.status === "completed"
-                              ? "bg-red-100 text-red-700"
-                              : b.status === "ongoing"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
+                    {Array.isArray(campaign.batches) &&
+                    campaign.batches.length > 0 ? (
+                      campaign.batches.map((b, i) => (
+                        <div
+                          key={i}
+                          className="overflow-hidden bg-white border rounded-lg shadow-sm border-slate-200"
+                        >
+                          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <div className="text-sm font-semibold text-slate-800">
+                              {b.name}
+                            </div>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                b.status === "completed"
+                                  ? "bg-red-100 text-red-700"
+                                  : b.status === "ongoing"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
                               }`}
-                          >
-                            {b.status === "completed"
-                              ? "Completed"
-                              : b.status === "ongoing"
+                            >
+                              {b.status === "completed"
+                                ? "Completed"
+                                : b.status === "ongoing"
                                 ? "Ongoing"
                                 : "Upcoming"}
-                          </span>
-                        </div>
-                        <div className="p-4">
-                          <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-                            <InfoMini label="Start Date" value={b.startDate ? formatDate(b.startDate) : "—"} />
-                            <InfoMini label="End Date" value={b.endDate ? formatDate(b.endDate) : "—"} />
-                            {b.owner && (
-                              <InfoMini label="Owner" value={b.owner} />
-                            )}
-                            {b.slots && (
+                            </span>
+                          </div>
+                          <div className="p-4">
+                            <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
                               <InfoMini
-                                label="Number of recruits"
-                                value={`${b.slots} people`}
+                                label="Start Date"
+                                value={
+                                  b.startDate ? formatDate(b.startDate) : "—"
+                                }
                               />
-                            )}
-                            {b.applied !== undefined && (
                               <InfoMini
-                                label="Applied"
-                                value={`${b.applied} people`}
+                                label="End Date"
+                                value={b.endDate ? formatDate(b.endDate) : "—"}
                               />
-                            )}
-                            {b.description && (
-                              <InfoMini
-                                label="Description"
-                                value={b.description}
-                              />
+                              {b.owner && (
+                                <InfoMini label="Owner" value={b.owner} />
+                              )}
+                              {b.slots && (
+                                <InfoMini
+                                  label="Promotion quota"
+                                  value={`${b.slots} people`}
+                                />
+                              )}
+                              {b.applied !== undefined && (
+                                <InfoMini
+                                  label="Applied"
+                                  value={`${b.applied} people`}
+                                />
+                              )}
+                              {b.description && (
+                                <InfoMini
+                                  label="Description"
+                                  value={b.description}
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-end px-4 pt-0 pb-4">
+                            {b.status === "ongoing" && (
+                              <button
+                                onClick={() =>
+                                  !b.hasApplied &&
+                                  navigate(
+                                    `/cabin-crew/application-form/${
+                                      b.campaignRoundId || b.id || ""
+                                    }`,
+                                    {
+                                      state: { campaign: campaign, batch: b },
+                                    }
+                                  )
+                                }
+                                disabled={b.hasApplied}
+                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${
+                                  b.hasApplied
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                                }`}
+                              >
+                                {b.hasApplied ? "Already applied" : "Apply now"}
+                              </button>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center justify-end px-4 pt-0 pb-4">
-                          {b.status === "ongoing" && (
-                            <button
-                              onClick={() =>
-                                !b.hasApplied &&
-                                navigate(
-                                  `/cabin-crew/application-form/${b.campaignRoundId || b.id || ""
-                                  }`,
-                                  {
-                                    state: { campaign: campaign, batch: b },
-                                  }
-                                )
-                              }
-                              disabled={b.hasApplied}
-                              className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-green-600 hover:bg-green-700 cursor-pointer"
-                                }`}
-                            >
-                              {b.hasApplied ? "Already applied" : "Apply now"}
-                            </button>
-                          )}
-                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-sm text-center bg-white border rounded-lg col-span-full text-slate-500 border-slate-200">
+                        No promotion schedule available
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

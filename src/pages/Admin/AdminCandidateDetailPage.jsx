@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getApplicationById } from "../../service/api2";
+import { toast } from "react-toastify";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -154,6 +155,41 @@ const DOCUMENT_SECTIONS = [
   },
 ];
 
+const normalizeText = (text) => (text || "").toLowerCase().trim();
+
+const normalizeStageId = (stageValue) => {
+  const text = normalizeText(stageValue);
+  if (!text) return null;
+
+  if (text.includes("screening")) return "screening";
+  // Map Flight Hour Confirmation vào cùng vị trí với English Listening Test
+  if (text.includes("flight") || text.includes("hour")) return "flight-hours";
+  if (text.includes("appearance") || text.includes("grooming"))
+    return "appearance";
+  if (text.includes("listening")) return "english-listening";
+  // Practical Test được gắn với English Speaking Test
+  if (text.includes("speaking") || text.includes("practical"))
+    return "english-speaking";
+  if (text.includes("interview")) return "interview";
+  if (text.includes("final")) return "final";
+
+  return null;
+};
+
+const getRoundText = (round) => {
+  const roundMap = {
+    screening: "Screening",
+    grooming: "Appearance",
+    test: "English Test",
+    interview: "Interview",
+    final: "Final Result",
+    "flight-hours": "Flight Hours Confirmation",
+    "english-listening": "English Listening Test",
+    "english-speaking": "English Speaking Test",
+  };
+  return roundMap[round] || "Screening";
+};
+
 const AdminCandidateDetailPage = () => {
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -164,6 +200,26 @@ const AdminCandidateDetailPage = () => {
   const { id: routeApplicationId } = useParams();
   const candidateFromState = location.state?.candidate || null;
   const batchData = location.state?.batchData || null;
+  const viewingRound = location.state?.viewingRound || null;
+
+  // Xác định stage ID từ viewingRound hoặc candidate.currentRound
+  const derivedStageId =
+    normalizeStageId(
+      viewingRound?.stageId || viewingRound?.roundName || viewingRound?.roundId
+    ) ||
+    normalizeStageId(candidate?.currentRound) ||
+    normalizeStageId(
+      candidateFromState?.currentRound || candidateFromState?.roundName
+    ) ||
+    "screening";
+
+  // Ưu tiên dùng tên vòng từ dữ liệu truyền vào (ví dụ: "Flight Hour Confirmation", "Practical Test")
+  const currentStageName =
+    viewingRound?.roundName ||
+    viewingRound?.stageName ||
+    viewingRound?.stageId?.toString().replace(/-/g, " ") ||
+    getRoundText(derivedStageId) ||
+    "Screening";
 
   useEffect(() => {
     const off = onLangChange(() => setLangVersion((v) => v + 1));
@@ -277,21 +333,10 @@ const AdminCandidateDetailPage = () => {
     return experienceMap[experience] || experience || "—";
   };
 
-  const getRoundText = (round) => {
-    const roundMap = {
-      screening: "Screening",
-      grooming: "Appearance",
-      test: "English Test",
-      interview: "Interview",
-      final: "Final Result",
-    };
-    return roundMap[round] || "Screening";
-  };
-
   const handleViewDocument = (documentSource) => {
     const documentUrl = getDocumentUrl(documentSource);
     if (!documentUrl) {
-      alert("Document URL not found.");
+      toast.error("Document URL not found.");
       return;
     }
     window.open(documentUrl, "_blank", "noopener,noreferrer");
@@ -300,7 +345,10 @@ const AdminCandidateDetailPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -350,8 +398,7 @@ const AdminCandidateDetailPage = () => {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-slate-800">
-                Candidate Profile -{" "}
-                {candidate ? getRoundText(candidate.currentRound) : "Screening"}
+                Candidate Profile - {currentStageName}
               </h1>
               <p className="text-slate-600">Detailed candidate information</p>
             </div>

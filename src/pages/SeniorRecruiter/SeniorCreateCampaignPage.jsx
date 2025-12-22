@@ -491,7 +491,12 @@ const SeniorCreateCampaignPage = () => {
   if (isLoadingDetail) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Loading campaign information...</div>
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading campaign information...
+          </p>
+        </div>
       </div>
     );
   }
@@ -683,8 +688,11 @@ const SeniorCreateCampaignPage = () => {
                     className={`rounded-md border p-4 bg-green-50 border-green-300`}
                   >
                     {isLoadingRequirements ? (
-                      <div className="text-sm text-slate-500">
-                        Loading requirements...
+                      <div className="text-center py-4">
+                        <div className="inline-block w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                        <p className="mt-2 text-sm text-gray-600">
+                          Loading requirements...
+                        </p>
                       </div>
                     ) : requirementItems.length > 0 ? (
                       <ul className="space-y-2">

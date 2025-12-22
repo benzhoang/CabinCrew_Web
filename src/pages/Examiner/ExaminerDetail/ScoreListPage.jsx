@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import { FaEye, FaFilePen } from "react-icons/fa6";
-import ComplaintScoreModal from "../../../components/ExaminerComponent/ComplaintScoreModal";
-import TestModal from "../../../components/ExaminerComponent/TestModal";
 import { getTestById, getTestSessionsByType } from "../../../service/api2";
 
 // const RoundBadge = ({ value }) => {
@@ -16,9 +14,6 @@ import { getTestById, getTestSessionsByType } from "../../../service/api2";
 
 const ScoreListPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [showComplaintModal, setShowComplaintModal] = useState(false);
-  const [showTestModal, setShowTestModal] = useState(false);
   const [testSessions, setTestSessions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -146,16 +141,6 @@ const ScoreListPage = () => {
       isMounted = false;
     };
   }, [derivedTestId]);
-
-  const handleViewTestDetails = () => {
-    setShowComplaintModal(false);
-    setShowTestModal(true);
-  };
-
-  const handleBackToComplaint = () => {
-    setShowTestModal(false);
-    setShowComplaintModal(true);
-  };
 
   const getStatusBadge = (status) => {
     // If status is null or undefined, display "Undetermined"
@@ -423,26 +408,6 @@ const ScoreListPage = () => {
           )}
         </div>
       </div>
-
-      {/* Modals */}
-      <ComplaintScoreModal
-        isOpen={showComplaintModal}
-        onClose={() => {
-          setShowComplaintModal(false);
-          setSelectedCandidate(null);
-        }}
-        onViewDetails={handleViewTestDetails}
-        candidate={selectedCandidate}
-      />
-      <TestModal
-        isOpen={showTestModal}
-        onClose={() => {
-          setShowTestModal(false);
-          setSelectedCandidate(null);
-        }}
-        onBack={handleBackToComplaint}
-        candidate={selectedCandidate}
-      />
     </div>
   );
 };

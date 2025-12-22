@@ -82,7 +82,7 @@ const MainPage = () => {
     admin: "/admin/dashboard",
     recruiter: "/recruiter/campaigns",
     "airline-partner": "/airline-partner/requests",
-    "cabin-crew": "/cabin-crew/promotion",
+    "cabin-crew": "/cabin-crew/settings",
     examiner: "/examiner/campaigns",
     director: "/director/requirements",
     "senior-recruiter": "/senior-recruiter/campaigns",

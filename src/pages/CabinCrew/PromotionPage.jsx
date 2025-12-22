@@ -54,27 +54,46 @@ const mapStatusForCandidate = (status) => {
 };
 
 const getAirlineBadgeClass = (airline) => {
-  if (!airline) return "bg-gray-100 text-gray-700 border-gray-200";
+  if (!airline) return "bg-gray-100 text-gray-800 border-gray-300";
 
   const airlineLower = airline.toLowerCase().trim();
-
-  if (airlineLower.includes("vietjet")) {
-    return "bg-red-100 text-red-700 border-red-200";
-  }
-  if (airlineLower.includes("vietnam airlines")) {
-    return "bg-blue-100 text-blue-700 border-blue-200";
-  }
-  if (airlineLower.includes("bamboo")) {
-    return "bg-cyan-100 text-cyan-700 border-cyan-200";
-  }
+  // Có thể thêm các airline cụ thể với màu riêng
   if (
-    airlineLower.includes("sun phuquoc") ||
-    airlineLower.includes("sunphuquoc")
+    airlineLower.includes("vietnam airlines") ||
+    airlineLower.includes("vietnamairlines")
   ) {
-    return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (
+    airlineLower.includes("vietjet") ||
+    airlineLower.includes("viet jet")
+  ) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (
+    airlineLower.includes("bamboo") ||
+    airlineLower.includes("bamboo airways")
+  ) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (
+    airlineLower.includes("jetstar") ||
+    airlineLower.includes("sun phuquoc")
+  ) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
   }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
 
-  return "bg-gray-100 text-gray-700 border-gray-200";
+// Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
+const getPositionColor = (position) => {
+  if (!position) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const pos = position.toLowerCase();
+  if (pos.includes("purser")) {
+    return "bg-orange-100 text-orange-800 border-orange-300";
+  } else if (pos.includes("cabin crew")) {
+    return "bg-teal-100 text-teal-800 border-teal-300";
+  }
+  return "bg-gray-100 text-gray-800 border-gray-300";
 };
 
 const transformCampaign = (campaign) => {
@@ -246,8 +265,8 @@ const PromotionPage = () => {
           setCampaigns([]);
           setError(
             response.error ||
-            response.message ||
-            "Cannot get the list of promotion campaigns"
+              response.message ||
+              "Cannot get the list of promotion campaigns"
           );
         }
       } catch (err) {
@@ -335,7 +354,7 @@ const PromotionPage = () => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {isLoading && (
             <div className="p-12 text-center bg-white border border-gray-200 md:col-span-2 rounded-xl">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
               <p className="mt-4 text-sm text-gray-600">
                 Loading promotion campaigns...
               </p>
@@ -364,10 +383,11 @@ const PromotionPage = () => {
                       )}
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
-                        }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
+                        c.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                     >
                       {c.status === "active" ? "Ongoing" : "Ended"}
                     </span>
@@ -375,9 +395,15 @@ const PromotionPage = () => {
                   <div className="grid grid-cols-1 gap-3 mt-4 text-sm sm:grid-cols-3">
                     <div>
                       <span className="text-slate-500">Position</span>
-                      <p className="font-medium text-slate-800">
-                        {c.position || "N/A"}
-                      </p>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                            c.position
+                          )}`}
+                        >
+                          {c.position || "N/A"}
+                        </span>
+                      </div>
                     </div>
                     <div>
                       <span className="text-slate-500">Start Date</span>
