@@ -640,7 +640,7 @@ const dictionaries = {
     pagination_prev: "Previous",
     pagination_next: "Next",
     pagination_page: "Page",
-    campaign_type: "Campaign Type",
+    campaign_type: "Positon",
     end_date: "End Date",
     recruitment_stages_title: "Recruitment Stages",
     recruitment_stages_subtitle: "Track your application progress across stages",

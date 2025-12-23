@@ -74,6 +74,27 @@ const getAirlineBadgeClass = (airline) => {
     return "bg-gray-100 text-gray-700 border-gray-200";
 };
 
+const getPositionBadgeClass = (position) => {
+    if (!position) return "bg-gray-100 text-gray-700 border-gray-200";
+
+    const positionLower = position.toLowerCase().trim();
+
+    if (positionLower.includes("purser")) {
+        return "bg-orange-100 text-orange-700 border-orange-200";
+    }
+    if (positionLower.includes("cabin crew") || positionLower.includes("cabincrew")) {
+        return "bg-teal-100 text-teal-700 border-teal-200";
+    }
+    if (positionLower.includes("flight attendant") || positionLower.includes("flightattendant")) {
+        return "bg-blue-100 text-blue-700 border-blue-200";
+    }
+    if (positionLower.includes("pilot") || positionLower.includes("captain")) {
+        return "bg-indigo-100 text-indigo-700 border-indigo-200";
+    }
+
+    return "bg-gray-100 text-gray-700 border-gray-200";
+};
+
 const transformCampaign = campaign => {
     if (!campaign) return null
     const id = campaign.id ?? campaign.campaignId ?? campaign.campaignID ?? campaign.Id
@@ -311,7 +332,15 @@ const Recruiment = () => {
                                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                                     <div>
                                         <span className="text-slate-500">{t('campaign_type') || 'Loại'}</span>
-                                        <p className="font-medium text-slate-800">{c.position}</p>
+                                        <div className="mt-1">
+                                            <span
+                                                className={`inline-flex items-center rounded-full border text-xs font-medium px-2.5 py-1 ${getPositionBadgeClass(
+                                                    c.position
+                                                )}`}
+                                            >
+                                                {c.position}
+                                            </span>
+                                        </div>
                                     </div>
                                     <div>
                                         <span className="text-slate-500">{t('start_date')}</span>
