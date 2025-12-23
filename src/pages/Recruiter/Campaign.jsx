@@ -9,6 +9,7 @@ const Campaign = () => {
   const [displayedCampaigns, setDisplayedCampaigns] = useState([]); // Campaigns displayed on current page (5 items)
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("startDateDesc");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedCampaign] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [, setLangVersion] = useState(0);
@@ -167,6 +168,13 @@ const Campaign = () => {
       );
     }
 
+    // Filter by timeline status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (campaign) => getTimelineStatus(campaign) === statusFilter
+      );
+    }
+
     // Sort campaigns
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -201,7 +209,7 @@ const Campaign = () => {
       hasNextPage: totalPages > 1,
       hasPreviousPage: false,
     }));
-  }, [allCampaigns, searchTerm, sortBy]);
+  }, [allCampaigns, searchTerm, sortBy, statusFilter]);
 
   // Apply client-side pagination on filteredCampaigns
   useEffect(() => {
@@ -312,6 +320,17 @@ const Campaign = () => {
     return Number(campaign.targetHires) > 0;
   };
 
+  // Phân loại trạng thái theo mốc thời gian để phục vụ filter
+  const getTimelineStatus = (campaign) => {
+    const now = new Date();
+    const start = parseDateValue(campaign.rawStartDate);
+    const end = parseDateValue(campaign.rawEndDate);
+
+    if (end && end < now) return "ended";
+    if (start && start > now) return "upcoming";
+    return "ongoing";
+  };
+
   // Hàm lấy màu cho Campaign type (Promotion = tím, Recruitment = xanh)
   const getCampaignTypeColor = (campaignType) => {
     if (!campaignType) return "bg-gray-100 text-gray-800 border-gray-300";
@@ -415,10 +434,46 @@ const Campaign = () => {
       {/* Campaigns List */}
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-800">
-              Campaign List ({filteredCampaigns.length})
-            </h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-3">
+            Campaign List ({filteredCampaigns.length})
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "all"
+                ? "bg-slate-600 text-white border-slate-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter("ongoing")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "ongoing"
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
+                }`}
+            >
+              Ongoing
+            </button>
+            <button
+              onClick={() => setStatusFilter("upcoming")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "upcoming"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
+                }`}
+            >
+              Upcoming
+            </button>
+            <button
+              onClick={() => setStatusFilter("ended")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "ended"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+                }`}
+            >
+              Ended
+            </button>
           </div>
         </div>
 
@@ -595,12 +650,11 @@ const Campaign = () => {
                       !pagination.hasPreviousPage ||
                       (pagination.currentPage || 1) === 1
                     }
-                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                      pagination.hasPreviousPage &&
+                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage &&
                       (pagination.currentPage || 1) > 1
-                        ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    }`}
+                      ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                      : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                      }`}
                   >
                     Previous
                   </button>
@@ -623,11 +677,10 @@ const Campaign = () => {
                         key={pageNum}
                         type="button"
                         onClick={() => handlePageChange(pageNum)}
-                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                          isActive
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                        }`}
+                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${isActive
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -642,15 +695,14 @@ const Campaign = () => {
                     disabled={
                       !pagination.hasNextPage ||
                       (pagination.currentPage || 1) >=
-                        (pagination.totalPages || 1)
+                      (pagination.totalPages || 1)
                     }
-                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                      pagination.hasNextPage &&
+                    className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage &&
                       (pagination.currentPage || 1) <
-                        (pagination.totalPages || 1)
-                        ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    }`}
+                      (pagination.totalPages || 1)
+                      ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                      : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                      }`}
                   >
                     Next
                   </button>
