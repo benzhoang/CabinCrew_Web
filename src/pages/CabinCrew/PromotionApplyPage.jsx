@@ -553,7 +553,7 @@ const PromotionApplyPage = () => {
                 {/* Batches (đợt tuyển) - dùng fallback nếu không có */}
                 <div className="mt-6">
                   <div className="mb-2 text-sm text-slate-600">
-                    Recruitment schedule
+                    Promotion schedule
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {Array.isArray(campaign.batches) &&

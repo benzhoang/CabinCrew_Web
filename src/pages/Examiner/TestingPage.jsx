@@ -1,6 +1,18 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiEdit2, FiTrash2, FiEye, FiEyeOff, FiFileText, FiLoader, FiMusic, FiExternalLink, FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
+import {
+  FiEdit2,
+  FiTrash2,
+  FiEye,
+  FiEyeOff,
+  FiFileText,
+  FiLoader,
+  FiMusic,
+  FiExternalLink,
+  FiChevronLeft,
+  FiChevronRight,
+  FiPlus,
+} from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 import { exportQuestionTemplate } from "./ExportQuestionTemplate";
@@ -134,7 +146,11 @@ const TestingPage = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [codeVisibility, setCodeVisibility] = useState({}); // Tracks visibility for each test code
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+  });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: 10,
@@ -200,11 +216,7 @@ const TestingPage = () => {
 
   const filteredTests = useMemo(() => {
     const normalize = (val) =>
-      (val || "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "");
+      (val || "").toString().trim().toLowerCase().replace(/\s+/g, "");
 
     const filterBy = (collection) =>
       collection.filter((test) => {
@@ -367,9 +379,7 @@ const TestingPage = () => {
           <h2 className="mb-2 text-2xl font-bold text-slate-800">
             Manage English Tests
           </h2>
-          <p className="text-slate-600">
-            List of available English tests
-          </p>
+          <p className="text-slate-600">List of available English tests</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -445,11 +455,9 @@ const TestingPage = () => {
 
       <div className="bg-white border shadow-sm rounded-xl border-slate-200">
         {isLoading ? (
-          <div className="p-12 text-center">
-            <FiLoader className="w-16 h-16 mx-auto mb-4 text-indigo-600 animate-spin" />
-            <p className="text-lg font-medium text-slate-600">
-              Loading test list...
-            </p>
+          <div className="py-8 text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">Loading test list...</p>
           </div>
         ) : filteredTests.length === 0 ? (
           <div className="p-12 text-center">
@@ -500,7 +508,9 @@ const TestingPage = () => {
                             onClick={() => toggleCodeVisibility(test.id)}
                             className="text-slate-500 hover:text-slate-700"
                             title={
-                              codeVisibility[test.id] ? "Hide code" : "Show code"
+                              codeVisibility[test.id]
+                                ? "Hide code"
+                                : "Show code"
                             }
                           >
                             {codeVisibility[test.id] ? (
@@ -636,10 +646,11 @@ const TestingPage = () => {
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${page === pagination.currentPage
-                      ? "bg-indigo-600 text-white"
-                      : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
-                      }`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      page === pagination.currentPage
+                        ? "bg-indigo-600 text-white"
+                        : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
+                    }`}
                   >
                     {page}
                   </button>
@@ -681,10 +692,18 @@ const TestingPage = () => {
       {/* Confirm Delete Popup */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" onClick={closeConfirmDelete} />
+          <div
+            className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"
+            onClick={closeConfirmDelete}
+          />
           <div className="relative z-10 w-full max-w-sm p-6 bg-white border rounded-xl shadow-xl border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">Delete this test?</h3>
-            <p className="text-sm text-slate-600 mb-4">Are you sure you want to delete this test? This action cannot be undone.</p>
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">
+              Delete this test?
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Are you sure you want to delete this test? This action cannot be
+              undone.
+            </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeConfirmDelete}
@@ -705,23 +724,25 @@ const TestingPage = () => {
       )}
 
       {/* Toast */}
-      {toast.visible && (() => {
-        const toastType = (toast.type || "success").toString().toLowerCase();
-        // Mặc định xanh, chỉ đỏ khi type là "error"
-        const isSuccess = toastType !== "error";
-        return (
-          <div className="fixed right-4 top-4 z-50">
-            <div
-              className={`min-w-[260px] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${isSuccess
-                ? "bg-green-50 text-red-800 border-red-200"
-                : "bg-red-50 text-green-700 border-green-200"
+      {toast.visible &&
+        (() => {
+          const toastType = (toast.type || "success").toString().toLowerCase();
+          // Mặc định xanh, chỉ đỏ khi type là "error"
+          const isSuccess = toastType !== "error";
+          return (
+            <div className="fixed right-4 top-4 z-50">
+              <div
+                className={`min-w-[260px] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${
+                  isSuccess
+                    ? "bg-green-50 text-red-800 border-red-200"
+                    : "bg-red-50 text-green-700 border-green-200"
                 }`}
-            >
-              {toast.message}
+              >
+                {toast.message}
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 };

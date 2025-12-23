@@ -1,6 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaRegEye, FaFilePen, FaArrowRight, FaClipboardCheck } from "react-icons/fa6";
+import {
+  FaRegEye,
+  FaFilePen,
+  FaArrowRight,
+  FaClipboardCheck,
+} from "react-icons/fa6";
 import TestListModal from "./TestListModal";
 import {
   getRoundParticipants,
@@ -440,14 +445,22 @@ const ApplyList = ({
   };
 
   const mapRoundToStageId = (roundData, applicant) => {
-    const roundName = (roundData?.roundName || applicant?.roundName || "").toLowerCase();
+    const roundName = (
+      roundData?.roundName ||
+      applicant?.roundName ||
+      ""
+    ).toLowerCase();
     const testType = roundData?.testType;
 
     if (roundName.includes("screening")) return "screening";
-    if (roundName.includes("appearance") || roundName.includes("grooming")) return "appearance";
-    if (roundName.includes("listening") || testType === 1) return "english-listening";
-    if (roundName.includes("speaking") || testType === 2) return "english-speaking";
-    if (roundName.includes("practical") || testType === 3) return "english-speaking";
+    if (roundName.includes("appearance") || roundName.includes("grooming"))
+      return "appearance";
+    if (roundName.includes("listening") || testType === 1)
+      return "english-listening";
+    if (roundName.includes("speaking") || testType === 2)
+      return "english-speaking";
+    if (roundName.includes("practical") || testType === 3)
+      return "english-speaking";
     if (roundName.includes("interview")) return "interview";
     if (roundName.includes("final")) return "final";
 
@@ -458,9 +471,11 @@ const ApplyList = ({
     const roundFromFilter =
       roundFilter === "final"
         ? { roundId: "final", roundName: "Final" }
-        : availableRounds.find((r) => String(r.roundId) === String(roundFilter)) ||
-        activeRoundForTests ||
-        null;
+        : availableRounds.find(
+            (r) => String(r.roundId) === String(roundFilter)
+          ) ||
+          activeRoundForTests ||
+          null;
 
     const stageId =
       mapRoundToStageId(roundFromFilter, applicant) ||
@@ -472,7 +487,8 @@ const ApplyList = ({
         candidate: applicant,
         viewingRound: {
           stageId,
-          roundId: roundFromFilter?.roundId || roundFilter || applicant?.roundId,
+          roundId:
+            roundFromFilter?.roundId || roundFilter || applicant?.roundId,
           roundName: roundFromFilter?.roundName || applicant?.roundName || "",
         },
       },
@@ -626,6 +642,8 @@ const ApplyList = ({
                 currentPosition: participant.currentPosition || "",
                 targetPosition: participant.targetPosition || "",
                 score: participant.score || null,
+                hasInterviewEvaluated:
+                  participant.hasInterviewEvaluated || false,
               })
             );
             onParticipantsUpdate(mappedParticipants);
@@ -636,7 +654,9 @@ const ApplyList = ({
       }
     } catch (error) {
       console.error("Error when moving to next round:", error);
-      toast.error("An error occurred while moving to next round. Please try again.");
+      toast.error(
+        "An error occurred while moving to next round. Please try again."
+      );
     } finally {
       setIsMovingToInterview(false);
     }
@@ -655,8 +675,8 @@ const ApplyList = ({
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                    activeRoundForTests?.testId === 0 ||
-                    activeRoundForTests?.testId === null ? (
+                  activeRoundForTests?.testId === 0 ||
+                  activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -706,15 +726,15 @@ const ApplyList = ({
 
                         return !shouldHideButton;
                       })() && (
-                          <button
-                            onClick={openConfirmMoveModal}
-                            disabled={isMovingToInterview}
-                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <FaArrowRight className="w-5 h-5" />
-                            {isMovingToInterview ? "Finalizing..." : "Finalize"}
-                          </button>
-                        )}
+                        <button
+                          onClick={openConfirmMoveModal}
+                          disabled={isMovingToInterview}
+                          className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FaArrowRight className="w-5 h-5" />
+                          {isMovingToInterview ? "Finalizing..." : "Finalize"}
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -856,9 +876,9 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                        applicant.roundName ||
-                        applicant.round ||
-                        "screening",
+                          applicant.roundName ||
+                          applicant.round ||
+                          "screening",
                         applicant
                       )}
                     </td>
@@ -870,24 +890,32 @@ const ApplyList = ({
                             <button
                               className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
                               title="View candidate details"
-                              onClick={() => handleNavigateToCandidateView(applicant)}
+                              onClick={() =>
+                                handleNavigateToCandidateView(applicant)
+                              }
                             >
                               <FaRegEye className="w-4 h-4" />
                             </button>
-                            {/* Icon chấm phỏng vấn */}
-                            <button
-                              className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
-                              title="Evaluate interview"
-                              onClick={() => handleNavigateToEvaluation(applicant)}
-                            >
-                              <FaClipboardCheck className="w-4 h-4" />
-                            </button>
+                            {/* Icon chấm phỏng vấn - chỉ hiển thị nếu chưa được đánh giá */}
+                            {!applicant.hasInterviewEvaluated && (
+                              <button
+                                className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
+                                title="Evaluate interview"
+                                onClick={() =>
+                                  handleNavigateToEvaluation(applicant)
+                                }
+                              >
+                                <FaClipboardCheck className="w-4 h-4" />
+                              </button>
+                            )}
                           </>
                         ) : (
                           <button
                             className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
                             title="View candidate details"
-                            onClick={() => handleNavigateToCandidateView(applicant)}
+                            onClick={() =>
+                              handleNavigateToCandidateView(applicant)
+                            }
                           >
                             <FaRegEye className="w-4 h-4" />
                           </button>

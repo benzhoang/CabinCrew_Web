@@ -83,11 +83,9 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
             label="End time"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
-          <InfoMini label="Method" value={batch.method || "-"} />
           {batch.target !== undefined && batch.target !== null && (
             <InfoMini label="Target" value={batch.target.toString()} />
           )}
-          {batch.note && <InfoMini label="Note" value={batch.note} />}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
@@ -95,6 +93,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
                 value={batch.appliedCandidates?.toString() || "0"}
               />
             )}
+          {batch.note && <InfoMini label="Description" value={batch.note} />}
         </div>
 
         {/* Applicant Statistics Dropdown
@@ -158,10 +157,11 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
-              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-              }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
+              isUpcoming
+                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+            }`}
             title={
               isUpcoming
                 ? "Cannot view applicants because the batch has not started"
@@ -181,7 +181,7 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            {isUpcoming ? "Cannot view list" : "View applicants"}
+            {isUpcoming ? "Cannot view list" : "View Applicant List"}
           </button>
         </div>
       </div>
@@ -350,6 +350,33 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
     return Math.max(0, Math.min(100, p));
   };
 
+  // Lấy campaignType từ campaign object (tương tự như trong BatchManagement)
+  const getCampaignType = () => {
+    if (!campaign) return "";
+    const type =
+      campaign.campaignType ||
+      campaign.position ||
+      campaign.campaign_type ||
+      campaign.type ||
+      campaign.campaignTypeName ||
+      "";
+    return String(type).trim();
+  };
+
+  // Format campaignType để xác định loại batch plan
+  const getBatchPlanLabel = () => {
+    const campaignType = getCampaignType().toLowerCase();
+    if (campaignType.includes("promotion")) {
+      return "Promotion Batch Plan";
+    } else if (campaignType.includes("recruitment")) {
+      return "Recruitment Batch Plan";
+    }
+    // Default fallback
+    return "Batch Plan";
+  };
+
+  const batchPlanLabel = getBatchPlanLabel();
+
   // Check if campaign is pending approval
   const isPendingApproval = () => {
     if (!campaign?.status) return false;
@@ -446,7 +473,7 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
   return (
     <div className="mt-6">
       <div className="mb-2">
-        <div className="text-sm text-slate-600">Hiring batches plan</div>
+        <div className="text-sm text-slate-600">{batchPlanLabel}</div>
       </div>
       {currentBatches.length === 0 ? (
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 text-center text-slate-500 text-sm">
@@ -480,10 +507,11 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
           <button
             onClick={handleReject}
             disabled={isRejecting || isApproving}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isRejecting || isApproving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
-              }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
+              isRejecting || isApproving
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
+            }`}
           >
             {isRejecting ? (
               <>
@@ -512,10 +540,11 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
           <button
             onClick={() => setIsApproveModalOpen(true)}
             disabled={isApproving || isRejecting}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isApproving || isRejecting
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
-              }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
+              isApproving || isRejecting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
+            }`}
           >
             {isApproving ? (
               <>
@@ -557,7 +586,9 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800">Approve campaign</h3>
+              <h3 className="text-lg font-semibold text-slate-800">
+                Approve campaign
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Are you sure you want to approve this campaign?
               </p>
@@ -574,10 +605,11 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
                 type="button"
                 disabled={isApproving}
                 onClick={handleApproveConfirm}
-                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isApproving
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-                  }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${
+                  isApproving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
               >
                 {isApproving ? "Approving..." : "Approve"}
               </button>
