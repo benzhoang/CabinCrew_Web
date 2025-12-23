@@ -304,7 +304,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       // This ensures that when filters change, data from later pages will move up
       const params = {
         page: 1, // Always fetch from page 1 to get all data
-        pageSize: 1000, // Fetch large page size to get all campaigns
+        pageSize: 5, // Fetch large page size to get all campaigns
         searchTerm: search || undefined,
       };
 
