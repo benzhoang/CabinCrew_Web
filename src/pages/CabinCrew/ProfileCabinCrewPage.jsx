@@ -68,6 +68,7 @@ const ProfileCabinCrewPage = () => {
         totalFlightHours: '',
         height: '',
         weight: '',
+        bmi: '',
         englishCertificateType: '',
         totalScore: '',
         readingScore: '',
@@ -369,6 +370,7 @@ const ProfileCabinCrewPage = () => {
                         totalFlightHours: appData.totalFlightHours?.toString() || '',
                         height: appData.height?.toString() || '',
                         weight: appData.weight?.toString() || '',
+                        bmi: appData.bmi?.toString() || '',
                         englishCertificateType: appData.englishCertificateType || appData.englishType || '',
                         totalScore: appData.totalScore?.toString() || '',
                         readingScore: appData.readingScore?.toString() || '',
@@ -1142,7 +1144,7 @@ const ProfileCabinCrewPage = () => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">9. Height & Weight:</label>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
                                                 <input
@@ -1167,6 +1169,18 @@ const ProfileCabinCrewPage = () => {
                                                     disabled={true}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                                     required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-600 mb-1">BMI</label>
+                                                <input
+                                                    type="text"
+                                                    name="bmi"
+                                                    value={formData.bmi}
+                                                    onChange={handleInputChange}
+                                                    placeholder="24.2"
+                                                    disabled={true}
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-100 cursor-not-allowed"
                                                 />
                                             </div>
                                         </div>
