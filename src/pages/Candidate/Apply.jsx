@@ -4,6 +4,7 @@ import { getCampaignById, getOngoingCampaign, getRequirementItems, getRoundTypes
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
 import { formatDate } from '../../config/formatDate'
+import { toast } from 'react-toastify'
 
 // Helper function to render HTML content safely
 const renderHTML = (htmlString) => {
@@ -629,7 +630,20 @@ const Apply = () => {
                                                     <div className="px-4 pb-4 pt-0 flex items-center justify-end">
                                                         {b.status === 'ongoing' && (
                                                             <button
-                                                                onClick={() => navigate(`/application-form/${b.campaignRoundId}`, { state: { campaign: campaign, batch: b } })}
+                                                                onClick={() => {
+                                                                    // Kiểm tra đăng nhập trước khi cho ứng tuyển
+                                                                    const user = localStorage.getItem('user')
+
+                                                                    if (!user) {
+                                                                        toast.warning('Please log in before applying.')
+                                                                        navigate('/login')
+                                                                        return
+                                                                    }
+
+                                                                    navigate(`/application-form/${b.campaignRoundId}`, {
+                                                                        state: { campaign: campaign, batch: b }
+                                                                    })
+                                                                }}
                                                                 disabled={b.hasApplied === true}
                                                                 className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied === true
                                                                     ? 'bg-gray-400 cursor-not-allowed opacity-60'
