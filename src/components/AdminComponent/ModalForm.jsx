@@ -26,6 +26,16 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Calculate maximum date (end of year, 22 years ago from today)
+  // This allows selecting any date within that year but restricts to years with age >= 22
+  const getMaxDate = () => {
+    const today = new Date();
+    const maxYear = today.getFullYear() - 22;
+    // Set to December 31st of that year to allow selecting any date in that year
+    const maxDate = new Date(maxYear, 11, 31); // Month is 0-indexed, so 11 = December
+    return maxDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  };
+
   // Reset form when modal opens/closes or roleName changes
   useEffect(() => {
     if (isOpen) {
@@ -39,22 +49,6 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
       setErrors({});
     }
   }, [isOpen, roleName]);
-
-  const calculateAge = (dateOfBirth) => {
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  };
 
   const validateField = (name, value) => {
     switch (name) {
@@ -77,8 +71,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
       }
       case "dateOfBirth": {
         if (!value) return "Date of birth is required";
-        const age = calculateAge(value);
-        return age < 22 ? "Age must be 22 or older" : "";
+        return "";
       }
       default:
         return "";
@@ -291,6 +284,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
+                  max={getMaxDate()}
                   className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
                     errors.dateOfBirth ? "border-red-500" : "border-gray-300"
                   }`}

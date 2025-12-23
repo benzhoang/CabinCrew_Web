@@ -293,7 +293,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       // Fetch tất cả data - fetch với pageSize lớn để lấy hết
       const params = {
         page: 1,
-        pageSize: 1000, // Fetch nhiều để lấy hết data
+        pageSize: 5, // Fetch nhiều để lấy hết data
         searchTerm: search || undefined,
         status: undefined,
         requestType: requestTypeMap[campaignTypeFilter],
