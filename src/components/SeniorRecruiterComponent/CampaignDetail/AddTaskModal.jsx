@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { getUsersByRole, assignCampaignUsers } from "../../../service/api2";
 import { toast } from "react-toastify";
 //import { formatDate } from "../../../config/formatDate";
@@ -99,6 +100,7 @@ const getSelectLabel = (roundKey) =>
   roundKey === "screening" ? "Select recruiter" : "Select examiner";
 
 const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState(getDefaultAssignments);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -299,6 +301,11 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
         resetForm();
         onClose();
         toast.success("Task assignment successful!");
+
+        // Navigate to campaign list page with campaignStatus=5 (Ongoing)
+        setTimeout(() => {
+          navigate(`/senior-recruiter/campaigns?campaignStatus=5&page=1`);
+        }, 2000);
       } else {
         toast.error("Error when assigning task");
       }

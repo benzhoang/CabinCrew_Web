@@ -7,6 +7,7 @@ const ExaminerCampaign = () => {
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,6 +125,20 @@ const ExaminerCampaign = () => {
     [normalizeString]
   );
 
+  // Phân loại trạng thái theo mốc thời gian để phục vụ filter
+  const getTimelineStatus = useCallback(
+    (campaign) => {
+      const now = new Date();
+      const start = parseDateValue(campaign.rawStartDate);
+      const end = parseDateValue(campaign.rawEndDate);
+
+      if (end && end < now) return "ended";
+      if (start && start > now) return "upcoming";
+      return "ongoing";
+    },
+    [parseDateValue]
+  );
+
   useEffect(() => {
     let filtered = campaigns;
 
@@ -143,9 +158,23 @@ const ExaminerCampaign = () => {
       filtered = filtered.filter((campaign) => campaign.type === typeFilter);
     }
 
+    // Filter by timeline status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (campaign) => getTimelineStatus(campaign) === statusFilter
+      );
+    }
+
     setFilteredCampaigns(filtered);
     setCurrentPage(1);
-  }, [campaigns, searchTerm, typeFilter, normalizeString]);
+  }, [
+    campaigns,
+    searchTerm,
+    typeFilter,
+    statusFilter,
+    normalizeString,
+    getTimelineStatus,
+  ]);
 
   useEffect(() => {
     const totalPages = Math.max(
@@ -181,6 +210,7 @@ const ExaminerCampaign = () => {
       ongoing: { color: "bg-green-100 text-green-800", text: "Ongoing" },
       completed: { color: "bg-blue-100 text-blue-800", text: "Completed" },
       pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
+      ended: { color: "bg-red-100 text-red-800", text: "Ended" },
     };
     const config =
       statusConfig[normalizeStatus(status)] || statusConfig.ongoing;
@@ -297,10 +327,50 @@ const ExaminerCampaign = () => {
       {/* Campaigns List */}
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-800">
-              Campaign List ({filteredCampaigns.length})
-            </h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-3">
+            Campaign List ({filteredCampaigns.length})
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+                statusFilter === "all"
+                  ? "bg-slate-600 text-white border-slate-600"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setStatusFilter("ongoing")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+                statusFilter === "ongoing"
+                  ? "bg-green-600 text-white border-green-600"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
+              }`}
+            >
+              Ongoing
+            </button>
+            <button
+              onClick={() => setStatusFilter("upcoming")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+                statusFilter === "upcoming"
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
+              }`}
+            >
+              Upcoming
+            </button>
+            <button
+              onClick={() => setStatusFilter("ended")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+                statusFilter === "ended"
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+              }`}
+            >
+              Ended
+            </button>
           </div>
         </div>
 
@@ -377,7 +447,7 @@ const ExaminerCampaign = () => {
                     <div>
                       <span className="text-sm text-slate-600">Status:</span>
                       <div className="mt-1">
-                        {getStatusBadge(campaign.status)}
+                        {getStatusBadge(getTimelineStatus(campaign))}
                       </div>
                     </div>
                     <div>

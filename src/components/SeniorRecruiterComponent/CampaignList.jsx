@@ -264,11 +264,12 @@ const CampaignCard = ({ campaign }) => {
             >
               Create plan
             </button>
-          ) : campaign.status === "rejected" ? (
-            <button className="px-3 py-1 text-sm text-white transition-colors rounded-md bg-amber-600 hover:bg-amber-700">
-              Resend
-            </button>
           ) : (
+            // ) : campaign.status === "rejected" ? (
+            //   <button className="px-3 py-1 text-sm text-white transition-colors rounded-md bg-amber-600 hover:bg-amber-700">
+            //     Resend
+            //   </button>
+            // ) : (
             <button
               className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
               onClick={() =>
