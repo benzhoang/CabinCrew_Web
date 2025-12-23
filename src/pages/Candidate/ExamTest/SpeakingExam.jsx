@@ -303,7 +303,7 @@ const SpeakingExam = ({ examInfo }) => {
 
         navigate(`/exam-result/${examData?.testId}`, {
           state: {
-            examType: "Speaking",
+            examType: "English Speaking",
             testSessionId: sessionData.testSessionId,
             score: sessionData.totalScore || 0,
             totalScore: sessionData.totalScore || 0,

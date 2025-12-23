@@ -146,7 +146,7 @@ const ImportQuestionModal = ({ isOpen, onClose, testId, onSuccess }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          {status.type && (
+          {/* {status.type && (
             <div
               className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${status.type === 'error'
                 ? 'border-red-200 bg-red-50 text-red-700'
@@ -156,7 +156,7 @@ const ImportQuestionModal = ({ isOpen, onClose, testId, onSuccess }) => {
               {status.type === 'error' ? <FiAlertCircle className="w-5 h-5" /> : <FiCheckCircle className="w-5 h-5" />}
               <span>{status.message}</span>
             </div>
-          )}
+          )} */}
 
           <div className="border border-dashed border-indigo-300 rounded-2xl p-8 bg-indigo-50/40 text-center">
             <FiUpload className="w-12 h-12 mx-auto text-indigo-500 mb-4" />

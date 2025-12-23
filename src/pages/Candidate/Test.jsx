@@ -115,9 +115,9 @@ const Test = () => {
 
                             const mappedExams = testsArray.map((test) => {
                                 let examType = 'English Listening';
-                                if (test.testType === 'EnglishListening') {
+                                if (test.testType === 'English Listening') {
                                     examType = 'English Listening';
-                                } else if (test.testType === 'EnglishSpeaking') {
+                                } else if (test.testType === 'English Speaking') {
                                     examType = 'English Speaking';
                                 } else if (test.testType === 'Practical') {
                                     examType = 'Practical';
@@ -291,8 +291,8 @@ const Test = () => {
                         {t('all_exams') || 'Tất cả'}
                     </button>
                     <button
-                        onClick={() => setFilterType('Listening')}
-                        className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${filterType === 'Listening'
+                        onClick={() => setFilterType('English Listening')}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${filterType === 'English Listening'
                             ? 'bg-blue-800 text-white shadow-md'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                             }`}
@@ -300,8 +300,8 @@ const Test = () => {
                         {t('listening') || 'Listening'}
                     </button>
                     <button
-                        onClick={() => setFilterType('Speaking')}
-                        className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${filterType === 'Speaking'
+                        onClick={() => setFilterType('English Speaking')}
+                        className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${filterType === 'English Speaking'
                             ? 'bg-blue-800 text-white shadow-md'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
                             }`}
@@ -341,7 +341,7 @@ const Test = () => {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <h3 className="text-xl font-bold text-gray-800">{exam.name}</h3>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${exam.type === 'Listening'
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${exam.type === 'English Listening'
                                                     ? 'bg-blue-100 text-blue-800'
                                                     : 'bg-purple-100 text-purple-800'
                                                     }`}>
