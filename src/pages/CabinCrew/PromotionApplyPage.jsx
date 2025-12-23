@@ -72,28 +72,28 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
     jobRequirement: apiData.jobRequirement,
     batches: Array.isArray(rounds)
       ? rounds.map((round, index) => ({
-          campaignRoundId:
-            round.campaignRoundId || round.id || round.roundId || index,
-          name:
-            round.roundName || round.name || round.round || `Đợt ${index + 1}`,
-          roundName: round.roundName || round.name || "",
-          time: getRoundTime(round.startDate, round.endDate),
-          location: round.location || "",
-          method: round.method || "Trực tiếp",
-          status: mapRoundStatus(round.status),
-          owner: round.owner || "",
-          description: round.description || "",
-          slots: round.targetQuantity || round.slots || 0,
-          targetQuantity: round.targetQuantity || 0,
-          applied:
-            round.actualQuantiy !== undefined
-              ? round.actualQuantiy
-              : round.applied || 0,
-          actualQuantiy: round.actualQuantiy || 0,
-          startDate: round.startDate || "",
-          endDate: round.endDate || "",
-          hasApplied: round.hasApplied || false,
-        }))
+        campaignRoundId:
+          round.campaignRoundId || round.id || round.roundId || index,
+        name:
+          round.roundName || round.name || round.round || `Đợt ${index + 1}`,
+        roundName: round.roundName || round.name || "",
+        time: getRoundTime(round.startDate, round.endDate),
+        location: round.location || "",
+        method: round.method || "Trực tiếp",
+        status: mapRoundStatus(round.status),
+        owner: round.owner || "",
+        description: round.description || "",
+        slots: round.targetQuantity || round.slots || 0,
+        targetQuantity: round.targetQuantity || 0,
+        applied:
+          round.actualQuantiy !== undefined
+            ? round.actualQuantiy
+            : round.applied || 0,
+        actualQuantiy: round.actualQuantiy || 0,
+        startDate: round.startDate || "",
+        endDate: round.endDate || "",
+        hasApplied: round.hasApplied || false,
+      }))
       : [],
     ...apiData,
   };
@@ -192,12 +192,29 @@ const PromotionApplyPage = () => {
   const [roundTypes, setRoundTypes] = useState([]);
   const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
   const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+  const [isPurser, setIsPurser] = useState(false);
 
   useEffect(() => {
     if (state?.campaign) {
       setCampaign(state.campaign);
     }
   }, [state]);
+
+  // Đọc role từ localStorage.user để kiểm tra purser
+  useEffect(() => {
+    try {
+      const rawUser = localStorage.getItem("user");
+      if (!rawUser) {
+        setIsPurser(false);
+        return;
+      }
+      const user = JSON.parse(rawUser);
+      const role = (user?.role || "").toString().toLowerCase().replace(/\s+/g, "");
+      setIsPurser(role === "purser");
+    } catch {
+      setIsPurser(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -211,7 +228,7 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-              "Cannot load campaign information, please try again."
+            "Cannot load campaign information, please try again."
           );
         }
       } catch (err) {
@@ -404,11 +421,10 @@ const PromotionApplyPage = () => {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
-                    isCampaignActive(campaign)
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
+                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign)
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-100 text-gray-700"
+                    }`}
                 >
                   {isCampaignActive(campaign) ? "Ongoing" : "Ended"}
                 </span>
@@ -557,7 +573,7 @@ const PromotionApplyPage = () => {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {Array.isArray(campaign.batches) &&
-                    campaign.batches.length > 0 ? (
+                      campaign.batches.length > 0 ? (
                       campaign.batches.map((b, i) => (
                         <div
                           key={i}
@@ -568,19 +584,18 @@ const PromotionApplyPage = () => {
                               {b.name}
                             </div>
                             <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                b.status === "completed"
-                                  ? "bg-red-100 text-red-700"
-                                  : b.status === "ongoing"
+                              className={`text-xs px-2 py-1 rounded-full ${b.status === "completed"
+                                ? "bg-red-100 text-red-700"
+                                : b.status === "ongoing"
                                   ? "bg-green-100 text-green-700"
                                   : "bg-yellow-100 text-yellow-700"
-                              }`}
+                                }`}
                             >
                               {b.status === "completed"
                                 ? "Completed"
                                 : b.status === "ongoing"
-                                ? "Ongoing"
-                                : "Upcoming"}
+                                  ? "Ongoing"
+                                  : "Upcoming"}
                             </span>
                           </div>
                           <div className="p-4">
@@ -623,23 +638,24 @@ const PromotionApplyPage = () => {
                               <button
                                 onClick={() =>
                                   !b.hasApplied &&
+                                  !isPurser &&
                                   navigate(
-                                    `/cabin-crew/application-form/${
-                                      b.campaignRoundId || b.id || ""
+                                    `/cabin-crew/application-form/${b.campaignRoundId || b.id || ""
                                     }`,
                                     {
                                       state: { campaign: campaign, batch: b },
                                     }
                                   )
                                 }
-                                disabled={b.hasApplied}
-                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${
-                                  b.hasApplied
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-green-600 hover:bg-green-700 cursor-pointer"
-                                }`}
+                                disabled={b.hasApplied || isPurser}
+                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied || isPurser
+                                  ? "bg-gray-400 cursor-not-allowed"
+                                  : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                                  }`}
                               >
-                                {b.hasApplied ? "Already applied" : "Apply now"}
+                                {b.hasApplied
+                                  ? "Already applied"
+                                  : "Apply now"}
                               </button>
                             )}
                           </div>
