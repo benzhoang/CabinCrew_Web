@@ -16,7 +16,7 @@ const CampaignListPage = () => {
       try {
         const result = await getCampaignList({
           page: 1,
-          pageSize: 1000,
+          pageSize: 5,
         });
 
         if (result.success && result.data && Array.isArray(result.data)) {
