@@ -16,6 +16,81 @@ const renderHTML = (htmlString) => {
     return <div className="whitespace-pre-line">{htmlString}</div>
 }
 
+const getPositionBadgeClass = (position) => {
+    if (!position) return "bg-gray-100 text-gray-700 border-gray-200";
+
+    const positionLower = position.toLowerCase().trim();
+
+    if (positionLower.includes("purser")) {
+        return "bg-orange-100 text-orange-700 border-orange-200";
+    }
+    if (positionLower.includes("cabin crew") || positionLower.includes("cabincrew")) {
+        return "bg-teal-100 text-teal-700 border-teal-200";
+    }
+    if (positionLower.includes("flight attendant") || positionLower.includes("flightattendant")) {
+        return "bg-blue-100 text-blue-700 border-blue-200";
+    }
+    if (positionLower.includes("pilot") || positionLower.includes("captain")) {
+        return "bg-indigo-100 text-indigo-700 border-indigo-200";
+    }
+
+    return "bg-gray-100 text-gray-700 border-gray-200";
+};
+
+const getTypeBadgeClass = (campaignType) => {
+    if (!campaignType) return "bg-gray-100 text-gray-700 border-gray-200";
+
+    const typeStr = String(campaignType).trim().toLowerCase();
+
+    if (typeStr === 'promotion' || typeStr === '2') {
+        return "bg-purple-100 text-purple-700 border-purple-200";
+    }
+    if (typeStr === 'recruitment' || typeStr === '1') {
+        return "bg-blue-100 text-blue-700 border-blue-200";
+    }
+
+    return "bg-gray-100 text-gray-700 border-gray-200";
+};
+
+const getAirlineBadgeClass = (airline) => {
+    if (!airline) return "bg-gray-100 text-gray-700 border-gray-200";
+
+    const airlineLower = airline.toLowerCase().trim();
+
+    if (airlineLower.includes("vietjet")) {
+        return "bg-red-100 text-red-700 border-red-200";
+    }
+    if (airlineLower.includes("vietnam airlines")) {
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    }
+    if (airlineLower.includes("bamboo")) {
+        return "bg-cyan-100 text-cyan-700 border-cyan-200";
+    }
+    if (
+        airlineLower.includes("sun phuquoc") ||
+        airlineLower.includes("sunphuquoc")
+    ) {
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    }
+
+    return "bg-gray-100 text-gray-700 border-gray-200";
+};
+
+const getTypeDisplayName = (campaignType) => {
+    if (!campaignType) return '—';
+
+    const typeStr = String(campaignType).trim().toLowerCase();
+
+    if (typeStr === 'promotion' || typeStr === '2') {
+        return 'Promotion';
+    }
+    if (typeStr === 'recruitment' || typeStr === '1') {
+        return 'Recruitment';
+    }
+
+    return campaignType;
+};
+
 const Apply = () => {
     const navigate = useNavigate()
     const { id } = useParams() // Lấy campaign ID từ URL
@@ -425,11 +500,12 @@ const Apply = () => {
                             <div className="p-6">
                                 {/* Overview grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                    <Info label="Type" value={campaign.position || '—'} />
-                                    <Info label="Airline" value={campaign.airline || '—'} />
-                                    <Info label="Start date" value={campaign.startDate || '—'} />
-                                    <Info label="End date" value={campaign.endDate || '—'} />
-                                    <Info label="Target" value={`${campaign.targetHires ?? '—'}`} />
+                                    <Info label="Position" value={campaign.position || '—'} badgeClass={getPositionBadgeClass(campaign.position)} />
+                                    <Info label="Type" value={getTypeDisplayName(campaign.campaignType)} badgeClass={getTypeBadgeClass(campaign.campaignType)} />
+                                    <Info label="Airline" value={campaign.airline || '—'} badgeClass={getAirlineBadgeClass(campaign.airline)} />
+                                    <Info label="Start date" value={campaign.startDate ? formatDate(campaign.startDate) : '—'} />
+                                    <Info label="End date" value={campaign.endDate ? formatDate(campaign.endDate) : '—'} />
+                                    <Info label="Target quantity" value={`${campaign.targetHires ?? '—'}`} />
                                 </div>
 
                                 {/* Job Requirements */}
@@ -583,12 +659,26 @@ const Apply = () => {
     )
 }
 
-const Info = ({ label, value }) => (
-    <div>
-        <div className="text-sm text-slate-600">{label}</div>
-        <div className="font-medium text-slate-800">{value}</div>
-    </div>
-)
+const Info = ({ label, value, badgeClass }) => {
+    // Nếu có badgeClass, hiển thị dạng badge có màu
+    if (badgeClass && value !== '—') {
+        return (
+            <div>
+                <div className="text-sm text-slate-600 mb-1">{label}:</div>
+                <span className={`inline-flex items-center rounded-full border text-xs font-medium px-2.5 py-1 ${badgeClass}`}>
+                    {value}
+                </span>
+            </div>
+        )
+    }
+    // Nếu không có badgeClass, hiển thị text thường
+    return (
+        <div>
+            <div className="text-sm text-slate-600">{label}</div>
+            <div className="font-medium text-slate-800">{value}</div>
+        </div>
+    )
+}
 
 const InfoMini = ({ label, value }) => (
     <div>
