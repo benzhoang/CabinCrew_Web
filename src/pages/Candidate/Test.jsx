@@ -65,11 +65,11 @@ const Test = () => {
                     // Map dữ liệu từ API response sang format hiện tại
                     const mappedExams = testsArray.map((test) => {
                         // Map testType từ API sang format hiện tại
-                        let examType = 'Listening'; // default
+                        let examType = 'English Listening'; // default
                         if (test.testType === 'English Listening') {
-                            examType = 'Listening';
+                            examType = 'English Listening';
                         } else if (test.testType === 'English Speaking') {
-                            examType = 'Speaking';
+                            examType = 'English Speaking';
                         } else if (test.testType === 'Practical') {
                             examType = 'Practical';
                         }
