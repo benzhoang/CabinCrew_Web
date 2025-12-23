@@ -8,7 +8,7 @@ const ExamPage = () => {
     const { id: testIdFromUrl } = useParams(); // Lấy testId từ URL params
 
     // Lấy thông tin exam từ location state (nếu có)
-    const examType = location.state?.examType || 'Listening';
+    const examType = location.state?.examType || 'English Listening';
     const examInfo = {
         ...location.state,
         // Đảm bảo examId được lấy từ URL params (ưu tiên)
@@ -81,7 +81,7 @@ const ExamPage = () => {
     // Component con (ListeningExam/SpeakingExam) sẽ tự xử lý việc redirect nếu thiếu thông tin
 
     // Render component phù hợp dựa trên exam type
-    if (examType === 'Speaking') {
+    if (examType === 'English Speaking') {
         return (
             <div style={{ width: '100%', height: '100%' }}>
                 <SpeakingExam examInfo={examInfo} />
