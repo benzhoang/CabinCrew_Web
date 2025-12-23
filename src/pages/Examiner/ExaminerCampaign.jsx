@@ -193,35 +193,17 @@ const ExaminerCampaign = () => {
     );
   };
 
-  const getRequestTypeLabel = (requestType) => {
-    const normalizedType = requestType?.toLowerCase() || "";
-    switch (normalizedType) {
-      case "recruitment":
-        return "Recruitment";
-      case "promotion":
-        return "Promotion";
-      default:
-        return requestType || "Unknown";
+  // Hàm lấy màu cho Campaign type (Promotion = tím, Recruitment = xanh)
+  const getCampaignTypeColor = (campaignType) => {
+    if (!campaignType) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const type = campaignType.toLowerCase();
+    if (type.includes("promotion")) {
+      return "bg-purple-100 text-purple-800 border-purple-300";
+    } else if (type.includes("recruitment")) {
+      return "bg-blue-100 text-blue-800 border-blue-300";
     }
-  };
-
-  const RequestTypeBadge = ({ type }) => {
-    const normalizedType = type?.toLowerCase() || "";
-    const label = getRequestTypeLabel(type);
-    const className =
-      normalizedType === "promotion"
-        ? "bg-purple-100 text-purple-700 border-purple-200"
-        : normalizedType === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
-
-    return (
-      <span
-        className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
-      >
-        {label}
-      </span>
-    );
+    return "bg-gray-100 text-gray-800 border-gray-300";
   };
 
   // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
@@ -235,6 +217,31 @@ const ExaminerCampaign = () => {
       return "bg-teal-100 text-teal-800 border-teal-300";
     }
     return "bg-gray-100 text-gray-800 border-gray-300";
+  };
+
+  // Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+  const getPartnerColor = (partnerName) => {
+    if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const partner = partnerName.toLowerCase();
+    // Có thể thêm các airline cụ thể với màu riêng
+    if (
+      partner.includes("vietnam airlines") ||
+      partner.includes("vietnamairlines")
+    ) {
+      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+      return "bg-red-100 text-red-800 border-red-300";
+    } else if (
+      partner.includes("bamboo") ||
+      partner.includes("bamboo airways")
+    ) {
+      return "bg-green-100 text-green-800 border-green-300";
+    } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+      return "bg-indigo-100 text-indigo-800 border-indigo-300";
+    }
+    // Màu mặc định cho các partner khác
+    return "bg-cyan-100 text-cyan-800 border-cyan-300";
   };
 
   return (
@@ -292,15 +299,18 @@ const ExaminerCampaign = () => {
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-slate-800">
-              Campaign list ({filteredCampaigns.length})
+              Campaign List ({filteredCampaigns.length})
             </h3>
           </div>
         </div>
 
         <div className="divide-y divide-slate-200">
           {isLoading && (
-            <div className="p-12 text-center">
-              <p className="text-slate-600">Loading campaign list...</p>
+            <div className="py-8 text-center">
+              <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+              <p className="mt-4 text-sm text-gray-600">
+                Loading campaign list...
+              </p>
             </div>
           )}
 
@@ -308,103 +318,101 @@ const ExaminerCampaign = () => {
             <div className="p-6 text-center text-red-500">{error}</div>
           )}
 
-          {!isLoading &&
-            !error &&
-            displayedCampaigns.map((campaign) => (
-              <div
-                key={campaign.id}
-                className="p-6 transition-colors hover:bg-slate-50"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="mb-2">
-                      <h4 className="text-lg font-semibold text-slate-800">
-                        {campaign.name}
-                      </h4>
-                    </div>
+          {!isLoading && !error && displayedCampaigns.length === 0 && (
+            <div className="p-6 text-center text-slate-500">
+              No campaigns found
+            </div>
+          )}
 
-                    <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3">
-                      <div>
-                        <span className="text-sm text-slate-600">
-                          Campaign type:
-                        </span>
-                        <div className="mt-1">
-                          <RequestTypeBadge type={campaign.type} />
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-sm text-slate-600">Partner:</span>
-                        <div className="mt-1">
-                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-800">
-                            {campaign.partner || "Partner name not available"}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-sm text-slate-600">Status:</span>
-                        <div className="mt-1">
-                          {getStatusBadge(campaign.status)}
-                        </div>
-                      </div>
-                      {(campaign.type?.toLowerCase() === "promotion" ||
-                        campaign.type?.toLowerCase() === "recruitment") &&
-                        campaign.position && (
-                          <div>
-                            <span className="text-sm text-slate-600">
-                              Position:
-                            </span>
-                            <div className="mt-1">
-                              <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                                  campaign.position
-                                )}`}
-                              >
-                                {campaign.position}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      <div>
-                        <span className="text-sm text-slate-600">
-                          Start date:
-                        </span>
-                        <p className="font-medium text-slate-800">
-                          {campaign.startDate}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm text-slate-600">
-                          End date:
-                        </span>
-                        <p className="font-medium text-slate-800">
-                          {campaign.endDate}
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-slate-600">
-                      {campaign.description}
-                    </p>
+          {displayedCampaigns.map((campaign) => (
+            <div
+              key={campaign.id}
+              className="p-6 transition-colors hover:bg-slate-50"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="mb-2">
+                    <h4 className="text-lg font-semibold text-slate-800">
+                      {campaign.name}
+                    </h4>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
-                    <button
-                      onClick={() => handleViewDetails(campaign)}
-                      className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
-                    >
-                      View details
-                    </button>
+                  <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3 lg:grid-cols-6">
+                    <div>
+                      <span className="text-sm text-slate-600">Position:</span>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                            campaign.position
+                          )}`}
+                        >
+                          {campaign.position || "Undetermined"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-600">Type:</span>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(
+                            campaign.type
+                          )}`}
+                        >
+                          {campaign.type || "Undetermined"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-600">Partner:</span>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
+                            campaign.partner
+                          )}`}
+                        >
+                          {campaign.partner || "Undetermined"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-600">Status:</span>
+                      <div className="mt-1">
+                        {getStatusBadge(campaign.status)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-600">
+                        Start Date:
+                      </span>
+                      <p className="font-medium text-slate-800">
+                        {campaign.startDate}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-600">End Date:</span>
+                      <p className="font-medium text-slate-800">
+                        {campaign.endDate}
+                      </p>
+                    </div>
                   </div>
+
+                  <p className="text-sm text-slate-600">
+                    {campaign.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 ml-4">
+                  <button
+                    onClick={() => handleViewDetails(campaign)}
+                    className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
+                  >
+                    View Details
+                  </button>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
-
-        {!isLoading && !error && filteredCampaigns.length === 0 && (
-          <div className="p-12 text-center">
-            <p className="text-slate-500">No data</p>
-          </div>
-        )}
 
         {!isLoading && !error && filteredCampaigns.length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-2 p-6">

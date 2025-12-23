@@ -402,23 +402,50 @@ const ExaminerCampDetail = ({ campaign }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">Loading campaign info...</div>
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading campaign information...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-red-500">{error}</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl px-4 py-8 mx-auto">
+          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
+            <p className="mb-4 text-red-600">{error}</p>
+            <button
+              onClick={() => navigate("/examiner/campaigns")}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            >
+              Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!campaignData) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <div className="text-gray-500">No campaign data</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl px-4 py-8 mx-auto">
+          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
+            <p className="mb-4 text-gray-600">
+              Cannot find campaign information.
+            </p>
+            <button
+              onClick={() => navigate("/examiner/campaigns")}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            >
+              Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

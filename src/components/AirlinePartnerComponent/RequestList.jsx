@@ -96,65 +96,75 @@ const CampaignCard = ({ request }) => {
 
   return (
     <div className="p-5 bg-white border border-gray-200 rounded-xl">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="mb-5">
-            <h3 className="text-base font-semibold text-gray-900 truncate">
-              {request.campaignName}
-            </h3>
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900 truncate">
+            {request.campaignName}
+          </h3>
+
+          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-1">
+            <div>
+              <span className="text-gray-500">Position:</span>
+              <div className="mt-1">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                    request.position
+                  )}`}
+                >
+                  {request.position || "No position"}
+                </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Request type:</span>
+              <div className="mt-1">
+                <RequestTypeBadge type={request.requestType} />
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Target quantity:</span>
+              <p className="mt-1 font-medium text-slate-800">
+                {request.targetQuantity || 0}
+              </p>
+            </div>
+            <div>
+              <span className="text-gray-500">Status:</span>
+              <div className="mt-1">
+                <StatusBadge status={request.status} />
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Partner:</span>
+              <div className="mt-1">
+                <span className="bg-gray-100 text-gray-700 border-gray-300 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border">
+                  {request.partnerName || "No partner"}
+                </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Due Date:</span>
+              <p className="mt-1 font-medium text-slate-800">
+                {request.dueDate || "—"}
+              </p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 md:grid-cols-3 gap-x-8 gap-y-2">
-            <div>
-              <span className="text-gray-500">Partner:</span>{" "}
-              <span className="bg-gray-100 text-gray-700 border-gray-300 inline-block rounded-full border px-2 py-0.5 text-xs font-medium">
-                {request.partnerName || "No partner"}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Request Type:</span>{" "}
-              <RequestTypeBadge type={request.requestType} />
-            </div>
-            <div>
-              <span className="text-gray-500">Status:</span>{" "}
-              <StatusBadge status={request.status} />
-            </div>
-            {(request.requestType?.toLowerCase() === "promotion" ||
-              request.requestType?.toLowerCase() === "recruitment") &&
-              request.position && (
-                <div>
-                  <span className="text-gray-500">Position:</span>{" "}
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                      request.position
-                    )}`}
-                  >
-                    {request.position || "No position"}
-                  </span>
-                </div>
-              )}
-            <div>
-              <span className="text-gray-500">Target Quantity:</span>{" "}
-              {request.targetQuantity}
-            </div>
-            <div>
-              <span className="text-gray-500">Due date:</span>{" "}
-              {request.dueDate || "No due date"}
-            </div>
-          </div>
-          <div className="mt-4">{request.description || "No description"}</div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 ml-4">
           <button
-            className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
             onClick={() =>
               navigate(`/airline-partner/requests/${request.requestId}`)
             }
           >
-            View Details
+            View details
           </button>
         </div>
       </div>
+
+      {request.description && (
+        <p className="mt-3 text-sm text-gray-600">{request.description}</p>
+      )}
     </div>
   );
 };
@@ -460,16 +470,13 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   const endIndex = startIndex + pageSize;
   const filtered = allFilteredRequests.slice(startIndex, endIndex);
 
-  // Kiểm tra nếu page hiện tại không đủ 5 items thì disable nút "Sau"
-  const isCurrentPageIncomplete = filtered.length < 5;
-  const shouldDisableNext = !pagination.hasNextPage || isCurrentPageIncomplete;
-
   if (loading) {
     return (
       <div className="flex flex-col gap-5">
         <h2 className="mb-6 text-xl font-bold text-gray-800">Request List</h2>
         <div className="py-12 text-center">
-          <p className="text-slate-500">Loading data...</p>
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading data...</p>
         </div>
       </div>
     );
@@ -488,64 +495,57 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       <h2 className="mb-6 text-xl font-bold text-gray-800">
         Request List ({pagination.totalRecords || allFilteredRequests.length})
       </h2>
-      <div className="flex items-center gap-3">
-        <div className="inline-flex items-stretch gap-3">
-          <button
-            type="button"
-            onClick={() => setSelectedStatus("all")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "all"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedStatus("Pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Pending"
-                ? "bg-yellow-600 text-white border-yellow-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Pending
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedStatus("Approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Approved"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Approved
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedStatus("Rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Rejected"
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Rejected
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedStatus("Cancelled")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "Cancelled"
-                ? "bg-slate-200 text-slate-700 border-slate-300"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
-          >
-            Cancelled
-          </button>
-        </div>
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={() => setSelectedStatus("all")}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+            selectedStatus === "all"
+              ? "bg-slate-600 text-white border-slate-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setSelectedStatus("Pending")}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+            selectedStatus === "Pending"
+              ? "bg-yellow-600 text-white border-yellow-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-yellow-50"
+          }`}
+        >
+          Pending
+        </button>
+        <button
+          onClick={() => setSelectedStatus("Approved")}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+            selectedStatus === "Approved"
+              ? "bg-green-600 text-white border-green-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
+          }`}
+        >
+          Approved
+        </button>
+        <button
+          onClick={() => setSelectedStatus("Rejected")}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+            selectedStatus === "Rejected"
+              ? "bg-red-600 text-white border-red-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+          }`}
+        >
+          Rejected
+        </button>
+        <button
+          onClick={() => setSelectedStatus("Cancelled")}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+            selectedStatus === "Cancelled"
+              ? "bg-slate-200 text-slate-700 border-slate-300"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+          }`}
+        >
+          Cancelled
+        </button>
       </div>
       {filtered.length === 0 ? (
         <div className="py-10 text-center text-gray-500">No data found</div>
@@ -557,9 +557,9 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         </>
       )}
 
-      {/* Phân trang */}
-      {allFilteredRequests.length > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-slate-200 rounded-b-xl">
+      {/* Phân trang - hiển thị khi có data */}
+      {pagination.totalRecords > 0 && (
+        <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border rounded-lg border-slate-200">
           <div className="text-sm text-slate-600">
             Page <span className="font-semibold">{pagination.currentPage}</span>
             {pagination.totalPages ? (
@@ -594,9 +594,9 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             <button
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={shouldDisableNext}
+              disabled={!pagination.hasNextPage}
               className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                !shouldDisableNext
+                pagination.hasNextPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
