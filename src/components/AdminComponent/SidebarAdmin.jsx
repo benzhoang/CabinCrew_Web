@@ -83,7 +83,7 @@ const SidebarAdmin = () => {
           // Get name from token claims
           nameFromToken =
             decoded[
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
             ] ||
             decoded.name ||
             null;
@@ -91,7 +91,7 @@ const SidebarAdmin = () => {
           // Get role from token claims
           roleFromToken =
             decoded[
-              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
             ] ||
             decoded.role ||
             null;
@@ -175,18 +175,16 @@ const SidebarAdmin = () => {
           <li>
             <Link
               to="/admin/dashboard"
-              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                currentPath === "/admin/dashboard"
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/dashboard"
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaGauge
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath === "/admin/dashboard"
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath === "/admin/dashboard"
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="leading-5">Dashboard</span>
             </Link>
@@ -199,18 +197,16 @@ const SidebarAdmin = () => {
                 setIsCriteriaOpen(true);
                 navigate("/admin/criteria/appearance");
               }}
-              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${
-                currentPath.startsWith("/admin/criteria/")
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${currentPath.startsWith("/admin/criteria/")
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaQuestionCircle
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath.startsWith("/admin/criteria/")
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath.startsWith("/admin/criteria/")
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="flex-1 leading-5">Criteria Management</span>
               <span
@@ -218,9 +214,8 @@ const SidebarAdmin = () => {
                   e.stopPropagation();
                   setIsCriteriaOpen((v) => !v);
                 }}
-                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${
-                  isCriteriaOpen ? "rotate-180" : ""
-                } hover:bg-white/20`}
+                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${isCriteriaOpen ? "rotate-180" : ""
+                  } hover:bg-white/20`}
                 aria-label="Toggle criteria submenu"
                 role="button"
               >
@@ -228,18 +223,16 @@ const SidebarAdmin = () => {
               </span>
             </button>
             <ul
-              className={`${
-                isCriteriaOpen ? "block" : "hidden"
-              } mt-1 ml-7 space-y-1`}
+              className={`${isCriteriaOpen ? "block" : "hidden"
+                } mt-1 ml-7 space-y-1`}
             >
               <li>
                 <Link
                   to="/admin/criteria/appearance"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/criteria/appearance"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/criteria/appearance"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Appearance</span>
                 </Link>
@@ -247,11 +240,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/criteria/interview"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/criteria/interview"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/criteria/interview"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Interview</span>
                 </Link>
@@ -259,11 +251,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/criteria/requirement"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/criteria/requirement"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/criteria/requirement"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Requirement</span>
                 </Link>
@@ -278,18 +269,16 @@ const SidebarAdmin = () => {
                 setIsConfigOpen(true);
                 navigate("/admin/config/round-type");
               }}
-              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${
-                currentPath.startsWith("/admin/config/")
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${currentPath.startsWith("/admin/config/")
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaCalendar
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath.startsWith("/admin/config/")
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath.startsWith("/admin/config/")
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="flex-1 leading-5">Configuration Management</span>
               <span
@@ -297,9 +286,8 @@ const SidebarAdmin = () => {
                   e.stopPropagation();
                   setIsConfigOpen((v) => !v);
                 }}
-                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${
-                  isConfigOpen ? "rotate-180" : ""
-                } hover:bg-white/20`}
+                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${isConfigOpen ? "rotate-180" : ""
+                  } hover:bg-white/20`}
                 aria-label="Toggle configuration submenu"
                 role="button"
               >
@@ -307,18 +295,16 @@ const SidebarAdmin = () => {
               </span>
             </button>
             <ul
-              className={`${
-                isConfigOpen ? "block" : "hidden"
-              } mt-1 ml-7 space-y-1`}
+              className={`${isConfigOpen ? "block" : "hidden"
+                } mt-1 ml-7 space-y-1`}
             >
               <li>
                 <Link
                   to="/admin/config/round-type"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/config/round-type"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/round-type"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Round Type</span>
                 </Link>
@@ -326,11 +312,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/config/test-type"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/config/test-type"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/test-type"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Test Type</span>
                 </Link>
@@ -338,13 +323,23 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/config/city-ward"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/config/city-ward"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/city-ward"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">City/Ward</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/admin/config/airline-partners"
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/airline-partners"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
+                >
+                  <span className="leading-5">Airline Partner</span>
                 </Link>
               </li>
             </ul>
@@ -356,18 +351,16 @@ const SidebarAdmin = () => {
                 setIsAccountOpen(true);
                 navigate("/admin/account/cabin-crews");
               }}
-              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${
-                currentPath.startsWith("/admin/account/")
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${currentPath.startsWith("/admin/account/")
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaUser
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath.startsWith("/admin/account/")
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath.startsWith("/admin/account/")
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="flex-1 leading-5">Account Management</span>
               <span
@@ -375,9 +368,8 @@ const SidebarAdmin = () => {
                   e.stopPropagation();
                   setIsAccountOpen((v) => !v);
                 }}
-                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${
-                  isAccountOpen ? "rotate-180" : ""
-                } hover:bg-white/20`}
+                className={`p-1 rounded cursor-pointer transition-transform duration-200 ${isAccountOpen ? "rotate-180" : ""
+                  } hover:bg-white/20`}
                 aria-label="Toggle user submenu"
                 role="button"
               >
@@ -385,18 +377,16 @@ const SidebarAdmin = () => {
               </span>
             </button>
             <ul
-              className={`${
-                isAccountOpen ? "block" : "hidden"
-              } mt-1 ml-7 space-y-1`}
+              className={`${isAccountOpen ? "block" : "hidden"
+                } mt-1 ml-7 space-y-1`}
             >
               <li>
                 <Link
                   to="/admin/account/cabin-crews"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/account/cabin-crews"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/account/cabin-crews"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Cabin Crew</span>
                 </Link>
@@ -404,11 +394,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/account/candidates"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/account/candidates"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/account/candidates"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Candidate</span>
                 </Link>
@@ -416,11 +405,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/account/recruiters"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/account/recruiters"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/account/recruiters"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Recruiter</span>
                 </Link>
@@ -428,11 +416,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/account/airline-partners"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/account/airline-partners"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/account/airline-partners"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Airline Partner</span>
                 </Link>
@@ -440,11 +427,10 @@ const SidebarAdmin = () => {
               <li>
                 <Link
                   to="/admin/account/examiners"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                    currentPath === "/admin/account/examiners"
-                      ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                      : "text-slate-700 hover:bg-slate-100 border-transparent"
-                  }`}
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/account/examiners"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
                 >
                   <span className="leading-5">Examiner</span>
                 </Link>
@@ -454,18 +440,16 @@ const SidebarAdmin = () => {
           <li>
             <Link
               to="/admin/campaigns"
-              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                currentPath === "/admin/campaigns"
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/campaigns"
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaBullhorn
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath === "/admin/campaigns"
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath === "/admin/campaigns"
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="leading-5">Campaign Management</span>
             </Link>
@@ -473,18 +457,16 @@ const SidebarAdmin = () => {
           <li>
             <Link
               to="/admin/tests"
-              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${
-                currentPath === "/admin/tests"
-                  ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
-                  : "text-slate-700 hover:bg-slate-100 border-transparent"
-              }`}
+              className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/tests"
+                ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                : "text-slate-700 hover:bg-slate-100 border-transparent"
+                }`}
             >
               <FaFileAlt
-                className={`h-4 w-4 shrink-0 transition-colors ${
-                  currentPath === "/admin/tests"
-                    ? "text-white"
-                    : "text-slate-600 group-hover:text-slate-800"
-                }`}
+                className={`h-4 w-4 shrink-0 transition-colors ${currentPath === "/admin/tests"
+                  ? "text-white"
+                  : "text-slate-600 group-hover:text-slate-800"
+                  }`}
               />
               <span className="leading-5">Test Management</span>
             </Link>

@@ -627,7 +627,7 @@ const dictionaries = {
     // Recruitment listing
     recruitment_subtitle: "Discover ongoing recruitment campaigns",
     recruitment_search_label: "Search",
-    recruitment_search_placeholder: "Search by name, type, airline, location",
+    recruitment_search_placeholder: "Search by name, airline",
     recruitment_airline_label: "Airline",
     recruitment_airline_all: "All",
     recruitment_status_active: "Ongoing",

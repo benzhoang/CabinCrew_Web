@@ -348,7 +348,7 @@ const Tasks = () => {
                         <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
                         <input
                             type="text"
-                            placeholder="Search by campaign name, task..."
+                            placeholder="Search by campaign name"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

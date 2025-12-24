@@ -101,6 +101,7 @@ import InterviewIndex from "./pages/Admin/InterviewCritera/InterviewIndex";
 import TestTypePage from "./pages/Admin/TestTypePage";
 import RoundTypePage from "./pages/Admin/RoundTypePage";
 import CityWardPage from "./pages/Admin/CityWardPage";
+import AirlinePartnerPage from "./pages/Admin/AirlinePartnerPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
 import ContactPage from "./pages/CabinCrew/ContactPage";
 import ExaminerApplication from "./pages/Examiner/ExaminerApplication";
@@ -533,6 +534,14 @@ function App() {
           element={
             <AdminLayout>
               <CityWardPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/airline-partners"
+          element={
+            <AdminLayout>
+              <AirlinePartnerPage />
             </AdminLayout>
           }
         />
