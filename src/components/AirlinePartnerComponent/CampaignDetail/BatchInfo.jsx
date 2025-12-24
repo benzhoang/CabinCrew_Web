@@ -39,15 +39,14 @@ const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
-                ? "Cannot view candidate list because the round has not started"
-                : "View candidate list"
+                ? "Cannot view applicant list because the round has not started"
+                : "View applicant list"
             }
           >
             <svg
@@ -63,7 +62,7 @@ const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            {isUpcoming ? "Cannot view candidate list" : "View candidate list"}
+            {isUpcoming ? "Cannot view applicant list" : "View applicant list"}
           </button>
         </div>
       </div>
