@@ -503,11 +503,10 @@ const RequestList = ({
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               Previous
             </button>
@@ -520,11 +519,10 @@ const RequestList = ({
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+                }`}
             >
               Next
             </button>
