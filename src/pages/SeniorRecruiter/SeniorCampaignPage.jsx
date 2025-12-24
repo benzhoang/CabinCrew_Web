@@ -1,15 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import CampaignList from "../../components/SeniorRecruiterComponent/CampaignList";
+import { getAirlinePartners } from "../../service/api";
 
 const SeniorCampaignPage = () => {
   const [searchParams] = useSearchParams();
   const campaignTypeFromUrl = searchParams.get("campaignType") || "all";
-  
+
   const [search, setSearch] = useState("");
   const [campaignTypeFilter, setCampaignTypeFilter] = useState(campaignTypeFromUrl);
-  
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const [airlinePartners, setAirlinePartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
+
+  // Fetch airline partners
+  const fetchAirlinePartners = useCallback(async () => {
+    setIsLoadingPartners(true);
+    try {
+      const res = await getAirlinePartners();
+      if (res.success && Array.isArray(res.data)) {
+        // Chỉ lấy partnerId và partnerName
+        const partners = res.data
+          .map((partner) => ({
+            partnerId: partner?.partnerId ?? partner?.id ?? null,
+            partnerName: partner?.partnerName || partner?.name || "",
+          }))
+          .filter((p) => p.partnerId && p.partnerName);
+        setAirlinePartners(partners);
+      } else {
+        console.error("Failed to fetch airline partners:", res.error);
+        setAirlinePartners([]);
+      }
+    } catch (err) {
+      console.error("Error fetching airline partners:", err);
+      setAirlinePartners([]);
+    } finally {
+      setIsLoadingPartners(false);
+    }
+  }, []);
+
+  // Load airline partners on mount
+  useEffect(() => {
+    fetchAirlinePartners();
+  }, [fetchAirlinePartners]);
+
   // Cập nhật campaignTypeFilter khi URL thay đổi
   useEffect(() => {
     if (campaignTypeFromUrl !== campaignTypeFilter) {
@@ -42,12 +77,27 @@ const SeniorCampaignPage = () => {
                 <option value="recruitment">Recruitment</option>
                 <option value="promotion">Promotion</option>
               </select>
+              <select
+                value={partnerFilter}
+                onChange={(e) => setPartnerFilter(e.target.value)}
+                disabled={isLoadingPartners}
+                className="h-10 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="all">All Partners</option>
+                {airlinePartners.map((partner) => (
+                  <option key={partner.partnerId} value={partner.partnerName}>
+                    {partner.partnerName}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <CampaignList
             search={search}
             campaignTypeFilter={campaignTypeFilter}
+            partnerFilter={partnerFilter}
+            airlinePartners={airlinePartners}
           />
         </div>
       </div>

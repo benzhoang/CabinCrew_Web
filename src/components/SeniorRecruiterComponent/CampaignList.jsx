@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import { formatDate, convertDateFormat } from "../../config/formatDate.js";
@@ -178,8 +178,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-      ? "bg-blue-100 text-blue-700 border-blue-200"
-      : "bg-gray-100 text-gray-600 border-gray-200";
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -203,6 +203,30 @@ const getPositionColor = (position) => {
   return "bg-gray-100 text-gray-800 border-gray-300";
 };
 
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const partner = partnerName.toLowerCase();
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (
+    partner.includes("bamboo") ||
+    partner.includes("bamboo airways")
+  ) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
+  }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
+
 const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate();
 
@@ -214,7 +238,7 @@ const CampaignCard = ({ campaign }) => {
             {campaign.title}
           </h3>
 
-          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-1">
             <div>
               <span className="text-gray-500">Position:</span>
               <div className="mt-1">
@@ -231,6 +255,18 @@ const CampaignCard = ({ campaign }) => {
               <span className="text-gray-500">Type:</span>
               <div className="mt-1">
                 <CampaignTypeBadge type={campaign.campaignType} />
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-500">Partner:</span>
+              <div className="mt-1">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
+                    campaign.partnerName
+                  )}`}
+                >
+                  {campaign.partnerName || "—"}
+                </span>
               </div>
             </div>
             <div>
@@ -289,7 +325,7 @@ const CampaignCard = ({ campaign }) => {
   );
 };
 
-const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
+const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter = "all", airlinePartners = [] }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Đọc campaignStatus và page từ URL query params
@@ -312,6 +348,18 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasNextPage: false,
     hasPreviousPage: false,
   });
+
+  // Tìm partnerId từ partner name được chọn
+  const getPartnerIdFromName = useCallback(
+    (partnerName) => {
+      if (partnerName === "all" || !partnerName) return null;
+      const partner = airlinePartners.find(
+        (p) => p.partnerName === partnerName
+      );
+      return partner?.partnerId || null;
+    },
+    [airlinePartners]
+  );
 
   // Cập nhật selectedStatus và pagination khi URL thay đổi
   useEffect(() => {
@@ -354,6 +402,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
 
       // Fetch all data for client-side filtering and pagination
       // This ensures that when filters change, data from later pages will move up
+      const partnerId = getPartnerIdFromName(partnerFilter);
       const params = {
         page: 1, // Always fetch from page 1 to get all data
         pageSize: 5, // Fetch large page size to get all campaigns
@@ -364,6 +413,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
       if (campaignStatus !== undefined) {
         params.campaignStatus = campaignStatus;
+      }
+
+      // Gửi partnerId filter lên server
+      if (partnerId) {
+        params.partnerId = partnerId;
       }
 
       const result = await getCampaignList(params);
@@ -380,6 +434,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           status: mapStatus(item.status),
           campaignType: mapCampaignType(item.campaignType),
           position: item.position || "",
+          partnerName: item.partnerName || item.airline || item.airlineName || "",
           progress: { current: 0, total: item.targetQuantity || 0 },
         }));
 
@@ -418,7 +473,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       fetchCampaigns(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignTypeFilter, search, selectedStatus]);
+  }, [campaignTypeFilter, search, selectedStatus, partnerFilter, getPartnerIdFromName]);
 
   // Filter campaigns by campaignType (client-side)
   const filteredCampaigns = useMemo(() => {
@@ -513,88 +568,80 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("draft")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "draft"
-                ? "bg-slate-600 text-white border-slate-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "draft"
+              ? "bg-slate-600 text-white border-slate-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Planning
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "pending"
-                ? "bg-yellow-600 text-white border-yellow-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "pending"
+              ? "bg-yellow-600 text-white border-yellow-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Pending
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "approved"
-                ? "bg-emerald-600 text-white border-emerald-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "approved"
+              ? "bg-emerald-600 text-white border-emerald-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Approved
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "ongoing"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ongoing"
+              ? "bg-green-600 text-white border-green-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Ongoing
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("upcoming")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "upcoming"
-                ? "bg-purple-600 text-white border-purple-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "upcoming"
+              ? "bg-purple-600 text-white border-purple-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Upcoming
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ended")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "ended"
-                ? "bg-gray-600 text-white border-gray-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ended"
+              ? "bg-gray-600 text-white border-gray-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Ended
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "rejected"
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "rejected"
+              ? "bg-red-600 text-white border-red-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Rejected
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("cancelled")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
-              selectedStatus === "cancelled"
-                ? "bg-orange-600 text-white border-orange-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-            }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "cancelled"
+              ? "bg-orange-600 text-white border-orange-600"
+              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+              }`}
           >
             Canceled
           </button>
@@ -631,11 +678,10 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Previous
             </button>
@@ -648,11 +694,10 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Next
             </button>
