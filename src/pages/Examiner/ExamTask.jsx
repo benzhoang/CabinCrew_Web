@@ -254,7 +254,7 @@ const ExamTask = () => {
             </label>
             <input
               type="text"
-              placeholder="Search by campaign or task..."
+              placeholder="Search by campaign name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -310,51 +310,46 @@ const ExamTask = () => {
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => setStatusFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "all"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "all"
                   ? "bg-slate-600 text-white border-slate-600"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+                }`}
             >
               All
             </button>
             <button
               onClick={() => setStatusFilter("assigned")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "assigned"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "assigned"
                   ? "bg-yellow-600 text-white border-yellow-600"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-yellow-50"
-              }`}
+                }`}
             >
               Assigned
             </button>
             <button
               onClick={() => setStatusFilter("inProgress")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "inProgress"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "inProgress"
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
-              }`}
+                }`}
             >
               In progress
             </button>
             <button
               onClick={() => setStatusFilter("completed")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "completed"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "completed"
                   ? "bg-green-600 text-white border-green-600"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
-              }`}
+                }`}
             >
               Completed
             </button>
             <button
               onClick={() => setStatusFilter("cancelled")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "cancelled"
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "cancelled"
                   ? "bg-red-600 text-white border-red-600"
                   : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
-              }`}
+                }`}
             >
               Cancelled
             </button>
@@ -472,11 +467,10 @@ const ExamTask = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md border ${
-                  currentPage === 1
+                className={`px-3 py-1 rounded-md border ${currentPage === 1
                     ? "text-slate-400 border-slate-200 cursor-not-allowed"
                     : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 ←
               </button>
@@ -487,11 +481,10 @@ const ExamTask = () => {
                   <button
                     key={pageNumber}
                     onClick={() => handlePageChange(pageNumber)}
-                    className={`px-3 py-1 rounded-md border text-sm font-medium ${
-                      isActive
+                    className={`px-3 py-1 rounded-md border text-sm font-medium ${isActive
                         ? "bg-blue-600 text-white border-blue-600"
                         : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     {pageNumber}
                   </button>
@@ -500,11 +493,10 @@ const ExamTask = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md border ${
-                  currentPage === totalPages
+                className={`px-3 py-1 rounded-md border ${currentPage === totalPages
                     ? "text-slate-400 border-slate-200 cursor-not-allowed"
                     : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 →
               </button>

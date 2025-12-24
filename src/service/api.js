@@ -2274,6 +2274,97 @@ export const getTestTypes = async () => {
   }
 };
 
+// Lấy danh sách airline partners
+export const getAirlinePartners = async () => {
+  try {
+    const response = await api.get("/airline-partners");
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      const list = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : null;
+
+      if (list) {
+        return {
+          success: true,
+          data: list,
+          message: responseData?.message || "Get airline partners successfully",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot get airline partners",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot get airline partners",
+      status: error.response?.status,
+    };
+  }
+};
+
+// Tạo airline partner mới
+export const createAirlinePartner = async (partnerData) => {
+  try {
+    const { partnerName, description, address, wardId } = partnerData;
+
+    if (!partnerName || !partnerName.trim()) {
+      return {
+        success: false,
+        error: "Partner name is required",
+      };
+    }
+
+    if (!wardId || wardId <= 0) {
+      return {
+        success: false,
+        error: "Ward is required",
+      };
+    }
+
+    const payload = {
+      partnerName: partnerName.trim(),
+      description: description?.trim() || "",
+      address: address?.trim() || "",
+      wardId: Number(wardId),
+    };
+
+    const response = await api.post("/airline-partners", payload);
+    const responseData = response.data;
+
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Create airline partner successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot create airline partner",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot create airline partner",
+      status: error.response?.status,
+    };
+  }
+};
+
 // API cập nhật test theo ID
 export const updateTest = async (testId, testData) => {
   try {

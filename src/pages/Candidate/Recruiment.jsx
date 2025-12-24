@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import { getCampaigns } from '../../service/api'
+import { getCampaigns, getAirlinePartners } from '../../service/api'
 import { convertDateFormat } from '../../config/formatDate'
 
 const formatDateDisplay = value => {
@@ -123,7 +123,9 @@ const Recruiment = () => {
     const [airline, setAirline] = useState('all')
     const [langVersion, setLangVersion] = useState(0)
     const [campaigns, setCampaigns] = useState([])
+    const [airlinePartners, setAirlinePartners] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+    const [isLoadingPartners, setIsLoadingPartners] = useState(false)
     const [error, setError] = useState(null)
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -139,6 +141,35 @@ const Recruiment = () => {
         const off = onLangChange(() => setLangVersion(v => v + 1))
         return () => off()
     }, [])
+
+    // Fetch airline partners
+    const fetchAirlinePartners = useCallback(async () => {
+        setIsLoadingPartners(true)
+        try {
+            const res = await getAirlinePartners()
+            if (res.success && Array.isArray(res.data)) {
+                // Chỉ lấy partnerId và partnerName
+                const partners = res.data.map(partner => ({
+                    partnerId: partner?.partnerId ?? partner?.id ?? null,
+                    partnerName: partner?.partnerName || partner?.name || ''
+                })).filter(p => p.partnerId && p.partnerName)
+                setAirlinePartners(partners)
+            } else {
+                console.error('Failed to fetch airline partners:', res.error)
+                setAirlinePartners([])
+            }
+        } catch (err) {
+            console.error('Error fetching airline partners:', err)
+            setAirlinePartners([])
+        } finally {
+            setIsLoadingPartners(false)
+        }
+    }, [])
+
+    // Load airline partners on mount
+    useEffect(() => {
+        fetchAirlinePartners()
+    }, [fetchAirlinePartners])
 
     const fetchCampaigns = useCallback(async (page = 1, searchTerm = '') => {
         setIsLoading(true)
@@ -238,15 +269,17 @@ const Recruiment = () => {
     const filtered = useMemo(() => {
         let data = campaigns
         if (airline !== 'all') {
+            // Filter by partnerName
             data = data.filter(c => c.airline === airline)
         }
         return data
     }, [campaigns, airline])
 
     const airlines = useMemo(() => {
-        const set = new Set(campaigns.map(c => c.airline))
-        return ['all', ...Array.from(set)]
-    }, [campaigns])
+        // Lấy danh sách từ airlinePartners API
+        const partnerNames = airlinePartners.map(p => p.partnerName).filter(Boolean)
+        return ['all', ...partnerNames]
+    }, [airlinePartners])
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -274,10 +307,15 @@ const Recruiment = () => {
                                 value={airline}
                                 onChange={e => setAirline(e.target.value)}
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                disabled={isLoadingPartners}
                             >
-                                {airlines.map(a => (
-                                    <option key={a} value={a}>{a === 'all' ? t('recruitment_airline_all') : a}</option>
-                                ))}
+                                {isLoadingPartners ? (
+                                    <option value="all">Loading airlines...</option>
+                                ) : (
+                                    airlines.map(a => (
+                                        <option key={a} value={a}>{a === 'all' ? t('recruitment_airline_all') : a}</option>
+                                    ))
+                                )}
                             </select>
                         </div>
                     </div>

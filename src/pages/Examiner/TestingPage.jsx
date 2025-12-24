@@ -14,6 +14,7 @@ import {
   FiPlus,
 } from "react-icons/fi";
 import { getTests, deleteTest } from "../../service/api";
+import { getTestTypes } from "../../service/api2";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
 import { exportQuestionTemplate } from "./ExportQuestionTemplate";
 
@@ -137,8 +138,9 @@ const TestingPage = () => {
   const navigate = useNavigate();
   const [tests, setTests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [testTypeFilter, setTestTypeFilter] = useState("all");
+  const [testTypes, setTestTypes] = useState([]);
+  const [isLoadingTestTypes, setIsLoadingTestTypes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletingTestId, setDeletingTestId] = useState(null);
@@ -214,6 +216,41 @@ const TestingPage = () => {
     fetchTests();
   }, [fetchTests]);
 
+  // Fetch test types from API
+  useEffect(() => {
+    const fetchTestTypes = async () => {
+      setIsLoadingTestTypes(true);
+      try {
+        const response = await getTestTypes();
+        if (response.success && Array.isArray(response.data)) {
+          const mapped = response.data
+            .map((item) => {
+              const id =
+                item?.testTypeId ?? item?.id ?? item?.code ?? item?.value;
+              const name =
+                item?.testTypeName ??
+                item?.name ??
+                item?.typeName ??
+                item?.label ??
+                "";
+              if (!id || !name) return null;
+              return { id, name };
+            })
+            .filter(Boolean);
+          setTestTypes(mapped);
+        } else {
+          setTestTypes([]);
+        }
+      } catch (err) {
+        console.error("Error fetching test types:", err);
+        setTestTypes([]);
+      } finally {
+        setIsLoadingTestTypes(false);
+      }
+    };
+    fetchTestTypes();
+  }, []);
+
   const filteredTests = useMemo(() => {
     const normalize = (val) =>
       (val || "").toString().trim().toLowerCase().replace(/\s+/g, "");
@@ -229,15 +266,13 @@ const TestingPage = () => {
           testCode.includes(term) ||
           testDesc.includes(term);
 
-        const matchesStatus =
-          statusFilter === "all" || test.status === statusFilter;
-
-        const testTypeNorm = normalize(test.testType);
+        // Filter by test type - compare with testTypeName
         const matchesType =
           testTypeFilter === "all" ||
-          (testTypeNorm && testTypeNorm.includes(testTypeFilter));
+          (test.testType &&
+            normalize(test.testType).includes(normalize(testTypeFilter)));
 
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesSearch && matchesType;
       });
 
     // Filter ideally server-side; apply client-side when needed
@@ -245,7 +280,7 @@ const TestingPage = () => {
       return filterBy(tests);
     }
     return filterBy(tests);
-  }, [tests, searchTerm, statusFilter, testTypeFilter, pagination.totalPages]);
+  }, [tests, searchTerm, testTypeFilter, pagination.totalPages]);
 
   const handleEditTest = (testId) => {
     const test = tests.find((t) => t.id === testId);
@@ -401,7 +436,7 @@ const TestingPage = () => {
       </div>
 
       <div className="p-4 mb-6 bg-white border shadow-sm rounded-xl border-slate-200">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
               Search
@@ -410,24 +445,9 @@ const TestingPage = () => {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name or code..."
+              placeholder="Search by name"
               className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
-          </div>
-          <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
-            </select>
           </div>
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
@@ -436,12 +456,15 @@ const TestingPage = () => {
             <select
               value={testTypeFilter}
               onChange={(e) => setTestTypeFilter(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={isLoadingTestTypes}
+              className="w-full px-3 py-2 border rounded-lg border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="all">All</option>
-              <option value="listening">Listening</option>
-              <option value="speaking">Speaking</option>
-              <option value="practical">Practical</option>
+              {testTypes.map((type) => (
+                <option key={type.id} value={type.name}>
+                  {type.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -646,11 +669,10 @@ const TestingPage = () => {
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      page === pagination.currentPage
-                        ? "bg-indigo-600 text-white"
-                        : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
-                    }`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${page === pagination.currentPage
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
+                      }`}
                   >
                     {page}
                   </button>
@@ -732,11 +754,10 @@ const TestingPage = () => {
           return (
             <div className="fixed right-4 top-4 z-50">
               <div
-                className={`min-w-[260px] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${
-                  isSuccess
-                    ? "bg-green-50 text-red-800 border-red-200"
-                    : "bg-red-50 text-green-700 border-green-200"
-                }`}
+                className={`min-w-[260px] px-4 py-3 rounded-lg shadow-lg border text-sm font-medium ${isSuccess
+                  ? "bg-green-50 text-red-800 border-red-200"
+                  : "bg-red-50 text-green-700 border-green-200"
+                  }`}
               >
                 {toast.message}
               </div>

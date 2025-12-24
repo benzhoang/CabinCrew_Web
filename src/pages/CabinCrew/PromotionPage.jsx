@@ -265,8 +265,8 @@ const PromotionPage = () => {
           setCampaigns([]);
           setError(
             response.error ||
-              response.message ||
-              "Cannot get the list of promotion campaigns"
+            response.message ||
+            "Cannot get the list of promotion campaigns"
           );
         }
       } catch (err) {
@@ -345,7 +345,7 @@ const PromotionPage = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by campaign name, current position, target position, airline"
+              placeholder="Search by campaign name"
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -383,11 +383,10 @@ const PromotionPage = () => {
                       )}
                     </div>
                     <span
-                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${
-                        c.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`inline-flex items-center flex-shrink-0 whitespace-nowrap rounded-full text-xs font-medium px-2.5 py-1 ${c.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                        }`}
                     >
                       {c.status === "active" ? "Ongoing" : "Ended"}
                     </span>
