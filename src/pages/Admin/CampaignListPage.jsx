@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaSearch } from "react-icons/fa";
-import { getCampaignList } from "../../service/api2";
+import { getAllAirlinePartners } from "../../service/api2";
 import CampaignList from "../../components/AdminComponent/CampaignList";
 
 const CampaignListPage = () => {
@@ -8,36 +8,61 @@ const CampaignListPage = () => {
   const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [partnerFilter, setPartnerFilter] = useState("all");
-  const [partners, setPartners] = useState([]);
+  const [airlinePartners, setAirlinePartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
-  // Fetch partners list from API
-  useEffect(() => {
-    const fetchPartners = async () => {
-      try {
-        const result = await getCampaignList({
-          page: 1,
-          pageSize: 5,
-        });
-
-        if (result.success && result.data && Array.isArray(result.data)) {
-          // Extract unique partner names
-          const uniquePartners = [
-            ...new Set(
-              result.data
-                .map((item) => item.partnerName)
-                .filter((name) => name && name.trim() !== "")
-            ),
-          ].sort();
-
-          setPartners(uniquePartners);
-        }
-      } catch (error) {
-        console.error("Error fetching partners:", error);
+  // Fetch airline partners
+  const fetchAirlinePartners = useCallback(async () => {
+    setIsLoadingPartners(true);
+    try {
+      const result = await getAllAirlinePartners();
+      if (result.success) {
+        // Handle different response formats
+        const partners = Array.isArray(result.data)
+          ? result.data
+          : Array.isArray(result.data?.items)
+          ? result.data.items
+          : [];
+        // Chỉ lấy partnerId và partnerName
+        const formattedPartners = partners
+          .map((partner) => ({
+            partnerId: partner?.partnerId ?? partner?.id ?? null,
+            partnerName: partner?.partnerName || partner?.name || "",
+          }))
+          .filter((p) => p.partnerId && p.partnerName);
+        setAirlinePartners(formattedPartners);
+      } else {
+        console.error("Failed to fetch airline partners:", result.error);
+        setAirlinePartners([]);
       }
-    };
-
-    fetchPartners();
+    } catch (error) {
+      console.error("Error fetching airline partners:", error);
+      setAirlinePartners([]);
+    } finally {
+      setIsLoadingPartners(false);
+    }
   }, []);
+
+  // Load airline partners on mount
+  useEffect(() => {
+    fetchAirlinePartners();
+  }, [fetchAirlinePartners]);
+
+  // Tìm partnerId từ partner name được chọn
+  const getPartnerIdFromName = useCallback(
+    (partnerName) => {
+      if (partnerName === "all" || !partnerName) return null;
+      const partner = airlinePartners.find(
+        (p) => p.partnerName === partnerName
+      );
+      return partner?.partnerId || null;
+    },
+    [airlinePartners]
+  );
+
+  const handlePartnerFilterChange = (e) => {
+    setPartnerFilter(e.target.value);
+  };
 
   return (
     <div className="w-full h-full">
@@ -56,13 +81,14 @@ const CampaignListPage = () => {
             </div>
             <select
               value={partnerFilter}
-              onChange={(e) => setPartnerFilter(e.target.value)}
-              className="px-3 text-sm border border-gray-300 rounded-lg h-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+              onChange={handlePartnerFilterChange}
+              disabled={isLoadingPartners}
+              className="px-3 text-sm border border-gray-300 rounded-lg h-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="all">All partners</option>
-              {partners.map((partner) => (
-                <option key={partner} value={partner}>
-                  {partner}
+              {airlinePartners.map((partner) => (
+                <option key={partner.partnerId} value={partner.partnerName}>
+                  {partner.partnerName}
                 </option>
               ))}
             </select>
@@ -96,7 +122,7 @@ const CampaignListPage = () => {
             search={search}
             campaignTypeFilter={campaignTypeFilter}
             statusFilter={statusFilter}
-            partnerFilter={partnerFilter}
+            partnerId={getPartnerIdFromName(partnerFilter)}
           />
         </div>
       </div>

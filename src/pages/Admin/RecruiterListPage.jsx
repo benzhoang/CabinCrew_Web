@@ -12,6 +12,9 @@ const RecruiterListPage = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Role ID for Recruiter: 4
+  const roleId = 4;
+
   const handleCreateUser = (userData) => {
     console.log("Creating new user:", userData);
     // Trigger refresh by incrementing refreshKey
@@ -62,6 +65,7 @@ const RecruiterListPage = () => {
 
           <AccountTable
             searchTerm={searchTerm}
+            roleId={roleId}
             roleName="Recruiter"
             page={currentPage}
             pageSize={pageSize}

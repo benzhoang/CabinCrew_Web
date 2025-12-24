@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AccountTable from "../../components/AdminComponent/AccountTable";
 import Pagination from "../../components/AdminComponent/Pagination";
 import ModalForm from "../../components/AdminComponent/ModalForm";
 import { FaPlus, FaSearch } from "react-icons/fa";
+import { getAllAirlinePartners } from "../../service/api2";
 
 const AirlinePartnerListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,7 +12,35 @@ const AirlinePartnerListPage = () => {
   const [pageSize, setPageSize] = useState(5);
   const [totalItems, setTotalItems] = useState(0);
   const [totalAirlinePartners, setTotalAirlinePartners] = useState(0);
+  const [totalPartnersFromAPI, setTotalPartnersFromAPI] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Role ID for Airline Partner: 8
+  const roleId = 8;
+
+  // Fetch total partners from API
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const result = await getAllAirlinePartners();
+        if (result.success) {
+          // Handle different response formats
+          const partners = Array.isArray(result.data)
+            ? result.data
+            : Array.isArray(result.data?.items)
+            ? result.data.items
+            : [];
+          setTotalPartnersFromAPI(partners.length);
+        } else {
+          console.error("Failed to load airline partners:", result.error);
+        }
+      } catch (error) {
+        console.error("Error loading airline partners:", error);
+      }
+    };
+
+    fetchPartners();
+  }, [refreshKey]); // Re-fetch when refreshKey changes
 
   const handleCreateUser = (userData) => {
     console.log("Creating new user:", userData);
@@ -43,7 +72,9 @@ const AirlinePartnerListPage = () => {
     }
   };
 
-  const isCreateDisabled = totalAirlinePartners >= 4;
+  // Disable create button if number of Airline Partner accounts equals number of partners from API
+  const isCreateDisabled =
+    totalAirlinePartners >= totalPartnersFromAPI && totalPartnersFromAPI > 0;
 
   return (
     <div className="w-full h-full">
@@ -80,6 +111,7 @@ const AirlinePartnerListPage = () => {
 
           <AccountTable
             searchTerm={searchTerm}
+            roleId={roleId}
             roleName="Airline Partner"
             page={currentPage}
             pageSize={pageSize}

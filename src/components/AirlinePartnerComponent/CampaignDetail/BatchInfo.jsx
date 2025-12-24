@@ -1,6 +1,41 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { formatDate2 } from "../../../config/formatDate";
+// Helper function to format date for display
+const formatDateForDisplay = (
+  dateString,
+  fallbackTime = null,
+  isEndDate = false
+) => {
+  if (!dateString) {
+    if (fallbackTime) {
+      if (fallbackTime.includes(" - ")) {
+        return isEndDate
+          ? fallbackTime.split(" - ")[1]
+          : fallbackTime.split(" - ")[0];
+      }
+      return fallbackTime;
+    }
+    return "-";
+  }
+
+  try {
+    // If it's already in "dd/mm/yyyy" format, return as is
+    if (dateString.includes("/") && !dateString.includes("T")) {
+      return dateString.split(" ")[0];
+    }
+
+    // Try to parse as Date
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US");
+    }
+  } catch {
+    // If parsing fails, return the original string
+    return dateString.split(" ")[0] || "-";
+  }
+
+  return dateString.split(" ")[0] || "-";
+};
 
 const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
   const isUpcoming = batch.status === "upcoming";
@@ -23,26 +58,37 @@ const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
         )}
       </div>
       <div className="p-4 space-y-3">
-        <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-          <InfoMini label="Start time" value={formatDate2(batch.startDate)} />
-          <InfoMini label="End time" value={formatDate2(batch.endDate)} />
-          {batch.target !== undefined && (
-            <InfoMini
-              label="Target"
-              value={`${batch.current ?? 0}/${batch.target}`}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <InfoMini
+            label="Start time"
+            value={formatDateForDisplay(batch.startDate, batch.time, false)}
+          />
+          <InfoMini
+            label="End time"
+            value={formatDateForDisplay(batch.endDate, batch.time, true)}
+          />
+          {batch.target !== undefined && batch.target !== null && (
+            <InfoMini label="Target" value={batch.target.toString()} />
           )}
-          {batch.note && <InfoMini label="Note" value={batch.note} />}
+          {batch.appliedCandidates !== undefined &&
+            batch.appliedCandidates !== null && (
+              <InfoMini
+                label="Actual"
+                value={batch.appliedCandidates?.toString() || "0"}
+              />
+            )}
+          {batch.note && <InfoMini label="Description" value={batch.note} />}
         </div>
 
         <div className="pt-3 border-t border-slate-100">
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
-              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-              }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
+              isUpcoming
+                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+            }`}
             title={
               isUpcoming
                 ? "Cannot view applicant list because the round has not started"
@@ -95,6 +141,10 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
       name: round.roundName || round.name || `Round ${round.campaignRoundId}`,
       startDate: round.startDate,
       endDate: round.endDate,
+      time:
+        round.startDate && round.endDate
+          ? `${round.startDate} - ${round.endDate}`
+          : undefined,
       status:
         statusMap[round.status] || round.status?.toLowerCase() || "planned",
       current:

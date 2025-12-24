@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { createUser } from "../../service/api2";
+import {
+  createUser,
+  getAllAirlinePartners,
+  getAllUsers,
+} from "../../service/api2";
 
 // Map roleName to roleId
 const getRoleId = (roleName) => {
@@ -21,10 +25,13 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
     email: "",
     phoneNumber: "",
     dateOfBirth: "",
+    partnerId: "",
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [airlinePartners, setAirlinePartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
   // Calculate maximum date (end of year, 22 years ago from today)
   // This allows selecting any date within that year but restricts to years with age >= 22
@@ -36,7 +43,145 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
     return maxDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
   };
 
+  // Fetch airline partners and existing accounts when modal opens
+  useEffect(() => {
+    const fetchData = async () => {
+      if (
+        isOpen &&
+        (roleName === "Airline Partner" || roleName === "Cabin Crew")
+      ) {
+        setIsLoadingPartners(true);
+        try {
+          // Fetch airline partners
+          const partnersResult = await getAllAirlinePartners();
+          if (partnersResult.success) {
+            // Handle different response formats
+            const partners = Array.isArray(partnersResult.data)
+              ? partnersResult.data
+              : Array.isArray(partnersResult.data?.items)
+              ? partnersResult.data.items
+              : [];
+            setAirlinePartners(partners);
+
+            // Fetch existing Airline Partner accounts to find which partners don't have accounts yet
+            const roleId = getRoleId("Airline Partner"); // Role ID 8
+
+            // Fetch all pages of accounts (similar to AccountTable logic)
+            let aggregatedAccounts = [];
+            let currentPage = 1;
+            let totalPages = 1;
+            const MAX_PAGES_TO_FETCH = 10;
+
+            while (
+              currentPage <= totalPages &&
+              currentPage <= MAX_PAGES_TO_FETCH
+            ) {
+              const accountsResult = await getAllUsers({
+                roleId: roleId,
+                page: currentPage,
+                pageSize: 100,
+              });
+
+              if (!accountsResult.success) {
+                console.error("Error fetching accounts:", accountsResult.error);
+                break;
+              }
+
+              aggregatedAccounts = aggregatedAccounts.concat(
+                accountsResult.data?.items || []
+              );
+
+              const pagination = accountsResult.data?.pagination;
+              if (pagination) {
+                const nextTotalPages = pagination.totalPages ?? totalPages;
+                totalPages = Math.max(totalPages, nextTotalPages);
+
+                if (
+                  !pagination.hasNextPage ||
+                  currentPage >= MAX_PAGES_TO_FETCH
+                ) {
+                  break;
+                }
+              } else {
+                break;
+              }
+
+              currentPage += 1;
+            }
+
+            // Get list of partner names that already have accounts (normalize to lowercase for comparison)
+            const existingPartnerNames = new Set(
+              aggregatedAccounts
+                .map((account) => {
+                  // Try to get partner name from airlinePartner field or partnerName field
+                  const partnerName =
+                    account.airlinePartner || account.partnerName || "";
+                  return partnerName.trim().toLowerCase();
+                })
+                .filter((name) => name !== "")
+            );
+
+            // Find the first partner that doesn't have an account yet
+            // Compare by partnerName (normalized to lowercase)
+            const availablePartner = partners.find((partner) => {
+              const partnerName = (partner.partnerName || "")
+                .trim()
+                .toLowerCase();
+              return (
+                partnerName !== "" && !existingPartnerNames.has(partnerName)
+              );
+            });
+
+            // Auto-select the first available partner after a small delay to ensure form reset has completed
+            if (availablePartner) {
+              setTimeout(() => {
+                setFormData((prev) => ({
+                  ...prev,
+                  partnerId: String(availablePartner.partnerId),
+                }));
+              }, 100);
+            }
+          } else {
+            console.error(
+              "Failed to load airline partners:",
+              partnersResult.error
+            );
+            toast.error("Failed to load airline partners");
+          }
+        } catch (error) {
+          console.error("Error loading data:", error);
+          toast.error("Error loading data");
+        } finally {
+          setIsLoadingPartners(false);
+        }
+      } else if (isOpen) {
+        // For other roles, just fetch partners without auto-selection
+        setIsLoadingPartners(true);
+        try {
+          const result = await getAllAirlinePartners();
+          if (result.success) {
+            const partners = Array.isArray(result.data)
+              ? result.data
+              : Array.isArray(result.data?.items)
+              ? result.data.items
+              : [];
+            setAirlinePartners(partners);
+          } else {
+            console.error("Failed to load airline partners:", result.error);
+          }
+        } catch (error) {
+          console.error("Error loading airline partners:", error);
+        } finally {
+          setIsLoadingPartners(false);
+        }
+      }
+    };
+
+    fetchData();
+  }, [isOpen, roleName]);
+
   // Reset form when modal opens/closes or roleName changes
+  // Note: partnerId will be auto-selected by fetchData useEffect for Airline Partner role
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -45,6 +190,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
         email: "",
         phoneNumber: "",
         dateOfBirth: "",
+        partnerId: "", // Will be auto-selected if role is Airline Partner
       });
       setErrors({});
     }
@@ -124,6 +270,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
         email: formData.email.trim(),
         dateOfBirth: formData.dateOfBirth,
         roleId: getRoleId(roleName),
+        partnerId: formData.partnerId ? parseInt(formData.partnerId, 10) : null,
       };
 
       console.log("API Data (Formatted):", apiData);
@@ -147,6 +294,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
           email: "",
           phoneNumber: "",
           dateOfBirth: "",
+          partnerId: "",
         });
         setErrors({});
         // Close modal after a short delay to allow toast to be visible
@@ -295,6 +443,43 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
                   </p>
                 )}
               </div>
+
+              {/* Partner - Only show for Airline Partner and Cabin Crew */}
+              {(roleName === "Airline Partner" ||
+                roleName === "Cabin Crew") && (
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Partner
+                  </label>
+                  <select
+                    name="partnerId"
+                    value={formData.partnerId}
+                    onChange={handleInputChange}
+                    disabled={
+                      isLoadingPartners || roleName === "Airline Partner"
+                    }
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 ${
+                      errors.partnerId ? "border-red-500" : "border-gray-300"
+                    } ${
+                      isLoadingPartners || roleName === "Airline Partner"
+                        ? "bg-gray-100 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    <option value="">Select a partner</option>
+                    {airlinePartners.map((partner) => (
+                      <option key={partner.partnerId} value={partner.partnerId}>
+                        {partner.partnerName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.partnerId && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.partnerId}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

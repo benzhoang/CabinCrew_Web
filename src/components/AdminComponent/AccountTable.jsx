@@ -10,12 +10,14 @@ const StatusBadge = ({ value }) => {
     typeof value === "boolean" ? value : value?.toLowerCase() === "active";
   return (
     <span
-      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
-        }`}
+      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${
+        isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+      }`}
     >
       <span
-        className={`w-2 h-2 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"
-          }`}
+        className={`w-2 h-2 rounded-full ${
+          isActive ? "bg-green-500" : "bg-gray-400"
+        }`}
       ></span>
       {isActive ? "Active" : "Inactive"}
     </span>
@@ -26,6 +28,40 @@ const PositionBadge = ({ value }) => {
   return (
     <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 rounded-md bg-blue-50">
       {value || "N/A"}
+    </span>
+  );
+};
+
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-600";
+
+  const partner = partnerName.toLowerCase();
+  // Có thể thêm các airline cụ thể với màu riêng
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-700";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-700";
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+    return "bg-green-100 text-green-700";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-700";
+  }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-700";
+};
+
+const PartnerBadge = ({ value }) => {
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-md ${getPartnerColor(
+        value
+      )}`}
+    >
+      {value || "—"}
     </span>
   );
 };
@@ -120,6 +156,7 @@ const AccountTable = ({
           email: user.email,
           phone: user.phoneNumber,
           status: user.isActive,
+          airlinePartner: user.airlinePartner,
           originalData: user,
         }));
 
@@ -284,11 +321,11 @@ const AccountTable = ({
       const errorMessage =
         actionType === "enable"
           ? error.response?.data?.message ||
-          error.message ||
-          "Error when reactivating account"
+            error.message ||
+            "Error when reactivating account"
           : error.response?.data?.message ||
-          error.message ||
-          "Error when disabling account";
+            error.message ||
+            "Error when disabling account";
       toast.error(errorMessage);
     } finally {
       if (actionType === "enable") {
@@ -317,6 +354,10 @@ const AccountTable = ({
     );
   }
 
+  // Check if Partner column should be shown
+  const showPartnerColumn =
+    roleName === "Airline Partner" || roleName === "Cabin Crew";
+
   return (
     <div className="mt-10 overflow-hidden bg-white border border-gray-200 rounded-xl">
       <table className="min-w-full border-collapse table-fixed">
@@ -344,6 +385,9 @@ const AccountTable = ({
             </th>
             <th className="px-5 py-3 font-semibold">Phone Number</th>
             <th className="px-5 py-3 font-semibold">Position</th>
+            {showPartnerColumn && (
+              <th className="px-5 py-3 font-semibold">Partner</th>
+            )}
             <th className="px-5 py-3 font-semibold">Status</th>
             <th className="px-5 py-3 font-semibold text-right w-28">Actions</th>
           </tr>
@@ -351,7 +395,10 @@ const AccountTable = ({
         <tbody>
           {paginatedUsers.length === 0 ? (
             <tr>
-              <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
+              <td
+                colSpan={showPartnerColumn ? 8 : 7}
+                className="px-5 py-8 text-center text-gray-500"
+              >
                 No data
               </td>
             </tr>
@@ -377,6 +424,11 @@ const AccountTable = ({
                   <td className="px-5 py-4">
                     <PositionBadge value={u.position} />
                   </td>
+                  {showPartnerColumn && (
+                    <td className="px-5 py-4">
+                      <PartnerBadge value={u.airlinePartner} />
+                    </td>
+                  )}
                   <td className="px-5 py-4">
                     <StatusBadge value={u.status} />
                   </td>
@@ -430,8 +482,8 @@ const AccountTable = ({
               ? `Do you want to reactivate account ${selectedUser.email}?`
               : `Do you want to disable account ${selectedUser.email}?`
             : actionType === "enable"
-              ? "Do you want to reactivate account?"
-              : "Do you want to disable account?"
+            ? "Do you want to reactivate account?"
+            : "Do you want to disable account?"
         }
         confirmText={actionType === "enable" ? "Reactivate" : "Disable"}
         cancelText="Cancel"

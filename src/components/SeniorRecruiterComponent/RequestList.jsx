@@ -219,7 +219,12 @@ const CampaignCard = ({ request }) => {
   );
 };
 
-const RequestList = ({ search = "", campaignTypeFilter = "all", partnerFilter = "all", airlinePartners = [] }) => {
+const RequestList = ({
+  search = "",
+  campaignTypeFilter = "all",
+  partnerFilter = "all",
+  airlinePartners = [],
+}) => {
   const [allApprovedRequests, setAllApprovedRequests] = useState([]); // Lưu tất cả approved requests
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -261,92 +266,139 @@ const RequestList = ({ search = "", campaignTypeFilter = "all", partnerFilter = 
         Promotion: "Promotion",
       };
 
-      // Fetch tất cả data - fetch với pageSize lớn để lấy hết
+      // Base params for fetching (keep all filters)
       const partnerId = getPartnerIdFromName(partnerFilter);
-      const params = {
-        page: 1,
-        pageSize: 5, // Fetch nhiều để lấy hết data
+      const baseParams = {
+        page: 1, // Always fetch from page 1
+        pageSize: 5, // Fetch with pageSize 5
         searchTerm: search || undefined,
-        status: undefined,
+        status: 2, // Filter approved requests (status 2 = Approved)
         requestType: requestTypeMap[campaignTypeFilter],
       };
       if (partnerId) {
-        params.partnerId = partnerId;
+        baseParams.partnerId = partnerId;
       }
 
-      const result = await getCampaignRequestList(params);
+      let aggregatedItems = [];
+      let lastPagination = null;
 
-      if (result.success) {
-        const allItems = result.data.items || [];
+      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+      const MAX_PAGES_TO_FETCH = 10;
+      let currentPage = 1;
+      let totalPages = 1;
 
-        // Normalize status function
-        const normalizeStatus = (status) => {
-          if (!status) return "not_approved";
-          if (typeof status === "number") {
-            if (status === 2) return "approved";
-            return "not_approved";
-          }
-          const statusLower = String(status).toLowerCase().trim();
-          if (statusLower === "approved" || statusLower === "approve") {
-            return "approved";
-          }
-          return "not_approved";
-        };
-
-        // Filter approved items
-        const approvedItems = allItems.filter((request) => {
-          const normalizedStatus = normalizeStatus(request.status);
-          if (normalizedStatus !== "approved") return false;
-
-          // Filter by requestType
-          if (campaignTypeFilter !== "all") {
-            const normalizedRequestType =
-              request.requestType?.toLowerCase() || "";
-            const normalizedCampaignTypeFilter =
-              campaignTypeFilter?.toLowerCase() || "";
-            if (normalizedRequestType !== normalizedCampaignTypeFilter) {
-              return false;
-            }
-          }
-
-          // Filter by search
-          if (search) {
-            const searchLower = search.toLowerCase();
-            const matchesSearch =
-              (request.campaignName &&
-                request.campaignName.toLowerCase().includes(searchLower)) ||
-              (request.description &&
-                request.description.toLowerCase().includes(searchLower)) ||
-              (request.requestType &&
-                request.requestType.toLowerCase().includes(searchLower));
-            if (!matchesSearch) {
-              return false;
-            }
-          }
-
-          return true;
+      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+        const result = await getCampaignRequestList({
+          ...baseParams,
+          page: currentPage,
         });
 
-        setAllApprovedRequests(approvedItems);
+        if (!result.success) {
+          console.error("Error fetching requests:", result.error);
+          aggregatedItems = [];
+          break;
+        }
 
-        // Tính toán pagination dựa trên số lượng approved items
-        const totalRecords = approvedItems.length;
-        const totalPages = Math.ceil(totalRecords / 5);
-        const currentPage =
-          pagination.currentPage > totalPages ? 1 : pagination.currentPage;
+        // Handle different response structures
+        let items = [];
+        if (Array.isArray(result.data)) {
+          items = result.data;
+        } else if (result.data?.items && Array.isArray(result.data.items)) {
+          items = result.data.items;
+        }
 
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: currentPage,
-          totalRecords: totalRecords,
-          totalPages: totalPages,
-          hasNextPage: currentPage < totalPages,
-          hasPreviousPage: currentPage > 1,
-        }));
-      } else {
-        setError(result.error || "Error when fetching request list");
-        setAllApprovedRequests([]);
+        aggregatedItems = aggregatedItems.concat(items);
+        // Pagination info is in result.data.pagination, not result.pagination
+        lastPagination = result.data?.pagination || result.pagination;
+
+        // Update totalPages from pagination info
+        if (lastPagination) {
+          const nextTotalPages = lastPagination.totalPages ?? totalPages;
+          totalPages = Math.max(totalPages, nextTotalPages);
+
+          // Check if there's a next page
+          if (
+            !lastPagination.hasNextPage ||
+            currentPage >= MAX_PAGES_TO_FETCH
+          ) {
+            break;
+          }
+        } else {
+          // If no pagination info and we got items, assume there might be more
+          // But if we got fewer items than pageSize, we're done
+          if (items.length < baseParams.pageSize) {
+            break;
+          }
+          // If we got full pageSize items but no pagination info, continue to next page
+          // but limit to MAX_PAGES_TO_FETCH
+          if (currentPage >= MAX_PAGES_TO_FETCH) {
+            break;
+          }
+        }
+
+        currentPage += 1;
       }
+
+      // Since API already filters by status=2 (Approved), all items are approved
+      // But we still filter by requestType and search client-side if needed
+      let approvedItems = aggregatedItems;
+
+      // Filter by requestType (if campaignTypeFilter is not "all")
+      if (campaignTypeFilter !== "all") {
+        approvedItems = approvedItems.filter((request) => {
+          const normalizedRequestType =
+            request.requestType?.toLowerCase() || "";
+          const normalizedCampaignTypeFilter =
+            campaignTypeFilter?.toLowerCase() || "";
+          return normalizedRequestType === normalizedCampaignTypeFilter;
+        });
+      }
+
+      // Filter by search (if search term is provided)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        approvedItems = approvedItems.filter((request) => {
+          return (
+            (request.campaignName &&
+              request.campaignName.toLowerCase().includes(searchLower)) ||
+            (request.description &&
+              request.description.toLowerCase().includes(searchLower)) ||
+            (request.requestType &&
+              request.requestType.toLowerCase().includes(searchLower))
+          );
+        });
+      }
+
+      setAllApprovedRequests(approvedItems);
+
+      // Tính toán pagination
+      // Nếu có pagination info từ API và đã fetch tất cả pages, sử dụng totalRecords từ API
+      // (vì API đã filter approved với status=2, nên totalRecords từ API = số lượng approved items)
+      // Nếu chưa fetch hết (do MAX_PAGES_TO_FETCH), tính dựa trên số lượng items đã fetch
+      let totalRecords = approvedItems.length;
+      let calculatedTotalPages = Math.ceil(totalRecords / 5);
+
+      // Nếu đã fetch tất cả pages và có pagination info, sử dụng totalRecords từ API
+      if (lastPagination && !lastPagination.hasNextPage) {
+        // Use totalRecords from API since it already filters approved requests
+        totalRecords = lastPagination.totalRecords || approvedItems.length;
+        calculatedTotalPages =
+          lastPagination.totalPages || calculatedTotalPages;
+      }
+
+      const calculatedCurrentPage =
+        pagination.currentPage > calculatedTotalPages
+          ? 1
+          : pagination.currentPage;
+
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: calculatedCurrentPage,
+        totalRecords: totalRecords,
+        totalPages: calculatedTotalPages,
+        hasNextPage: calculatedCurrentPage < calculatedTotalPages,
+        hasPreviousPage: calculatedCurrentPage > 1,
+      }));
     } catch (err) {
       setError(err.message || "Error when fetching request list");
       setAllApprovedRequests([]);
@@ -451,10 +503,11 @@ const RequestList = ({ search = "", campaignTypeFilter = "all", partnerFilter = 
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasPreviousPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
             >
               Previous
             </button>
@@ -467,10 +520,11 @@ const RequestList = ({ search = "", campaignTypeFilter = "all", partnerFilter = 
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasNextPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
             >
               Next
             </button>
