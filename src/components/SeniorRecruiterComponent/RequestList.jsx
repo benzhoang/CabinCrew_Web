@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 
@@ -219,7 +219,7 @@ const CampaignCard = ({ request }) => {
   );
 };
 
-const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
+const RequestList = ({ search = "", campaignTypeFilter = "all", partnerFilter = "all", airlinePartners = [] }) => {
   const [allApprovedRequests, setAllApprovedRequests] = useState([]); // Lưu tất cả approved requests
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -232,6 +232,18 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     hasNextPage: false,
     hasPreviousPage: false,
   });
+
+  // Tìm partnerId từ partner name được chọn
+  const getPartnerIdFromName = useCallback(
+    (partnerName) => {
+      if (partnerName === "all" || !partnerName) return null;
+      const partner = airlinePartners.find(
+        (p) => p.partnerName === partnerName
+      );
+      return partner?.partnerId || null;
+    },
+    [airlinePartners]
+  );
 
   // Fetch data from API - fetch tất cả data để filter approved
   const fetchRequests = async (showLoading = false) => {
@@ -250,6 +262,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       };
 
       // Fetch tất cả data - fetch với pageSize lớn để lấy hết
+      const partnerId = getPartnerIdFromName(partnerFilter);
       const params = {
         page: 1,
         pageSize: 5, // Fetch nhiều để lấy hết data
@@ -257,6 +270,9 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         status: undefined,
         requestType: requestTypeMap[campaignTypeFilter],
       };
+      if (partnerId) {
+        params.partnerId = partnerId;
+      }
 
       const result = await getCampaignRequestList(params);
 
@@ -356,7 +372,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
       fetchRequests(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, campaignTypeFilter]);
+  }, [search, campaignTypeFilter, partnerFilter, getPartnerIdFromName]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
@@ -435,11 +451,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Previous
             </button>
@@ -452,11 +467,10 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Next
             </button>

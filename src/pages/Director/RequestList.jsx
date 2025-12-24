@@ -1,13 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
-import { getCampaignRequests } from "../../service/api";
+import { getCampaignRequests, getAirlinePartners } from "../../service/api";
+import { convertDateFormat } from "../../config/formatDate";
+
+// Helper function to format date display
+const formatDateDisplay = (value) => {
+  if (!value) return "—";
+
+  // If already in DD/MM/YYYY format, return as is
+  if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    return value;
+  }
+
+  // Try to parse as Date
+  const tryParse = (dateString) => {
+    const date = new Date(dateString);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  // Try direct parse
+  const directDate = tryParse(value);
+  if (directDate) {
+    const day = String(directDate.getDate()).padStart(2, "0");
+    const month = String(directDate.getMonth() + 1).padStart(2, "0");
+    const year = directDate.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  // Try convert from DD/MM/YYYY format
+  const converted = convertDateFormat(value);
+  if (converted) {
+    const convertedDate = tryParse(converted);
+    if (convertedDate) {
+      const day = String(convertedDate.getDate()).padStart(2, "0");
+      const month = String(convertedDate.getMonth() + 1).padStart(2, "0");
+      const year = convertedDate.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  }
+
+  // If all parsing fails, return original value
+  return value;
+};
 
 const RequestList = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("pending_approval");
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const [airlinePartners, setAirlinePartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
   const [langVersion, setLangVersion] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,12 +70,57 @@ const RequestList = () => {
     return () => off();
   }, []);
 
+  // Fetch airline partners
+  const fetchAirlinePartners = useCallback(async () => {
+    setIsLoadingPartners(true);
+    try {
+      const res = await getAirlinePartners();
+      if (res.success && Array.isArray(res.data)) {
+        // Chỉ lấy partnerId và partnerName
+        const partners = res.data
+          .map((partner) => ({
+            partnerId: partner?.partnerId ?? partner?.id ?? null,
+            partnerName: partner?.partnerName || partner?.name || "",
+          }))
+          .filter((p) => p.partnerId && p.partnerName);
+        setAirlinePartners(partners);
+      } else {
+        console.error("Failed to fetch airline partners:", res.error);
+        setAirlinePartners([]);
+      }
+    } catch (err) {
+      console.error("Error fetching airline partners:", err);
+      setAirlinePartners([]);
+    } finally {
+      setIsLoadingPartners(false);
+    }
+  }, []);
+
+  // Load airline partners on mount
   useEffect(() => {
-    const fetchCampaigns = async (page = 1) => {
+    fetchAirlinePartners();
+  }, [fetchAirlinePartners]);
+
+  // Tìm partnerId từ partner name được chọn
+  const getPartnerIdFromName = useCallback(
+    (partnerName) => {
+      if (partnerName === "all" || !partnerName) return null;
+      const partner = airlinePartners.find(
+        (p) => p.partnerName === partnerName
+      );
+      return partner?.partnerId || null;
+    },
+    [airlinePartners]
+  );
+
+  useEffect(() => {
+    const fetchCampaigns = async (page = 1, partnerIdFilter = null) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await getCampaignRequests(page, pagination.pageSize);
+        const partnerId = getPartnerIdFromName(partnerFilter);
+        const additionalParams = partnerId ? { partnerId } : {};
+        const result = await getCampaignRequests(page, pagination.pageSize, additionalParams);
         if (result.success) {
           // Normalize status from API
           const normalizeStatus = (status) => {
@@ -120,8 +209,10 @@ const RequestList = () => {
     };
 
     // First load will be page 1
-    fetchCampaigns(1);
-  }, []);
+    const partnerId = getPartnerIdFromName(partnerFilter);
+    fetchCampaigns(1, partnerId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partnerFilter, getPartnerIdFromName]);
 
   useEffect(() => {
     let filtered = campaigns;
@@ -173,7 +264,9 @@ const RequestList = () => {
       setLoading(true);
       setError(null);
       try {
-        const result = await getCampaignRequests(page, pagination.pageSize);
+        const partnerId = getPartnerIdFromName(partnerFilter);
+        const additionalParams = partnerId ? { partnerId } : {};
+        const result = await getCampaignRequests(page, pagination.pageSize, additionalParams);
         if (result.success) {
           const mappedCampaigns = (result.data || []).map((item) => ({
             id: item.requestId,
@@ -383,13 +476,28 @@ const RequestList = () => {
             <h3 className="text-lg font-semibold text-slate-800">
               Campaign List ({filteredCampaigns.length})
             </h3>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64 px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+            <div className="flex items-center gap-3">
+              <select
+                value={partnerFilter}
+                onChange={(e) => setPartnerFilter(e.target.value)}
+                disabled={isLoadingPartners}
+                className="px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="all">All Partners</option>
+                {airlinePartners.map((partner) => (
+                  <option key={partner.partnerId} value={partner.partnerName}>
+                    {partner.partnerName}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -506,11 +614,7 @@ const RequestList = () => {
                     <div>
                       <span className="text-sm text-slate-600">Due Date:</span>
                       <p className="font-medium text-slate-800">
-                        {campaign.dueDate
-                          ? new Date(campaign.dueDate).toLocaleDateString(
-                              "en-US"
-                            )
-                          : "—"}
+                        {formatDateDisplay(campaign.dueDate)}
                       </p>
                     </div>
                   </div>

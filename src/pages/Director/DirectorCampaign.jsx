@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
-import { getCampaigns } from '../../service/api'
+import { getCampaigns, getAirlinePartners } from '../../service/api'
 import { formatDate } from '../../config/formatDate.js'
 
 // StatusBadge component - supports all status values returned by the API
@@ -161,6 +161,41 @@ const PositionBadge = ({ position }) => {
     )
 }
 
+// PartnerBadge component
+const PartnerBadge = ({ partnerName }) => {
+    const getPartnerColor = (partnerName) => {
+        if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+        const partner = partnerName.toLowerCase();
+        if (
+            partner.includes("vietnam airlines") ||
+            partner.includes("vietnamairlines")
+        ) {
+            return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+            return "bg-red-100 text-red-800 border-red-300";
+        } else if (
+            partner.includes("bamboo") ||
+            partner.includes("bamboo airways")
+        ) {
+            return "bg-green-100 text-green-800 border-green-300";
+        } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+            return "bg-indigo-100 text-indigo-800 border-indigo-300";
+        }
+        return "bg-cyan-100 text-cyan-800 border-cyan-300";
+    }
+
+    if (!partnerName) return null;
+
+    return (
+        <span
+            className={`${getPartnerColor(partnerName)} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border`}
+        >
+            {partnerName}
+        </span>
+    )
+}
+
 // CampaignCard component similar to CampaignList.jsx
 const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
     const navigate = useNavigate()
@@ -179,7 +214,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                         {campaign.name}
                     </h3>
 
-                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-1">
+                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-1">
                         <div>
                             <span className="text-gray-500">Position:</span>
                             <div className="mt-1">
@@ -190,6 +225,12 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                             <span className="text-gray-500">Type:</span>
                             <div className="mt-1">
                                 <CampaignTypeBadge type={campaign.campaignType} />
+                            </div>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Partner:</span>
+                            <div className="mt-1">
+                                <PartnerBadge partnerName={campaign.partnerName} />
                             </div>
                         </div>
                         <div>
@@ -246,6 +287,9 @@ const DirectorCampaign = () => {
     const [filteredCampaigns, setFilteredCampaigns] = useState([])
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [partnerFilter, setPartnerFilter] = useState('all')
+    const [airlinePartners, setAirlinePartners] = useState([])
+    const [isLoadingPartners, setIsLoadingPartners] = useState(false)
     const [sortBy, setSortBy] = useState('startDateDesc')
     const [selectedCampaign, setSelectedCampaign] = useState(null)
     const [showModal, setShowModal] = useState(false)
@@ -266,6 +310,49 @@ const DirectorCampaign = () => {
         const off = onLangChange(() => setLangVersion((v) => v + 1))
         return () => off()
     }, [])
+
+    // Fetch airline partners
+    const fetchAirlinePartners = useCallback(async () => {
+        setIsLoadingPartners(true)
+        try {
+            const res = await getAirlinePartners()
+            if (res.success && Array.isArray(res.data)) {
+                // Chỉ lấy partnerId và partnerName
+                const partners = res.data
+                    .map((partner) => ({
+                        partnerId: partner?.partnerId ?? partner?.id ?? null,
+                        partnerName: partner?.partnerName || partner?.name || '',
+                    }))
+                    .filter((p) => p.partnerId && p.partnerName)
+                setAirlinePartners(partners)
+            } else {
+                console.error('Failed to fetch airline partners:', res.error)
+                setAirlinePartners([])
+            }
+        } catch (err) {
+            console.error('Error fetching airline partners:', err)
+            setAirlinePartners([])
+        } finally {
+            setIsLoadingPartners(false)
+        }
+    }, [])
+
+    // Load airline partners on mount
+    useEffect(() => {
+        fetchAirlinePartners()
+    }, [fetchAirlinePartners])
+
+    // Tìm partnerId từ partner name được chọn
+    const getPartnerIdFromName = useCallback(
+        (partnerName) => {
+            if (partnerName === 'all' || !partnerName) return null
+            const partner = airlinePartners.find(
+                (p) => p.partnerName === partnerName
+            )
+            return partner?.partnerId || null
+        },
+        [airlinePartners]
+    )
 
     const parseDateValue = (value) => {
         if (!value) return null
@@ -327,6 +414,7 @@ const DirectorCampaign = () => {
             position: item.position ?? item.role ?? 'Unknown',
             campaignType: item.campaignType ?? 'Unknown',
             department: item.department ?? item.campaignDepartment ?? item.departmentName ?? 'Unknown',
+            partnerName: item.partnerName ?? item.airline ?? item.airlineName ?? '',
             status: mapStatusValue(item.status),
             startDate: formatDateValue(item.startDate),
             endDate: formatDateValue(item.endDate),
@@ -345,10 +433,15 @@ const DirectorCampaign = () => {
             setError(null)
             try {
                 const pageSize = 5 // 5 campaigns per page
-                const response = await getCampaigns({
+                const partnerId = getPartnerIdFromName(partnerFilter)
+                const params = {
                     page: page,
-                    pageSize: pageSize
-                })
+                    pageSize: pageSize,
+                }
+                if (partnerId) {
+                    params.partnerId = partnerId
+                }
+                const response = await getCampaigns(params)
                 if (response.success && Array.isArray(response.data)) {
                     const normalizedCampaigns = response.data.map(transformCampaignData)
                     setCampaigns(normalizedCampaigns)
@@ -389,7 +482,8 @@ const DirectorCampaign = () => {
 
         // First load fetches page 1
         fetchCampaigns(1)
-    }, [])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [partnerFilter, getPartnerIdFromName])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
     const normalizeStatus = (value) => normalizeString(value)
@@ -462,10 +556,15 @@ const DirectorCampaign = () => {
             setError(null)
             try {
                 const pageSize = pagination.pageSize || 5
-                const response = await getCampaigns({
+                const partnerId = getPartnerIdFromName(partnerFilter)
+                const params = {
                     page: page,
-                    pageSize: pageSize
-                })
+                    pageSize: pageSize,
+                }
+                if (partnerId) {
+                    params.partnerId = partnerId
+                }
+                const response = await getCampaigns(params)
                 if (response.success && Array.isArray(response.data)) {
                     const normalizedCampaigns = response.data.map(transformCampaignData)
                     setCampaigns(normalizedCampaigns)
@@ -517,7 +616,15 @@ const DirectorCampaign = () => {
                             setIsLoading(true)
                             const fetchCampaigns = async () => {
                                 try {
-                                    const response = await getCampaigns()
+                                    const partnerId = getPartnerIdFromName(partnerFilter)
+                                    const params = {
+                                        page: 1,
+                                        pageSize: 5,
+                                    }
+                                    if (partnerId) {
+                                        params.partnerId = partnerId
+                                    }
+                                    const response = await getCampaigns(params)
                                     if (response.success && Array.isArray(response.data)) {
                                         const normalizedCampaigns = response.data.map(transformCampaignData)
                                         setCampaigns(normalizedCampaigns)
@@ -551,7 +658,7 @@ const DirectorCampaign = () => {
 
             {/* Search and Filter */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Search Bar */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
@@ -562,6 +669,24 @@ const DirectorCampaign = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
+                    </div>
+
+                    {/* Airline Partner Filter */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Airline Partner</label>
+                        <select
+                            value={partnerFilter}
+                            onChange={(e) => setPartnerFilter(e.target.value)}
+                            disabled={isLoadingPartners}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <option value="all">All Partners</option>
+                            {airlinePartners.map((partner) => (
+                                <option key={partner.partnerId} value={partner.partnerName}>
+                                    {partner.partnerName}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     {/* Sort Filter */}
@@ -780,6 +905,12 @@ const DirectorCampaign = () => {
                                         <span className="text-sm text-slate-600">Type:</span>
                                         <div className="mt-1">
                                             <CampaignTypeBadge type={selectedCampaign.campaignType} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-sm text-slate-600">Partner:</span>
+                                        <div className="mt-1">
+                                            <PartnerBadge partnerName={selectedCampaign.partnerName} />
                                         </div>
                                     </div>
                                     <div>

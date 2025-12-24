@@ -1313,13 +1313,15 @@ export const uploadProfileImage = async (file) => {
 };
 
 // API lấy danh sách campaign requests
-export const getCampaignRequests = async (page = 1, pageSize = 5) => {
+export const getCampaignRequests = async (page = 1, pageSize = 5, additionalParams = {}) => {
   try {
+    const params = {
+      page: page,
+      pageSize: pageSize,
+      ...additionalParams,
+    };
     const response = await api.get("/campaign-requests", {
-      params: {
-        page: page,
-        pageSize: pageSize,
-      },
+      params: params,
     });
 
     if (response.data.code === 0 && response.data.data) {
