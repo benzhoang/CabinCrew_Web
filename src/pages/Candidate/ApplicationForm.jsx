@@ -927,7 +927,7 @@ const ApplicationForm = () => {
                                     disabled={isSubmitting}
                                     className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
                                 >
-                                    {isSubmitting ? 'Đang nộp đơn...' : (t('application_form_finish') || 'Nộp đơn')}
+                                    {isSubmitting ? 'Submitting...' : (t('application_form_finish') || 'Nộp đơn')}
                                 </button>
                             </div>
                         </form>

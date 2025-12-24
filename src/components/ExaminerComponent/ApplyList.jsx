@@ -322,7 +322,7 @@ const ApplyList = ({
     const normalizedStatus = status ? String(status).toLowerCase() : "";
 
     const statusConfig = {
-      ongoing: { color: "bg-blue-100 text-blue-800", text: "Ongoing" },
+      ongoing: { color: "bg-yellow-100 text-yellow-800", text: "Ongoing" },
       passed: { color: "bg-green-100 text-green-800", text: "Passed" },
       failed: { color: "bg-red-100 text-red-800", text: "Failed" },
       pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
@@ -472,10 +472,10 @@ const ApplyList = ({
       roundFilter === "final"
         ? { roundId: "final", roundName: "Final" }
         : availableRounds.find(
-            (r) => String(r.roundId) === String(roundFilter)
-          ) ||
-          activeRoundForTests ||
-          null;
+          (r) => String(r.roundId) === String(roundFilter)
+        ) ||
+        activeRoundForTests ||
+        null;
 
     const stageId =
       mapRoundToStageId(roundFromFilter, applicant) ||
@@ -675,8 +675,8 @@ const ApplyList = ({
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                  activeRoundForTests?.testId === 0 ||
-                  activeRoundForTests?.testId === null ? (
+                    activeRoundForTests?.testId === 0 ||
+                    activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -726,15 +726,15 @@ const ApplyList = ({
 
                         return !shouldHideButton;
                       })() && (
-                        <button
-                          onClick={openConfirmMoveModal}
-                          disabled={isMovingToInterview}
-                          className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FaArrowRight className="w-5 h-5" />
-                          {isMovingToInterview ? "Finalizing..." : "Finalize"}
-                        </button>
-                      )}
+                          <button
+                            onClick={openConfirmMoveModal}
+                            disabled={isMovingToInterview}
+                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FaArrowRight className="w-5 h-5" />
+                            {isMovingToInterview ? "Finalizing..." : "Finalize"}
+                          </button>
+                        )}
                     </>
                   )}
                 </div>
@@ -876,9 +876,9 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                          applicant.roundName ||
-                          applicant.round ||
-                          "screening",
+                        applicant.roundName ||
+                        applicant.round ||
+                        "screening",
                         applicant
                       )}
                     </td>

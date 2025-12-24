@@ -88,6 +88,7 @@ const buildCandidateProfile = (apiData, fallback = {}) => {
         workingExperience: apiData.experience ?? fallbackData.workingExperience ?? '',
         height: apiData.height ?? fallbackData.height ?? '',
         weight: apiData.weight ?? fallbackData.weight ?? '',
+        bmi: apiData.bmi ?? fallbackData.bmi ?? '',
         englishCertificate: apiData.englishDegreeNumber ?? fallbackData.englishCertificate ?? '',
         certificateExpireDate: apiData.endDate ?? fallbackData.certificateExpireDate ?? '',
         basePreference: apiData.basePreference ?? fallbackData.basePreference ?? '',
@@ -717,7 +718,7 @@ const ExaminerApplication = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">7. Height & Weight:</label>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Height (cm)</label>
                                                 <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.height || '—'}</p>
@@ -725,6 +726,10 @@ const ExaminerApplication = () => {
                                             <div>
                                                 <label className="block text-xs text-slate-600 mb-1">Weight (kg)</label>
                                                 <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.weight || '—'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-600 mb-1">BMI</label>
+                                                <p className="text-slate-800 bg-slate-50 p-3 rounded-md">{candidate.bmi || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
