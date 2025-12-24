@@ -104,10 +104,10 @@ const ApplicationFormPage = () => {
       if (decoded) {
         return (
           decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -444,7 +444,7 @@ const ApplicationFormPage = () => {
 
         toast.success(
           t("application_form_submitted_successfully") ||
-            "Submit application successfully!"
+          "Submit application successfully!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
@@ -1091,7 +1091,7 @@ const ApplicationFormPage = () => {
               />
 
               <div className="flex gap-4">
-                <button
+                {/* <button
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft}
@@ -1100,7 +1100,7 @@ const ApplicationFormPage = () => {
                   {isSavingDraft
                     ? "Saving..."
                     : t("application_form_save_draft") || "Save draft"}
-                </button>
+                </button> */}
                 <button
                   type="submit"
                   disabled={isSubmitting}

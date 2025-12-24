@@ -914,14 +914,14 @@ const ApplicationForm = () => {
                             />
 
                             <div className="flex gap-4">
-                                <button
+                                {/* <button
                                     type="button"
                                     onClick={handleSaveDraft}
                                     disabled={isSavingDraft}
                                     className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
                                 >
                                     {isSavingDraft ? 'Đang lưu...' : (t('application_form_save_draft') || 'Lưu bản nháp')}
-                                </button>
+                                </button> */}
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
