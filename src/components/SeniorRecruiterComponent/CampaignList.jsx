@@ -178,8 +178,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -215,10 +215,7 @@ const getPartnerColor = (partnerName) => {
     return "bg-yellow-100 text-yellow-800 border-yellow-300";
   } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
     return "bg-red-100 text-red-800 border-red-300";
-  } else if (
-    partner.includes("bamboo") ||
-    partner.includes("bamboo airways")
-  ) {
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
     return "bg-green-100 text-green-800 border-green-300";
   } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
     return "bg-indigo-100 text-indigo-800 border-indigo-300";
@@ -325,7 +322,12 @@ const CampaignCard = ({ campaign }) => {
   );
 };
 
-const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter = "all", airlinePartners = [] }) => {
+const CampaignList = ({
+  search = "",
+  campaignTypeFilter = "all",
+  partnerFilter = "all",
+  airlinePartners = [],
+}) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Đọc campaignStatus và page từ URL query params
@@ -400,53 +402,96 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter =
       }
       setError(null);
 
-      // Fetch all data for client-side filtering and pagination
-      // This ensures that when filters change, data from later pages will move up
+      // Base params for fetching (keep all filters)
       const partnerId = getPartnerIdFromName(partnerFilter);
-      const params = {
-        page: 1, // Always fetch from page 1 to get all data
-        pageSize: 5, // Fetch large page size to get all campaigns
+      const baseParams = {
+        page: 1, // Always fetch from page 1
+        pageSize: 5, // Fetch with pageSize 5
         searchTerm: search || undefined,
       };
 
       // Gửi status filter lên server
       const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
       if (campaignStatus !== undefined) {
-        params.campaignStatus = campaignStatus;
+        baseParams.campaignStatus = campaignStatus;
       }
 
       // Gửi partnerId filter lên server
       if (partnerId) {
-        params.partnerId = partnerId;
+        baseParams.partnerId = partnerId;
       }
 
-      const result = await getCampaignList(params);
+      let aggregatedItems = [];
+      let lastPagination = null;
 
-      if (result.success && result.data && Array.isArray(result.data)) {
-        // Map API data to component structure
-        const mappedCampaigns = result.data.map((item) => ({
-          id: item.campaignId || item.id || item.campaignID || item.Id,
-          title:
-            item.campaignName || item.name || "Campaign name not available",
-          description: item.description || "",
-          startDate: convertDateFormat(item.startDate),
-          endDate: convertDateFormat(item.endDate),
-          status: mapStatus(item.status),
-          campaignType: mapCampaignType(item.campaignType),
-          position: item.position || "",
-          partnerName: item.partnerName || item.airline || item.airlineName || "",
-          progress: { current: 0, total: item.targetQuantity || 0 },
-        }));
+      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+      const MAX_PAGES_TO_FETCH = 10;
+      let currentPage = 1;
+      let totalPages = 1;
 
-        // Store all campaigns from server for client-side filtering and pagination
-        setAllCampaigns(mappedCampaigns);
-        setError(null);
-      } else {
-        console.error("Error fetching campaigns:", result.error);
-        console.error("Result:", result);
-        setAllCampaigns([]);
-        setError(result.error || "Error when fetching campaign list");
+      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+        const result = await getCampaignList({
+          ...baseParams,
+          page: currentPage,
+        });
+
+        if (!result.success) {
+          console.error("Error fetching campaigns:", result.error);
+          aggregatedItems = [];
+          break;
+        }
+
+        // Handle different response structures
+        let items = [];
+        if (Array.isArray(result.data)) {
+          items = result.data;
+        } else if (result.data?.items && Array.isArray(result.data.items)) {
+          items = result.data.items;
+        }
+
+        aggregatedItems = aggregatedItems.concat(items);
+        lastPagination = result.pagination;
+
+        // Update totalPages from pagination info
+        if (lastPagination) {
+          const nextTotalPages = lastPagination.totalPages ?? totalPages;
+          totalPages = Math.max(totalPages, nextTotalPages);
+
+          // Check if there's a next page
+          if (
+            !lastPagination.hasNextPage ||
+            currentPage >= MAX_PAGES_TO_FETCH
+          ) {
+            break;
+          }
+        } else {
+          // If no pagination info and we got items, assume there might be more
+          // But if we got fewer items than pageSize, we're done
+          if (items.length < baseParams.pageSize) {
+            break;
+          }
+        }
+
+        currentPage += 1;
       }
+
+      // Map API data to component structure
+      const mappedCampaigns = aggregatedItems.map((item) => ({
+        id: item.campaignId || item.id || item.campaignID || item.Id,
+        title: item.campaignName || item.name || "Campaign name not available",
+        description: item.description || "",
+        startDate: convertDateFormat(item.startDate),
+        endDate: convertDateFormat(item.endDate),
+        status: mapStatus(item.status),
+        campaignType: mapCampaignType(item.campaignType),
+        position: item.position || "",
+        partnerName: item.partnerName || item.airline || item.airlineName || "",
+        progress: { current: 0, total: item.targetQuantity || 0 },
+      }));
+
+      // Store all campaigns from server for client-side filtering and pagination
+      setAllCampaigns(mappedCampaigns);
+      setError(null);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setAllCampaigns([]);
@@ -473,7 +518,13 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter =
       fetchCampaigns(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignTypeFilter, search, selectedStatus, partnerFilter, getPartnerIdFromName]);
+  }, [
+    campaignTypeFilter,
+    search,
+    selectedStatus,
+    partnerFilter,
+    getPartnerIdFromName,
+  ]);
 
   // Filter campaigns by campaignType (client-side)
   const filteredCampaigns = useMemo(() => {
@@ -568,80 +619,88 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter =
           <button
             type="button"
             onClick={() => setSelectedStatus("draft")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "draft"
-              ? "bg-slate-600 text-white border-slate-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "draft"
+                ? "bg-slate-600 text-white border-slate-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Planning
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "pending"
-              ? "bg-yellow-600 text-white border-yellow-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "pending"
+                ? "bg-yellow-600 text-white border-yellow-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Pending
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "approved"
-              ? "bg-emerald-600 text-white border-emerald-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "approved"
+                ? "bg-emerald-600 text-white border-emerald-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Approved
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ongoing"
-              ? "bg-green-600 text-white border-green-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "ongoing"
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Ongoing
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("upcoming")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "upcoming"
-              ? "bg-purple-600 text-white border-purple-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "upcoming"
+                ? "bg-purple-600 text-white border-purple-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Upcoming
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("ended")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "ended"
-              ? "bg-gray-600 text-white border-gray-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "ended"
+                ? "bg-gray-600 text-white border-gray-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Ended
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "rejected"
-              ? "bg-red-600 text-white border-red-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "rejected"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Rejected
           </button>
           <button
             type="button"
             onClick={() => setSelectedStatus("cancelled")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${selectedStatus === "cancelled"
-              ? "bg-orange-600 text-white border-orange-600"
-              : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+              selectedStatus === "cancelled"
+                ? "bg-orange-600 text-white border-orange-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+            }`}
           >
             Canceled
           </button>
@@ -678,10 +737,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter =
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasPreviousPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
             >
               Previous
             </button>
@@ -694,10 +754,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all", partnerFilter =
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasNextPage
+                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              }`}
             >
               Next
             </button>

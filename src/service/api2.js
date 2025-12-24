@@ -2333,4 +2333,55 @@ export const getApplicationById = async (applicationId) => {
   }
 };
 
+// API lấy tất cả airline partners - GET /api/v1/airline-partners
+export const getAllAirlinePartners = async () => {
+  try {
+    const response = await api2.get("/airline-partners");
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message:
+          responseData.message || "Get all airline partners successfully",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Get all airline partners successfully",
+      };
+    }
+
+    // Trường hợp data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message:
+          responseData.message || "Get all airline partners successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Failed to get airline partners",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get airline partners",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api2;

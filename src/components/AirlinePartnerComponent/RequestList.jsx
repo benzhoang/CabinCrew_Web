@@ -91,6 +91,58 @@ const getPositionColor = (position) => {
   return "bg-gray-100 text-gray-800 border-gray-300";
 };
 
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const partner = partnerName.toLowerCase();
+  // Có thể thêm các airline cụ thể với màu riêng
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
+  }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
+
+// Helper function to format date safely
+const formatDate = (dateString) => {
+  if (!dateString) return null;
+
+  try {
+    // If it's already a formatted date string (like "22/01/2026"), return it
+    if (
+      typeof dateString === "string" &&
+      /^\d{2}\/\d{2}\/\d{4}$/.test(dateString)
+    ) {
+      return dateString;
+    }
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // If date is invalid, return the original string
+      return dateString;
+    }
+
+    // Format as DD/MM/YYYY to match the design
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    // If parsing fails, return the original string
+    return dateString;
+  }
+};
+
 const CampaignCard = ({ request }) => {
   const navigate = useNavigate();
 
@@ -136,15 +188,19 @@ const CampaignCard = ({ request }) => {
             <div>
               <span className="text-gray-500">Partner:</span>
               <div className="mt-1">
-                <span className="bg-gray-100 text-gray-700 border-gray-300 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border">
-                  {request.partnerName || "No partner"}
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
+                    request.partnerName
+                  )}`}
+                >
+                  {request.partnerName || "—"}
                 </span>
               </div>
             </div>
             <div>
               <span className="text-gray-500">Due Date:</span>
               <p className="mt-1 font-medium text-slate-800">
-                {request.dueDate || "—"}
+                {formatDate(request.dueDate) || "—"}
               </p>
             </div>
           </div>
@@ -290,138 +346,190 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         Promotion: "Promotion",
       };
 
-      // Fetch tất cả data - fetch với pageSize lớn để lấy hết
-      const params = {
-        page: 1,
-        pageSize: 5, // Fetch nhiều để lấy hết data
+      // Base params for fetching (keep all filters)
+      const baseParams = {
+        page: 1, // Always fetch from page 1
+        pageSize: 5, // Fetch with pageSize 5
         searchTerm: search || undefined,
         status: undefined,
         requestType: requestTypeMap[campaignTypeFilter],
       };
 
-      const result = await getCampaignRequestList(params);
+      let aggregatedItems = [];
+      let lastPagination = null;
 
-      if (result.success) {
-        const allItems = result.data.items || [];
+      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+      const MAX_PAGES_TO_FETCH = 10;
+      let currentPage = 1;
+      let totalPages = 1;
 
-        // Get partner username from localStorage and map to official airline name
-        const partnerUsername = getPartnerUsername();
-        const airlineName = getAirlineNameFromUsername(partnerUsername);
-
-        // Normalize status function
-        const normalizeStatus = (status) => {
-          if (!status) return "pending_approval";
-          if (typeof status === "number") {
-            if (status === 2) return "approved";
-            if (status === 3) return "rejected";
-            if (status === 4) return "cancelled";
-            return "pending_approval";
-          }
-          const statusLower = String(status).toLowerCase().trim();
-          if (statusLower === "approved" || statusLower === "approve")
-            return "approved";
-          if (statusLower === "rejected" || statusLower === "reject")
-            return "rejected";
-          if (statusLower === "cancelled" || statusLower === "cancel")
-            return "cancelled";
-          if (
-            statusLower === "pending" ||
-            statusLower === "pending_approval" ||
-            statusLower === "pending approval"
-          )
-            return "pending_approval";
-          return "pending_approval";
-        };
-
-        // Map status filter từ UI sang format normalized
-        const getNormalizedStatusFilter = () => {
-          if (selectedStatus === "all") return null;
-          const statusMap = {
-            Approved: "approved",
-            Pending: "pending_approval",
-            Rejected: "rejected",
-            Cancelled: "cancelled",
-          };
-          return statusMap[selectedStatus] || null;
-        };
-
-        // Filter items
-        const filteredItems = allItems.filter((request) => {
-          // Filter by airline name if available
-          if (airlineName) {
-            const requestPartnerName = (request.partnerName || "").trim();
-            const requestPartnerUsername = (
-              request.partnerUsername || ""
-            ).trim();
-
-            // Exact match with airline name (case-insensitive)
-            const matchesAirline =
-              requestPartnerName.toLowerCase() === airlineName.toLowerCase() ||
-              requestPartnerUsername.toLowerCase() ===
-                airlineName.toLowerCase();
-
-            if (!matchesAirline) {
-              return false;
-            }
-          }
-
-          const normalizedStatus = normalizeStatus(request.status);
-          const statusFilter = getNormalizedStatusFilter();
-
-          // Filter by status
-          if (statusFilter && normalizedStatus !== statusFilter) {
-            return false;
-          }
-
-          // Filter by requestType
-          if (campaignTypeFilter !== "all") {
-            const normalizedRequestType =
-              request.requestType?.toLowerCase() || "";
-            const normalizedCampaignTypeFilter =
-              campaignTypeFilter?.toLowerCase() || "";
-            if (normalizedRequestType !== normalizedCampaignTypeFilter) {
-              return false;
-            }
-          }
-
-          // Filter by search
-          if (search) {
-            const searchLower = search.toLowerCase();
-            const matchesSearch =
-              (request.campaignName &&
-                request.campaignName.toLowerCase().includes(searchLower)) ||
-              (request.description &&
-                request.description.toLowerCase().includes(searchLower)) ||
-              (request.requestType &&
-                request.requestType.toLowerCase().includes(searchLower));
-            if (!matchesSearch) {
-              return false;
-            }
-          }
-
-          return true;
+      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+        const result = await getCampaignRequestList({
+          ...baseParams,
+          page: currentPage,
         });
 
-        setAllFilteredRequests(filteredItems);
+        if (!result.success) {
+          console.error("Error fetching requests:", result.error);
+          aggregatedItems = [];
+          break;
+        }
 
-        // Tính toán pagination dựa trên số lượng filtered items
-        const totalRecords = filteredItems.length;
-        const totalPages = Math.ceil(totalRecords / 5);
-        const currentPage =
-          pagination.currentPage > totalPages ? 1 : pagination.currentPage;
+        // Handle different response structures
+        let items = [];
+        if (Array.isArray(result.data)) {
+          items = result.data;
+        } else if (result.data?.items && Array.isArray(result.data.items)) {
+          items = result.data.items;
+        }
 
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: currentPage,
-          totalRecords: totalRecords,
-          totalPages: totalPages,
-          hasNextPage: currentPage < totalPages,
-          hasPreviousPage: currentPage > 1,
-        }));
-      } else {
-        setError(result.error || "Error loading request list");
-        setAllFilteredRequests([]);
+        aggregatedItems = aggregatedItems.concat(items);
+        // Pagination info is in result.data.pagination, not result.pagination
+        lastPagination = result.data?.pagination || result.pagination;
+
+        // Update totalPages from pagination info
+        if (lastPagination) {
+          const nextTotalPages = lastPagination.totalPages ?? totalPages;
+          totalPages = Math.max(totalPages, nextTotalPages);
+
+          // Check if there's a next page
+          if (
+            !lastPagination.hasNextPage ||
+            currentPage >= MAX_PAGES_TO_FETCH
+          ) {
+            break;
+          }
+        } else {
+          // If no pagination info and we got items, assume there might be more
+          // But if we got fewer items than pageSize, we're done
+          if (items.length < baseParams.pageSize) {
+            break;
+          }
+          // If we got full pageSize items but no pagination info, continue to next page
+          // but limit to MAX_PAGES_TO_FETCH
+          if (currentPage >= MAX_PAGES_TO_FETCH) {
+            break;
+          }
+        }
+
+        currentPage += 1;
       }
+
+      // Get partner username from localStorage and map to official airline name
+      const partnerUsername = getPartnerUsername();
+      const airlineName = getAirlineNameFromUsername(partnerUsername);
+
+      // Normalize status function
+      const normalizeStatus = (status) => {
+        if (!status) return "pending_approval";
+        if (typeof status === "number") {
+          if (status === 2) return "approved";
+          if (status === 3) return "rejected";
+          if (status === 4) return "cancelled";
+          return "pending_approval";
+        }
+        const statusLower = String(status).toLowerCase().trim();
+        if (statusLower === "approved" || statusLower === "approve")
+          return "approved";
+        if (statusLower === "rejected" || statusLower === "reject")
+          return "rejected";
+        if (statusLower === "cancelled" || statusLower === "cancel")
+          return "cancelled";
+        if (
+          statusLower === "pending" ||
+          statusLower === "pending_approval" ||
+          statusLower === "pending approval"
+        )
+          return "pending_approval";
+        return "pending_approval";
+      };
+
+      // Map status filter từ UI sang format normalized
+      const getNormalizedStatusFilter = () => {
+        if (selectedStatus === "all") return null;
+        const statusMap = {
+          Approved: "approved",
+          Pending: "pending_approval",
+          Rejected: "rejected",
+          Cancelled: "cancelled",
+        };
+        return statusMap[selectedStatus] || null;
+      };
+
+      // Filter items
+      const filteredItems = aggregatedItems.filter((request) => {
+        // Filter by airline name if available
+        if (airlineName) {
+          const requestPartnerName = (request.partnerName || "").trim();
+          const requestPartnerUsername = (request.partnerUsername || "").trim();
+
+          // Exact match with airline name (case-insensitive)
+          const matchesAirline =
+            requestPartnerName.toLowerCase() === airlineName.toLowerCase() ||
+            requestPartnerUsername.toLowerCase() === airlineName.toLowerCase();
+
+          if (!matchesAirline) {
+            return false;
+          }
+        }
+
+        const normalizedStatus = normalizeStatus(request.status);
+        const statusFilter = getNormalizedStatusFilter();
+
+        // Filter by status
+        if (statusFilter && normalizedStatus !== statusFilter) {
+          return false;
+        }
+
+        // Filter by requestType
+        if (campaignTypeFilter !== "all") {
+          const normalizedRequestType =
+            request.requestType?.toLowerCase() || "";
+          const normalizedCampaignTypeFilter =
+            campaignTypeFilter?.toLowerCase() || "";
+          if (normalizedRequestType !== normalizedCampaignTypeFilter) {
+            return false;
+          }
+        }
+
+        // Filter by search
+        if (search) {
+          const searchLower = search.toLowerCase();
+          const matchesSearch =
+            (request.campaignName &&
+              request.campaignName.toLowerCase().includes(searchLower)) ||
+            (request.description &&
+              request.description.toLowerCase().includes(searchLower)) ||
+            (request.requestType &&
+              request.requestType.toLowerCase().includes(searchLower));
+          if (!matchesSearch) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      setAllFilteredRequests(filteredItems);
+
+      // Tính toán pagination dựa trên số lượng filtered items
+      // Nếu có pagination info từ API và đã fetch tất cả pages, có thể sử dụng totalRecords từ API
+      // Nhưng vì có filter client-side (airline name, status, etc.), nên tính dựa trên filtered items
+      const totalRecords = filteredItems.length;
+      const calculatedTotalPages = Math.ceil(totalRecords / 5);
+      const calculatedCurrentPage =
+        pagination.currentPage > calculatedTotalPages
+          ? 1
+          : pagination.currentPage;
+
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: calculatedCurrentPage,
+        totalRecords: totalRecords,
+        totalPages: calculatedTotalPages,
+        hasNextPage: calculatedCurrentPage < calculatedTotalPages,
+        hasPreviousPage: calculatedCurrentPage > 1,
+      }));
     } catch (err) {
       setError(err.message || "Error loading request list");
       setAllFilteredRequests([]);

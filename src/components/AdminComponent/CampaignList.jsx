@@ -122,8 +122,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -134,10 +134,36 @@ const CampaignTypeBadge = ({ type }) => {
   );
 };
 
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const partner = partnerName.toLowerCase();
+  // Có thể thêm các airline cụ thể với màu riêng
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
+  }
+  // Màu mặc định cho các partner khác
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
+
 const PartnerBadge = ({ partnerName }) => {
   return (
-    <span className="bg-gray-100 text-gray-700 border-gray-200 inline-block rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap">
-      {partnerName || "No partner"}
+    <span
+      className={`${getPartnerColor(
+        partnerName
+      )} inline-block rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap`}
+    >
+      {partnerName || "—"}
     </span>
   );
 };
@@ -167,7 +193,7 @@ const CampaignList = ({
   search = "",
   campaignTypeFilter = "all",
   statusFilter = "all",
-  partnerFilter = "all",
+  partnerId = null,
 }) => {
   const navigate = useNavigate();
   const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
@@ -187,43 +213,90 @@ const CampaignList = ({
       setLoading(true);
       setError(null);
 
-      // Fetch all data for client-side filtering and pagination
-      // This ensures that when filters change, data from later pages will move up
-      const params = {
-        page: 1, // Always fetch from page 1 to get all data
-        pageSize: 5, // Fetch large page size to get all campaigns
+      // Base params for fetching (keep all filters)
+      const baseParams = {
+        page: 1, // Always fetch from page 1
+        pageSize: 5, // Fetch with pageSize 5
         searchTerm: search || undefined,
+        partnerId: partnerId ?? undefined,
       };
 
       // Add status filter
       if (statusFilter !== "all") {
         const campaignStatus = mapStatusToCampaignStatus(statusFilter);
         if (campaignStatus !== undefined) {
-          params.campaignStatus = campaignStatus;
+          baseParams.campaignStatus = campaignStatus;
         }
       }
 
       // Note: campaignType filter is handled client-side, not sent to server
 
-      const result = await getCampaignList(params);
+      let aggregatedItems = [];
+      let lastPagination = null;
 
-      if (result.success && result.data && Array.isArray(result.data)) {
-        // Map API data to component structure
-        const mappedCampaigns = result.data.map((item) => ({
-          id: item.campaignId || item.id || item.campaignID || item.Id,
-          campaignName: item.campaignName || item.name || "No campaign name",
-          targetQuantity: item.targetQuantity || 0,
-          partnerName: item.partnerName || null,
-          campaignType: mapCampaignType(item.campaignType),
-          status: mapStatus(item.status),
-        }));
+      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+      const MAX_PAGES_TO_FETCH = 10;
+      let currentPage = 1;
+      let totalPages = 1;
 
-        // Store all campaigns from server for client-side filtering and pagination
-        setAllCampaigns(mappedCampaigns);
-      } else {
-        setAllCampaigns([]);
-        setError(result.error || "Error when fetching campaign list");
+      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+        const result = await getCampaignList({
+          ...baseParams,
+          page: currentPage,
+        });
+
+        if (!result.success) {
+          console.error("Error fetching campaigns:", result.error);
+          aggregatedItems = [];
+          break;
+        }
+
+        // Handle different response structures
+        let items = [];
+        if (Array.isArray(result.data)) {
+          items = result.data;
+        } else if (result.data?.items && Array.isArray(result.data.items)) {
+          items = result.data.items;
+        }
+
+        aggregatedItems = aggregatedItems.concat(items);
+        lastPagination = result.pagination;
+
+        // Update totalPages from pagination info
+        if (lastPagination) {
+          const nextTotalPages = lastPagination.totalPages ?? totalPages;
+          totalPages = Math.max(totalPages, nextTotalPages);
+
+          // Check if there's a next page
+          if (
+            !lastPagination.hasNextPage ||
+            currentPage >= MAX_PAGES_TO_FETCH
+          ) {
+            break;
+          }
+        } else {
+          // If no pagination info and we got items, assume there might be more
+          // But if we got fewer items than pageSize, we're done
+          if (items.length < baseParams.pageSize) {
+            break;
+          }
+        }
+
+        currentPage += 1;
       }
+
+      // Map API data to component structure
+      const mappedCampaigns = aggregatedItems.map((item) => ({
+        id: item.campaignId || item.id || item.campaignID || item.Id,
+        campaignName: item.campaignName || item.name || "No campaign name",
+        targetQuantity: item.targetQuantity || 0,
+        partnerName: item.partnerName || null,
+        campaignType: mapCampaignType(item.campaignType),
+        status: mapStatus(item.status),
+      }));
+
+      // Store all campaigns from server for client-side filtering and pagination
+      setAllCampaigns(mappedCampaigns);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setAllCampaigns([]);
@@ -238,7 +311,7 @@ const CampaignList = ({
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     fetchCampaigns();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, campaignTypeFilter, statusFilter, partnerFilter]);
+  }, [search, campaignTypeFilter, statusFilter, partnerId]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -256,7 +329,8 @@ const CampaignList = ({
     }
   };
 
-  // Filter campaigns by campaignType and partner (client-side)
+  // Filter campaigns by campaignType (client-side)
+  // Note: partner filter is now handled server-side via partnerId
   const filteredCampaigns = useMemo(() => {
     let filtered = allCampaigns;
 
@@ -265,15 +339,8 @@ const CampaignList = ({
       filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
     }
 
-    // Filter by partner
-    if (partnerFilter !== "all") {
-      filtered = filtered.filter(
-        (c) => c.partnerName && c.partnerName === partnerFilter
-      );
-    }
-
     return filtered;
-  }, [allCampaigns, campaignTypeFilter, partnerFilter]);
+  }, [allCampaigns, campaignTypeFilter]);
 
   const sortedCampaigns = useMemo(() => {
     if (!sortField || !sortDirection) return filteredCampaigns;

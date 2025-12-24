@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { getTests } from "../../service/api2";
-import Loading from "../Loading";
 import Pagination from "./Pagination";
 import { useNavigate } from "react-router-dom";
 
@@ -72,7 +71,7 @@ const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
   );
 };
 
-const ExamList = ({ search = "", testTypeFilter = "all" }) => {
+const ExamList = ({ search = "", testType = null }) => {
   const navigate = useNavigate();
   const [allTests, setAllTests] = useState([]); // Store all tests from server
   const [loading, setLoading] = useState(true);
@@ -96,32 +95,79 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
         }
         setError(null);
 
-        // Fetch all data for client-side filtering and pagination
-        // This ensures that when filters change, data from later pages will move up
-        const params = {
-          page: 1, // Always fetch from page 1 to get all data
-          pageSize: 5, // Fetch large page size to get all tests
+        // Base params for fetching (keep all filters)
+        const baseParams = {
+          page: 1, // Always fetch from page 1
+          pageSize: 5, // Fetch with pageSize 5
           searchTerm: search || undefined,
+          testType: testType ?? undefined, // Filter by testTypeId (1=EnglishListening, 2=EnglishSpeaking, 3=Practical)
         };
 
-        const result = await getTests(1, 5, params);
+        let aggregatedItems = [];
+        let lastPagination = null;
 
-        if (result.success && result.data && Array.isArray(result.data)) {
-          // Map API data to component structure
-          const mappedTests = result.data.map((item) => ({
-            id: item.testId || item.id || item.testID || item.Id,
-            testName: item.testName || item.name || "Đề thi chưa có tên",
-            totalQuestions: item.totalQuestions || 0,
-            testType: item.testType || "Unknown",
-          }));
+        // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
+        const MAX_PAGES_TO_FETCH = 10;
+        let currentPage = 1;
+        let totalPages = 1;
 
-          // Store all tests from server for client-side filtering and pagination
-          setAllTests(mappedTests);
-          setError(null);
-        } else {
-          setAllTests([]);
-          setError(result.error || "Error when fetching test list");
+        while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
+          const result = await getTests(currentPage, baseParams.pageSize, {
+            searchTerm: baseParams.searchTerm,
+            testType: baseParams.testType,
+          });
+
+          if (!result.success) {
+            console.error("Error fetching tests:", result.error);
+            aggregatedItems = [];
+            break;
+          }
+
+          // Handle different response structures
+          let items = [];
+          if (Array.isArray(result.data)) {
+            items = result.data;
+          } else if (result.data?.items && Array.isArray(result.data.items)) {
+            items = result.data.items;
+          }
+
+          aggregatedItems = aggregatedItems.concat(items);
+          lastPagination = result.pagination;
+
+          // Update totalPages from pagination info
+          if (lastPagination) {
+            const nextTotalPages = lastPagination.totalPages ?? totalPages;
+            totalPages = Math.max(totalPages, nextTotalPages);
+
+            // Check if there's a next page
+            if (
+              !lastPagination.hasNextPage ||
+              currentPage >= MAX_PAGES_TO_FETCH
+            ) {
+              break;
+            }
+          } else {
+            // If no pagination info and we got items, assume there might be more
+            // But if we got fewer items than pageSize, we're done
+            if (items.length < baseParams.pageSize) {
+              break;
+            }
+          }
+
+          currentPage += 1;
         }
+
+        // Map API data to component structure
+        const mappedTests = aggregatedItems.map((item) => ({
+          id: item.testId || item.id || item.testID || item.Id,
+          testName: item.testName || item.name || "No test name",
+          totalQuestions: item.totalQuestions || 0,
+          testType: item.testType || "Unknown",
+        }));
+
+        // Store all tests from server for client-side filtering and pagination
+        setAllTests(mappedTests);
+        setError(null);
       } catch (error) {
         console.error("Error fetching tests:", error);
         setAllTests([]);
@@ -133,7 +179,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
         }
       }
     },
-    [search]
+    [search, testType]
   );
 
   // Initial load - chỉ chạy một lần khi component mount
@@ -150,7 +196,7 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
       fetchTests(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [testTypeFilter, search]);
+  }, [testType, search]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -168,7 +214,8 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
     }
   };
 
-  // Filter tests by search and testType (client-side)
+  // Filter tests by search (client-side)
+  // Note: testType filter is now handled server-side via testType param
   const filteredTests = useMemo(() => {
     let filtered = allTests;
 
@@ -182,35 +229,8 @@ const ExamList = ({ search = "", testTypeFilter = "all" }) => {
       );
     }
 
-    // Apply testType filter
-    if (testTypeFilter !== "all") {
-      filtered = filtered.filter((t) => {
-        const normalizedType = t.testType?.toLowerCase() || "";
-        const filterLower = testTypeFilter.toLowerCase();
-
-        // Match based on filter value
-        if (filterLower === "englishlistening") {
-          return (
-            normalizedType.includes("listening") ||
-            normalizedType.includes("englishlistening")
-          );
-        }
-        if (filterLower === "englishspeaking") {
-          return (
-            normalizedType.includes("speaking") ||
-            normalizedType.includes("englishspeaking")
-          );
-        }
-        if (filterLower === "practical") {
-          return normalizedType.includes("practical");
-        }
-
-        return normalizedType.includes(filterLower);
-      });
-    }
-
     return filtered;
-  }, [allTests, search, testTypeFilter]);
+  }, [allTests, search]);
 
   const sortedTests = useMemo(() => {
     if (!sortField || !sortDirection) return filteredTests;

@@ -9,6 +9,9 @@ const CandidateListPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [totalItems, setTotalItems] = useState(0);
 
+  // Role ID for Candidate: 7
+  const roleId = 7;
+
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
     setCurrentPage(1);
@@ -46,6 +49,7 @@ const CandidateListPage = () => {
 
           <AccountTable
             searchTerm={searchTerm}
+            roleId={roleId}
             roleName="Candidate"
             page={currentPage}
             pageSize={pageSize}

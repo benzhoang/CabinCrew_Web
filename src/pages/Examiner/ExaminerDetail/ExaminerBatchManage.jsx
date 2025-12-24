@@ -70,19 +70,18 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
         </span>
       </div>
       <div className="p-4 space-y-3">
-        <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <InfoMini
-            label="Start date"
+            label="Start time"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
           />
           <InfoMini
-            label="End date"
+            label="End time"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
             <InfoMini label="Target" value={batch.target.toString()} />
           )}
-          {batch.note && <InfoMini label="Note" value={batch.note} />}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
@@ -90,6 +89,7 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
                 value={batch.appliedCandidates?.toString() || "0"}
               />
             )}
+          {batch.note && <InfoMini label="Description" value={batch.note} />}
         </div>
 
         {/* Applicant Statistics Dropdown */}
@@ -248,8 +248,11 @@ const convertRoundsToBatches = (rounds) => {
       name: round.roundName || round.name || `Round ${index + 1}`,
       startDate: startDate,
       endDate: endDate,
+      time: timeString,
       status: mappedStatus,
       target: round.targetQuantity || round.target || 0,
+      totalApplicants: round.totalApplicants || 0,
+      appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: actualQuantity is correct spelling
       note: round.description || round.note || "",
       description: round.description || "",
     };

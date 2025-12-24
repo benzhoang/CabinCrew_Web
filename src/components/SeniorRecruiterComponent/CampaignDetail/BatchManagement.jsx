@@ -2,10 +2,44 @@ import React, { useState, useMemo } from "react";
 import { FaTasks } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import AddTaskModal from "./AddTaskModal";
-import { formatDate2 } from "../../../config/formatDate";
+// Helper function to format date for display
+const formatDateForDisplay = (
+  dateString,
+  fallbackTime = null,
+  isEndDate = false
+) => {
+  if (!dateString) {
+    if (fallbackTime) {
+      if (fallbackTime.includes(" - ")) {
+        return isEndDate
+          ? fallbackTime.split(" - ")[1]
+          : fallbackTime.split(" - ")[0];
+      }
+      return fallbackTime;
+    }
+    return "-";
+  }
 
-const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
-  const [openStats, setOpenStats] = useState(false);
+  try {
+    // If it's already in "dd/mm/yyyy" format, return as is
+    if (dateString.includes("/") && !dateString.includes("T")) {
+      return dateString.split(" ")[0];
+    }
+
+    // Try to parse as Date
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US");
+    }
+  } catch {
+    // If parsing fails, return the original string
+    return dateString.split(" ")[0] || "-";
+  }
+
+  return dateString.split(" ")[0] || "-";
+};
+
+const BatchCard = ({ batch, statusCfg, showStatus }) => {
   const navigate = useNavigate();
   const params = useParams();
 
@@ -37,17 +71,26 @@ const BatchCard = ({ batch, statusCfg, percent, showStatus }) => {
         )}
       </div>
       <div className="p-4 space-y-3">
-        <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
-          <InfoMini label="Start date" value={formatDate2(batch.startDate)} />
-          <InfoMini label="End date" value={formatDate2(batch.endDate)} />
-          <InfoMini label="Method" value={batch.method || "—"} />
-          {batch.target !== undefined && (
-            <InfoMini
-              label="Target"
-              value={`${batch.current ?? 0}/${batch.target}`}
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <InfoMini
+            label="Start time"
+            value={formatDateForDisplay(batch.startDate, batch.time, false)}
+          />
+          <InfoMini
+            label="End time"
+            value={formatDateForDisplay(batch.endDate, batch.time, true)}
+          />
+          {batch.target !== undefined && batch.target !== null && (
+            <InfoMini label="Target" value={batch.target.toString()} />
           )}
-          {batch.note && <InfoMini label="Note" value={batch.note} />}
+          {batch.appliedCandidates !== undefined &&
+            batch.appliedCandidates !== null && (
+              <InfoMini
+                label="Actual"
+                value={batch.appliedCandidates?.toString() || "0"}
+              />
+            )}
+          {batch.note && <InfoMini label="Description" value={batch.note} />}
         </div>
 
         {/* Applicant Statistics Dropdown */}
@@ -213,12 +256,6 @@ const BatchManagement = ({
     return map[status] || map.ended;
   };
 
-  const percent = (current, target) => {
-    if (!target || target <= 0) return 0;
-    const p = Math.round((Number(current || 0) / Number(target)) * 100);
-    return Math.max(0, Math.min(100, p));
-  };
-
   const handleCreateBatch = () => {
     setIsModalOpen(true);
   };
@@ -278,13 +315,11 @@ const BatchManagement = ({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {currentBatches.map((batch) => {
             const statusCfg = getStatus(batch.status);
-            const progressPercent = percent(batch.current, batch.target);
             return (
               <BatchCard
                 key={batch.id || batch.name}
                 batch={batch}
                 statusCfg={statusCfg}
-                percent={progressPercent}
                 campaignId={campaign?.campaignId || campaign?.id || 1}
                 showStatus={shouldShowBatchStatus}
               />
