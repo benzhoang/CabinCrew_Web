@@ -171,7 +171,7 @@ const Recruiment = () => {
         fetchAirlinePartners()
     }, [fetchAirlinePartners])
 
-    const fetchCampaigns = useCallback(async (page = 1, searchTerm = '') => {
+    const fetchCampaigns = useCallback(async (page = 1, searchTerm = '', partnerIdFilter = null) => {
         setIsLoading(true)
         setError(null)
         try {
@@ -188,6 +188,11 @@ const Recruiment = () => {
             // Thêm searchTerm nếu có
             if (searchTerm && searchTerm.trim()) {
                 params.searchTerm = searchTerm.trim()
+            }
+
+            // Thêm partnerId nếu có filter theo airline
+            if (partnerIdFilter) {
+                params.partnerId = partnerIdFilter
             }
 
             // Gọi API với params đúng format
@@ -249,31 +254,34 @@ const Recruiment = () => {
         }
     }, [pagination.pageSize])
 
+    // Tìm partnerId từ airline name được chọn
+    const getPartnerIdFromName = useCallback((partnerName) => {
+        if (partnerName === 'all' || !partnerName) return null
+        const partner = airlinePartners.find(p => p.partnerName === partnerName)
+        return partner?.partnerId || null
+    }, [airlinePartners])
+
     // Gọi API khi component mount
     useEffect(() => {
-        fetchCampaigns(1, '')
+        const partnerId = getPartnerIdFromName(airline)
+        fetchCampaigns(1, '', partnerId)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []) // Chỉ gọi một lần khi mount
 
-    // Debounce search để tránh gọi API quá nhiều
+    // Debounce search và gọi lại API khi search hoặc airline thay đổi
     useEffect(() => {
         const timer = setTimeout(() => {
+            const partnerId = getPartnerIdFromName(airline)
             setPagination(prev => ({ ...prev, currentPage: 1 }))
-            fetchCampaigns(1, search)
+            fetchCampaigns(1, search, partnerId)
         }, 500) // Đợi 500ms sau khi user ngừng gõ
 
         return () => clearTimeout(timer)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [search])
+    }, [search, airline, getPartnerIdFromName])
 
-    const filtered = useMemo(() => {
-        let data = campaigns
-        if (airline !== 'all') {
-            // Filter by partnerName
-            data = data.filter(c => c.airline === airline)
-        }
-        return data
-    }, [campaigns, airline])
+    // Không cần filter client-side nữa vì đã filter ở server
+    const filtered = campaigns
 
     const airlines = useMemo(() => {
         // Lấy danh sách từ airlinePartners API
@@ -422,8 +430,9 @@ const Recruiment = () => {
                         <button
                             onClick={() => {
                                 const newPage = pagination.currentPage - 1
+                                const partnerId = getPartnerIdFromName(airline)
                                 setPagination(prev => ({ ...prev, currentPage: newPage }))
-                                fetchCampaigns(newPage, search)
+                                fetchCampaigns(newPage, search, partnerId)
                             }}
                             disabled={!pagination.hasPreviousPage || pagination.currentPage === 1}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
@@ -436,8 +445,9 @@ const Recruiment = () => {
                         <button
                             onClick={() => {
                                 const newPage = pagination.currentPage + 1
+                                const partnerId = getPartnerIdFromName(airline)
                                 setPagination(prev => ({ ...prev, currentPage: newPage }))
-                                fetchCampaigns(newPage, search)
+                                fetchCampaigns(newPage, search, partnerId)
                             }}
                             disabled={!pagination.hasNextPage || pagination.currentPage >= pagination.totalPages}
                             className="px-4 py-2 rounded-md border border-slate-300 text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
