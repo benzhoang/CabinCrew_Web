@@ -16,7 +16,6 @@ import {
 import { getTests, deleteTest } from "../../service/api";
 import { getTestTypes } from "../../service/api2";
 import EditTestModal from "../../components/ExaminerComponent/EditTestModal";
-import { exportQuestionTemplate } from "./ExportQuestionTemplate";
 
 // Transform data from API to component format
 const transformTestData = (item) => {
@@ -423,14 +422,6 @@ const TestingPage = () => {
           >
             <FiPlus className="w-5 h-5" />
             Create new test
-          </button>
-          <button
-            type="button"
-            onClick={exportQuestionTemplate}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 border border-indigo-200 rounded-lg bg-indigo-50 hover:bg-indigo-100"
-          >
-            <FiFileText className="w-4 h-4 mr-2" />
-            Export Template
           </button>
         </div>
       </div>
