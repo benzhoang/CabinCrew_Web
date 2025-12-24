@@ -307,6 +307,14 @@ const FinalReview = () => {
                             </svg>
                             Export
                         </button>
+                        <a
+                            href="https://iigvietnam.com/thong-bao-ve-dich-vu-hau-kiem-toeic/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                            Template
+                        </a>
                     </div>
                 </div>
 
