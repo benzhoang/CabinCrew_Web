@@ -316,7 +316,7 @@ const BatchDetailPage = () => {
     const normalizedStatus = status ? String(status).toLowerCase() : "";
 
     const statusConfig = {
-      ongoing: { color: "bg-blue-100 text-blue-800", text: "Ongoing" },
+      ongoing: { color: "bg-yellow-100 text-yellow-800", text: "Ongoing" },
       passed: { color: "bg-green-100 text-green-800", text: "Passed" },
       failed: { color: "bg-red-100 text-red-800", text: "Failed" },
       pending: { color: "bg-yellow-100 text-yellow-800", text: "Pending" },
@@ -611,12 +611,10 @@ const BatchDetailPage = () => {
                   <span className="text-sm text-slate-600">Target:</span>
                   <p className="font-medium text-slate-800">
                     {campaignRoundData
-                      ? `${campaignRoundData.actualQuantiy || 0}/${
-                          campaignRoundData.targetQuantity || 0
-                        }`
-                      : `${batchData.batch?.current || 0}/${
-                          batchData.batch?.target || 0
-                        }`}
+                      ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
+                      }`
+                      : `${batchData.batch?.current || 0}/${batchData.batch?.target || 0
+                      }`}
                   </p>
                 </div>
               </div>
@@ -777,8 +775,8 @@ const BatchDetailPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getRoundBadge(
                             applicant.roundId ||
-                              applicant.roundName ||
-                              applicant.round,
+                            applicant.roundName ||
+                            applicant.round,
                             applicant
                           )}
                         </td>

@@ -1122,7 +1122,7 @@ const dictionaries = {
     application_form_captcha: "CAPTCHA:",
     application_form_enter_captcha: "Enter character you see",
     application_form_try_new_code: "Try a new code",
-    application_form_finish: "FINISH",
+    application_form_finish: "SUBMIT",
     application_form_save_draft: "Save draft",
     application_form_draft_saved: "Draft saved successfully!",
     application_form_campaign_not_found: "Campaign information not found.",
