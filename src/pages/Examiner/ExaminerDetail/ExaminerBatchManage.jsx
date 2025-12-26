@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDateFromAPI } from "../../../config/formatDate";
+
 // Helper function to format date for display
 const formatDateForDisplay = (
   dateString,
@@ -9,32 +11,19 @@ const formatDateForDisplay = (
   if (!dateString) {
     if (fallbackTime) {
       if (fallbackTime.includes(" - ")) {
-        return isEndDate
+        const datePart = isEndDate
           ? fallbackTime.split(" - ")[1]
           : fallbackTime.split(" - ")[0];
+        // Format the date part to DD/MM/YYYY
+        return formatDateFromAPI(datePart);
       }
-      return fallbackTime;
+      return formatDateFromAPI(fallbackTime);
     }
     return "—";
   }
 
-  try {
-    // If it's already in "dd/mm/yyyy" format, return as is
-    if (dateString.includes("/") && !dateString.includes("T")) {
-      return dateString.split(" ")[0];
-    }
-
-    // Try to parse as Date
-    const date = new Date(dateString);
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString("vi-VN");
-    }
-  } catch {
-    // If parsing fails, return the original string
-    return dateString.split(" ")[0] || "—";
-  }
-
-  return dateString.split(" ")[0] || "—";
+  // Use formatDateFromAPI to ensure DD/MM/YYYY format
+  return formatDateFromAPI(dateString) || "—";
 };
 
 const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
@@ -72,11 +61,11 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <InfoMini
-            label="Start time"
+            label="Start date"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
           />
           <InfoMini
-            label="End time"
+            label="End date"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
@@ -153,11 +142,10 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
                 ? "Cannot view applicants before batch starts"
@@ -185,8 +173,8 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
   );
 };
 
-// Format date từ API (có thể là "13/11/2025 00:00" hoặc ISO string)
-const formatDateFromAPI = (dateString) => {
+// Convert date từ API (có thể là "13/11/2025 00:00" hoặc ISO string) to YYYY-MM-DD format for internal use
+const convertDateToISOFormat = (dateString) => {
   if (!dateString) return "";
   if (typeof dateString !== "string") return "";
 
@@ -233,9 +221,9 @@ const convertRoundsToBatches = (rounds) => {
     const mappedStatus =
       statusMap[round.status] || round.status?.toLowerCase() || "planned";
 
-    // Format dates
-    const startDate = formatDateFromAPI(round.startDate);
-    const endDate = formatDateFromAPI(round.endDate);
+    // Format dates (convert to ISO format for internal use)
+    const startDate = convertDateToISOFormat(round.startDate);
+    const endDate = convertDateToISOFormat(round.endDate);
 
     // Format time string for display
     const timeString =

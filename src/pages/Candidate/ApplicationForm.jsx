@@ -137,6 +137,29 @@ const ApplicationForm = () => {
         setCaptchaCode(code)
     }
 
+    // Function to translate error messages from API to English
+    const translateErrorMessage = (errorMessage) => {
+        if (!errorMessage) return errorMessage
+
+        const errorLower = errorMessage.toLowerCase()
+
+        // Translate TOEIC certificate error messages
+        if (errorLower.includes('toeic') || errorLower.includes('chứng chỉ tiếng anh')) {
+            if (errorLower.includes('không phải') || errorLower.includes('không đúng')) {
+                return 'File upload is not a TOEIC English certificate. Please upload a clear TOEIC certificate.'
+            }
+            if (errorLower.includes('rõ nét') || errorLower.includes('không rõ')) {
+                return 'Please upload a clear TOEIC certificate.'
+            }
+            if (errorLower.includes('chứng chỉ')) {
+                return 'Invalid English certificate. Please upload a valid TOEIC certificate.'
+            }
+        }
+
+        // Return original message if no translation needed
+        return errorMessage
+    }
+
     // Load user profile data from API
     useEffect(() => {
         const loadUserProfile = async () => {
@@ -414,11 +437,14 @@ const ApplicationForm = () => {
                     navigate('/recruitment-stages')
                 }, 1500)
             } else {
-                toast.error(result.error || 'Nộp đơn thất bại. Vui lòng thử lại.')
+                const translatedError = translateErrorMessage(result.error)
+                toast.error(translatedError || 'Submit application failed. Please try again.')
             }
         } catch (error) {
             console.error('Error submitting application:', error)
-            toast.error('Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại.')
+            const errorMessage = error.response?.data?.message || error.message || 'An error occurred while submitting the application. Please try again.'
+            const translatedError = translateErrorMessage(errorMessage)
+            toast.error(translatedError)
         } finally {
             setIsSubmitting(false)
         }

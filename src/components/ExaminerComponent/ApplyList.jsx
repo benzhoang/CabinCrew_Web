@@ -12,7 +12,7 @@ import {
   moveToInterview,
   getTestSessionsByType,
 } from "../../service/api2";
-import { formatDate } from "../../config/formatDate";
+import { formatDate, formatDateFromAPI } from "../../config/formatDate";
 import { toast } from "react-toastify";
 
 const ApplyList = ({
@@ -108,10 +108,10 @@ const ApplyList = ({
   const selectedRoundDateRange = useMemo(() => {
     if (!activeRoundForTests) return null;
     const startDate = activeRoundForTests.startDate
-      ? formatDate(activeRoundForTests.startDate)
+      ? formatDateFromAPI(activeRoundForTests.startDate)
       : "";
     const endDate = activeRoundForTests.endDate
-      ? formatDate(activeRoundForTests.endDate)
+      ? formatDateFromAPI(activeRoundForTests.endDate)
       : "";
     if (startDate && endDate) {
       return `${startDate} - ${endDate}`;
@@ -897,7 +897,7 @@ const ApplyList = ({
                               <FaRegEye className="w-4 h-4" />
                             </button>
                             {/* Icon chấm phỏng vấn - chỉ hiển thị nếu chưa được đánh giá */}
-                            {!applicant.hasInterviewEvaluated && (
+                            {applicant.hasInterviewEvaluated && (
                               <button
                                 className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
                                 title="Evaluate interview"

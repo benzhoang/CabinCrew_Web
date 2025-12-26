@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { updateCampaignStatus } from "../../../service/api";
 import RejectCampaignModal from "./RejectCampaignModal";
 import { toast } from "react-toastify";
+import { formatDateFromAPI } from "../../../config/formatDate";
+
 // Helper function to format date for display
 const formatDateForDisplay = (
   dateString,
@@ -12,32 +14,19 @@ const formatDateForDisplay = (
   if (!dateString) {
     if (fallbackTime) {
       if (fallbackTime.includes(" - ")) {
-        return isEndDate
+        const datePart = isEndDate
           ? fallbackTime.split(" - ")[1]
           : fallbackTime.split(" - ")[0];
+        // Format the date part to DD/MM/YYYY
+        return formatDateFromAPI(datePart);
       }
-      return fallbackTime;
+      return formatDateFromAPI(fallbackTime);
     }
     return "-";
   }
 
-  try {
-    // If it's already in "dd/mm/yyyy" format, return as is
-    if (dateString.includes("/") && !dateString.includes("T")) {
-      return dateString.split(" ")[0];
-    }
-
-    // Try to parse as Date
-    const date = new Date(dateString);
-    if (!isNaN(date.getTime())) {
-      return date.toLocaleDateString("en-US");
-    }
-  } catch (e) {
-    // If parsing fails, return the original string
-    return dateString.split(" ")[0] || "-";
-  }
-
-  return dateString.split(" ")[0] || "-";
+  // Use formatDateFromAPI to ensure DD/MM/YYYY format
+  return formatDateFromAPI(dateString) || "-";
 };
 
 const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
@@ -76,11 +65,11 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <InfoMini
-            label="Start time"
+            label="Start date"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
           />
           <InfoMini
-            label="End time"
+            label="End date"
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
@@ -157,11 +146,10 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
                 ? "Cannot view applicants because the batch has not started"
@@ -189,8 +177,8 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
   );
 };
 
-// Format date from API (e.g. "13/11/2025 00:00" or ISO)
-const formatDateFromAPI = (dateString) => {
+// Format date from API (e.g. "13/11/2025 00:00" or ISO) to YYYY-MM-DD format for internal use
+const convertDateToISOFormat = (dateString) => {
   if (!dateString) return "";
   if (typeof dateString !== "string") return "";
 
@@ -237,9 +225,9 @@ const convertRoundsToBatches = (rounds) => {
     const mappedStatus =
       statusMap[round.status] || round.status?.toLowerCase() || "planned";
 
-    // Format dates
-    const startDate = formatDateFromAPI(round.startDate);
-    const endDate = formatDateFromAPI(round.endDate);
+    // Format dates (convert to ISO format for internal use)
+    const startDate = convertDateToISOFormat(round.startDate);
+    const endDate = convertDateToISOFormat(round.endDate);
 
     // Format time string for display
     const timeString =
@@ -507,11 +495,10 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
           <button
             onClick={handleReject}
             disabled={isRejecting || isApproving}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
-              isRejecting || isApproving
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
-            }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isRejecting || isApproving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
+              }`}
           >
             {isRejecting ? (
               <>
@@ -540,11 +527,10 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
           <button
             onClick={() => setIsApproveModalOpen(true)}
             disabled={isApproving || isRejecting}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${
-              isApproving || isRejecting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
-            }`}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 font-medium shadow-md transform ${isApproving || isRejecting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
+              }`}
           >
             {isApproving ? (
               <>
@@ -605,11 +591,10 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
                 type="button"
                 disabled={isApproving}
                 onClick={handleApproveConfirm}
-                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${
-                  isApproving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isApproving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+                  }`}
               >
                 {isApproving ? "Approving..." : "Approve"}
               </button>

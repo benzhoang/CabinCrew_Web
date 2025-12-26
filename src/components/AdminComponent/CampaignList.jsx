@@ -122,8 +122,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-      ? "bg-blue-100 text-blue-700 border-blue-200"
-      : "bg-gray-100 text-gray-600 border-gray-200";
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -208,15 +208,19 @@ const CampaignList = ({
     totalPages: 0,
   });
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = async (page = 1) => {
     try {
       setLoading(true);
       setError(null);
 
+      // Fetch only the current page
+      const currentPageValue = page || pagination.currentPage || 1;
+      const pageSizeValue = pagination.pageSize || 5;
+
       // Base params for fetching (keep all filters)
       const baseParams = {
-        page: 1, // Always fetch from page 1
-        pageSize: 5, // Fetch with pageSize 5
+        page: currentPageValue,
+        pageSize: pageSizeValue,
         searchTerm: search || undefined,
         partnerId: partnerId ?? undefined,
       };
@@ -231,62 +235,29 @@ const CampaignList = ({
 
       // Note: campaignType filter is handled client-side, not sent to server
 
-      let aggregatedItems = [];
-      let lastPagination = null;
+      const result = await getCampaignList(baseParams);
 
-      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
-      const MAX_PAGES_TO_FETCH = 10;
-      let currentPage = 1;
-      let totalPages = 1;
+      if (!result.success) {
+        console.error("Error fetching campaigns:", result.error);
+        setAllCampaigns([]);
+        setPagination((prev) => ({
+          ...prev,
+          totalItems: 0,
+          totalPages: 0,
+        }));
+        return;
+      }
 
-      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
-        const result = await getCampaignList({
-          ...baseParams,
-          page: currentPage,
-        });
-
-        if (!result.success) {
-          console.error("Error fetching campaigns:", result.error);
-          aggregatedItems = [];
-          break;
-        }
-
-        // Handle different response structures
-        let items = [];
-        if (Array.isArray(result.data)) {
-          items = result.data;
-        } else if (result.data?.items && Array.isArray(result.data.items)) {
-          items = result.data.items;
-        }
-
-        aggregatedItems = aggregatedItems.concat(items);
-        lastPagination = result.pagination;
-
-        // Update totalPages from pagination info
-        if (lastPagination) {
-          const nextTotalPages = lastPagination.totalPages ?? totalPages;
-          totalPages = Math.max(totalPages, nextTotalPages);
-
-          // Check if there's a next page
-          if (
-            !lastPagination.hasNextPage ||
-            currentPage >= MAX_PAGES_TO_FETCH
-          ) {
-            break;
-          }
-        } else {
-          // If no pagination info and we got items, assume there might be more
-          // But if we got fewer items than pageSize, we're done
-          if (items.length < baseParams.pageSize) {
-            break;
-          }
-        }
-
-        currentPage += 1;
+      // Handle different response structures
+      let items = [];
+      if (Array.isArray(result.data)) {
+        items = result.data;
+      } else if (result.data?.items && Array.isArray(result.data.items)) {
+        items = result.data.items;
       }
 
       // Map API data to component structure
-      const mappedCampaigns = aggregatedItems.map((item) => ({
+      const mappedCampaigns = items.map((item) => ({
         id: item.campaignId || item.id || item.campaignID || item.Id,
         campaignName: item.campaignName || item.name || "No campaign name",
         targetQuantity: item.targetQuantity || 0,
@@ -295,12 +266,37 @@ const CampaignList = ({
         status: mapStatus(item.status),
       }));
 
-      // Store all campaigns from server for client-side filtering and pagination
+      // Store campaigns for current page
       setAllCampaigns(mappedCampaigns);
+
+      // Update pagination from API response
+      if (result.pagination) {
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: result.pagination.currentPage ?? currentPageValue,
+          pageSize: result.pagination.pageSize ?? pageSizeValue,
+          totalItems: result.pagination.totalRecords ?? 0,
+          totalPages: result.pagination.totalPages ?? 0,
+        }));
+      } else {
+        // Fallback if no pagination info
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: currentPageValue,
+          pageSize: pageSizeValue,
+          totalItems: mappedCampaigns.length,
+          totalPages: 1,
+        }));
+      }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setAllCampaigns([]);
       setError(error.message || "Error when fetching campaign list");
+      setPagination((prev) => ({
+        ...prev,
+        totalItems: 0,
+        totalPages: 0,
+      }));
     } finally {
       setLoading(false);
     }
@@ -309,7 +305,7 @@ const CampaignList = ({
   useEffect(() => {
     // Reset to page 1 when filters change
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchCampaigns();
+    fetchCampaigns(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, campaignTypeFilter, statusFilter, partnerId]);
 
@@ -342,6 +338,7 @@ const CampaignList = ({
     return filtered;
   }, [allCampaigns, campaignTypeFilter]);
 
+  // Client-side sorting (fallback if server-side sorting is not available)
   const sortedCampaigns = useMemo(() => {
     if (!sortField || !sortDirection) return filteredCampaigns;
     const copy = [...filteredCampaigns];
@@ -361,29 +358,9 @@ const CampaignList = ({
     return copy;
   }, [filteredCampaigns, sortField, sortDirection]);
 
-  // Calculate pagination based on filtered data
-  const paginatedCampaigns = useMemo(() => {
-    const pageSize = pagination.pageSize;
-    const startIndex = (pagination.currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return sortedCampaigns.slice(startIndex, endIndex);
-  }, [sortedCampaigns, pagination.currentPage, pagination.pageSize]);
-
-  // Update pagination when filtered data changes
-  useEffect(() => {
-    const totalItems = sortedCampaigns.length;
-    const totalPages = Math.ceil(totalItems / pagination.pageSize);
-
-    setPagination((prev) => {
-      const currentPage = Math.min(prev.currentPage, totalPages || 1);
-      return {
-        ...prev,
-        totalItems,
-        totalPages: totalPages || 1,
-        currentPage: currentPage || 1,
-      };
-    });
-  }, [sortedCampaigns.length, pagination.pageSize]);
+  // No need for client-side pagination since server handles it
+  // allCampaigns already contains only the current page's data
+  const paginatedCampaigns = sortedCampaigns;
 
   const handlePageChange = (page) => {
     if (
@@ -392,6 +369,8 @@ const CampaignList = ({
       page !== pagination.currentPage
     ) {
       setPagination((prev) => ({ ...prev, currentPage: page }));
+      // Fetch the new page
+      fetchCampaigns(page);
     }
   };
 
