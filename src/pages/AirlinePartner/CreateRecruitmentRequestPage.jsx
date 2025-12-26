@@ -124,6 +124,31 @@ const CreateRecruitmentRequestPage = () => {
         [name]: "",
       }));
     }
+
+    // Validate dueDate immediately when changed
+    // if (name === "dueDate" && value) {
+    //   const selectedDate = new Date(value);
+    //   const minDate = new Date();
+    //   minDate.setDate(minDate.getDate() + 45);
+    //   minDate.setHours(0, 0, 0, 0);
+
+    //   if (selectedDate < minDate) {
+    //     setErrors((prev) => ({
+    //       ...prev,
+    //       [name]: "Due date must be at least 45 days from today",
+    //     }));
+    //   } else {
+    //     setErrors((prev) => ({
+    //       ...prev,
+    //       [name]: "",
+    //     }));
+    //   }
+    // } else if (errors[name]) {
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     [name]: "",
+    //   }));
+    // }
   };
 
   // const handleEditorChange = (field, value) => {
@@ -152,22 +177,18 @@ const CreateRecruitmentRequestPage = () => {
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     }
-    // if (!formData.jobDescription.trim()) {
-    //   newErrors.jobDescription = "Job description is required";
-    // }
-    // if (!formData.jobRequirement.trim()) {
-    //   newErrors.jobRequirement = "Job requirement is required";
-    // }
     if (!formData.dueDate) {
       newErrors.dueDate = "Due date is required";
-    } else {
-      const selectedDate = new Date(formData.dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) {
-        newErrors.dueDate = "Due date must be in the future";
-      }
     }
+    // else {
+    //   const selectedDate = new Date(formData.dueDate);
+    //   const minDate = new Date();
+    //   minDate.setDate(minDate.getDate() + 45);
+    //   minDate.setHours(0, 0, 0, 0);
+    //   if (selectedDate < minDate) {
+    //     newErrors.dueDate = "Due date must be at least 45 days from today";
+    //   }
+    // }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -204,7 +225,7 @@ const CreateRecruitmentRequestPage = () => {
         toast.success("Create campaign request successfully!");
         navigate("/airline-partner/requests?status=1&page=1");
       } else {
-        toast.error("Create campaign request failed");
+        toast.error(response.message || "Create campaign request failed");
       }
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -323,36 +344,18 @@ const CreateRecruitmentRequestPage = () => {
                       value={formData.dueDate}
                       onChange={handleInputChange}
                       min={new Date().toISOString().split("T")[0]}
-                      max={
-                        new Date(new Date().setDate(new Date().getDate() + 45))
-                          .toISOString()
-                          .split("T")[0]
-                      }
                       className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         errors.dueDate ? "border-red-300" : "border-slate-300"
                       }`}
                     />
-                    <div className="flex items-center gap-2 mt-2">
-                      <svg
-                        className="flex-shrink-0 w-4 h-4 text-yellow-600"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <p className="text-xs italic text-yellow-600">
-                        The due date is at least 45 days from today
-                      </p>
-                    </div>
                     {errors.dueDate && (
                       <p className="mt-1 text-sm text-red-600">
                         {errors.dueDate}
                       </p>
                     )}
+                    <div className="mt-2 text-xs italic text-slate-500">
+                      Due date must be at least 45 days from today
+                    </div>
                   </div>
                 </div>
 

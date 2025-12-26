@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import { formatDate, convertDateFormat } from "../../config/formatDate.js";
@@ -252,7 +252,7 @@ const CampaignCard = ({ campaign }) => {
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [selectedStatus, setSelectedStatus] = useState("pending");
-  const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from server
+  const [campaigns, setCampaigns] = useState([]); // Store campaigns from current page
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
@@ -292,18 +292,16 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     return usernameToAirlineMap[usernameLower] || null;
   };
 
-  const fetchCampaigns = async (showLoading = false) => {
+  const fetchCampaigns = async (page = 1, showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
+    setError(null);
     try {
-      // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
-      if (showLoading || isInitialLoad) {
-        setLoading(true);
-      }
-      setError(null);
-
-      // Base params for fetching (keep all filters)
+      const pageSize = 5; // 5 campaigns per page
       const baseParams = {
-        page: 1, // Always fetch from page 1
-        pageSize: 5, // Fetch with pageSize 5
+        page: page,
+        pageSize: pageSize,
         searchTerm: search || undefined,
       };
 
@@ -313,64 +311,21 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         baseParams.campaignStatus = campaignStatus;
       }
 
-      let aggregatedItems = [];
-      let lastPagination = null;
+      const result = await getCampaignList(baseParams);
 
-      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
-      const MAX_PAGES_TO_FETCH = 10;
-      let currentPage = 1;
-      let totalPages = 1;
+      if (!result.success) {
+        console.error("Error fetching campaigns:", result.error);
+        setCampaigns([]);
+        setError(result.error || "Unable to fetch campaigns");
+        return;
+      }
 
-      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
-        const result = await getCampaignList({
-          ...baseParams,
-          page: currentPage,
-        });
-
-        if (!result.success) {
-          console.error("Error fetching campaigns:", result.error);
-          aggregatedItems = [];
-          break;
-        }
-
-        // Handle different response structures
-        let items = [];
-        if (Array.isArray(result.data)) {
-          items = result.data;
-        } else if (result.data?.items && Array.isArray(result.data.items)) {
-          items = result.data.items;
-        }
-
-        aggregatedItems = aggregatedItems.concat(items);
-        // Pagination info can be in result.pagination or result.data.pagination
-        lastPagination = result.data?.pagination || result.pagination;
-
-        // Update totalPages from pagination info
-        if (lastPagination) {
-          const nextTotalPages = lastPagination.totalPages ?? totalPages;
-          totalPages = Math.max(totalPages, nextTotalPages);
-
-          // Check if there's a next page
-          if (
-            !lastPagination.hasNextPage ||
-            currentPage >= MAX_PAGES_TO_FETCH
-          ) {
-            break;
-          }
-        } else {
-          // If no pagination info and we got items, assume there might be more
-          // But if we got fewer items than pageSize, we're done
-          if (items.length < baseParams.pageSize) {
-            break;
-          }
-          // If we got full pageSize items but no pagination info, continue to next page
-          // but limit to MAX_PAGES_TO_FETCH
-          if (currentPage >= MAX_PAGES_TO_FETCH) {
-            break;
-          }
-        }
-
-        currentPage += 1;
+      // Handle different response structures
+      let items = [];
+      if (Array.isArray(result.data)) {
+        items = result.data;
+      } else if (result.data?.items && Array.isArray(result.data.items)) {
+        items = result.data.items;
       }
 
       // Get partner username from localStorage and map to official airline name
@@ -378,7 +333,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       const airlineName = getAirlineNameFromUsername(partnerUsername);
 
       // Map API data to component structure
-      const mappedCampaigns = aggregatedItems.map((item) => ({
+      const mappedCampaigns = items.map((item) => ({
         id: item.campaignId || item.id || item.campaignID || item.Id,
         title: item.campaignName || item.name || "Campaign name not available",
         description: item.description || "",
@@ -410,92 +365,81 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         });
       }
 
-      // Store filtered campaigns from server for client-side filtering and pagination
-      setAllCampaigns(filteredCampaigns);
-      setError(null);
+      // Filter by campaignType (client-side)
+      let finalCampaigns = filteredCampaigns;
+      if (campaignTypeFilter !== "all") {
+        finalCampaigns = filteredCampaigns.filter(
+          (c) => c.campaignType === campaignTypeFilter
+        );
+      }
+
+      setCampaigns(finalCampaigns);
+
+      // Save pagination info from API if provided
+      const paginationInfo = result.data?.pagination || result.pagination;
+      if (paginationInfo) {
+        setPagination((prev) => ({
+          ...prev,
+          ...paginationInfo,
+          pageSize: pageSize,
+        }));
+      } else {
+        // Fallback pagination when API does not return it
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: page,
+          pageSize: pageSize,
+          totalRecords: finalCampaigns.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        }));
+      }
     } catch (error) {
       console.error("Error fetching campaigns:", error);
-      setAllCampaigns([]);
+      setCampaigns([]);
       setError(
         error.message || "An error occurred while loading the campaign list"
       );
     } finally {
-      if (showLoading || isInitialLoad) {
+      if (showLoading) {
         setLoading(false);
-        setIsInitialLoad(false);
       }
+      setIsInitialLoad(false);
     }
   };
 
-  // Initial load - chỉ chạy một lần khi component mount
+  // Initial load - fetch page 1 when component mounts
   useEffect(() => {
-    fetchCampaigns(true);
+    fetchCampaigns(1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch lại khi filter thay đổi (không hiển thị loading)
+  // Fetch lại khi filter thay đổi - reset về page 1 (không hiển thị loading)
   useEffect(() => {
     if (!isInitialLoad) {
-      // Reset to page 1 when filters change
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchCampaigns(false);
+      fetchCampaigns(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignTypeFilter, search, selectedStatus]);
-
-  // Filter campaigns by campaignType (client-side)
-  const filteredCampaigns = useMemo(() => {
-    let filtered = allCampaigns;
-
-    // Filter by campaignType
-    if (campaignTypeFilter !== "all") {
-      filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
-    }
-
-    return filtered;
-  }, [allCampaigns, campaignTypeFilter]);
-
-  // Calculate pagination based on filtered data
-  const paginatedCampaigns = useMemo(() => {
-    const pageSize = pagination.pageSize;
-    const startIndex = (pagination.currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredCampaigns.slice(startIndex, endIndex);
-  }, [filteredCampaigns, pagination.currentPage, pagination.pageSize]);
-
-  // Update pagination when filtered data changes
-  useEffect(() => {
-    const totalItems = filteredCampaigns.length;
-    const totalPages = Math.ceil(totalItems / pagination.pageSize);
-
-    setPagination((prev) => {
-      const currentPage = Math.min(prev.currentPage, totalPages || 1);
-      return {
-        ...prev,
-        totalRecords: totalItems,
-        totalPages: totalPages || 1,
-        currentPage: currentPage || 1,
-        hasNextPage: currentPage < totalPages,
-        hasPreviousPage: currentPage > 1,
-      };
-    });
-  }, [filteredCampaigns.length, pagination.pageSize]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
     if (page < 1) return;
     if (pagination.totalPages && page > pagination.totalPages) return;
 
-    // Cập nhật currentPage và hasNextPage/hasPreviousPage
     setPagination((prev) => ({
       ...prev,
       currentPage: page,
       hasNextPage: page < prev.totalPages,
       hasPreviousPage: page > 1,
     }));
+    fetchCampaigns(page, false);
   };
 
-  if (loading && allCampaigns.length === 0) {
+  // Chỉ hiển thị full loading screen khi là lần đầu load
+  if (isInitialLoad && loading) {
     return (
       <div className="flex flex-col gap-5">
         <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
@@ -515,7 +459,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <div className="mb-2 text-red-600">{error}</div>
           <button
             onClick={() => {
-              fetchCampaigns(true);
+              fetchCampaigns(pagination.currentPage);
             }}
             className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
@@ -529,7 +473,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Campaign List ({pagination.totalRecords || filteredCampaigns.length})
+        Campaign List ({pagination.totalRecords || campaigns.length})
       </h2>
       <div className="flex flex-wrap items-center gap-3">
         <div className="inline-flex flex-wrap items-stretch gap-3">
@@ -590,11 +534,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
         </div>
       </div>
-      {paginatedCampaigns.length === 0 ? (
+      {campaigns.length === 0 ? (
         <div className="py-10 text-center text-gray-500">No data found</div>
       ) : (
         <>
-          {paginatedCampaigns.map((c) => (
+          {campaigns.map((c) => (
             <CampaignCard key={c.id} campaign={c} />
           ))}
         </>

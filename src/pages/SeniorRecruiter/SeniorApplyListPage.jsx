@@ -381,6 +381,29 @@ const SeniorApplyListPage = () => {
   //   console.log(`Changing status of applicant ${applicantId} to ${newStatus}`)
   // }
 
+  const mapRoundToStageId = (roundData, applicant) => {
+    const roundName = (
+      roundData?.roundName ||
+      applicant?.roundName ||
+      ""
+    ).toLowerCase();
+    const testType = roundData?.testType;
+
+    if (roundName.includes("screening")) return "screening";
+    if (roundName.includes("appearance") || roundName.includes("grooming"))
+      return "appearance";
+    if (roundName.includes("listening") || testType === 1)
+      return "english-listening";
+    if (roundName.includes("speaking") || testType === 2)
+      return "english-speaking";
+    if (roundName.includes("practical") || testType === 3)
+      return "english-speaking";
+    if (roundName.includes("interview")) return "interview";
+    if (roundName.includes("final")) return "final";
+
+    return null;
+  };
+
   const goBackToCampaigns = () => {
     const campaignId = params.id || campaignRoundData?.campaignId;
     navigate(`/senior-recruiter/campaigns/${campaignId}`);
@@ -468,8 +491,9 @@ const SeniorApplyListPage = () => {
                   <span className="text-sm text-slate-600">Target:</span>
                   <p className="font-medium text-slate-800">
                     {campaignRoundData
-                      ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
-                      }`
+                      ? `${campaignRoundData.actualQuantiy || 0}/${
+                          campaignRoundData.targetQuantity || 0
+                        }`
                       : "—"}
                   </p>
                 </div>
@@ -516,7 +540,7 @@ const SeniorApplyListPage = () => {
                   <div className="relative w-full md:w-64">
                     <input
                       type="text"
-                      placeholder="Tìm theo tên, email, SĐT..."
+                      placeholder="Search by name, email..."
                       className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={applicantSearchTerm}
                       onChange={(e) => setApplicantSearchTerm(e.target.value)}
@@ -620,8 +644,8 @@ const SeniorApplyListPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getRoundBadge(
                             applicant.roundId ||
-                            applicant.roundName ||
-                            applicant.round,
+                              applicant.roundName ||
+                              applicant.round,
                             applicant
                           )}
                         </td>
@@ -629,16 +653,49 @@ const SeniorApplyListPage = () => {
                           <button
                             className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
                             title="View details"
-                            onClick={() =>
+                            onClick={() => {
+                              // Lấy thông tin round từ roundFilter hoặc từ applicant
+                              const roundFromFilter =
+                                roundFilter === "final"
+                                  ? { roundId: "final", roundName: "Final" }
+                                  : availableRounds.find(
+                                      (r) =>
+                                        String(r.roundId) ===
+                                        String(roundFilter)
+                                    ) ||
+                                    (availableRounds.length > 0
+                                      ? availableRounds[0]
+                                      : null);
+
+                              const stageId =
+                                mapRoundToStageId(roundFromFilter, applicant) ||
+                                mapRoundToStageId(
+                                  { roundName: applicant?.roundName },
+                                  applicant
+                                ) ||
+                                "screening";
+
                               navigate(
                                 `/senior-recruiter/campaigns/candidate/${applicant.activityId}`,
                                 {
                                   state: {
                                     candidate: applicant,
+                                    batchData: null,
+                                    viewingRound: {
+                                      stageId,
+                                      roundId:
+                                        roundFromFilter?.roundId ||
+                                        roundFilter ||
+                                        applicant?.roundId,
+                                      roundName:
+                                        roundFromFilter?.roundName ||
+                                        applicant?.roundName ||
+                                        "",
+                                    },
                                   },
                                 }
-                              )
-                            }
+                              );
+                            }}
                           >
                             <svg
                               className="w-4 h-4 mx-auto"

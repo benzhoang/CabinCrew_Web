@@ -225,7 +225,7 @@ const RequestList = ({
   partnerFilter = "all",
   airlinePartners = [],
 }) => {
-  const [allApprovedRequests, setAllApprovedRequests] = useState([]); // Lưu tất cả approved requests
+  const [requests, setRequests] = useState([]); // Store requests from current page
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
@@ -250,14 +250,13 @@ const RequestList = ({
     [airlinePartners]
   );
 
-  // Fetch data from API - fetch tất cả data để filter approved
-  const fetchRequests = async (showLoading = false) => {
+  const fetchRequests = async (page = 1, showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
+    setError(null);
     try {
-      // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
-      if (showLoading || isInitialLoad) {
-        setLoading(true);
-      }
-      setError(null);
+      const pageSize = 5; // 5 requests per page
 
       // Map campaignTypeFilter to API format
       const requestTypeMap = {
@@ -266,11 +265,11 @@ const RequestList = ({
         Promotion: "Promotion",
       };
 
-      // Base params for fetching (keep all filters)
+      // Base params for fetching
       const partnerId = getPartnerIdFromName(partnerFilter);
       const baseParams = {
-        page: 1, // Always fetch from page 1
-        pageSize: 5, // Fetch with pageSize 5
+        page: page,
+        pageSize: pageSize,
         searchTerm: search || undefined,
         status: 2, // Filter approved requests (status 2 = Approved)
         requestType: requestTypeMap[campaignTypeFilter],
@@ -279,149 +278,88 @@ const RequestList = ({
         baseParams.partnerId = partnerId;
       }
 
-      let aggregatedItems = [];
-      let lastPagination = null;
+      const result = await getCampaignRequestList(baseParams);
 
-      // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
-      const MAX_PAGES_TO_FETCH = 10;
-      let currentPage = 1;
-      let totalPages = 1;
-
-      while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
-        const result = await getCampaignRequestList({
-          ...baseParams,
-          page: currentPage,
-        });
-
-        if (!result.success) {
-          console.error("Error fetching requests:", result.error);
-          aggregatedItems = [];
-          break;
-        }
-
-        // Handle different response structures
-        let items = [];
-        if (Array.isArray(result.data)) {
-          items = result.data;
-        } else if (result.data?.items && Array.isArray(result.data.items)) {
-          items = result.data.items;
-        }
-
-        aggregatedItems = aggregatedItems.concat(items);
-        // Pagination info is in result.data.pagination, not result.pagination
-        lastPagination = result.data?.pagination || result.pagination;
-
-        // Update totalPages from pagination info
-        if (lastPagination) {
-          const nextTotalPages = lastPagination.totalPages ?? totalPages;
-          totalPages = Math.max(totalPages, nextTotalPages);
-
-          // Check if there's a next page
-          if (
-            !lastPagination.hasNextPage ||
-            currentPage >= MAX_PAGES_TO_FETCH
-          ) {
-            break;
-          }
-        } else {
-          // If no pagination info and we got items, assume there might be more
-          // But if we got fewer items than pageSize, we're done
-          if (items.length < baseParams.pageSize) {
-            break;
-          }
-          // If we got full pageSize items but no pagination info, continue to next page
-          // but limit to MAX_PAGES_TO_FETCH
-          if (currentPage >= MAX_PAGES_TO_FETCH) {
-            break;
-          }
-        }
-
-        currentPage += 1;
+      if (!result.success) {
+        console.error("Error fetching requests:", result.error);
+        setRequests([]);
+        setError(result.error || "Unable to fetch requests");
+        return;
       }
 
-      // Since API already filters by status=2 (Approved), all items are approved
-      // But we still filter by requestType and search client-side if needed
-      let approvedItems = aggregatedItems;
-
-      // Filter by requestType (if campaignTypeFilter is not "all")
-      if (campaignTypeFilter !== "all") {
-        approvedItems = approvedItems.filter((request) => {
-          const normalizedRequestType =
-            request.requestType?.toLowerCase() || "";
-          const normalizedCampaignTypeFilter =
-            campaignTypeFilter?.toLowerCase() || "";
-          return normalizedRequestType === normalizedCampaignTypeFilter;
-        });
+      // Handle different response structures
+      let items = [];
+      if (Array.isArray(result.data)) {
+        items = result.data;
+      } else if (result.data?.items && Array.isArray(result.data.items)) {
+        items = result.data.items;
       }
 
-      // Filter by search (if search term is provided)
-      if (search) {
-        const searchLower = search.toLowerCase();
-        approvedItems = approvedItems.filter((request) => {
-          return (
-            (request.campaignName &&
-              request.campaignName.toLowerCase().includes(searchLower)) ||
-            (request.description &&
-              request.description.toLowerCase().includes(searchLower)) ||
-            (request.requestType &&
-              request.requestType.toLowerCase().includes(searchLower))
-          );
-        });
-      }
-
-      setAllApprovedRequests(approvedItems);
-
-      // Tính toán pagination
-      // Nếu có pagination info từ API và đã fetch tất cả pages, sử dụng totalRecords từ API
-      // (vì API đã filter approved với status=2, nên totalRecords từ API = số lượng approved items)
-      // Nếu chưa fetch hết (do MAX_PAGES_TO_FETCH), tính dựa trên số lượng items đã fetch
-      let totalRecords = approvedItems.length;
-      let calculatedTotalPages = Math.ceil(totalRecords / 5);
-
-      // Nếu đã fetch tất cả pages và có pagination info, sử dụng totalRecords từ API
-      if (lastPagination && !lastPagination.hasNextPage) {
-        // Use totalRecords from API since it already filters approved requests
-        totalRecords = lastPagination.totalRecords || approvedItems.length;
-        calculatedTotalPages =
-          lastPagination.totalPages || calculatedTotalPages;
-      }
-
-      const calculatedCurrentPage =
-        pagination.currentPage > calculatedTotalPages
-          ? 1
-          : pagination.currentPage;
-
-      setPagination((prev) => ({
-        ...prev,
-        currentPage: calculatedCurrentPage,
-        totalRecords: totalRecords,
-        totalPages: calculatedTotalPages,
-        hasNextPage: calculatedCurrentPage < calculatedTotalPages,
-        hasPreviousPage: calculatedCurrentPage > 1,
+      // Map API data to component structure
+      const mappedRequests = items.map((item) => ({
+        requestId: item.requestId || item.id || item.requestID || item.Id,
+        campaignName:
+          item.campaignName || item.name || "Request name not available",
+        description: item.description || "",
+        targetQuantity: item.targetQuantity || 0,
+        requestType: item.requestType || "",
+        status: "approved", // All requests are approved (status = 2)
+        rejectReason: item.rejectReason || "",
+        approvedAt: item.approvedAt || "",
+        rejectedAt: item.rejectedAt || "",
+        partnerName: item.partnerName || item.partnerUsername || null,
+        partnerUsername: item.partnerUsername || item.partnerName || null,
+        dueDate: item.dueDate || "",
+        position: item.position || item.role || item.requestType || "",
       }));
-    } catch (err) {
-      setError(err.message || "Error when fetching request list");
-      setAllApprovedRequests([]);
-    } finally {
-      if (showLoading || isInitialLoad) {
-        setLoading(false);
-        setIsInitialLoad(false);
+
+      setRequests(mappedRequests);
+
+      // Save pagination info from API if provided
+      const paginationInfo = result.data?.pagination || result.pagination;
+      if (paginationInfo) {
+        setPagination((prev) => ({
+          ...prev,
+          ...paginationInfo,
+          pageSize: pageSize,
+        }));
+      } else {
+        // Fallback pagination when API does not return it
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: page,
+          pageSize: pageSize,
+          totalRecords: mappedRequests.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        }));
       }
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      setRequests([]);
+      setError(
+        error.message || "An error occurred while loading the request list"
+      );
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+      setIsInitialLoad(false);
     }
   };
 
-  // Initial load - chỉ chạy một lần khi component mount
+  // Initial load - fetch page 1 when component mounts
   useEffect(() => {
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-    fetchRequests(true);
+    fetchRequests(1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch lại khi filter thay đổi (không hiển thị loading)
+  // Fetch lại khi filter thay đổi - reset về page 1 (không hiển thị loading)
   useEffect(() => {
     if (!isInitialLoad) {
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchRequests(false);
+      fetchRequests(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, campaignTypeFilter, partnerFilter, getPartnerIdFromName]);
@@ -431,23 +369,17 @@ const RequestList = ({
     if (page < 1) return;
     if (pagination.totalPages && page > pagination.totalPages) return;
 
-    // Cập nhật currentPage và hasNextPage/hasPreviousPage
     setPagination((prev) => ({
       ...prev,
       currentPage: page,
       hasNextPage: page < prev.totalPages,
       hasPreviousPage: page > 1,
     }));
+    fetchRequests(page, false);
   };
 
-  // Phân trang client-side: mỗi page 5 items
-  const currentPage = pagination.currentPage;
-  const pageSize = 5;
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const filtered = allApprovedRequests.slice(startIndex, endIndex);
-
-  if (loading) {
+  // Chỉ hiển thị full loading screen khi là lần đầu load
+  if (isInitialLoad && loading) {
     return (
       <div className="flex flex-col gap-5">
         <h2 className="mb-6 text-xl font-bold text-gray-800">Request list</h2>
@@ -470,13 +402,13 @@ const RequestList = ({
   return (
     <div className="flex flex-col gap-5">
       <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Request list ({pagination.totalRecords || allApprovedRequests.length})
+        Request list ({pagination.totalRecords || requests.length})
       </h2>
-      {filtered.length === 0 ? (
+      {requests.length === 0 ? (
         <div className="py-10 text-center text-gray-500">No data found</div>
       ) : (
         <>
-          {filtered.map((c) => (
+          {requests.map((c) => (
             <CampaignCard key={c.requestId} request={c} />
           ))}
         </>
@@ -503,10 +435,11 @@ const RequestList = ({
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasPreviousPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              }`}
             >
               Previous
             </button>
@@ -519,10 +452,11 @@ const RequestList = ({
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
+                pagination.hasNextPage
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                }`}
+              }`}
             >
               Next
             </button>
