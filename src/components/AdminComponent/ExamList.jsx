@@ -87,7 +87,7 @@ const ExamList = ({ search = "", testType = null }) => {
   });
 
   const fetchTests = useCallback(
-    async (showLoading = false) => {
+    async (page = 1, showLoading = false) => {
       try {
         // Chỉ hiển thị loading nếu là lần đầu hoặc được yêu cầu
         if (showLoading) {
@@ -95,83 +95,77 @@ const ExamList = ({ search = "", testType = null }) => {
         }
         setError(null);
 
+        // Fetch only the current page
+        const currentPageValue = page || 1;
+        const pageSizeValue = 5; // Fixed page size
+
         // Base params for fetching (keep all filters)
         const baseParams = {
-          page: 1, // Always fetch from page 1
-          pageSize: 5, // Fetch with pageSize 5
           searchTerm: search || undefined,
           testType: testType ?? undefined, // Filter by testTypeId (1=EnglishListening, 2=EnglishSpeaking, 3=Practical)
         };
 
-        let aggregatedItems = [];
-        let lastPagination = null;
+        const result = await getTests(currentPageValue, pageSizeValue, baseParams);
 
-        // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
-        const MAX_PAGES_TO_FETCH = 10;
-        let currentPage = 1;
-        let totalPages = 1;
+        if (!result.success) {
+          console.error("Error fetching tests:", result.error);
+          setAllTests([]);
+          setPagination((prev) => ({
+            ...prev,
+            totalItems: 0,
+            totalPages: 0,
+          }));
+          return;
+        }
 
-        while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
-          const result = await getTests(currentPage, baseParams.pageSize, {
-            searchTerm: baseParams.searchTerm,
-            testType: baseParams.testType,
-          });
-
-          if (!result.success) {
-            console.error("Error fetching tests:", result.error);
-            aggregatedItems = [];
-            break;
-          }
-
-          // Handle different response structures
-          let items = [];
-          if (Array.isArray(result.data)) {
-            items = result.data;
-          } else if (result.data?.items && Array.isArray(result.data.items)) {
-            items = result.data.items;
-          }
-
-          aggregatedItems = aggregatedItems.concat(items);
-          lastPagination = result.pagination;
-
-          // Update totalPages from pagination info
-          if (lastPagination) {
-            const nextTotalPages = lastPagination.totalPages ?? totalPages;
-            totalPages = Math.max(totalPages, nextTotalPages);
-
-            // Check if there's a next page
-            if (
-              !lastPagination.hasNextPage ||
-              currentPage >= MAX_PAGES_TO_FETCH
-            ) {
-              break;
-            }
-          } else {
-            // If no pagination info and we got items, assume there might be more
-            // But if we got fewer items than pageSize, we're done
-            if (items.length < baseParams.pageSize) {
-              break;
-            }
-          }
-
-          currentPage += 1;
+        // Handle different response structures
+        let items = [];
+        if (Array.isArray(result.data)) {
+          items = result.data;
+        } else if (result.data?.items && Array.isArray(result.data.items)) {
+          items = result.data.items;
         }
 
         // Map API data to component structure
-        const mappedTests = aggregatedItems.map((item) => ({
+        const mappedTests = items.map((item) => ({
           id: item.testId || item.id || item.testID || item.Id,
           testName: item.testName || item.name || "No test name",
           totalQuestions: item.totalQuestions || 0,
           testType: item.testType || "Unknown",
         }));
 
-        // Store all tests from server for client-side filtering and pagination
+        // Store tests for current page
         setAllTests(mappedTests);
         setError(null);
+
+        // Update pagination from API response
+        if (result.pagination) {
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: result.pagination.currentPage ?? currentPageValue,
+            pageSize: result.pagination.pageSize ?? pageSizeValue,
+            totalItems: result.pagination.totalRecords ?? 0,
+            totalPages: result.pagination.totalPages ?? 0,
+          }));
+        } else {
+          // Fallback if no pagination info
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: currentPageValue,
+            pageSize: pageSizeValue,
+            totalItems: mappedTests.length,
+            totalPages: 1,
+          }));
+        }
       } catch (error) {
         console.error("Error fetching tests:", error);
         setAllTests([]);
         setError(error.message || "Error when fetching test list");
+        setPagination((prev) => ({
+          ...prev,
+          totalItems: 0,
+          totalPages: 0,
+        }));
       } finally {
         if (showLoading) {
           setLoading(false);
@@ -184,7 +178,7 @@ const ExamList = ({ search = "", testType = null }) => {
 
   // Initial load - chỉ chạy một lần khi component mount
   useEffect(() => {
-    fetchTests(true);
+    fetchTests(1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -193,7 +187,7 @@ const ExamList = ({ search = "", testType = null }) => {
     if (!isInitialLoad) {
       // Reset to page 1 when filters change
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
-      fetchTests(false);
+      fetchTests(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testType, search]);
@@ -214,24 +208,11 @@ const ExamList = ({ search = "", testType = null }) => {
     }
   };
 
-  // Filter tests by search (client-side)
-  // Note: testType filter is now handled server-side via testType param
-  const filteredTests = useMemo(() => {
-    let filtered = allTests;
+  // Note: search and testType filters are now handled server-side via API params
+  // No need for client-side filtering since server handles it
+  const filteredTests = allTests;
 
-    // Apply search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.testName?.toLowerCase().includes(searchLower) ||
-          t.testType?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [allTests, search]);
-
+  // Client-side sorting (fallback if server-side sorting is not available)
   const sortedTests = useMemo(() => {
     if (!sortField || !sortDirection) return filteredTests;
     const copy = [...filteredTests];
@@ -251,29 +232,9 @@ const ExamList = ({ search = "", testType = null }) => {
     return copy;
   }, [filteredTests, sortField, sortDirection]);
 
-  // Calculate pagination based on filtered data
-  const paginatedTests = useMemo(() => {
-    const pageSize = pagination.pageSize;
-    const startIndex = (pagination.currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return sortedTests.slice(startIndex, endIndex);
-  }, [sortedTests, pagination.currentPage, pagination.pageSize]);
-
-  // Update pagination when filtered data changes
-  useEffect(() => {
-    const totalItems = sortedTests.length;
-    const totalPages = Math.ceil(totalItems / pagination.pageSize);
-
-    setPagination((prev) => {
-      const currentPage = Math.min(prev.currentPage, totalPages || 1);
-      return {
-        ...prev,
-        totalItems: totalItems,
-        totalPages: totalPages || 1,
-        currentPage: currentPage || 1,
-      };
-    });
-  }, [sortedTests.length, pagination.pageSize]);
+  // No need for client-side pagination since server handles it
+  // allTests already contains only the current page's data
+  const paginatedTests = sortedTests;
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
@@ -284,6 +245,8 @@ const ExamList = ({ search = "", testType = null }) => {
       ...prev,
       currentPage: page,
     }));
+    // Fetch the new page
+    fetchTests(page, false);
   };
 
   if (loading && allTests.length === 0) {

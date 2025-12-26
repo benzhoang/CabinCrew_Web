@@ -5,11 +5,11 @@ import {
   getRequirementItems,
   getRoundTypes,
 } from "../../service/api2";
-import { formatDate2, formatDate } from "../../config/formatDate";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const getRoundTime = (start, end) => {
-  const startLabel = formatDate2(start);
-  const endLabel = formatDate2(end);
+  const startLabel = formatDateFromAPI(start);
+  const endLabel = formatDateFromAPI(end);
   if (startLabel && endLabel) {
     return `${startLabel} - ${endLabel}`;
   }
@@ -356,7 +356,7 @@ const PromotionApplyPage = () => {
     fetchRoundTypes();
   }, [campaign?.campaignType]);
 
-  const formatDateLabel = (value) => formatDate2(value) || "—";
+  const formatDateLabel = (value) => formatDateFromAPI(value) || "—";
 
   // Show full-page loading when fetching campaign data, requirements, or round types
   if (isLoading || isLoadingRequirements || isLoadingRoundTypes) {
@@ -592,7 +592,7 @@ const PromotionApplyPage = () => {
                                 }`}
                             >
                               {b.status === "completed"
-                                ? "Completed"
+                                ? "Ended"
                                 : b.status === "ongoing"
                                   ? "Ongoing"
                                   : "Upcoming"}
@@ -603,12 +603,12 @@ const PromotionApplyPage = () => {
                               <InfoMini
                                 label="Start Date"
                                 value={
-                                  b.startDate ? formatDate(b.startDate) : "—"
+                                  b.startDate ? formatDateFromAPI(b.startDate) : "—"
                                 }
                               />
                               <InfoMini
                                 label="End Date"
-                                value={b.endDate ? formatDate(b.endDate) : "—"}
+                                value={b.endDate ? formatDateFromAPI(b.endDate) : "—"}
                               />
                               {b.owner && (
                                 <InfoMini label="Owner" value={b.owner} />

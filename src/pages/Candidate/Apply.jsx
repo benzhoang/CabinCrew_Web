@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getCampaignById, getOngoingCampaign, getRequirementItems, getRoundTypes } from '../../service/api'
 import Navbar from '../../components/Navbar'
 import Footer from '../Candidate/Footer'
-import { formatDate } from '../../config/formatDate'
+import { formatDateFromAPI } from '../../config/formatDate'
 import { toast } from 'react-toastify'
 
 // Helper function to render HTML content safely
@@ -504,8 +504,8 @@ const Apply = () => {
                                     <Info label="Position" value={campaign.position || '—'} badgeClass={getPositionBadgeClass(campaign.position)} />
                                     <Info label="Type" value={getTypeDisplayName(campaign.campaignType)} badgeClass={getTypeBadgeClass(campaign.campaignType)} />
                                     <Info label="Airline" value={campaign.airline || '—'} badgeClass={getAirlineBadgeClass(campaign.airline)} />
-                                    <Info label="Start date" value={campaign.startDate ? formatDate(campaign.startDate) : '—'} />
-                                    <Info label="End date" value={campaign.endDate ? formatDate(campaign.endDate) : '—'} />
+                                    <Info label="Start date" value={campaign.startDate ? formatDateFromAPI(campaign.startDate) : '—'} />
+                                    <Info label="End date" value={campaign.endDate ? formatDateFromAPI(campaign.endDate) : '—'} />
                                     <Info label="Target quantity" value={`${campaign.targetHires ?? '—'}`} />
                                 </div>
 
@@ -603,8 +603,8 @@ const Apply = () => {
                                                     </div>
                                                     <div className="p-4 space-y-4">
                                                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
-                                                            <InfoMini label="Start Date" value={b.startDate ? formatDate(b.startDate) : '—'} />
-                                                            <InfoMini label="End Date" value={b.endDate ? formatDate(b.endDate) : '—'} />
+                                                            <InfoMini label="Start Date" value={b.startDate ? formatDateFromAPI(b.startDate) : '—'} />
+                                                            <InfoMini label="End Date" value={b.endDate ? formatDateFromAPI(b.endDate) : '—'} />
                                                             {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} candidates`} />}
                                                             {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} candidates`} />}
                                                             {b.description && (

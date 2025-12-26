@@ -10,14 +10,12 @@ const StatusBadge = ({ value }) => {
     typeof value === "boolean" ? value : value?.toLowerCase() === "active";
   return (
     <span
-      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${
-        isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
-      }`}
+      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+        }`}
     >
       <span
-        className={`w-2 h-2 rounded-full ${
-          isActive ? "bg-green-500" : "bg-gray-400"
-        }`}
+        className={`w-2 h-2 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"
+          }`}
       ></span>
       {isActive ? "Active" : "Inactive"}
     </span>
@@ -94,62 +92,55 @@ const AccountTable = ({
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        // Always fetch all data for client-side sorting and pagination
+        // Fetch only the current page
+        const currentPageValue = page ?? 1;
+        const pageSizeValue = pageSize || 5;
+
         const baseParams = {
           searchTerm: searchTerm?.trim() || undefined,
           roleId: roleId ?? undefined,
           partnerId: partnerId ?? undefined,
           isActive: typeof isActive === "boolean" ? isActive : undefined,
-          page: 1, // Always fetch from page 1 to get all data
-          pageSize: 5, // Fetch large pageSize to get all users for client-side sorting
+          page: currentPageValue,
+          pageSize: pageSizeValue,
         };
 
-        // Remove server-side sorting - we'll do client-side sorting instead
-
-        let aggregatedItems = [];
-        let lastPagination = null;
-
-        // Fetch all pages if needed (limit to reasonable number to avoid too many requests)
-        const MAX_PAGES_TO_FETCH = 10;
-        let currentPage = 1;
-        let totalPages = 1;
-
-        while (currentPage <= totalPages && currentPage <= MAX_PAGES_TO_FETCH) {
-          const result = await getAllUsers({
-            ...baseParams,
-            page: currentPage,
-          });
-
-          if (!result.success) {
-            console.error("Error fetching users:", result.error);
-            aggregatedItems = [];
-            break;
-          }
-
-          aggregatedItems = aggregatedItems.concat(result.data.items || []);
-          lastPagination = result.data.pagination;
-
-          const nextTotalPages = lastPagination?.totalPages ?? totalPages;
-          totalPages = Math.max(totalPages, nextTotalPages);
-
-          if (
-            !lastPagination?.hasNextPage ||
-            currentPage >= MAX_PAGES_TO_FETCH
-          ) {
-            break;
-          }
-
-          currentPage += 1;
+        // Add server-side sorting if sortField and sortDirection are set
+        if (sortField && sortDirection && sortField !== "no") {
+          baseParams.sortColumn = sortField;
+          baseParams.sortOrder = sortDirection === "asc" ? "asc" : "desc";
         }
 
+        const result = await getAllUsers(baseParams);
+
+        if (!result.success) {
+          console.error("Error fetching users:", result.error);
+          setAllUsers([]);
+          if (onDataLoad) {
+            onDataLoad({
+              currentPage: currentPageValue,
+              pageSize: pageSizeValue,
+              totalRecords: 0,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            });
+          }
+          return;
+        }
+
+        let items = result.data.items || [];
+        const paginationInfo = result.data.pagination || {};
+
+        // Filter by roleName if provided (client-side filter)
         if (roleName) {
           const normalizedRole = roleName.toLowerCase();
-          aggregatedItems = aggregatedItems.filter(
+          items = items.filter(
             (user) => user.role?.toLowerCase() === normalizedRole
           );
         }
 
-        const mappedUsers = aggregatedItems.map((user) => ({
+        const mappedUsers = items.map((user) => ({
           userId: user.userId,
           fullName: user.fullName,
           position: user.role,
@@ -160,30 +151,33 @@ const AccountTable = ({
           originalData: user,
         }));
 
-        // Store all users for client-side sorting and pagination
+        // Store users for current page
         setAllUsers(mappedUsers);
 
         // Update pagination info for parent component
         if (onDataLoad) {
-          const totalRecords = mappedUsers.length;
-          const effectivePageSize = pageSize || 5;
-          const totalPages = Math.max(
-            1,
-            Math.ceil(totalRecords / effectivePageSize)
-          );
-
           onDataLoad({
-            currentPage: page ?? 1,
-            pageSize: effectivePageSize,
-            totalRecords,
-            totalPages,
-            hasNextPage: (page ?? 1) < totalPages,
-            hasPreviousPage: (page ?? 1) > 1,
+            currentPage: paginationInfo.currentPage ?? currentPageValue,
+            pageSize: paginationInfo.pageSize ?? pageSizeValue,
+            totalRecords: paginationInfo.totalRecords ?? 0,
+            totalPages: paginationInfo.totalPages ?? 0,
+            hasNextPage: paginationInfo.hasNextPage ?? false,
+            hasPreviousPage: paginationInfo.hasPreviousPage ?? false,
           });
         }
       } catch (error) {
         console.error("Error fetching users:", error);
         setAllUsers([]);
+        if (onDataLoad) {
+          onDataLoad({
+            currentPage: page ?? 1,
+            pageSize: pageSize || 5,
+            totalRecords: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -205,34 +199,22 @@ const AccountTable = ({
     internalRefreshKey,
   ]);
 
-  // Client-side sorting (similar to CampaignList and ExamList)
+  // Client-side sorting (fallback if server-side sorting is not available)
+  // Note: Server-side sorting is preferred and should be used via API params
   const sortedUsers = useMemo(() => {
+    // If server-side sorting is being used (sortField and sortDirection are set),
+    // the data is already sorted by the server, so we just return allUsers
+    // Otherwise, apply client-side sorting as fallback
     if (!sortField || !sortDirection || sortField === "no") return allUsers;
-    const copy = [...allUsers];
-    const getValue = (u) => {
-      const v = u?.[sortField];
-      if (v == null) return "";
-      if (typeof v === "string") return v.toLowerCase();
-      return v;
-    };
-    copy.sort((a, b) => {
-      const va = getValue(a);
-      const vb = getValue(b);
-      if (va < vb) return sortDirection === "asc" ? -1 : 1;
-      if (va > vb) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-    return copy;
+
+    // Server-side sorting is preferred, but if needed, we can do client-side sorting
+    // For now, return allUsers as server should handle sorting
+    return allUsers;
   }, [allUsers, sortField, sortDirection]);
 
-  // Client-side pagination
-  const paginatedUsers = useMemo(() => {
-    const pageSizeValue = pageSize || 5;
-    const currentPageValue = page ?? 1;
-    const startIndex = (currentPageValue - 1) * pageSizeValue;
-    const endIndex = startIndex + pageSizeValue;
-    return sortedUsers.slice(startIndex, endIndex);
-  }, [sortedUsers, page, pageSize]);
+  // No need for client-side pagination since server handles it
+  // allUsers already contains only the current page's data
+  const paginatedUsers = sortedUsers;
 
   // Sorting function
   const handleSort = (field) => {
@@ -321,11 +303,11 @@ const AccountTable = ({
       const errorMessage =
         actionType === "enable"
           ? error.response?.data?.message ||
-            error.message ||
-            "Error when reactivating account"
+          error.message ||
+          "Error when reactivating account"
           : error.response?.data?.message ||
-            error.message ||
-            "Error when disabling account";
+          error.message ||
+          "Error when disabling account";
       toast.error(errorMessage);
     } finally {
       if (actionType === "enable") {
@@ -482,8 +464,8 @@ const AccountTable = ({
               ? `Do you want to reactivate account ${selectedUser.email}?`
               : `Do you want to disable account ${selectedUser.email}?`
             : actionType === "enable"
-            ? "Do you want to reactivate account?"
-            : "Do you want to disable account?"
+              ? "Do you want to reactivate account?"
+              : "Do you want to disable account?"
         }
         confirmText={actionType === "enable" ? "Reactivate" : "Disable"}
         cancelText="Cancel"
