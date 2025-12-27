@@ -340,13 +340,6 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
     try {
       const pageSize = 5; // 5 requests per page
 
-      // Map campaignTypeFilter to API format
-      const requestTypeMap = {
-        all: undefined,
-        Recruitment: "Recruitment",
-        Promotion: "Promotion",
-      };
-
       // Map status filter to API format
       const statusNumber =
         selectedStatus !== "all"
@@ -358,7 +351,6 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         pageSize: pageSize,
         searchTerm: search || undefined,
         status: statusNumber,
-        requestType: requestTypeMap[campaignTypeFilter],
       };
 
       const result = await getCampaignRequestList(baseParams);
@@ -407,6 +399,16 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         return "pending_approval";
       };
 
+      // Helper function to map API requestType to component requestType (normalize to lowercase)
+      const mapRequestType = (requestType) => {
+        if (!requestType) return "";
+        const typeMap = {
+          Recruitment: "recruitment",
+          Promotion: "promotion",
+        };
+        return typeMap[requestType] || requestType.toLowerCase();
+      };
+
       // Map API data to component structure
       const mappedRequests = items.map((item) => ({
         requestId: item.requestId || item.id || item.requestID || item.Id,
@@ -414,7 +416,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           item.campaignName || item.name || "Request name not available",
         description: item.description || "",
         targetQuantity: item.targetQuantity || 0,
-        requestType: item.requestType || "",
+        requestType: mapRequestType(item.requestType),
         status: normalizeStatus(item.status),
         rejectReason: item.rejectReason || "",
         approvedAt: item.approvedAt || "",
@@ -441,7 +443,15 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         });
       }
 
-      setRequests(filteredRequests);
+      // Filter by campaignTypeFilter (client-side)
+      let finalRequests = filteredRequests;
+      if (campaignTypeFilter !== "all") {
+        finalRequests = filteredRequests.filter(
+          (r) => r.requestType === campaignTypeFilter
+        );
+      }
+
+      setRequests(finalRequests);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -457,7 +467,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: filteredRequests.length,
+          totalRecords: finalRequests.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,

@@ -221,7 +221,7 @@ const RequestInfo = ({ data }) => {
                   return "";
                 }
               })()}{" "}
-              process
+              processes
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
               <ProcessTimeline

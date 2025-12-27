@@ -53,17 +53,36 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Hàm lấy màu cho Request type
-const getCampaignTypeColor = (requestType) => {
-  if (!requestType) return "bg-gray-100 text-gray-800 border-gray-300";
-
-  const type = requestType.toLowerCase();
-  if (type.includes("promotion")) {
-    return "bg-purple-100 text-purple-800 border-purple-300";
-  } else if (type.includes("recruitment")) {
-    return "bg-blue-100 text-blue-800 border-blue-300";
+const getRequestTypeLabel = (requestType) => {
+  // Normalize requestType to lowercase for comparison
+  const normalizedType = requestType?.toLowerCase() || "";
+  switch (normalizedType) {
+    case "recruitment":
+      return "Recruitment";
+    case "promotion":
+      return "Promotion";
+    default:
+      return requestType || "Unknown";
   }
-  return "bg-gray-100 text-gray-800 border-gray-300";
+};
+
+const RequestTypeBadge = ({ type }) => {
+  const normalizedType = type?.toLowerCase() || "";
+  const label = getRequestTypeLabel(type);
+  const className =
+    normalizedType === "promotion"
+      ? "bg-purple-100 text-purple-700 border-purple-200"
+      : normalizedType === "recruitment"
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
+
+  return (
+    <span
+      className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+    >
+      {label}
+    </span>
+  );
 };
 
 // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
@@ -158,13 +177,7 @@ const CampaignCard = ({ request }) => {
             <div>
               <span className="text-gray-500">Request type:</span>
               <div className="mt-1">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCampaignTypeColor(
-                    request.requestType
-                  )}`}
-                >
-                  {request.requestType || "N/A"}
-                </span>
+                <RequestTypeBadge type={request.requestType} />
               </div>
             </div>
             <div>
@@ -258,13 +271,6 @@ const RequestList = ({
     try {
       const pageSize = 5; // 5 requests per page
 
-      // Map campaignTypeFilter to API format
-      const requestTypeMap = {
-        all: undefined,
-        Recruitment: "Recruitment",
-        Promotion: "Promotion",
-      };
-
       // Base params for fetching
       const partnerId = getPartnerIdFromName(partnerFilter);
       const baseParams = {
@@ -272,7 +278,6 @@ const RequestList = ({
         pageSize: pageSize,
         searchTerm: search || undefined,
         status: 2, // Filter approved requests (status 2 = Approved)
-        requestType: requestTypeMap[campaignTypeFilter],
       };
       if (partnerId) {
         baseParams.partnerId = partnerId;
@@ -295,6 +300,16 @@ const RequestList = ({
         items = result.data.items;
       }
 
+      // Helper function to map API requestType to component requestType (normalize to lowercase)
+      const mapRequestType = (requestType) => {
+        if (!requestType) return "";
+        const typeMap = {
+          Recruitment: "recruitment",
+          Promotion: "promotion",
+        };
+        return typeMap[requestType] || requestType.toLowerCase();
+      };
+
       // Map API data to component structure
       const mappedRequests = items.map((item) => ({
         requestId: item.requestId || item.id || item.requestID || item.Id,
@@ -302,7 +317,7 @@ const RequestList = ({
           item.campaignName || item.name || "Request name not available",
         description: item.description || "",
         targetQuantity: item.targetQuantity || 0,
-        requestType: item.requestType || "",
+        requestType: mapRequestType(item.requestType),
         status: "approved", // All requests are approved (status = 2)
         rejectReason: item.rejectReason || "",
         approvedAt: item.approvedAt || "",
@@ -313,7 +328,15 @@ const RequestList = ({
         position: item.position || item.role || item.requestType || "",
       }));
 
-      setRequests(mappedRequests);
+      // Filter by campaignTypeFilter (client-side)
+      let finalRequests = mappedRequests;
+      if (campaignTypeFilter !== "all") {
+        finalRequests = mappedRequests.filter(
+          (r) => r.requestType === campaignTypeFilter
+        );
+      }
+
+      setRequests(finalRequests);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -329,7 +352,7 @@ const RequestList = ({
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: mappedRequests.length,
+          totalRecords: finalRequests.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,

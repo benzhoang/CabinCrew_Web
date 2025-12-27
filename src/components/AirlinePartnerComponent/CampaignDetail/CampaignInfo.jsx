@@ -136,9 +136,6 @@ const CampaignInfo = ({ campaign }) => {
             {campaign?.partnerName || "N/A"}
           </div>
         </div>
-        <div className="text-xs text-right text-slate-500">
-          Campaign ID: {campaign?.campaignId || campaign?.id || "N/A"}
-        </div>
       </div>
 
       <div className="p-5">
@@ -146,38 +143,39 @@ const CampaignInfo = ({ campaign }) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(campaign?.campaignType?.toLowerCase() === "promotion" ||
               campaign?.campaignType === "Promotion") && (
+              <div>
+                <div className="mb-1 text-sm text-slate-600">Position</div>
                 <div>
-                  <div className="mb-1 text-sm text-slate-600">Position</div>
-                  <div>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                        campaign?.position
-                      )}`}
-                    >
-                      {campaign?.position || "N/A"}
-                    </span>
-                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                      campaign?.position
+                    )}`}
+                  >
+                    {campaign?.position || "N/A"}
+                  </span>
                 </div>
-              )}
+              </div>
+            )}
             {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
               campaign?.campaignType === "Recruitment") && (
+              <div>
+                <div className="mb-1 text-sm text-slate-600">Position</div>
                 <div>
-                  <div className="mb-1 text-sm text-slate-600">Position</div>
-                  <div>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                        campaign?.position
-                      )}`}
-                    >
-                      {campaign?.position || "N/A"}
-                    </span>
-                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                      campaign?.position
+                    )}`}
+                  >
+                    {campaign?.position || "N/A"}
+                  </span>
                 </div>
-              )}
+              </div>
+            )}
             <Info
               label="Target quantity"
-              value={`${campaign?.targetQuantity || campaign?.targetHires || 0
-                }`}
+              value={`${
+                campaign?.targetQuantity || campaign?.targetHires || 0
+              }`}
             />
             <Info
               label="Start date"

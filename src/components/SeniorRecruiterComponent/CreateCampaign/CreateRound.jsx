@@ -686,7 +686,15 @@ const CreateRound = forwardRef(
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
           <div className="font-semibold text-slate-800">
-            Recruitment rounds plan
+            {(() => {
+              const campaignType =
+                campaignDetail?.campaignType || "Recruitment";
+              // Format campaignType: capitalize first letter, lowercase rest
+              const formattedType =
+                campaignType.charAt(0).toUpperCase() +
+                campaignType.slice(1).toLowerCase();
+              return `${formattedType} rounds plan`;
+            })()}
           </div>
           <button
             type="button"
