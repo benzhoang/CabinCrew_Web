@@ -470,9 +470,10 @@ const BatchDetailPage = () => {
       const result = await exportFlightHoursConfirmation(roundId);
       console.log("Export result:", result);
       if (!result.success) {
-        alert(result.error || "Export file thất bại");
+        toast.error("Export file failed");
       } else {
         console.log("Export successful, file:", result.filename);
+        toast.success("Export file successfully");
       }
     } catch (error) {
       console.error("Error when exporting:", error);

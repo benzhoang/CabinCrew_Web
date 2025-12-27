@@ -177,12 +177,6 @@ const CreatePromotionRequestPage = () => {
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     }
-    // if (!formData.jobDescription.trim()) {
-    //   newErrors.jobDescription = "Job description is required";
-    // }
-    // if (!formData.jobRequirement.trim()) {
-    //   newErrors.jobRequirement = "Job requirement is required";
-    // }
     if (!formData.dueDate) {
       newErrors.dueDate = "Due date is required";
     }
@@ -231,7 +225,7 @@ const CreatePromotionRequestPage = () => {
         toast.success("Create promotion request successfully!");
         navigate("/airline-partner/requests?status=1&page=1");
       } else {
-        throw new Error("Create promotion request failed");
+        toast.error("Create promotion request failed");
       }
     } catch (error) {
       console.error("Error creating campaign:", error);

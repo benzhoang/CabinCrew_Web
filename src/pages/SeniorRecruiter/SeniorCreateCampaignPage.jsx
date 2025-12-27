@@ -406,7 +406,6 @@ const SeniorCreateCampaignPage = () => {
 
     // Validate form trước
     if (!validateForm()) {
-      toast.error("Please fill in all required information.");
       return;
     }
 
@@ -521,9 +520,39 @@ const SeniorCreateCampaignPage = () => {
               disabled={isRequestDataLocked}
             />
           </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Public recruitment - Cabin Crew
-          </p>
+          {(() => {
+            if (isLoadingDetail) {
+              return <p className="mt-1 text-sm text-slate-600">Loading...</p>;
+            }
+
+            const campaignType = campaignDetail?.campaignType;
+            const position = campaignDetail?.position;
+
+            if (!campaignType && !position) {
+              return null;
+            }
+
+            // Format campaignType: capitalize first letter, lowercase rest
+            // "Recruitment" -> "Recruitment", "Promotion" -> "Promotion", "recruitment" -> "Recruitment"
+            const formattedType = campaignType
+              ? campaignType.charAt(0).toUpperCase() +
+                campaignType.slice(1).toLowerCase()
+              : "";
+
+            // Display format: "Public {campaignType} - {position}"
+            const displayText =
+              formattedType && position
+                ? `Public ${formattedType} - ${position}`
+                : formattedType
+                ? `Public ${formattedType}`
+                : position
+                ? `Public - ${position}`
+                : "";
+
+            return displayText ? (
+              <p className="mt-1 text-sm text-slate-600">{displayText}</p>
+            ) : null;
+          })()}
         </div>
         <button
           onClick={() => navigate("/senior-recruiter/campaigns")}
@@ -556,12 +585,6 @@ const SeniorCreateCampaignPage = () => {
                       ? "Loading..."
                       : "N/A"}
                   </div>
-                </div>
-                <div className="text-xs text-right text-slate-500">
-                  Campaign ID:{" "}
-                  {campaignDetail?.campaignId ||
-                    campaignId ||
-                    (isLoadingDetail ? "Loading..." : "—")}
                 </div>
               </div>
 
