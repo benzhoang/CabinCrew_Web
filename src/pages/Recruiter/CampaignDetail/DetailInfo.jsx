@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { getCampaignById, getRequirementItems, getRoundTypes } from "../../../service/api";
 import BatchManagement from "./BatchManagement";
+import ProcessTimeline from "../../../components/ProcessTimelineLogic";
 import { formatDate } from "../../../config/formatDate";
 
 const Section = ({ title, children }) => (
@@ -673,29 +674,11 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
                 process
               </div>
               <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
-                {roundTypes.length > 0 ? (
-                  <div className="space-y-3">
-                    {roundTypes.map((roundType, index) => (
-                      <div
-                        key={roundType.roundTypeId}
-                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-gray-200 hover:shadow-md"
-                      >
-                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-800">
-                            {roundType.roundTypeName}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    Loading Process...
-                  </div>
-                )}
+                <ProcessTimeline
+                  campaignType={data.campaignType}
+                  roundTypes={roundTypes}
+                  isLoading={isLoadingRoundTypes}
+                />
               </div>
             </div>
           </div>

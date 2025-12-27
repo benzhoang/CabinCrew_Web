@@ -181,6 +181,9 @@ const getPartnerColor = (partnerName) => {
   return "bg-cyan-100 text-cyan-800 border-cyan-300";
 };
 
+// Constants for timeline visualization
+const TIMELINE_HEIGHT = 120;
+
 const PromotionApplyPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -540,27 +543,48 @@ const PromotionApplyPage = () => {
                     processes
                   </h3>
                   <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
-                    {roundTypes.length > 0 ? (
-                      <div className="space-y-3">
-                        {roundTypes.map((roundType, index) => (
+                    {isLoadingRoundTypes ? (
+                      <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                        <p className="mt-2 text-sm text-slate-500">Loading Process...</p>
+                      </div>
+                    ) : roundTypes.length > 0 ? (
+                      <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                        {/* Horizontal progress line */}
+                        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
                           <div
-                            key={roundType.roundTypeId}
-                            className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
-                          >
-                            <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-slate-800">
-                                {roundType.roundTypeName}
+                            className="h-full transition-all duration-500 bg-purple-500"
+                            style={{
+                              width: roundTypes.length > 1 ? "100%" : "0%",
+                            }}
+                          ></div>
+                        </div>
+
+                        {/* Stage nodes */}
+                        <div className="relative flex justify-between">
+                          {roundTypes.map((roundType, index) => (
+                            <div
+                              key={roundType.roundTypeId || index}
+                              className="flex flex-col items-center"
+                            >
+                              {/* Stage node */}
+                              <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center bg-purple-500 text-white shadow-md">
+                                <span className="text-sm font-semibold">{index + 1}</span>
+                              </div>
+
+                              {/* Stage info below node */}
+                              <div className="mt-3 text-center max-w-24">
+                                <p className="text-xs font-medium text-slate-800">
+                                  {roundType.roundTypeName || `Stage ${index + 1}`}
+                                </p>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-sm text-slate-500">
-                        No processes information available
+                      <div className="text-center py-8">
+                        <p className="text-sm text-slate-500">No processes information available</p>
                       </div>
                     )}
                   </div>

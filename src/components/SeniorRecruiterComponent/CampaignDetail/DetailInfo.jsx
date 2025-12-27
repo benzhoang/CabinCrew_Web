@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { formatDate2 } from "../../../config/formatDate";
 import BatchManagement from "./BatchManagement";
 import { getRequirementItems, getRoundTypes } from "../../../service/api2";
+import ProcessTimeline from "../../../components/ProcessTimelineLogic";
 
 const DetailInfo = ({ campaign, onCreateBatch }) => {
   const [requirementItems, setRequirementItems] = useState([]);
@@ -147,39 +148,38 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {(campaign?.campaignType?.toLowerCase() === "promotion" ||
               campaign?.campaignType === "Promotion") && (
-              <div>
-                <div className="mb-1 text-sm text-slate-600">Position</div>
                 <div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                      campaign?.position
-                    )}`}
-                  >
-                    {campaign?.position || "N/A"}
-                  </span>
+                  <div className="mb-1 text-sm text-slate-600">Position</div>
+                  <div>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                        campaign?.position
+                      )}`}
+                    >
+                      {campaign?.position || "N/A"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             {(campaign?.campaignType?.toLowerCase() === "recruitment" ||
               campaign?.campaignType === "Recruitment") && (
-              <div>
-                <div className="mb-1 text-sm text-slate-600">Position</div>
                 <div>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-                      campaign?.position
-                    )}`}
-                  >
-                    {campaign?.position || "N/A"}
-                  </span>
+                  <div className="mb-1 text-sm text-slate-600">Position</div>
+                  <div>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                        campaign?.position
+                      )}`}
+                    >
+                      {campaign?.position || "N/A"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             <Info
               label="Target quantity"
-              value={`${
-                campaign?.targetQuantity || campaign?.targetHires || 0
-              }`}
+              value={`${campaign?.targetQuantity || campaign?.targetHires || 0
+                }`}
             />
             <Info
               label="Start date"
@@ -251,33 +251,11 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
               processes
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-              {isLoadingRoundTypes ? (
-                <div className="text-sm text-slate-500">
-                  Loading processes...
-                </div>
-              ) : roundTypes.length > 0 ? (
-                <div className="space-y-3">
-                  {roundTypes.map((roundType, index) => (
-                    <div
-                      key={roundType.roundTypeId}
-                      className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-slate-800">
-                          {roundType.roundTypeName}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-slate-500">
-                  No processes information available
-                </div>
-              )}
+              <ProcessTimeline
+                campaignType={campaign.campaignType}
+                roundTypes={roundTypes}
+                isLoading={isLoadingRoundTypes}
+              />
             </div>
           </div>
 

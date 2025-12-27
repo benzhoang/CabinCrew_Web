@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { convertDateFormat, formatDate } from "../../../config/formatDate.js";
 import { getRequirementItems, getRoundTypes } from "../../../service/api2";
+import ProcessTimeline from "../../../components/ProcessTimelineLogic";
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start gap-3">
@@ -229,31 +230,11 @@ const RequestInfo = ({ data }) => {
               process
             </h3>
             <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-              {isLoadingRoundTypes ? (
-                <div className="text-sm text-slate-500">Loading process...</div>
-              ) : roundTypes.length > 0 ? (
-                <div className="space-y-3">
-                  {roundTypes.map((roundType, index) => (
-                    <div
-                      key={roundType.roundTypeId}
-                      className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-slate-800">
-                          {roundType.roundTypeName}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-slate-500">
-                  No process information available
-                </div>
-              )}
+              <ProcessTimeline
+                campaignType={data.requestType}
+                roundTypes={roundTypes}
+                isLoading={isLoadingRoundTypes}
+              />
             </div>
           </div>
         </div>

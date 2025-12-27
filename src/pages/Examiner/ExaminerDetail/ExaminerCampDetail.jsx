@@ -6,6 +6,7 @@ import {
   getRoundTypes,
 } from "../../../service/api";
 import ExaminerBatchManage from "./ExaminerBatchManage";
+import ProcessTimeline from "../../../components/ProcessTimelineLogic";
 import { formatDate } from "../../../config/formatDate";
 
 // Hàm lấy màu cho Position (Purser và Cabin Crew với màu khác, không trùng với Type)
@@ -50,7 +51,7 @@ const ExaminerCampDetail = ({ campaign }) => {
   const [requirementItems, setRequirementItems] = useState([]);
   const [, setIsLoadingRequirements] = useState(false);
   const [roundTypes, setRoundTypes] = useState([]);
-  const [, setIsLoadingRoundTypes] = useState(false);
+  const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
 
   useEffect(() => {
     const fetchCampaignData = async () => {
@@ -637,29 +638,11 @@ const ExaminerCampDetail = ({ campaign }) => {
                 process
               </div>
               <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
-                {roundTypes.length > 0 ? (
-                  <div className="space-y-3">
-                    {roundTypes.map((roundType, index) => (
-                      <div
-                        key={roundType.roundTypeId}
-                        className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
-                      >
-                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-slate-800">
-                            {roundType.roundTypeName}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-sm text-slate-500">
-                    Loading Process...
-                  </div>
-                )}
+                <ProcessTimeline
+                  campaignType={data.campaignType}
+                  roundTypes={roundTypes}
+                  isLoading={isLoadingRoundTypes}
+                />
               </div>
             </div>
 
