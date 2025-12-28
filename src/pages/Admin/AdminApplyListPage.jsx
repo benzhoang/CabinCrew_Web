@@ -757,11 +757,4 @@ const AdminApplyListPage = () => {
   }
 };
 
-const InfoMini = ({ label, value }) => (
-  <div>
-    <div className="text-slate-500">{label}</div>
-    <div className="font-medium text-slate-800">{value}</div>
-  </div>
-);
-
 export default AdminApplyListPage;

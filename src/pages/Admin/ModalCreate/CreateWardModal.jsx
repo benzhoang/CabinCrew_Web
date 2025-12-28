@@ -22,7 +22,7 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
     const trimmedName = wardName.trim();
 
     if (!cityId) {
-      toast.error("Vui lòng chọn thành phố trước khi thêm phường/xã");
+      toast.error("Please select a city before adding a ward");
       return;
     }
 
@@ -53,8 +53,8 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-lg p-6 space-y-4 bg-white shadow-xl rounded-2xl">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">
@@ -66,7 +66,7 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
           </div>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 transition-colors"
+            className="transition-colors text-slate-500 hover:text-slate-700"
             aria-label="Close"
             disabled={isSubmitting}
           >
@@ -76,19 +76,19 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-slate-700">
               City
             </label>
             <input
               type="text"
               value={cityName || `City ${cityId || ""}`}
               disabled
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+              className="w-full px-3 py-2 text-sm border rounded-lg border-slate-200 bg-slate-50 text-slate-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-slate-700">
               Ward name <span className="text-red-500">*</span>
             </label>
             <input
@@ -104,25 +104,21 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
               }`}
               disabled={isSubmitting}
             />
-            {error && (
-              <p className="mt-1 text-sm text-red-500">
-                {error}
-              </p>
-            )}
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 transition-colors border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50"
               disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Creating..." : "Create"}
@@ -135,4 +131,3 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
 };
 
 export default CreateWardModal;
-

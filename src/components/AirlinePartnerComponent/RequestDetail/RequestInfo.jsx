@@ -151,23 +151,29 @@ const RequestInfo = ({ data }) => {
           </div>
 
           <div className="font-medium text-gray-900">
-            {data.partnerName || "N/A"}
+            {data.partnerName || "No partner name"}
           </div>
           <div className="grid grid-cols-1 gap-5 mt-4 md:grid-cols-2">
-            <InfoRow label="Partner" value={data.partnerName || "N/A"} />
+            <InfoRow
+              label="Partner"
+              value={data.partnerName || "No partner name"}
+            />
             <InfoRow
               label="Created date"
-              value={convertDateFormat(data.createdAt) || "N/A"}
+              value={convertDateFormat(data.createdAt) || "No created date"}
             />
             <InfoRow
               label="Target quantity"
-              value={data.targetQuantity || "N/A"}
+              value={data.targetQuantity || "No target quantity"}
             />
             <InfoRow
               label="Due date"
-              value={formatDate(data.dueDate) || "N/A"}
+              value={formatDate(data.dueDate) || "No due date"}
             />
-            <InfoRow label="Description" value={data.description || "N/A"} />
+            <InfoRow
+              label="Description"
+              value={data.description || "No description"}
+            />
           </div>
 
           {/* Job Requirements - Dynamic from API (getRequirementItems) */}

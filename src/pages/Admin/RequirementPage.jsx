@@ -7,7 +7,7 @@ import DeleteConfirmModal from "./ModalCreate/DeleteConfirmModal";
 import { toast } from "react-toastify";
 
 const EmptyState = ({ message }) => (
-  <div className="p-6 text-center text-slate-500 border border-dashed border-slate-200 rounded-lg bg-white">
+  <div className="p-6 text-center bg-white border border-dashed rounded-lg text-slate-500 border-slate-200">
     {message}
   </div>
 );
@@ -56,11 +56,11 @@ const RequirementPage = () => {
           setItems(normalized);
           setError("");
         } else {
-          setError(res?.error || "Không thể tải yêu cầu");
+          setError(res?.error || "Cannot load requirement item");
           setItems([]);
         }
       } catch (err) {
-        setError(err.message || "Không thể tải yêu cầu");
+        setError(err.message || "Cannot load requirement item");
         setItems([]);
       } finally {
         setIsLoading(false);
@@ -183,42 +183,42 @@ const RequirementPage = () => {
         </button>
       </section>
 
-      <section className="p-6 bg-white border rounded-2xl border-slate-200 shadow-sm">
+      <section className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
         {error && (
-          <div className="flex items-center justify-between gap-3 p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center justify-between gap-3 p-3 mb-4 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50">
             <span>{error}</span>
             <button
               type="button"
               onClick={() => fetchRequirementItems(selectedType)}
               className="text-xs font-medium underline"
             >
-              Thử lại
+              Try again
             </button>
           </div>
         )}
 
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="py-12 text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <p className="mt-4 text-sm text-gray-600">Loading data...</p>
           </div>
         ) : items.length === 0 ? (
-          <EmptyState message="Không có requirement item nào cho loại chiến dịch này." />
+          <EmptyState message="No requirement item for this campaign type." />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
+                  <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                     No.
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
+                  <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                     Title
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
+                  <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                     Description
                   </th>
-                  <th className="px-4 py-3 text-xs font-semibold text-right text-slate-600 uppercase">
+                  <th className="px-4 py-3 text-xs font-semibold text-right uppercase text-slate-600">
                     Action
                   </th>
                 </tr>
@@ -247,7 +247,7 @@ const RequirementPage = () => {
                         <button
                           type="button"
                           onClick={() => handleDeleteClick(item)}
-                          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border rounded-lg border-red-200 hover:bg-red-50"
+                          className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border border-red-200 rounded-lg hover:bg-red-50"
                         >
                           <FiTrash2 className="w-4 h-4" />
                         </button>

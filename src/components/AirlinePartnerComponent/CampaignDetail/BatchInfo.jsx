@@ -152,7 +152,7 @@ const BatchInfo = ({ campaign, showBatchStatus = false }) => {
       target: round.targetQuantity || round.target || 0,
       totalApplicants: round.totalApplicants || 0,
       appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: use actualQuantity like BatchManagement
-      note: round.description || round.note || "",
+      note: round.description || round.note || "No note",
     };
   };
 

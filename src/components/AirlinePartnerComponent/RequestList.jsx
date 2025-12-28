@@ -195,14 +195,14 @@ const CampaignCard = ({ request }) => {
                     request.partnerName
                   )}`}
                 >
-                  {request.partnerName || "—"}
+                  {request.partnerName || "No partner name"}
                 </span>
               </div>
             </div>
             <div>
               <span className="text-gray-500">Due Date:</span>
               <p className="mt-1 font-medium text-slate-800">
-                {formatDate(request.dueDate) || "—"}
+                {formatDate(request.dueDate) || "No due date"}
               </p>
             </div>
           </div>
@@ -414,17 +414,18 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         requestId: item.requestId || item.id || item.requestID || item.Id,
         campaignName:
           item.campaignName || item.name || "Request name not available",
-        description: item.description || "",
+        description: item.description || "No description",
         targetQuantity: item.targetQuantity || 0,
         requestType: mapRequestType(item.requestType),
         status: normalizeStatus(item.status),
-        rejectReason: item.rejectReason || "",
-        approvedAt: item.approvedAt || "",
-        rejectedAt: item.rejectedAt || "",
+        rejectReason: item.rejectReason || "No reject reason",
+        approvedAt: item.approvedAt || "No approved at",
+        rejectedAt: item.rejectedAt || "No rejected at",
         partnerName: item.partnerName || item.partnerUsername || null,
         partnerUsername: item.partnerUsername || item.partnerName || null,
-        dueDate: item.dueDate || "",
-        position: item.position || item.role || item.requestType || "",
+        dueDate: item.dueDate || "No due date",
+        position:
+          item.position || item.role || item.requestType || "No position",
       }));
 
       // Filter campaigns by airline name if available (client-side filter)

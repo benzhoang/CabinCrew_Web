@@ -38,9 +38,8 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
   const getMaxDate = () => {
     const today = new Date();
     const maxYear = today.getFullYear() - 22;
-    // Set to December 31st of that year to allow selecting any date in that year
-    const maxDate = new Date(maxYear, 11, 31); // Month is 0-indexed, so 11 = December
-    return maxDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    // Format as YYYY-MM-DD directly to avoid timezone issues with toISOString()
+    return `${maxYear}-12-31`;
   };
 
   // Fetch airline partners and existing accounts when modal opens
@@ -63,84 +62,66 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
               : [];
             setAirlinePartners(partners);
 
-            // Fetch existing Airline Partner accounts to find which partners don't have accounts yet
-            const roleId = getRoleId("Airline Partner"); // Role ID 8
+            // Only auto-select partner for Airline Partner role, not for Cabin Crew
+            if (roleName === "Airline Partner") {
+              // Fetch existing Airline Partner accounts to find which partners don't have accounts yet
+              const roleId = getRoleId("Airline Partner"); // Role ID 8
 
-            // Fetch all pages of accounts (similar to AccountTable logic)
-            let aggregatedAccounts = [];
-            let currentPage = 1;
-            let totalPages = 1;
-            const MAX_PAGES_TO_FETCH = 10;
+              // Fetch accounts with flexible page and pageSize (similar to CampaignList pattern)
+              const currentPage = 1;
+              const pageSize = 5;
 
-            while (
-              currentPage <= totalPages &&
-              currentPage <= MAX_PAGES_TO_FETCH
-            ) {
               const accountsResult = await getAllUsers({
                 roleId: roleId,
                 page: currentPage,
-                pageSize: 100,
+                pageSize: pageSize,
               });
 
-              if (!accountsResult.success) {
-                console.error("Error fetching accounts:", accountsResult.error);
-                break;
-              }
+              if (accountsResult.success) {
+                // Handle different response formats
+                const accounts = Array.isArray(accountsResult.data)
+                  ? accountsResult.data
+                  : Array.isArray(accountsResult.data?.items)
+                  ? accountsResult.data.items
+                  : [];
 
-              aggregatedAccounts = aggregatedAccounts.concat(
-                accountsResult.data?.items || []
-              );
+                // Get list of partner names that already have accounts (normalize to lowercase for comparison)
+                const existingPartnerNames = new Set(
+                  accounts
+                    .map((account) => {
+                      // Try to get partner name from airlinePartner field or partnerName field
+                      const partnerName =
+                        account.airlinePartner || account.partnerName || "";
+                      return partnerName.trim().toLowerCase();
+                    })
+                    .filter((name) => name !== "")
+                );
 
-              const pagination = accountsResult.data?.pagination;
-              if (pagination) {
-                const nextTotalPages = pagination.totalPages ?? totalPages;
-                totalPages = Math.max(totalPages, nextTotalPages);
+                // Find the first partner that doesn't have an account yet
+                // Compare by partnerName (normalized to lowercase)
+                const availablePartner = partners.find((partner) => {
+                  const partnerName = (partner.partnerName || "")
+                    .trim()
+                    .toLowerCase();
+                  return (
+                    partnerName !== "" && !existingPartnerNames.has(partnerName)
+                  );
+                });
 
-                if (
-                  !pagination.hasNextPage ||
-                  currentPage >= MAX_PAGES_TO_FETCH
-                ) {
-                  break;
+                // Auto-select the first available partner after a small delay to ensure form reset has completed
+                if (availablePartner) {
+                  setTimeout(() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      partnerId: String(availablePartner.partnerId),
+                    }));
+                  }, 100);
                 }
               } else {
-                break;
+                console.error("Error fetching accounts:", accountsResult.error);
               }
-
-              currentPage += 1;
             }
-
-            // Get list of partner names that already have accounts (normalize to lowercase for comparison)
-            const existingPartnerNames = new Set(
-              aggregatedAccounts
-                .map((account) => {
-                  // Try to get partner name from airlinePartner field or partnerName field
-                  const partnerName =
-                    account.airlinePartner || account.partnerName || "";
-                  return partnerName.trim().toLowerCase();
-                })
-                .filter((name) => name !== "")
-            );
-
-            // Find the first partner that doesn't have an account yet
-            // Compare by partnerName (normalized to lowercase)
-            const availablePartner = partners.find((partner) => {
-              const partnerName = (partner.partnerName || "")
-                .trim()
-                .toLowerCase();
-              return (
-                partnerName !== "" && !existingPartnerNames.has(partnerName)
-              );
-            });
-
-            // Auto-select the first available partner after a small delay to ensure form reset has completed
-            if (availablePartner) {
-              setTimeout(() => {
-                setFormData((prev) => ({
-                  ...prev,
-                  partnerId: String(availablePartner.partnerId),
-                }));
-              }, 100);
-            }
+            // For Cabin Crew, partners are loaded but no auto-selection happens
           } else {
             console.error(
               "Failed to load airline partners:",
@@ -181,7 +162,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
   }, [isOpen, roleName]);
 
   // Reset form when modal opens/closes or roleName changes
-  // Note: partnerId will be auto-selected by fetchData useEffect for Airline Partner role
+  // Note: partnerId will be auto-selected by fetchData useEffect only for Airline Partner role
   useEffect(() => {
     if (isOpen) {
       setFormData({
@@ -190,7 +171,7 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
         email: "",
         phoneNumber: "",
         dateOfBirth: "",
-        partnerId: "", // Will be auto-selected if role is Airline Partner
+        partnerId: "", // Will be auto-selected only if role is Airline Partner
       });
       setErrors({});
     }
