@@ -514,15 +514,10 @@ const BatchDetailPage = () => {
           autoClose: 3000,
         });
 
-        // Redirect về trang candidate sau khi import thành công
-        const campaignRoundIdToUse = campaignRoundId || currentCampaignRoundId;
-        if (campaignRoundIdToUse) {
-          setTimeout(() => {
-            navigate(
-              `/airline-partner/campaigns/${params.id}/applications/${campaignRoundIdToUse}`
-            );
-          }, 1000); // Đợi 1 giây để người dùng thấy toast
-        }
+        // Reload page sau khi import thành công
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
 
         return result;
       } else {
@@ -635,12 +630,10 @@ const BatchDetailPage = () => {
                   <span className="text-sm text-slate-600">Target:</span>
                   <p className="font-medium text-slate-800">
                     {campaignRoundData
-                      ? `${campaignRoundData.actualQuantiy || 0}/${
-                          campaignRoundData.targetQuantity || 0
-                        }`
-                      : `${batchData.batch?.current || 0}/${
-                          batchData.batch?.target || 0
-                        }`}
+                      ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
+                      }`
+                      : `${batchData.batch?.current || 0}/${batchData.batch?.target || 0
+                      }`}
                   </p>
                 </div>
               </div>
@@ -801,8 +794,8 @@ const BatchDetailPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getRoundBadge(
                             applicant.roundId ||
-                              applicant.roundName ||
-                              applicant.round,
+                            applicant.roundName ||
+                            applicant.round,
                             applicant
                           )}
                         </td>
@@ -816,13 +809,13 @@ const BatchDetailPage = () => {
                                 roundFilter === "final"
                                   ? { roundId: "final", roundName: "Final" }
                                   : availableRounds.find(
-                                      (r) =>
-                                        String(r.roundId) ===
-                                        String(roundFilter)
-                                    ) ||
-                                    (availableRounds.length > 0
-                                      ? availableRounds[0]
-                                      : null);
+                                    (r) =>
+                                      String(r.roundId) ===
+                                      String(roundFilter)
+                                  ) ||
+                                  (availableRounds.length > 0
+                                    ? availableRounds[0]
+                                    : null);
 
                               const stageId =
                                 mapRoundToStageId(roundFromFilter, applicant) ||
