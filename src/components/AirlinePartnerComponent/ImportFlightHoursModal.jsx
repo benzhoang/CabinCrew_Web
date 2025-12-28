@@ -3,7 +3,6 @@ import {
   FiUpload,
   FiX,
   FiAlertCircle,
-  FiCheckCircle,
   FiFileText,
   FiInfo,
   FiLoader,
@@ -94,25 +93,8 @@ const ImportFlightHoursModal = ({
             message: result.error || "Cannot import Excel file.",
           });
         } else {
-          // Hiển thị thông báo thành công với thông tin chi tiết
-          const successMessage =
-            result?.message ||
-            (result?.totalProcessed
-              ? `Import successful! Processed ${
-                  result.totalProcessed
-                } candidates (${result.passedCount || 0} passed, ${
-                  result.failedCount || 0
-                } failed).`
-              : "Import Excel file successful.");
-          setStatus({
-            type: "success",
-            message: successMessage,
-          });
-          // Đóng modal sau 1.5 giây để người dùng thấy thông báo thành công
-          // (redirect sẽ được xử lý trong callback)
-          setTimeout(() => {
-            onClose?.();
-          }, 1500);
+          // Đóng modal - callback sẽ xử lý refresh/redirect
+          onClose?.();
         }
       } else {
         // Default import logic - có thể gọi API import ở đây
@@ -159,19 +141,9 @@ const ImportFlightHoursModal = ({
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
-          {status.type && (
-            <div
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${
-                status.type === "error"
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
-              }`}
-            >
-              {status.type === "error" ? (
-                <FiAlertCircle className="w-5 h-5" />
-              ) : (
-                <FiCheckCircle className="w-5 h-5" />
-              )}
+          {status.type === "error" && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+              <FiAlertCircle className="w-5 h-5" />
               <span>{status.message}</span>
             </div>
           )}
