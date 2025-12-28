@@ -32,11 +32,11 @@ const CityWardPage = () => {
             setSelectedCityId(res.data[0].cityId ?? res.data[0].id ?? "");
           }
         } else {
-          setError(res.error || "Không thể tải danh sách thành phố");
+          setError(res.error || "Cannot load city list");
           setCities([]);
         }
       } catch (err) {
-        setError(err.message || "Không thể tải danh sách thành phố");
+        setError(err.message || "Cannot load city list");
         setCities([]);
       } finally {
         setIsLoadingCities(false);
@@ -59,12 +59,12 @@ const CityWardPage = () => {
           setWards(res.data);
           setCurrentPage(1);
         } else {
-          setError(res.error || "Không thể tải danh sách phường/xã");
+          setError(res.error || "Cannot load ward list");
           setWards([]);
           setCurrentPage(1);
         }
       } catch (err) {
-        setError(err.message || "Không thể tải danh sách phường/xã");
+        setError(err.message || "Cannot load ward list");
         setWards([]);
         setCurrentPage(1);
       } finally {
@@ -112,7 +112,7 @@ const CityWardPage = () => {
 
   const handleOpenCreateModal = () => {
     if (!selectedCityId) {
-      toast.error("Vui lòng chọn thành phố trước khi thêm phường/xã");
+      toast.error("Please select a city before adding a ward");
       return;
     }
     setIsCreateModalOpen(true);
@@ -162,7 +162,7 @@ const CityWardPage = () => {
             Select city
           </label>
           <select
-            className="w-full sm:w-80 px-3 py-2 border rounded-lg border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-lg sm:w-80 border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedCityId}
             onChange={(e) => setSelectedCityId(e.target.value)}
             disabled={isLoadingCities}
@@ -180,16 +180,16 @@ const CityWardPage = () => {
           </select>
         </div>
         {isLoadingCities && (
-          <div className="text-center py-4">
-            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="py-4 text-center">
+            <div className="inline-block w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <p className="mt-2 text-sm text-gray-600">Loading city list...</p>
           </div>
         )}
       </section>
 
-      <section className="p-6 bg-white border rounded-2xl border-slate-200 shadow-sm">
+      <section className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
         {error && (
-          <div className="flex items-center justify-between gap-3 p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center justify-between gap-3 p-3 mb-4 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50">
             <span>{error}</span>
             <button
               type="button"
@@ -208,13 +208,13 @@ const CityWardPage = () => {
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
+                <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                   No.
                 </th>
-                <th className="px-4 py-3 text-xs font-semibold text-left text-slate-600 uppercase">
+                <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                   Ward name
                 </th>
-                <th className="px-4 py-3 text-xs font-semibold text-right text-slate-600 uppercase">
+                <th className="px-4 py-3 text-xs font-semibold text-right uppercase text-slate-600">
                   Action
                 </th>
               </tr>
@@ -222,12 +222,11 @@ const CityWardPage = () => {
             <tbody className="divide-y divide-slate-200">
               {isLoadingWards ? (
                 <tr>
-                  <td
-                    colSpan={3}
-                    className="px-4 py-6 text-center"
-                  >
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-sm text-gray-600">Loading ward list...</p>
+                  <td colSpan={3} className="px-4 py-6 text-center">
+                    <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                    <p className="mt-4 text-sm text-gray-600">
+                      Loading ward list...
+                    </p>
                   </td>
                 </tr>
               ) : displayedWards.length === 0 ? (
@@ -275,7 +274,7 @@ const CityWardPage = () => {
                                 wardId: id,
                               })
                             }
-                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border rounded-lg border-red-200 hover:bg-red-50"
+                            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 transition border border-red-200 rounded-lg hover:bg-red-50"
                           >
                             <FaTrash className="w-4 h-4" />
                           </button>

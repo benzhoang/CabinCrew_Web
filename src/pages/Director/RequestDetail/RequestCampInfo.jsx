@@ -21,47 +21,49 @@ const formatDate = (isoString) => {
 };
 
 const Section = ({ title, children }) => (
-  <div className="bg-white rounded-xl border border-gray-200 p-5">
-    <div className="text-sm font-semibold text-gray-900 mb-3">{title}</div>
+  <div className="p-5 bg-white border border-gray-200 rounded-xl">
+    <div className="mb-3 text-sm font-semibold text-gray-900">{title}</div>
     {children}
   </div>
 );
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start">
-    <div className="text-sm text-gray-500 shrink-0 mr-3">{label}:</div>
+    <div className="mr-3 text-sm text-gray-500 shrink-0">{label}:</div>
     <div className="text-sm text-gray-900">{value}</div>
   </div>
 );
 
 const renderStatusBadge = (statusRaw) => {
-  const status = String(statusRaw || '').toLowerCase();
+  const status = String(statusRaw || "").toLowerCase();
   const mapping = {
     pending: {
-      text: 'Pending',
-      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+      text: "Pending",
+      cls: "bg-amber-50 text-amber-700 border border-amber-200",
     },
     pending_approval: {
-      text: 'Pending approval',
-      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+      text: "Pending approval",
+      cls: "bg-amber-50 text-amber-700 border border-amber-200",
     },
     approved: {
-      text: 'Approved',
-      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      text: "Approved",
+      cls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
     rejected: {
-      text: 'Rejected',
-      cls: 'bg-rose-50 text-rose-700 border border-rose-200',
+      text: "Rejected",
+      cls: "bg-rose-50 text-rose-700 border border-rose-200",
     },
   };
 
   const preset = mapping[status] || {
-    text: statusRaw || 'N/A',
-    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+    text: statusRaw || "N/A",
+    cls: "bg-slate-50 text-slate-700 border border-slate-200",
   };
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}
+    >
       {preset.text}
     </span>
   );
@@ -70,7 +72,7 @@ const renderStatusBadge = (statusRaw) => {
 const renderRequestTypeBadge = (requestTypeRaw) => {
   if (!requestTypeRaw) {
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-50 text-slate-700 border border-slate-200">
+      <span className="inline-flex items-center px-3 py-1 text-xs font-semibold border rounded-full bg-slate-50 text-slate-700 border-slate-200">
         N/A
       </span>
     );
@@ -80,9 +82,9 @@ const renderRequestTypeBadge = (requestTypeRaw) => {
   let type = null;
 
   // Map string to number
-  if (requestTypeStr === 'recruitment') {
+  if (requestTypeStr === "recruitment") {
     type = 1;
-  } else if (requestTypeStr === 'promotion') {
+  } else if (requestTypeStr === "promotion") {
     type = 2;
   } else {
     // Try to parse as number
@@ -94,22 +96,24 @@ const renderRequestTypeBadge = (requestTypeRaw) => {
 
   const mapping = {
     1: {
-      text: 'Recruitment',
-      cls: 'bg-blue-50 text-blue-700 border border-blue-200',
+      text: "Recruitment",
+      cls: "bg-blue-50 text-blue-700 border border-blue-200",
     },
     2: {
-      text: 'Promotion',
-      cls: 'bg-purple-50 text-purple-700 border border-purple-200',
+      text: "Promotion",
+      cls: "bg-purple-50 text-purple-700 border border-purple-200",
     },
   };
 
   const preset = mapping[type] || {
     text: requestTypeRaw,
-    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+    cls: "bg-slate-50 text-slate-700 border border-slate-200",
   };
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}
+    >
       {preset.text}
     </span>
   );
@@ -196,9 +200,9 @@ const RequestCampInfo = () => {
       const requestTypeStr = String(data.requestType).trim();
       let requirementId = null;
 
-      if (requestTypeStr.toLowerCase() === 'recruitment') {
+      if (requestTypeStr.toLowerCase() === "recruitment") {
         requirementId = 1;
-      } else if (requestTypeStr.toLowerCase() === 'promotion') {
+      } else if (requestTypeStr.toLowerCase() === "promotion") {
         requirementId = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -213,8 +217,13 @@ const RequestCampInfo = () => {
       setIsLoadingRequirements(true);
       try {
         const response = await getRequirementItems(requirementId);
-        console.log('RequestCampInfo - Requirement Items Response:', response);
-        console.log('RequestCampInfo - Request Type:', requestTypeStr, 'Requirement ID:', requirementId);
+        console.log("RequestCampInfo - Requirement Items Response:", response);
+        console.log(
+          "RequestCampInfo - Request Type:",
+          requestTypeStr,
+          "Requirement ID:",
+          requirementId
+        );
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -224,10 +233,15 @@ const RequestCampInfo = () => {
           if (Array.isArray(response.data)) {
             if (response.data.length > 0) {
               const firstItem = response.data[0];
-              if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+              if (
+                firstItem.requirementItems &&
+                Array.isArray(firstItem.requirementItems)
+              ) {
                 // It's array of objects like [{ requirementId, requirementItems }]
-                items = response.data.flatMap(item =>
-                  Array.isArray(item.requirementItems) ? item.requirementItems : []
+                items = response.data.flatMap((item) =>
+                  Array.isArray(item.requirementItems)
+                    ? item.requirementItems
+                    : []
                 );
               } else if (firstItem.requirementItemId || firstItem.title) {
                 // It's array of requirement items directly
@@ -255,15 +269,21 @@ const RequestCampInfo = () => {
             items = response.data.data;
           }
 
-          console.log('RequestCampInfo - Extracted Requirement Items:', items);
-          console.log('RequestCampInfo - Items count:', items.length);
+          console.log("RequestCampInfo - Extracted Requirement Items:", items);
+          console.log("RequestCampInfo - Items count:", items.length);
           setRequirementItems(items || []);
         } else {
-          console.log('RequestCampInfo - No requirement items found or API failed:', response);
+          console.log(
+            "RequestCampInfo - No requirement items found or API failed:",
+            response
+          );
           setRequirementItems([]);
         }
       } catch (error) {
-        console.error('RequestCampInfo - Error fetching requirement items:', error);
+        console.error(
+          "RequestCampInfo - Error fetching requirement items:",
+          error
+        );
         setRequirementItems([]);
       } finally {
         setIsLoadingRequirements(false);
@@ -282,9 +302,9 @@ const RequestCampInfo = () => {
       const requestTypeStr = String(data.requestType).trim();
       let type = null;
 
-      if (requestTypeStr.toLowerCase() === 'recruitment') {
+      if (requestTypeStr.toLowerCase() === "recruitment") {
         type = 1;
-      } else if (requestTypeStr.toLowerCase() === 'promotion') {
+      } else if (requestTypeStr.toLowerCase() === "promotion") {
         type = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -299,7 +319,7 @@ const RequestCampInfo = () => {
       setIsLoadingRoundTypes(true);
       try {
         const response = await getRoundTypes(type);
-        console.log('RequestCampInfo - Round Types Response:', response);
+        console.log("RequestCampInfo - Round Types Response:", response);
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -311,14 +331,17 @@ const RequestCampInfo = () => {
             types = response.data.data;
           }
 
-          console.log('RequestCampInfo - Extracted Round Types:', types);
+          console.log("RequestCampInfo - Extracted Round Types:", types);
           setRoundTypes(types);
         } else {
-          console.log('RequestCampInfo - No round types found or API failed:', response);
+          console.log(
+            "RequestCampInfo - No round types found or API failed:",
+            response
+          );
           setRoundTypes([]);
         }
       } catch (error) {
-        console.error('RequestCampInfo - Error fetching round types:', error);
+        console.error("RequestCampInfo - Error fetching round types:", error);
         setRoundTypes([]);
       } finally {
         setIsLoadingRoundTypes(false);
@@ -331,8 +354,8 @@ const RequestCampInfo = () => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="py-12 text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
           <p className="mt-4 text-sm text-gray-600">Loading data...</p>
         </div>
       </div>
@@ -342,7 +365,7 @@ const RequestCampInfo = () => {
   if (error && !data) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+        <div className="p-4 border border-red-200 rounded-lg bg-red-50">
           <p className="text-red-800">{error}</p>
         </div>
       </div>
@@ -351,7 +374,7 @@ const RequestCampInfo = () => {
 
   if (!data) {
     return (
-      <div className="p-6 h-64 flex justify-center items-center">
+      <div className="flex items-center justify-center h-64 p-6">
         <p className="text-slate-600">No data available</p>
       </div>
     );
@@ -370,10 +393,13 @@ const RequestCampInfo = () => {
       {/* SECTION */}
       <div className="grid grid-cols-1 gap-5">
         <Section title="Request information">
-          <div className="text-gray-900 font-medium">{data.proposer}</div>
+          <div className="font-medium text-gray-900">{data.proposer}</div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-            <InfoRow label="Request type" value={renderRequestTypeBadge(data.requestType)} />
+          <div className="grid grid-cols-1 gap-5 mt-4 md:grid-cols-2">
+            <InfoRow
+              label="Request type"
+              value={renderRequestTypeBadge(data.requestType)}
+            />
             <InfoRow label="Partner" value={data.partnerName} />
             <InfoRow label="Target quantity" value={data.quantity} />
             <InfoRow label="Created at" value={formatDate(data.createdAt)} />
@@ -389,17 +415,22 @@ const RequestCampInfo = () => {
           {/* Job Requirements */}
           {requirementItems.length > 0 && (
             <div className="mt-6">
-              <div className="mb-3 text-sm font-semibold text-gray-900">📝 Requirements</div>
-              <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+              <div className="mb-3 text-sm font-semibold text-gray-900">
+                📝 Requirements
+              </div>
+              <div className="p-4 border border-green-300 rounded-lg bg-green-50">
                 <ul className="space-y-2">
                   {requirementItems.map((item) => (
-                    <li key={item.requirementItemId} className="flex items-start">
+                    <li
+                      key={item.requirementItemId}
+                      className="flex items-start"
+                    >
                       <span className="mr-2 text-blue-600">•</span>
                       <span className="text-sm text-gray-700">
                         <span className="font-medium">{item.title}</span>
                         {item.description && (
                           <span className="text-gray-600">
-                            {' : '}
+                            {" : "}
                             {item.description}
                           </span>
                         )}
@@ -414,25 +445,25 @@ const RequestCampInfo = () => {
           {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
           <div className="mt-6">
             <div className="mb-3 text-sm font-semibold text-gray-900">
-              🔄{' '}
+              🔄{" "}
               {(() => {
-                const requestTypeStr = String(data.requestType || '')
+                const requestTypeStr = String(data.requestType || "")
                   .trim()
                   .toLowerCase();
-                if (requestTypeStr === 'recruitment') {
-                  return 'Recruitment';
-                } else if (requestTypeStr === 'promotion') {
-                  return 'Promotion';
+                if (requestTypeStr === "recruitment") {
+                  return "Recruitment";
+                } else if (requestTypeStr === "promotion") {
+                  return "Promotion";
                 } else {
                   const parsed = Number(data.requestType);
-                  if (parsed === 1) return 'Recruitment';
-                  if (parsed === 2) return 'Promotion';
-                  return '';
+                  if (parsed === 1) return "Recruitment";
+                  if (parsed === 2) return "Promotion";
+                  return "";
                 }
-              })()}{' '}
-              process
+              })()}{" "}
+              processes
             </div>
-            <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+            <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
               <ProcessTimeline
                 campaignType={data.requestType}
                 roundTypes={roundTypes}
@@ -447,80 +478,82 @@ const RequestCampInfo = () => {
       {(data.status === "Pending" ||
         data.status === "pending_approval" ||
         data.status?.toLowerCase() === "pending") && (
-          <div className="mt-6 flex justify-end gap-4">
-            {/* Reject button */}
-            <button
-              onClick={() => setIsRejectModalOpen(true)}
-              disabled={isRejecting || isApproving}
-              className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+        <div className="flex justify-end gap-4 mt-6">
+          {/* Reject button */}
+          <button
+            onClick={() => setIsRejectModalOpen(true)}
+            disabled={isRejecting || isApproving}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
                             font-medium shadow-md transform
-                            ${isRejecting || isApproving
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
-                }`}
-            >
-              {isRejecting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Rejecting...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  Reject
-                </>
-              )}
-            </button>
+                            ${
+                              isRejecting || isApproving
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
+                            }`}
+          >
+            {isRejecting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+                Rejecting...
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                Reject
+              </>
+            )}
+          </button>
 
-            {/* Approve button */}
-            <button
-              onClick={() => setIsApproveModalOpen(true)}
-              disabled={isApproving || isRejecting}
-              className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+          {/* Approve button */}
+          <button
+            onClick={() => setIsApproveModalOpen(true)}
+            disabled={isApproving || isRejecting}
+            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
                             font-medium shadow-md transform
-                            ${isApproving || isRejecting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
-                }`}
-            >
-              {isApproving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Approving...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  Approve
-                </>
-              )}
-            </button>
-          </div>
-        )}
+                            ${
+                              isApproving || isRejecting
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
+                            }`}
+          >
+            {isApproving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+                Approving...
+              </>
+            ) : (
+              <>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Approve
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Reject modal */}
       <RejectRequestModal
@@ -565,18 +598,20 @@ const RequestCampInfo = () => {
       {/* Approve confirmation modal */}
       {isApproveModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+          <div className="w-full max-w-md mx-4 overflow-hidden bg-white rounded-lg shadow-2xl">
             <div className="px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800">Approve request</h3>
+              <h3 className="text-lg font-semibold text-slate-800">
+                Approve request
+              </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Are you sure you want to approve this request?
               </p>
             </div>
-            <div className="px-6 py-4 flex justify-end gap-3 bg-slate-50">
+            <div className="flex justify-end gap-3 px-6 py-4 bg-slate-50">
               <button
                 type="button"
                 onClick={() => setIsApproveModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 hover:bg-slate-100"
+                className="px-4 py-2 text-sm font-medium border rounded-md border-slate-300 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -586,10 +621,15 @@ const RequestCampInfo = () => {
                 onClick={async () => {
                   setIsApproving(true);
                   try {
-                    const result = await approveOrRejectCampaignRequest(data.id, 2);
+                    const result = await approveOrRejectCampaignRequest(
+                      data.id,
+                      2
+                    );
                     if (result.success) {
                       toast.success("Request approved successfully");
-                      const refreshResult = await getCampaignRequestById(data.id);
+                      const refreshResult = await getCampaignRequestById(
+                        data.id
+                      );
                       if (refreshResult.success) {
                         const apiData = refreshResult.data;
                         setData({
@@ -604,16 +644,19 @@ const RequestCampInfo = () => {
                     }
                   } catch (err) {
                     console.error("Error approving request:", err);
-                    toast.error("An error occurred while approving the request");
+                    toast.error(
+                      "An error occurred while approving the request"
+                    );
                   } finally {
                     setIsApproving(false);
                     setIsApproveModalOpen(false);
                   }
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isApproving
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-                  }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${
+                  isApproving
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
               >
                 {isApproving ? "Approving..." : "Approve"}
               </button>

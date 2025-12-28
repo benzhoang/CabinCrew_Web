@@ -48,11 +48,11 @@ const TestTypePage = () => {
             .filter(Boolean);
           setItems(mapped);
         } else {
-          setError(res.error || "Không thể tải loại đề thi");
+          setError(res.error || "Cannot load test type");
           setItems([]);
         }
       } catch (err) {
-        setError(err.message || "Không thể tải loại đề thi");
+        setError(err.message || "Cannot load test type");
         setItems([]);
       } finally {
         setIsLoading(false);

@@ -81,7 +81,7 @@ const AdminCampaignDetailPage = () => {
       <div className="flex items-start justify-between mb-4">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-slate-800">
-            {campaignData?.campaignName || ""}
+            {campaignData?.campaignName || "No campaign name"}
           </h1>
         </div>
         <button

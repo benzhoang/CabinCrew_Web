@@ -140,16 +140,16 @@ const BatchDetailPage = () => {
             id: participant.userId || participant.activityId,
             activityId: participant.activityId || 0,
             userId: participant.userId || 0,
-            name: participant.fullName || "",
-            email: participant.email || "",
-            phone: participant.phoneNumber || "",
-            photo: participant.imgURL || "",
+            name: participant.fullName || "No full name",
+            email: participant.email || "No email",
+            phone: participant.phoneNumber || "No phone number",
+            photo: participant.imgURL || "No photo",
             status: participant.status || "pending",
             roundId: participant.roundId || 0,
-            roundName: participant.roundName || "",
+            roundName: participant.roundName || "No round name",
             appliedDate:
               participant.appliedDate || new Date().toISOString().split("T")[0],
-            education: participant.education || "",
+            education: participant.education || "No education",
           }));
           setParticipants(mappedParticipants);
         } else {
@@ -601,7 +601,7 @@ const BatchDetailPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.roundName ||
                       batchData?.batchName ||
-                      "—"}
+                      "No round name"}
                   </p>
                 </div>
                 <div>
@@ -609,7 +609,7 @@ const BatchDetailPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.startDate ||
                       batchData.batch?.time?.split(" - ")[0] ||
-                      "—"}
+                      "No start date"}
                   </p>
                 </div>
                 <div>
@@ -617,23 +617,25 @@ const BatchDetailPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.endDate ||
                       batchData.batch?.time?.split(" - ")[1] ||
-                      "—"}
+                      "No end date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Description:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.description || "—"}
+                    {campaignRoundData?.description || "No description"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Target:</span>
                   <p className="font-medium text-slate-800">
                     {campaignRoundData
-                      ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
-                      }`
-                      : `${batchData.batch?.current || 0}/${batchData.batch?.target || 0
-                      }`}
+                      ? `${campaignRoundData.actualQuantiy || 0}/${
+                          campaignRoundData.targetQuantity || 0
+                        }`
+                      : `${batchData.batch?.current || 0}/${
+                          batchData.batch?.target || 0
+                        }`}
                   </p>
                 </div>
               </div>
@@ -794,8 +796,8 @@ const BatchDetailPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getRoundBadge(
                             applicant.roundId ||
-                            applicant.roundName ||
-                            applicant.round,
+                              applicant.roundName ||
+                              applicant.round,
                             applicant
                           )}
                         </td>
@@ -809,13 +811,13 @@ const BatchDetailPage = () => {
                                 roundFilter === "final"
                                   ? { roundId: "final", roundName: "Final" }
                                   : availableRounds.find(
-                                    (r) =>
-                                      String(r.roundId) ===
-                                      String(roundFilter)
-                                  ) ||
-                                  (availableRounds.length > 0
-                                    ? availableRounds[0]
-                                    : null);
+                                      (r) =>
+                                        String(r.roundId) ===
+                                        String(roundFilter)
+                                    ) ||
+                                    (availableRounds.length > 0
+                                      ? availableRounds[0]
+                                      : null);
 
                               const stageId =
                                 mapRoundToStageId(roundFromFilter, applicant) ||
@@ -840,7 +842,7 @@ const BatchDetailPage = () => {
                                       roundName:
                                         roundFromFilter?.roundName ||
                                         applicant?.roundName ||
-                                        "",
+                                        "No round name",
                                     },
                                   },
                                 }

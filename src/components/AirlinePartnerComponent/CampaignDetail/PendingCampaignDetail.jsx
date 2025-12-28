@@ -152,7 +152,7 @@ const PendingCampaignDetail = ({ campaign }) => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {campaign?.campaignName || "N/A"}
+              {campaign?.campaignName || "No campaign name"}
             </h1>
             <p className="text-slate-600">Campaign is pending approval</p>
           </div>
@@ -192,7 +192,7 @@ const PendingCampaignDetail = ({ campaign }) => {
           <div className="space-y-1">
             <div className="text-sm text-slate-500">Proposal information</div>
             <div className="font-semibold text-slate-800">
-              {campaign?.partnerName || "N/A"}
+              {campaign?.partnerName || "No partner name"}
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ const PendingCampaignDetail = ({ campaign }) => {
                         campaign?.position
                       )}`}
                     >
-                      {campaign?.position || "N/A"}
+                      {campaign?.position || "No position"}
                     </span>
                   </div>
                 </div>
@@ -225,7 +225,7 @@ const PendingCampaignDetail = ({ campaign }) => {
                         campaign?.position
                       )}`}
                     >
-                      {campaign?.position || "N/A"}
+                      {campaign?.position || "No position"}
                     </span>
                   </div>
                 </div>
@@ -236,11 +236,11 @@ const PendingCampaignDetail = ({ campaign }) => {
               />
               <Info
                 label="Start date"
-                value={formatDate2(campaign?.startDate) || "N/A"}
+                value={formatDate2(campaign?.startDate) || "No start date"}
               />
               <Info
                 label="End date"
-                value={formatDate2(campaign?.endDate) || "N/A"}
+                value={formatDate2(campaign?.endDate) || "No end date"}
               />
             </div>
 

@@ -160,7 +160,7 @@ const PendingRequestDetail = ({ request }) => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {request?.campaignName || "N/A"}
+              {request?.campaignName || "No campaign name"}
             </h1>
             <p className="text-slate-600">Request is pending approval</p>
           </div>
@@ -200,33 +200,35 @@ const PendingRequestDetail = ({ request }) => {
           <div className="space-y-1">
             <div className="text-sm text-slate-500">Proposal information</div>
             <div className="font-semibold text-slate-800">
-              {request?.partnerName || "N/A"}
+              {request?.partnerName || "No partner name"}
             </div>
-          </div>
-          <div className="text-xs text-right text-slate-500">
-            Request ID: {request?.requestId || "N/A"}
           </div>
         </div>
 
         <div className="p-5">
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-5 mt-4 md:grid-cols-2">
-              <InfoRow label="Partner" value={request?.partnerName || "N/A"} />
+              <InfoRow
+                label="Partner"
+                value={request?.partnerName || "No partner name"}
+              />
               <InfoRow
                 label="Created date"
-                value={convertDateFormat(request?.createdAt) || "N/A"}
+                value={
+                  convertDateFormat(request?.createdAt) || "No created date"
+                }
               />
               <InfoRow
                 label="Target quantity"
-                value={request?.targetQuantity || "N/A"}
+                value={request?.targetQuantity || "No target quantity"}
               />
               <InfoRow
                 label="Due date"
-                value={formatDate(request?.dueDate) || "N/A"}
+                value={formatDate(request?.dueDate) || "No due date"}
               />
               <InfoRow
                 label="Description"
-                value={request?.description || "N/A"}
+                value={request?.description || "No description"}
               />
             </div>
 
