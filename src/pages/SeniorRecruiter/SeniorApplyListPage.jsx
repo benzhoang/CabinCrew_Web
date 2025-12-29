@@ -123,16 +123,16 @@ const SeniorApplyListPage = () => {
             id: participant.userId || participant.activityId,
             activityId: participant.activityId || 0,
             userId: participant.userId || 0,
-            name: participant.fullName || "",
-            email: participant.email || "",
-            phone: participant.phoneNumber || "",
-            photo: participant.imgURL || "",
+            name: participant.fullName || "No full name",
+            email: participant.email || "No email",
+            phone: participant.phoneNumber || "No phone number",
+            photo: participant.imgURL || "No photo",
             status: participant.status || "pending",
             roundId: participant.roundId || 0,
-            roundName: participant.roundName || "",
+            roundName: participant.roundName || "No round name",
             appliedDate:
               participant.appliedDate || new Date().toISOString().split("T")[0],
-            education: participant.education || "",
+            education: participant.education || "No education",
           }));
           setParticipants(mappedParticipants);
         } else {
@@ -466,25 +466,25 @@ const SeniorApplyListPage = () => {
                 <div>
                   <span className="text-sm text-slate-600">Name:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.roundName || "—"}
+                    {campaignRoundData?.roundName || "No round name"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Start date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.startDate || "—"}
+                    {campaignRoundData?.startDate || "No start date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">End date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.endDate || "—"}
+                    {campaignRoundData?.endDate || "No end date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Description:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.description || "—"}
+                    {campaignRoundData?.description || "No description"}
                   </p>
                 </div>
                 <div>
@@ -494,7 +494,7 @@ const SeniorApplyListPage = () => {
                       ? `${campaignRoundData.actualQuantiy || 0}/${
                           campaignRoundData.targetQuantity || 0
                         }`
-                      : "—"}
+                      : "No target"}
                   </p>
                 </div>
               </div>

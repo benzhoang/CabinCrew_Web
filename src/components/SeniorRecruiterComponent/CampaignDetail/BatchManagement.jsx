@@ -71,7 +71,7 @@ const BatchCard = ({ batch, statusCfg, showStatus }) => {
         )}
       </div>
       <div className="p-4 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini
             label="Start time"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
@@ -218,16 +218,16 @@ const BatchManagement = ({
         round.startDate && round.endDate
           ? `${round.startDate} - ${round.endDate}`
           : undefined,
-      location: round.location || "—",
+      location: round.location || "No location",
       method: round.method || "Direct",
-      owner: round.owner || "—",
+      owner: round.owner || "No owner",
       status:
         statusMap[round.status] || round.status?.toLowerCase() || "planned",
       current: round.actualQuantiy || round.actualQuantity || 0,
       target: round.targetQuantity || 0,
       totalApplicants: round.totalApplicants || 0,
       appliedCandidates: round.actualQuantity || round.actualQuantiy || 0, // Fix: use actualQuantity like ExaminerBatchManage
-      note: round.description || round.note || "",
+      note: round.description || round.note || "No note",
     };
   };
 

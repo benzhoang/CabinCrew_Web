@@ -33,11 +33,12 @@ const ModalForm = ({ isOpen, onClose, onSubmit, roleName = "Recruiter" }) => {
   const [airlinePartners, setAirlinePartners] = useState([]);
   const [isLoadingPartners, setIsLoadingPartners] = useState(false);
 
-  // Calculate maximum date (end of year, 22 years ago from today)
-  // This allows selecting any date within that year but restricts to years with age >= 22
+  // Calculate maximum date (end of year, 18 years ago from today)
+  // This allows selecting dates where age >= 18
+  // For example, if today is 2024, max date is 2006-12-31 (allows selecting any date in 2006 and earlier)
   const getMaxDate = () => {
     const today = new Date();
-    const maxYear = today.getFullYear() - 22;
+    const maxYear = today.getFullYear() - 18;
     // Format as YYYY-MM-DD directly to avoid timezone issues with toISOString()
     return `${maxYear}-12-31`;
   };

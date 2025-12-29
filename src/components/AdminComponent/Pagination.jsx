@@ -57,6 +57,9 @@ const Pagination = ({
   const showLeftEllipsisForEarlyPages =
     currentPage >= 2 && currentPage <= 3 && totalPages > 4;
 
+  // If totalPages <= 7, show all pages (like image 3)
+  const showAllPages = totalPages <= 7;
+
   return (
     <nav className="py-10">
       <ul className="flex items-center justify-center space-x-1">
@@ -71,25 +74,10 @@ const Pagination = ({
           </li>
         )}
 
-        {showFirstPage && (
+        {/* Show all pages if totalPages <= 7 */}
+        {showAllPages && (
           <>
-            <li>
-              <button
-                className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
-                onClick={() => handlePageChange(1)}
-              >
-                1
-              </button>
-            </li>
-            <li>
-              <span className="px-3 py-3 text-sm text-gray-500">...</span>
-            </li>
-          </>
-        )}
-
-        {currentPage === 1 && (
-          <>
-            {pageNumbers.map((page) => (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <li key={page}>
                 <button
                   className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
@@ -104,97 +92,13 @@ const Pagination = ({
                 </button>
               </li>
             ))}
-            {totalPages > 4 && (
-              <>
-                <li>
-                  <span className="px-3 py-3 text-sm text-blue-500">...</span>
-                </li>
-                <li>
-                  <button
-                    className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    {totalPages}
-                  </button>
-                </li>
-              </>
-            )}
           </>
         )}
 
-        {currentPage >= 2 && currentPage <= 3 && !isNearEnd && (
+        {/* Original logic for totalPages > 7 */}
+        {!showAllPages && (
           <>
-            {pageNumbers.map((page) => (
-              <li key={page}>
-                <button
-                  className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
-                    page === currentPage
-                      ? "bg-blue-600 text-white border-gray-600"
-                      : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
-                  }`}
-                  onClick={() => handlePageChange(page)}
-                  disabled={page === currentPage}
-                >
-                  {page}
-                </button>
-              </li>
-            ))}
-            {showLeftEllipsisForEarlyPages && (
-              <>
-                <li>
-                  <span className="px-3 py-3 text-sm text-blue-500">...</span>
-                </li>
-                <li>
-                  <button
-                    className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    {totalPages}
-                  </button>
-                </li>
-              </>
-            )}
-          </>
-        )}
-
-        {currentPage >= 4 && !isNearEnd && (
-          <>
-            {pageNumbers.map((page) => (
-              <li key={page}>
-                <button
-                  className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
-                    page === currentPage
-                      ? "bg-blue-600 text-white border-gray-600"
-                      : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
-                  }`}
-                  onClick={() => handlePageChange(page)}
-                  disabled={page === currentPage}
-                >
-                  {page}
-                </button>
-              </li>
-            ))}
-            {showRightEllipsis && (
-              <>
-                <li>
-                  <span className="px-3 py-3 text-sm text-blue-500">...</span>
-                </li>
-                <li>
-                  <button
-                    className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    {totalPages}
-                  </button>
-                </li>
-              </>
-            )}
-          </>
-        )}
-
-        {isNearEnd && (
-          <>
-            {totalPages > 4 && (
+            {showFirstPage && (
               <>
                 <li>
                   <button
@@ -205,25 +109,158 @@ const Pagination = ({
                   </button>
                 </li>
                 <li>
-                  <span className="px-3 py-3 text-sm text-blue-500">...</span>
+                  <span className="px-3 py-3 text-sm text-gray-500">...</span>
                 </li>
               </>
             )}
-            {pageNumbers.map((page) => (
-              <li key={page}>
-                <button
-                  className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
-                    page === currentPage
-                      ? "bg-blue-600 text-white border-gray-600"
-                      : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
-                  }`}
-                  onClick={() => handlePageChange(page)}
-                  disabled={page === currentPage}
-                >
-                  {page}
-                </button>
-              </li>
-            ))}
+
+            {currentPage === 1 && (
+              <>
+                {pageNumbers.map((page) => (
+                  <li key={page}>
+                    <button
+                      className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
+                        page === currentPage
+                          ? "bg-blue-600 text-white border-gray-600"
+                          : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                      disabled={page === currentPage}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                ))}
+                {totalPages > 4 && (
+                  <>
+                    <li>
+                      <span className="px-3 py-3 text-sm text-blue-500">
+                        ...
+                      </span>
+                    </li>
+                    <li>
+                      <button
+                        className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+              </>
+            )}
+
+            {currentPage >= 2 && currentPage <= 3 && !isNearEnd && (
+              <>
+                {pageNumbers.map((page) => (
+                  <li key={page}>
+                    <button
+                      className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
+                        page === currentPage
+                          ? "bg-blue-600 text-white border-gray-600"
+                          : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                      disabled={page === currentPage}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                ))}
+                {showLeftEllipsisForEarlyPages && (
+                  <>
+                    <li>
+                      <span className="px-3 py-3 text-sm text-blue-500">
+                        ...
+                      </span>
+                    </li>
+                    <li>
+                      <button
+                        className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+              </>
+            )}
+
+            {currentPage >= 4 && !isNearEnd && (
+              <>
+                {pageNumbers.map((page) => (
+                  <li key={page}>
+                    <button
+                      className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
+                        page === currentPage
+                          ? "bg-blue-600 text-white border-gray-600"
+                          : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                      disabled={page === currentPage}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                ))}
+                {showRightEllipsis && (
+                  <>
+                    <li>
+                      <span className="px-3 py-3 text-sm text-blue-500">
+                        ...
+                      </span>
+                    </li>
+                    <li>
+                      <button
+                        className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+              </>
+            )}
+
+            {isNearEnd && (
+              <>
+                {totalPages > 4 && (
+                  <>
+                    <li>
+                      <button
+                        className="px-3 py-3 text-sm text-blue-600 transition-colors duration-200 bg-transparent border border-gray-300 rounded hover:bg-gray-100 hover:text-blue-600"
+                        onClick={() => handlePageChange(1)}
+                      >
+                        1
+                      </button>
+                    </li>
+                    <li>
+                      <span className="px-3 py-3 text-sm text-blue-500">
+                        ...
+                      </span>
+                    </li>
+                  </>
+                )}
+                {pageNumbers.map((page) => (
+                  <li key={page}>
+                    <button
+                      className={`px-3 py-3 text-sm border rounded transition-colors duration-200 ${
+                        page === currentPage
+                          ? "bg-blue-600 text-white border-gray-600"
+                          : "text-blue-600 bg-transparent border-gray-300 hover:bg-gray-100 hover:text-blue-600"
+                      }`}
+                      onClick={() => handlePageChange(page)}
+                      disabled={page === currentPage}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                ))}
+              </>
+            )}
           </>
         )}
 

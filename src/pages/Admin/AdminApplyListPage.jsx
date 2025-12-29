@@ -133,16 +133,16 @@ const AdminApplyListPage = () => {
             id: participant.userId || participant.activityId,
             activityId: participant.activityId || 0,
             userId: participant.userId || 0,
-            name: participant.fullName || "",
-            email: participant.email || "",
-            phone: participant.phoneNumber || "",
-            photo: participant.imgURL || "",
+            name: participant.fullName || "No full name",
+            email: participant.email || "No email",
+            phone: participant.phoneNumber || "No phone number",
+            photo: participant.imgURL || "No photo",
             status: participant.status || "pending",
             roundId: participant.roundId || 0,
-            roundName: participant.roundName || "",
+            roundName: participant.roundName || "No round name",
             appliedDate:
               participant.appliedDate || new Date().toISOString().split("T")[0],
-            education: participant.education || "",
+            education: participant.education || "No education",
           }));
           setParticipants(mappedParticipants);
         } else {
@@ -480,7 +480,7 @@ const AdminApplyListPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.roundName ||
                       batchData?.batchName ||
-                      "—"}
+                      "No round name"}
                   </p>
                 </div>
                 <div>
@@ -488,7 +488,7 @@ const AdminApplyListPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.startDate ||
                       batchData.batch?.time?.split(" - ")[0] ||
-                      "—"}
+                      "No start date"}
                   </p>
                 </div>
                 <div>
@@ -496,13 +496,13 @@ const AdminApplyListPage = () => {
                   <p className="font-medium text-slate-800">
                     {campaignRoundData?.endDate ||
                       batchData.batch?.time?.split(" - ")[1] ||
-                      "—"}
+                      "No end date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Description:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.description || "—"}
+                    {campaignRoundData?.description || "No description"}
                   </p>
                 </div>
                 <div>

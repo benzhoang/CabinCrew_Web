@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa';
-import { FiLoader, FiTrash2, FiExternalLink } from 'react-icons/fi';
-import { updateTest, getTestById } from '../../service/api';
+import { useState, useEffect } from "react";
+import { FaTimes } from "react-icons/fa";
+import { FiLoader, FiTrash2, FiExternalLink } from "react-icons/fi";
+import { updateTest, getTestById } from "../../service/api";
 
 const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   const [formData, setFormData] = useState({
-    testName: '',
-    purpose: '',
-    testType: '',
-    maxScore: '',
-    durationInMinutes: '',
+    testName: "",
+    purpose: "",
+    testType: "",
+    maxScore: "",
+    durationInMinutes: "",
     audioFile: null,
-    audioFileName: ''
+    audioFileName: "",
   });
   const [currentAudioFileURL, setCurrentAudioFileURL] = useState(null);
   const [shouldDeleteAudio, setShouldDeleteAudio] = useState(false);
@@ -28,23 +28,23 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     try {
       const response = await getTestById(id);
       if (!response.success || !response.data) {
-        throw new Error(response.error || 'Unable to load test detail');
+        throw new Error(response.error || "Unable to load test detail");
       }
       const data = response.data || {};
 
       setFormData({
-        testName: data.testName || '',
-        purpose: data.purpose || '',
-        testType: data.testType || '',
-        maxScore: data.maxScore || '',
-        durationInMinutes: data.durationInMinutes || '',
+        testName: data.testName || "",
+        purpose: data.purpose || "",
+        testType: data.testType || "",
+        maxScore: data.maxScore || "",
+        durationInMinutes: data.durationInMinutes || "",
         audioFile: null,
-        audioFileName: ''
+        audioFileName: "",
       });
       setCurrentAudioFileURL(data.audioFileURL || null);
       setShouldDeleteAudio(false);
     } catch (err) {
-      setError(err.message || 'Unable to load test detail');
+      setError(err.message || "Unable to load test detail");
     } finally {
       setIsFetching(false);
     }
@@ -61,13 +61,13 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   useEffect(() => {
     if (!isOpen) {
       setFormData({
-        testName: '',
-        purpose: '',
-        testType: '',
-        maxScore: '',
-        durationInMinutes: '',
+        testName: "",
+        purpose: "",
+        testType: "",
+        maxScore: "",
+        durationInMinutes: "",
         audioFile: null,
-        audioFileName: ''
+        audioFileName: "",
       });
       setCurrentAudioFileURL(null);
       setShouldDeleteAudio(false);
@@ -79,19 +79,19 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         audioFile: file,
-        audioFileName: file.name
+        audioFileName: file.name,
       }));
       // When a new file is selected, unmark deletion of the old file
       setShouldDeleteAudio(false);
@@ -104,21 +104,27 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     // Reset file input
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) {
-      fileInput.value = '';
+      fileInput.value = "";
     }
   };
 
   const normalizeTestType = (value) => {
     if (value === undefined || value === null) return null;
     // Nếu backend trả về số, giữ nguyên
-    if (typeof value === 'number') return value;
-    if (typeof value === 'string') {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
       // Chuẩn hoá bỏ khoảng trắng và lower-case để tránh lỗi "The value '' is invalid."
       const v = value.trim().toLowerCase();
-      const compact = v.replace(/\s+/g, '');
-      if (compact === 'englishlistening' || compact === 'listening' || v === '1') return 1;
-      if (compact === 'englishspeaking' || compact === 'speaking' || v === '2') return 2;
-      if (compact === 'practical' || v === '3') return 3;
+      const compact = v.replace(/\s+/g, "");
+      if (
+        compact === "englishlistening" ||
+        compact === "listening" ||
+        v === "1"
+      )
+        return 1;
+      if (compact === "englishspeaking" || compact === "speaking" || v === "2")
+        return 2;
+      if (compact === "practical" || v === "3") return 3;
       // Nếu không khớp, thử parse number
       const parsed = Number(value);
       if (!Number.isNaN(parsed)) return parsed;
@@ -128,17 +134,17 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
   const isListeningType = (value) => {
     if (value === undefined || value === null) return false;
-    if (typeof value === 'number') return value === 1;
-    if (typeof value === 'string') {
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "string") {
       const v = value.trim().toLowerCase();
-      const compact = v.replace(/\s+/g, '');
+      const compact = v.replace(/\s+/g, "");
       // handle variants: "EnglishListening", "English Listening", "Listening"
       return (
-        v === '1' ||
-        compact === 'englishlistening' ||
-        v === 'english listening' ||
-        v === 'listening' ||
-        v.includes('listening')
+        v === "1" ||
+        compact === "englishlistening" ||
+        v === "english listening" ||
+        v === "listening" ||
+        v.includes("listening")
       );
     }
     return false;
@@ -148,7 +154,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
     e.preventDefault();
 
     if (!testData || !testData.id) {
-      setError('Test ID not found');
+      setError("Test ID not found");
       return;
     }
 
@@ -168,14 +174,14 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         maxScore: formData.maxScore,
         durationInMinutes: formData.durationInMinutes,
         shouldDeleteAudio: shouldDeleteAudio,
-        ...(formData.audioFile && { audioFile: formData.audioFile })
+        ...(formData.audioFile && { audioFile: formData.audioFile }),
       };
 
       const response = await updateTest(testData.id, submitData);
 
       if (response.success) {
         // Display success message
-        setSuccessMessage(response.message || 'Test updated successfully');
+        setSuccessMessage(response.message || "Test updated successfully");
         // Call onSave callback with new data from response (including updated audioFileURL)
         if (onSave) {
           onSave(formData, response.data);
@@ -186,17 +192,18 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
         }, 1500);
       } else {
         // Display specific error from API response
-        setError(response.error || 'Unable to update test');
+        setError(response.error || "Unable to update test");
       }
     } catch (err) {
       // Handle error from exception (network error, etc.)
-      const errorMessage = err.response?.data?.errorMessage ||
+      const errorMessage =
+        err.response?.data?.errorMessage ||
         err.response?.data?.message ||
         (Array.isArray(err.response?.data?.errors)
-          ? err.response.data.errors.join('. ')
+          ? err.response.data.errors.join(". ")
           : null) ||
         err.message ||
-        'An error occurred while updating the test';
+        "An error occurred while updating the test";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -206,41 +213,40 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-fadeIn">
-
         {/* HEADER */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">Edit Test</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Đóng"
+            className="p-2 transition-colors rounded-full hover:bg-gray-100"
+            aria-label="Close"
           >
             <FaTimes className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
         {/* FORM CONTENT */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
-
+        <form onSubmit={handleSubmit} className="flex-1 p-6 overflow-y-auto">
           {/* SUCCESS MESSAGE */}
           {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-300 rounded-lg">
-              <p className="text-sm font-medium text-green-700">{successMessage}</p>
+            <div className="p-4 mb-4 border border-green-300 rounded-lg bg-green-50">
+              <p className="text-sm font-medium text-green-700">
+                {successMessage}
+              </p>
             </div>
           )}
 
           {/* ERROR MESSAGE */}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-300 rounded-lg">
+            <div className="p-4 mb-4 border border-red-300 rounded-lg bg-red-50">
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           {/* GRID 2 CỘT */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Test Name */}
             <div className="flex flex-col">
               <label className="mb-2 text-sm font-medium text-gray-700">
@@ -267,7 +273,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                 name="testType"
                 value={formData.testType}
                 readOnly
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
+                className="px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-lg"
               />
             </div>
 
@@ -304,7 +310,6 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                 placeholder="Enter duration (minutes)"
               />
             </div>
-
           </div>
 
           {/* PURPOSE (Full width) */}
@@ -318,7 +323,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
               onChange={handleInputChange}
               required
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Enter test purpose"
             />
           </div>
@@ -332,14 +337,14 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
               {/* Display current file if available */}
               {currentAudioFileURL && !shouldDeleteAudio && (
-                <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <FiExternalLink className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <div className="flex items-center justify-between p-3 mb-3 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center flex-1 min-w-0 gap-3">
+                    <FiExternalLink className="flex-shrink-0 w-5 h-5 text-gray-500" />
                     <a
                       href={currentAudioFileURL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-700 hover:underline truncate flex-1"
+                      className="flex-1 text-indigo-600 truncate hover:text-indigo-700 hover:underline"
                     >
                       {currentAudioFileURL}
                     </a>
@@ -347,7 +352,7 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
                   <button
                     type="button"
                     onClick={handleDeleteCurrentAudio}
-                    className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    className="flex-shrink-0 p-2 ml-3 text-red-600 transition-colors rounded-lg hover:bg-red-50"
                     title="Delete file"
                   >
                     <FiTrash2 className="w-5 h-5" />
@@ -365,28 +370,27 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
 
               {/* Display newly selected file */}
               {formData.audioFile && (
-                <p className="text-sm mt-2 text-gray-600">
+                <p className="mt-2 text-sm text-gray-600">
                   New file: {formData.audioFileName}
                 </p>
               )}
 
               {/* Notification when file is marked for deletion */}
               {shouldDeleteAudio && !formData.audioFile && (
-                <p className="text-sm mt-2 text-amber-600">
+                <p className="mt-2 text-sm text-amber-600">
                   The current audio will be removed when saving changes
                 </p>
               )}
             </div>
           )}
-
         </form>
 
         {/* FOOTER */}
-        <div className="p-6 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            className="px-6 py-2 font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             Cancel
           </button>
@@ -394,13 +398,12 @@ const EditTestModal = ({ isOpen, onClose, testData, onSave }) => {
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading && <FiLoader className="w-4 h-4 animate-spin" />}
-            {isLoading ? 'Saving...' : 'Save changes'}
+            {isLoading ? "Saving..." : "Save changes"}
           </button>
         </div>
-
       </div>
     </div>
   );

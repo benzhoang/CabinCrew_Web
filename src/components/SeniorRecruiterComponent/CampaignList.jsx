@@ -262,7 +262,7 @@ const CampaignCard = ({ campaign }) => {
                     campaign.partnerName
                   )}`}
                 >
-                  {campaign.partnerName || "—"}
+                  {campaign.partnerName || "No partner name"}
                 </span>
               </div>
             </div>
@@ -442,13 +442,17 @@ const CampaignList = ({
       const mappedCampaigns = items.map((item) => ({
         id: item.campaignId || item.id || item.campaignID || item.Id,
         title: item.campaignName || item.name || "Campaign name not available",
-        description: item.description || "",
+        description: item.description || "No description",
         startDate: convertDateFormat(item.startDate),
         endDate: convertDateFormat(item.endDate),
         status: mapStatus(item.status),
         campaignType: mapCampaignType(item.campaignType),
-        position: item.position || "",
-        partnerName: item.partnerName || item.airline || item.airlineName || "",
+        position: item.position || "No position",
+        partnerName:
+          item.partnerName ||
+          item.airline ||
+          item.airlineName ||
+          "No partner name",
         progress: { current: 0, total: item.targetQuantity || 0 },
       }));
 
