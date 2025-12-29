@@ -9,6 +9,7 @@ import {
   getRoundTypes,
 } from "../../service/api2";
 import ModalConfirm from "../../components/AirlinePartnerComponent/ModalConfirm";
+import ProcessTimeline from "../../components/ProcessTimelineLogic";
 
 const CreateRecruitmentRequestPage = () => {
   const [formData, setFormData] = useState({
@@ -257,9 +258,8 @@ const CreateRecruitmentRequestPage = () => {
               name="campaignName"
               value={formData.campaignName}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.campaignName ? "border-red-300" : "border-slate-300"
-              }`}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.campaignName ? "border-red-300" : "border-slate-300"
+                }`}
               placeholder="Enter campaign name"
             />
             {errors.campaignName && (
@@ -306,11 +306,10 @@ const CreateRecruitmentRequestPage = () => {
                       value={formData.targetQuantity}
                       onChange={handleInputChange}
                       min="1"
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.targetQuantity
-                          ? "border-red-300"
-                          : "border-slate-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.targetQuantity
+                        ? "border-red-300"
+                        : "border-slate-300"
+                        }`}
                       placeholder="Enter target quantity"
                     />
                     {errors.targetQuantity && (
@@ -344,9 +343,8 @@ const CreateRecruitmentRequestPage = () => {
                       value={formData.dueDate}
                       onChange={handleInputChange}
                       min={new Date().toISOString().split("T")[0]}
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.dueDate ? "border-red-300" : "border-slate-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.dueDate ? "border-red-300" : "border-slate-300"
+                        }`}
                     />
                     {errors.dueDate && (
                       <p className="mt-1 text-sm text-red-600">
@@ -368,9 +366,8 @@ const CreateRecruitmentRequestPage = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                      errors.description ? "border-red-300" : "border-slate-300"
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? "border-red-300" : "border-slate-300"
+                      }`}
                     placeholder="Enter description"
                   />
                   {errors.description && (
@@ -475,33 +472,11 @@ const CreateRecruitmentRequestPage = () => {
                   <div
                     className={`rounded-md border p-4 bg-purple-50 border-purple-300`}
                   >
-                    {isLoadingRoundTypes ? (
-                      <div className="text-sm text-slate-500">
-                        Loading recruitment processes...
-                      </div>
-                    ) : roundTypes.length > 0 ? (
-                      <div className="space-y-3">
-                        {roundTypes.map((roundType, index) => (
-                          <div
-                            key={roundType.roundTypeId}
-                            className="flex items-center p-3 transition-shadow bg-white border rounded-lg shadow-sm border-slate-200 hover:shadow-md"
-                          >
-                            <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 text-sm font-semibold text-blue-600 bg-blue-100 rounded-full">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-slate-800">
-                                {roundType.roundTypeName}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-slate-500">
-                        No recruitment processes available
-                      </div>
-                    )}
+                    <ProcessTimeline
+                      campaignType={formData.requestType}
+                      roundTypes={roundTypes}
+                      isLoading={isLoadingRoundTypes}
+                    />
                   </div>
                   <p className="mt-2 text-xs italic text-slate-500">
                     If you want to change this content, please contact the
@@ -527,11 +502,10 @@ const CreateRecruitmentRequestPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
-                    isSubmitting
-                      ? "bg-slate-400 cursor-not-allowed text-white"
-                      : "bg-red-600 hover:bg-red-700 text-white"
-                  }`}
+                  className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${isSubmitting
+                    ? "bg-slate-400 cursor-not-allowed text-white"
+                    : "bg-red-600 hover:bg-red-700 text-white"
+                    }`}
                 >
                   {isSubmitting ? "Creating..." : "Create request"}
                 </button>

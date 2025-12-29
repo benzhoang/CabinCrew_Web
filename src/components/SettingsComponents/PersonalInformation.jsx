@@ -114,7 +114,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                     name="dateOfBirth"
                                     value={formData.dateOfBirth}
                                     onChange={handleChange}
-                                    max="2003-12-31"
+                                    max="2007-12-31"
                                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'}`}
                                 />
                                 {errors.dateOfBirth && (
