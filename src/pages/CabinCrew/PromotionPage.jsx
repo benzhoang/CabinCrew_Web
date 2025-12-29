@@ -149,7 +149,7 @@ const PromotionPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    pageSize: 1000, // Tăng pageSize để fetch tất cả campaigns ngay từ đầu
+    pageSize: 5, // Tăng pageSize để fetch tất cả campaigns ngay từ đầu
     totalRecords: 0,
     totalPages: 0,
     hasNextPage: false,

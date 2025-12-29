@@ -37,9 +37,9 @@ const PracticalTestReportPage = () => {
 
         // Chọn API theo loại bài test
         let apiFunc = getMyPracticalSessions;
-        if (examType === "Listening") {
+        if (examType === "English Listening") {
           apiFunc = getMyListeningSessions;
-        } else if (examType === "Speaking") {
+        } else if (examType === "English Speaking") {
           apiFunc = getMySpeakingSessions;
         }
 
