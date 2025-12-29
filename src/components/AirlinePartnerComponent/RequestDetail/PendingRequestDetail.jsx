@@ -162,7 +162,6 @@ const PendingRequestDetail = ({ request }) => {
             <h1 className="text-2xl font-bold text-slate-800">
               {request?.campaignName || "No campaign name"}
             </h1>
-            <p className="text-slate-600">Request is pending approval</p>
           </div>
         </div>
 

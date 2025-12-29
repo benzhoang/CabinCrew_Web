@@ -51,8 +51,8 @@ const mapUserData = (users) => {
       user.fullName ||
       user.name ||
       `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-    position: user.position || user.roleName || "N/A",
-    department: user.department || user.departmentName || "N/A",
+    position: user.position || user.roleName || "No position",
+    department: user.department || user.departmentName || "No department",
     count: user.count || 0,
     assignedCampaigns: user.assignedCampaigns || [],
   }));
@@ -439,7 +439,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, campaign }) => {
                             user.assignedCampaigns.length > 0 && (
                               <div>
                                 <p className="mb-1 text-xs font-medium text-slate-600">
-                                  Ngày của những chiến dịch:
+                                  Date of campaigns:
                                 </p>
                                 <div className="space-y-0.5">
                                   {user.assignedCampaigns.map(

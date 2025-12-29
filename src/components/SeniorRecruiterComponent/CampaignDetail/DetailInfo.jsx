@@ -133,9 +133,9 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
         <div className="space-y-1">
-          <div className="text-sm text-slate-500">Proposal information</div>
+          <div className="text-sm text-slate-500">Campaign information</div>
           <div className="font-semibold text-slate-800">
-            {campaign?.partnerName || "N/A"}
+            {campaign?.partnerName || "No partner name"}
           </div>
         </div>
       </div>
@@ -153,7 +153,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
                       campaign?.position
                     )}`}
                   >
-                    {campaign?.position || "N/A"}
+                    {campaign?.position || "No position"}
                   </span>
                 </div>
               </div>
@@ -168,7 +168,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
                       campaign?.position
                     )}`}
                   >
-                    {campaign?.position || "N/A"}
+                    {campaign?.position || "No position"}
                   </span>
                 </div>
               </div>
@@ -181,11 +181,11 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
             />
             <Info
               label="Start date"
-              value={formatDate2(campaign?.startDate) || "N/A"}
+              value={formatDate2(campaign?.startDate) || "No start date"}
             />
             <Info
               label="End date"
-              value={formatDate2(campaign?.endDate) || "N/A"}
+              value={formatDate2(campaign?.endDate) || "No end date"}
             />
           </div>
 
