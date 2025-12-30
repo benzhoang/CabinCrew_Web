@@ -88,8 +88,8 @@ const PracticalTestReportPage = () => {
                 (examType === "Listening"
                   ? "English Listening"
                   : examType === "Speaking"
-                    ? "English Speaking"
-                    : "Practical"),
+                  ? "English Speaking"
+                  : "Practical"),
               testId: selectedSession.testId || testId || 0,
             },
             startTime: selectedSession.startTime,
@@ -142,10 +142,10 @@ const PracticalTestReportPage = () => {
   // Nếu đang loading, hiển thị loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen py-8 bg-gray-50">
+        <div className="max-w-4xl px-4 mx-auto">
+          <div className="py-12 text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <p className="mt-4 text-sm text-gray-600">
               {t("loading") || t("loading_data") || "Loading..."}
             </p>
@@ -187,6 +187,23 @@ const PracticalTestReportPage = () => {
   const status = apiData?.status;
   const isPassedOrFailed = apiData?.isPassedOrFailed;
   const canRequestEnquiry = apiData?.canRequestEnquiry;
+
+  // Xác định màu cho test type giống logic trong ScoreReportPage.jsx
+  let testTypeClass = "bg-blue-100 text-blue-800";
+  const rawTestType = finalTestType;
+  if (
+    rawTestType === "English Listening" ||
+    rawTestType === "EnglishListening"
+  ) {
+    testTypeClass = "bg-blue-100 text-blue-800";
+  } else if (
+    rawTestType === "English Speaking" ||
+    rawTestType === "EnglishSpeaking"
+  ) {
+    testTypeClass = "bg-purple-100 text-purple-800";
+  } else if (rawTestType === "Practical") {
+    testTypeClass = "bg-green-100 text-green-800";
+  }
 
   // Logic hiển thị / khóa nút phúc khảo:
   // status = true  -> mở
@@ -297,9 +314,11 @@ const PracticalTestReportPage = () => {
                         <label className="block mb-1 text-xs font-medium text-gray-500">
                           {t("test_type") || "Test type"}
                         </label>
-                        <p className="text-base font-semibold text-gray-800">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${testTypeClass}`}
+                        >
                           {finalTestType}
-                        </p>
+                        </span>
                       </div>
                     )}
                   </div>

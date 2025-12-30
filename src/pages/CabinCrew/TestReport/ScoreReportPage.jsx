@@ -151,10 +151,10 @@ const ScoreReportPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="min-h-screen py-8 bg-gray-50">
+        <div className="max-w-6xl px-4 mx-auto sm:px-6 lg:px-8">
+          <div className="py-12 text-center">
+            <div className="w-12 h-12 mx-auto border-b-2 border-blue-600 rounded-full animate-spin"></div>
             <p className="mt-4 text-gray-600">Loading test list...</p>
           </div>
         </div>
@@ -168,9 +168,9 @@ const ScoreReportPage = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
-            View test scores
+            Score Report
           </h1>
-          <p className="text-gray-600">View your test scores</p>
+          <p className="text-gray-600">View your score report</p>
         </div>
 
         {error && !isEmptyState && (
