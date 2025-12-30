@@ -68,7 +68,7 @@ const SpeakingReport = () => {
                         startTime: selectedSession.startTime,
                         endTime: selectedSession.endTime,
                         testName: selectedSession.testName || examName || "",
-                        testType: selectedSession.testType || examType || "EnglishSpeaking",
+                        testType: selectedSession.testType || examType || "English Speaking",
                         totalScore: selectedSession.totalScore !== undefined && selectedSession.totalScore !== null
                             ? selectedSession.totalScore
                             : (score !== undefined && score !== null ? score : null),
@@ -117,6 +117,7 @@ const SpeakingReport = () => {
     const finalStartTime = sessionData?.startTime || "";
     const finalEndTime = sessionData?.endTime || "";
     const finalTestName = sessionData?.testName || "";
+    const finalTestType = sessionData?.testType || "";
     const finalTotalScore = sessionData?.totalScore;
     const finalMaxScore = sessionData?.maxScore || 0;
     const totalAnswers = sessionData?.totalAnswers || 0;
@@ -265,7 +266,7 @@ const SpeakingReport = () => {
                             )}
 
                             {/* Test Info Section */}
-                            {finalTestName && (
+                            {(finalTestName || finalTestType) && (
                                 <div className="border-t border-gray-200 pt-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {finalTestName && (
@@ -279,7 +280,21 @@ const SpeakingReport = () => {
                                             </div>
                                         )}
 
-                                        {finalMaxScore !== undefined && finalMaxScore !== null && (
+                                        {finalTestType && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                                    {t("test_type") || "Loại bài thi"}
+                                                </label>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${finalTestType === 'English Listening'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-purple-100 text-purple-800'
+                                                    }`}>
+                                                    {finalTestType}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {/* {finalMaxScore !== undefined && finalMaxScore !== null && (
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                                     {t("max_score") || "Điểm tối đa"}
@@ -288,7 +303,7 @@ const SpeakingReport = () => {
                                                     {finalMaxScore}
                                                 </p>
                                             </div>
-                                        )}
+                                        )} */}
                                     </div>
                                 </div>
                             )}

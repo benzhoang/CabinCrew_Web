@@ -8,7 +8,7 @@ const ExamResultPage = () => {
     const { examType } = location.state || {};
 
     // Route đến component phù hợp dựa trên examType
-    if (examType === 'Speaking') {
+    if (examType === 'English Speaking') {
         return <SpeakingExamResult />;
     }
 

@@ -307,7 +307,7 @@ const AudioRecorder = ({ questionId, existingRecording, onRecordingComplete, onD
                             <p className="text-sm text-gray-600 mt-1">
                                 {t('recording_attempts_info') || `Lần ghi: ${recordingCount}/${MAX_RECORDINGS}`}
                                 {recordingCount < MAX_RECORDINGS && !isSubmitted && (
-                                    <span className="text-blue-600"> ({MAX_RECORDINGS - recordingCount} lần còn lại)</span>
+                                    <span className="text-blue-600"> ({MAX_RECORDINGS - recordingCount} {t('attempts_remaining') || 'attempts remaining'})</span>
                                 )}
                             </p>
                         </div>
