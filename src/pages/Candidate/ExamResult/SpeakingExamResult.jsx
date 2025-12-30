@@ -232,8 +232,11 @@ const SpeakingExamResult = () => {
 
                                         <div className="flex justify-center md:justify-end w-full md:w-auto">
                                             <div className="inline-block p-6 rounded-full bg-blue-100">
-                                                <div className="text-4xl font-bold text-blue-600">
+                                                <div className="text-4xl font-bold text-blue-600 text-center">
                                                     {recordedCount || 0}/{totalQuestions || 0}
+                                                </div>
+                                                <div className="text-xs font-medium text-blue-700 mt-1 text-center">
+                                                    {t("submitted_recordings") || "Submitted Recordings"}
                                                 </div>
                                             </div>
                                         </div>
@@ -261,13 +264,16 @@ const SpeakingExamResult = () => {
                                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                                     {t("test_type") || "Loại bài thi"}
                                                 </label>
-                                                <p className="text-base font-semibold text-gray-800">
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${sessionData.testType === 'English Listening'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-purple-100 text-purple-800'
+                                                    }`}>
                                                     {sessionData.testType}
-                                                </p>
+                                                </span>
                                             </div>
                                         )}
 
-                                        {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
+                                        {/* {sessionData.maxScore !== undefined && sessionData.maxScore !== null && (
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                                     {t("max_score") || "Điểm tối đa"}
@@ -276,7 +282,7 @@ const SpeakingExamResult = () => {
                                                     {sessionData.maxScore}
                                                 </p>
                                             </div>
-                                        )}
+                                        )} */}
                                     </div>
                                 </div>
                             )}

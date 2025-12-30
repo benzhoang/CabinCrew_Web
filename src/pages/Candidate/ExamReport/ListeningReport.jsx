@@ -161,6 +161,25 @@ const ListeningReport = () => {
     const finalStartTime = apiData?.startTime || "";
     const finalEndTime = apiData?.endTime || "";
 
+    // Hàm tính toán màu dựa trên điểm số
+    const getScoreColor = (totalScore, maxScore) => {
+        if (maxScore <= 0) return 'blue'; // Default nếu không có maxScore
+
+        const percentage = (totalScore / maxScore) * 100;
+
+        if (percentage === 100) {
+            return 'green'; // 100/100: màu xanh lá
+        } else if (percentage >= 80 && percentage < 100) {
+            return 'blue'; // 80-90: màu xanh dương
+        } else {
+            return 'red'; // Dưới 80: màu đỏ
+        }
+    };
+
+    const scoreColor = getScoreColor(finalTotalScore, finalMaxScore);
+    const scoreBgColor = scoreColor === 'green' ? 'bg-green-100' : scoreColor === 'blue' ? 'bg-blue-100' : 'bg-red-100';
+    const scoreTextColor = scoreColor === 'green' ? 'text-green-600' : scoreColor === 'blue' ? 'text-blue-600' : 'text-red-600';
+
     // Lấy các giá trị cho điều kiện hiển thị nút phúc khảo
     const status = apiData?.status === true;
     const isPassedOrFailed = apiData?.isPassedOrFailed === true;
@@ -232,8 +251,8 @@ const ListeningReport = () => {
                                     </div>
 
                                     <div className="flex justify-center md:justify-end w-full md:w-auto">
-                                        <div className="inline-block p-6 rounded-full bg-blue-100">
-                                            <div className="text-4xl font-bold text-blue-600">
+                                        <div className={`inline-block p-6 rounded-full ${scoreBgColor}`}>
+                                            <div className={`text-4xl font-bold ${scoreTextColor}`}>
                                                 {finalMaxScore > 0
                                                     ? `${finalTotalScore}/${finalMaxScore}`
                                                     : `${finalTotalScore}`
@@ -264,9 +283,12 @@ const ListeningReport = () => {
                                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                                     {t("test_type") || "Loại bài thi"}
                                                 </label>
-                                                <p className="text-base font-semibold text-gray-800">
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${finalTestType === 'English Listening'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-purple-100 text-purple-800'
+                                                    }`}>
                                                     {finalTestType}
-                                                </p>
+                                                </span>
                                             </div>
                                         )}
                                     </div>

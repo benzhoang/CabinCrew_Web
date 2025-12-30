@@ -345,6 +345,8 @@ const Apply = () => {
                             actualQuantiy: round.actualQuantiy || 0,
                             startDate: round.startDate || '',
                             endDate: round.endDate || '',
+                            screeningStartDate: round.screeningStartDate || '',
+                            screeningEndDate: round.screeningEndDate || '',
                             hasApplied: round.hasApplied || false // Thêm trường hasApplied từ API
                         }
                     }) : [],
@@ -453,6 +455,57 @@ const Apply = () => {
         }
 
         return false
+    }
+
+    // Helper function để parse date từ API format (DD/MM/YYYY HH:mm hoặc DD/MM/YYYY)
+    const parseDateFromAPI = (dateString) => {
+        if (!dateString) return null
+
+        // Nếu là ISO format (YYYY-MM-DD hoặc có T)
+        if (dateString.includes("T") || /^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+            return new Date(dateString)
+        }
+
+        // Nếu là format DD/MM/YYYY HH:mm hoặc DD/MM/YYYY
+        const datePart = dateString.split(" ")[0] // Lấy phần date, bỏ time
+        const parts = datePart.split("/")
+
+        if (parts.length === 3) {
+            const [day, month, year] = parts
+            // Tạo date với format MM/DD/YYYY (JavaScript expect format này)
+            // Hoặc dùng Date constructor với year, month-1, day
+            return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59) // Set time cuối ngày để so sánh chính xác
+        }
+
+        // Fallback: thử parse như bình thường
+        const date = new Date(dateString)
+        if (!Number.isNaN(date.getTime())) {
+            return date
+        }
+
+        return null
+    }
+
+    // Hàm kiểm tra xem có nên hiển thị nút Apply now không (dựa trên screeningEndDate)
+    const shouldShowApplyButton = (batch) => {
+        if (!batch) return false
+
+        // Nếu không có screeningEndDate, hiển thị nút (backward compatibility)
+        if (!batch.screeningEndDate) return true
+
+        // Parse date từ API format
+        const screeningEnd = parseDateFromAPI(batch.screeningEndDate)
+
+        // Nếu không parse được date, hiển thị nút (safety fallback)
+        if (!screeningEnd) return true
+
+        // Kiểm tra xem đã qua screeningEndDate chưa
+        const now = new Date()
+
+        // Nếu đã qua screeningEndDate, không hiển thị nút
+        if (now > screeningEnd) return false
+
+        return true
     }
 
     // Hàm kiểm tra xem campaign có đang diễn ra không
@@ -769,8 +822,10 @@ const Apply = () => {
                                                         <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
                                                             <InfoMini label="Start Date" value={b.startDate ? formatDateFromAPI(b.startDate) : '—'} />
                                                             <InfoMini label="End Date" value={b.endDate ? formatDateFromAPI(b.endDate) : '—'} />
-                                                            {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} candidates`} />}
-                                                            {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} candidates`} />}
+                                                            {b.screeningStartDate && <InfoMini label="Screening Start Date" value={formatDateFromAPI(b.screeningStartDate)} />}
+                                                            {b.screeningEndDate && <InfoMini label="Screening End Date" value={formatDateFromAPI(b.screeningEndDate)} />}
+                                                            {b.slots && <InfoMini label="Recruitment quota" value={`${b.slots} applicants`} />}
+                                                            {b.applied !== undefined && <InfoMini label="Applied" value={`${b.applied} applicants`} />}
                                                             {b.description && (
                                                                 <>
                                                                     <InfoMini label="Description" value={b.description} />
@@ -792,7 +847,7 @@ const Apply = () => {
                                                         )} */}
                                                     </div>
                                                     <div className="px-4 pb-4 pt-0 flex items-center justify-end">
-                                                        {b.status === 'ongoing' && (
+                                                        {b.status === 'ongoing' && shouldShowApplyButton(b) && (
                                                             <button
                                                                 onClick={() => {
                                                                     // Kiểm tra đăng nhập trước khi cho ứng tuyển

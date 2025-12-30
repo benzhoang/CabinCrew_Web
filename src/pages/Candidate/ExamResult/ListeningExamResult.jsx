@@ -278,9 +278,12 @@ const ListeningExamResult = () => {
                                                 <label className="block text-xs font-medium text-gray-500 mb-1">
                                                     {t("test_type") || "Loại bài thi"}
                                                 </label>
-                                                <p className="text-base font-semibold text-gray-800">
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${finalTestType === 'English Listening'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-purple-100 text-purple-800'
+                                                    }`}>
                                                     {finalTestType}
-                                                </p>
+                                                </span>
                                             </div>
                                         )}
                                     </div>
