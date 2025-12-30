@@ -52,6 +52,37 @@ const mapRoundStatus = (status) => {
   return "upcoming";
 };
 
+// Helper function to check if screening period has expired
+const isScreeningExpired = (screeningEndDate) => {
+  if (!screeningEndDate) return false; // If no end date, consider it not expired
+
+  try {
+    // Parse date in format "DD/MM/YYYY HH:mm"
+    const parts = screeningEndDate.split(" ");
+    const datePart = parts[0]; // "DD/MM/YYYY"
+    const timePart = parts[1] || "23:59"; // Default to end of day if no time
+
+    const [day, month, year] = datePart.split("/");
+    const [hours, minutes] = timePart.split(":");
+
+    // Create date object (month is 0-indexed in JS Date)
+    const endDate = new Date(
+      year,
+      month - 1,
+      day,
+      parseInt(hours) || 23,
+      parseInt(minutes) || 59,
+      59
+    );
+    const now = new Date();
+
+    return now > endDate;
+  } catch (error) {
+    console.error("Error parsing screening end date:", error);
+    return false; // On error, don't hide the button
+  }
+};
+
 const mapCampaignData = (apiData = {}, fallbackId) => {
   const rounds = apiData.rounds || apiData.campaignRounds || [];
   return {
@@ -72,28 +103,30 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
     jobRequirement: apiData.jobRequirement,
     batches: Array.isArray(rounds)
       ? rounds.map((round, index) => ({
-        campaignRoundId:
-          round.campaignRoundId || round.id || round.roundId || index,
-        name:
-          round.roundName || round.name || round.round || `Đợt ${index + 1}`,
-        roundName: round.roundName || round.name || "",
-        time: getRoundTime(round.startDate, round.endDate),
-        location: round.location || "",
-        method: round.method || "Trực tiếp",
-        status: mapRoundStatus(round.status),
-        owner: round.owner || "",
-        description: round.description || "",
-        slots: round.targetQuantity || round.slots || 0,
-        targetQuantity: round.targetQuantity || 0,
-        applied:
-          round.actualQuantiy !== undefined
-            ? round.actualQuantiy
-            : round.applied || 0,
-        actualQuantiy: round.actualQuantiy || 0,
-        startDate: round.startDate || "",
-        endDate: round.endDate || "",
-        hasApplied: round.hasApplied || false,
-      }))
+          campaignRoundId:
+            round.campaignRoundId || round.id || round.roundId || index,
+          name:
+            round.roundName || round.name || round.round || `Đợt ${index + 1}`,
+          roundName: round.roundName || round.name || "",
+          time: getRoundTime(round.startDate, round.endDate),
+          location: round.location || "",
+          method: round.method || "Trực tiếp",
+          status: mapRoundStatus(round.status),
+          owner: round.owner || "",
+          description: round.description || "",
+          slots: round.targetQuantity || round.slots || 0,
+          targetQuantity: round.targetQuantity || 0,
+          applied:
+            round.actualQuantiy !== undefined
+              ? round.actualQuantiy
+              : round.applied || 0,
+          actualQuantiy: round.actualQuantiy || 0,
+          startDate: round.startDate || "",
+          endDate: round.endDate || "",
+          hasApplied: round.hasApplied || false,
+          screeningStartDate: round.screeningStartDate || "",
+          screeningEndDate: round.screeningEndDate || "",
+        }))
       : [],
     ...apiData,
   };
@@ -212,7 +245,10 @@ const PromotionApplyPage = () => {
         return;
       }
       const user = JSON.parse(rawUser);
-      const role = (user?.role || "").toString().toLowerCase().replace(/\s+/g, "");
+      const role = (user?.role || "")
+        .toString()
+        .toLowerCase()
+        .replace(/\s+/g, "");
       setIsPurser(role === "purser");
     } catch {
       setIsPurser(false);
@@ -231,7 +267,7 @@ const PromotionApplyPage = () => {
         } else {
           setError(
             response.error ||
-            "Cannot load campaign information, please try again."
+              "Cannot load campaign information, please try again."
           );
         }
       } catch (err) {
@@ -424,10 +460,11 @@ const PromotionApplyPage = () => {
                   </p>
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${isCampaignActive(campaign)
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-700"
-                    }`}
+                  className={`inline-flex items-center rounded-full text-xs font-medium px-2 py-1 ${
+                    isCampaignActive(campaign)
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
                 >
                   {isCampaignActive(campaign) ? "Ongoing" : "Ended"}
                 </span>
@@ -544,12 +581,17 @@ const PromotionApplyPage = () => {
                   </h3>
                   <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
                     {isLoadingRoundTypes ? (
-                      <div className="text-center py-8">
-                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                        <p className="mt-2 text-sm text-slate-500">Loading Process...</p>
+                      <div className="py-8 text-center">
+                        <div className="inline-block w-6 h-6 border-b-2 border-purple-600 rounded-full animate-spin"></div>
+                        <p className="mt-2 text-sm text-slate-500">
+                          Loading Process...
+                        </p>
                       </div>
                     ) : roundTypes.length > 0 ? (
-                      <div className="relative" style={{ height: `${TIMELINE_HEIGHT}px` }}>
+                      <div
+                        className="relative"
+                        style={{ height: `${TIMELINE_HEIGHT}px` }}
+                      >
                         {/* Horizontal progress line */}
                         <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-200">
                           <div
@@ -568,14 +610,17 @@ const PromotionApplyPage = () => {
                               className="flex flex-col items-center"
                             >
                               {/* Stage node */}
-                              <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center bg-purple-500 text-white shadow-md">
-                                <span className="text-sm font-semibold">{index + 1}</span>
+                              <div className="relative z-10 flex items-center justify-center w-12 h-12 text-white bg-purple-500 rounded-full shadow-md">
+                                <span className="text-sm font-semibold">
+                                  {index + 1}
+                                </span>
                               </div>
 
                               {/* Stage info below node */}
                               <div className="mt-3 text-center max-w-24">
                                 <p className="text-xs font-medium text-slate-800">
-                                  {roundType.roundTypeName || `Stage ${index + 1}`}
+                                  {roundType.roundTypeName ||
+                                    `Stage ${index + 1}`}
                                 </p>
                               </div>
                             </div>
@@ -583,8 +628,10 @@ const PromotionApplyPage = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-sm text-slate-500">No processes information available</p>
+                      <div className="py-8 text-center">
+                        <p className="text-sm text-slate-500">
+                          No processes information available
+                        </p>
                       </div>
                     )}
                   </div>
@@ -597,7 +644,7 @@ const PromotionApplyPage = () => {
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {Array.isArray(campaign.batches) &&
-                      campaign.batches.length > 0 ? (
+                    campaign.batches.length > 0 ? (
                       campaign.batches.map((b, i) => (
                         <div
                           key={i}
@@ -608,18 +655,19 @@ const PromotionApplyPage = () => {
                               {b.name}
                             </div>
                             <span
-                              className={`text-xs px-2 py-1 rounded-full ${b.status === "completed"
-                                ? "bg-red-100 text-red-700"
-                                : b.status === "ongoing"
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                b.status === "completed"
+                                  ? "bg-red-100 text-red-700"
+                                  : b.status === "ongoing"
                                   ? "bg-green-100 text-green-700"
                                   : "bg-yellow-100 text-yellow-700"
-                                }`}
+                              }`}
                             >
                               {b.status === "completed"
                                 ? "Ended"
                                 : b.status === "ongoing"
-                                  ? "Ongoing"
-                                  : "Upcoming"}
+                                ? "Ongoing"
+                                : "Upcoming"}
                             </span>
                           </div>
                           <div className="p-4">
@@ -627,12 +675,32 @@ const PromotionApplyPage = () => {
                               <InfoMini
                                 label="Start Date"
                                 value={
-                                  b.startDate ? formatDateFromAPI(b.startDate) : "—"
+                                  b.startDate
+                                    ? formatDateFromAPI(b.startDate)
+                                    : "—"
                                 }
                               />
                               <InfoMini
                                 label="End Date"
-                                value={b.endDate ? formatDateFromAPI(b.endDate) : "—"}
+                                value={
+                                  b.endDate ? formatDateFromAPI(b.endDate) : "—"
+                                }
+                              />
+                              <InfoMini
+                                label="Screening Start Date"
+                                value={
+                                  b.screeningStartDate
+                                    ? formatDateFromAPI(b.screeningStartDate)
+                                    : "—"
+                                }
+                              />
+                              <InfoMini
+                                label="Screening End Date"
+                                value={
+                                  b.screeningEndDate
+                                    ? formatDateFromAPI(b.screeningEndDate)
+                                    : "—"
+                                }
                               />
                               {b.owner && (
                                 <InfoMini label="Owner" value={b.owner} />
@@ -640,13 +708,13 @@ const PromotionApplyPage = () => {
                               {b.slots && (
                                 <InfoMini
                                   label="Promotion quota"
-                                  value={`${b.slots} people`}
+                                  value={`${b.slots} applicants`}
                                 />
                               )}
                               {b.applied !== undefined && (
                                 <InfoMini
                                   label="Applied"
-                                  value={`${b.applied} people`}
+                                  value={`${b.applied} applicants`}
                                 />
                               )}
                               {b.description && (
@@ -658,30 +726,33 @@ const PromotionApplyPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center justify-end px-4 pt-0 pb-4">
-                            {b.status === "ongoing" && (
-                              <button
-                                onClick={() =>
-                                  !b.hasApplied &&
-                                  !isPurser &&
-                                  navigate(
-                                    `/cabin-crew/application-form/${b.campaignRoundId || b.id || ""
-                                    }`,
-                                    {
-                                      state: { campaign: campaign, batch: b },
-                                    }
-                                  )
-                                }
-                                disabled={b.hasApplied || isPurser}
-                                className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${b.hasApplied || isPurser
-                                  ? "bg-gray-400 cursor-not-allowed"
-                                  : "bg-green-600 hover:bg-green-700 cursor-pointer"
+                            {b.status === "ongoing" &&
+                              !isScreeningExpired(b.screeningEndDate) && (
+                                <button
+                                  onClick={() =>
+                                    !b.hasApplied &&
+                                    !isPurser &&
+                                    navigate(
+                                      `/cabin-crew/application-form/${
+                                        b.campaignRoundId || b.id || ""
+                                      }`,
+                                      {
+                                        state: { campaign: campaign, batch: b },
+                                      }
+                                    )
+                                  }
+                                  disabled={b.hasApplied || isPurser}
+                                  className={`px-5 py-2.5 rounded-md text-white text-sm font-semibold ${
+                                    b.hasApplied || isPurser
+                                      ? "bg-gray-400 cursor-not-allowed"
+                                      : "bg-green-600 hover:bg-green-700 cursor-pointer"
                                   }`}
-                              >
-                                {b.hasApplied
-                                  ? "Already applied"
-                                  : "Apply now"}
-                              </button>
-                            )}
+                                >
+                                  {b.hasApplied
+                                    ? "Already applied"
+                                    : "Apply now"}
+                                </button>
+                              )}
                           </div>
                         </div>
                       ))
