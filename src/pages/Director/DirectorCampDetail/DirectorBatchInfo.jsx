@@ -73,13 +73,13 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId, showStatus }) => {
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
-            <InfoMini label="Target" value={batch.target.toString()} />
+            <InfoMini label="Target applicants" value={`${batch.target.toString()} applicants`} />
           )}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
-                label="Actual"
-                value={batch.appliedCandidates?.toString() || "0"}
+                label="Passed applicants"
+                value={`${batch.appliedCandidates?.toString() || "0"} applicants`}
               />
             )}
           {batch.note && <InfoMini label="Description" value={batch.note} />}

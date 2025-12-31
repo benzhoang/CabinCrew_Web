@@ -133,6 +133,29 @@ const ListeningExamResult = () => {
     const safeScore = score !== undefined ? score : (apiData?.score || 0);
     const safeTotalQuestions = totalQuestions || (apiData?.totalQuestions || 0);
 
+    // Hàm tính toán màu dựa trên điểm số
+    const getScoreColor = (totalScore, maxScore) => {
+        if (maxScore <= 0) return 'blue'; // Default nếu không có maxScore
+
+        const percentage = (totalScore / maxScore) * 100;
+
+        if (percentage === 100) {
+            return 'green'; // 100/100: màu xanh lá
+        } else if (percentage >= 80 && percentage < 100) {
+            return 'blue'; // 80-99: màu xanh dương
+        } else {
+            return 'red'; // Dưới 80: màu đỏ
+        }
+    };
+
+    // Tính toán màu sắc cho điểm số
+    // Ưu tiên dùng finalMaxScore, nếu không có thì dùng safeTotalQuestions
+    const effectiveMaxScore = finalMaxScore > 0 ? finalMaxScore : safeTotalQuestions;
+    const effectiveTotalScore = finalMaxScore > 0 ? finalTotalScore : safeScore;
+    const scoreColor = getScoreColor(effectiveTotalScore, effectiveMaxScore);
+    const scoreBgColor = scoreColor === 'green' ? 'bg-green-100' : scoreColor === 'blue' ? 'bg-blue-100' : 'bg-red-100';
+    const scoreTextColor = scoreColor === 'green' ? 'text-green-600' : scoreColor === 'blue' ? 'text-blue-600' : 'text-red-600';
+
     // Debug: Log các giá trị final
     useEffect(() => {
         console.log("Final values:", {
@@ -246,8 +269,8 @@ const ListeningExamResult = () => {
                                     </div>
 
                                     <div className="flex justify-center md:justify-end w-full md:w-auto">
-                                        <div className="inline-block p-6 rounded-full bg-green-100">
-                                            <div className="text-4xl font-bold text-green-600">
+                                        <div className={`inline-block p-6 rounded-full ${scoreBgColor}`}>
+                                            <div className={`text-4xl font-bold ${scoreTextColor}`}>
                                                 {finalMaxScore > 0
                                                     ? `${finalTotalScore}/${finalMaxScore}`
                                                     : `${safeScore}/${safeTotalQuestions}`

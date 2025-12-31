@@ -280,6 +280,20 @@ const ApplicationForm = () => {
     const { name, value } = e.target;
     if (name === "captcha") {
       setCaptchaInput(value);
+    } else if (name === "fullName") {
+      // Validate Full Name: only letters and spaces
+      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: filteredValue,
+      }));
+    } else if (name === "mobileNumber") {
+      // Validate Mobile Number: only digits
+      const filteredValue = value.replace(/\D/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: filteredValue,
+      }));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -389,6 +403,25 @@ const ApplicationForm = () => {
     if (captchaInput.toUpperCase() !== captchaCode) {
       toast.error(t("application_form_captcha_incorrect"));
       // Captcha sẽ tự động refresh trong component
+      return;
+    }
+
+    // Validate Full Name: only letters and spaces
+    if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(formData.fullName.trim())) {
+      toast.error("Full Name can only contain letters and spaces.");
+      return;
+    }
+
+    // Validate Email: must end with @gmail.com
+    if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+      toast.error("Email must be a Gmail address (@gmail.com).");
+      return;
+    }
+
+    // Validate Mobile Number: 10-11 digits
+    const mobileRegex = /^\d{10,11}$/;
+    if (!mobileRegex.test(formData.mobileNumber)) {
+      toast.error("Mobile Number must be 10-11 digits.");
       return;
     }
 
@@ -952,6 +985,7 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">{t('email_helper')}</p>
               </div>
 
               <div>
@@ -966,6 +1000,7 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">{t('fullname_helper')}</p>
               </div>
 
               <div>
@@ -1027,6 +1062,7 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
+                <p className="mt-1 text-xs text-gray-500">{t('mobile_number_helper')}</p>
               </div>
 
               <div>

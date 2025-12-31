@@ -591,7 +591,7 @@ const Apply = () => {
                                     <Info label="Airline" value={campaign.airline || '—'} badgeClass={getAirlineBadgeClass(campaign.airline)} />
                                     <Info label="Start date" value={campaign.startDate ? formatDateFromAPI(campaign.startDate) : '—'} />
                                     <Info label="End date" value={campaign.endDate ? formatDateFromAPI(campaign.endDate) : '—'} />
-                                    <Info label="Target quantity" value={`${campaign.targetHires ?? '—'}`} />
+                                    <Info label="Target quantity" value={campaign.targetHires ? `${campaign.targetHires} applicants` : '—'} />
                                 </div>
 
                                 {/* Job Requirements */}

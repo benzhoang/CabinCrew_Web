@@ -28,6 +28,27 @@ const Signup = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        
+        // Validate Full Name: only letters and spaces
+        if (name === 'fullName') {
+            const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, '');
+            setFormData({
+                ...formData,
+                [name]: filteredValue
+            });
+            return;
+        }
+        
+        // Validate Mobile Number: only digits
+        if (name === 'mobileNumber') {
+            const filteredValue = value.replace(/\D/g, '');
+            setFormData({
+                ...formData,
+                [name]: filteredValue
+            });
+            return;
+        }
+        
         setFormData({
             ...formData,
             [name]: name === 'gender' ? Number(value) : value
@@ -37,6 +58,28 @@ const Signup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+
+        // Validate Full Name: only letters and spaces
+        if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(formData.fullName.trim())) {
+            toast.error('Full Name can only contain letters and spaces.');
+            setIsLoading(false);
+            return;
+        }
+
+        // Validate Email: must end with @gmail.com
+        if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+            toast.error('Email must be a Gmail address (@gmail.com).');
+            setIsLoading(false);
+            return;
+        }
+
+        // Validate Mobile Number: 10-11 digits
+        const mobileRegex = /^\d{10,11}$/;
+        if (!mobileRegex.test(formData.mobileNumber)) {
+            toast.error('Mobile Number must be 10-11 digits.');
+            setIsLoading(false);
+            return;
+        }
 
         // Validate username length (minimum 8 characters)
         if (formData.username.length < 8) {
@@ -165,6 +208,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('fullname_label')}
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{t('fullname_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -209,6 +253,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('mobile_number_placeholder')}
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{t('mobile_number_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -223,6 +268,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('email_placeholder')}
                                     />
+                                    <p className="mt-1 text-xs text-gray-500">{t('email_helper')}</p>
                                 </div>
                             </div>
 

@@ -97,13 +97,13 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
-            <InfoMini label="Target" value={batch.target.toString()} />
+            <InfoMini label="Target applicants" value={`${batch.target.toString()} applicants`} />
           )}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
-                label="Actual"
-                value={batch.appliedCandidates?.toString() || "0"}
+                label="Passed applicants"
+                value={`${batch.appliedCandidates?.toString() || "0"} applicants`}
               />
             )}
           {batch.note && <InfoMini label="Description" value={batch.note} />}
@@ -114,11 +114,10 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              isUpcoming
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+              }`}
             title={
               isUpcoming
                 ? "Cannot view applicant list because batch has not started"
@@ -145,11 +144,10 @@ const BatchCard = ({ batch, statusCfg, percent, campaignId }) => {
           <button
             onClick={handleFinalReview}
             disabled={!isOngoing}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
-              !isOngoing
-                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-                : "bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
-            }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${!isOngoing
+              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+              : "bg-orange-100 hover:bg-orange-200 text-orange-700 hover:text-orange-800"
+              }`}
             title={
               !isOngoing
                 ? "Final Review is only available when the batch is Ongoing"

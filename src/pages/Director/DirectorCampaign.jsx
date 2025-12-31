@@ -208,7 +208,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
 
     return (
         <div className="p-5 bg-white border border-gray-200 rounded-xl">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0 flex-1">
                     <h3 className="text-base font-semibold text-gray-900 truncate">
                         {campaign.name}

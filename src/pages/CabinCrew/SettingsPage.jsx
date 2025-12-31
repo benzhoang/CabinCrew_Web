@@ -540,6 +540,43 @@ const SettingsPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validate Full Name: only letters and spaces
+    if (name === "fullname") {
+      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: filteredValue,
+      }));
+      
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+      return;
+    }
+    
+    // Validate Phone: only digits
+    if (name === "phone") {
+      const filteredValue = value.replace(/\D/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: filteredValue,
+      }));
+      
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
+      }
+      return;
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -603,6 +640,8 @@ const SettingsPage = () => {
 
     if (!formData.fullname.trim()) {
       newErrors.fullname = t("required_field");
+    } else if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(formData.fullname.trim())) {
+      newErrors.fullname = "Full Name can only contain letters and spaces.";
     }
 
     if (!formData.gender) {
@@ -619,14 +658,17 @@ const SettingsPage = () => {
 
     if (!formData.email.trim()) {
       newErrors.email = t("required_field");
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t("invalid_email");
+    } else if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+      newErrors.email = "Email must be a Gmail address (@gmail.com).";
     }
 
     if (!formData.phone.trim()) {
       newErrors.phone = t("required_field");
-    } else if (!/^[0-9+\-\s()]+$/.test(formData.phone)) {
-      newErrors.phone = t("invalid_phone");
+    } else {
+      const mobileRegex = /^\d{10,11}$/;
+      if (!mobileRegex.test(formData.phone)) {
+        newErrors.phone = "Mobile Number must be 10-11 digits.";
+      }
     }
 
     if (!formData.address.trim()) {
