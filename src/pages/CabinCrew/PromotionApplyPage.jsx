@@ -517,7 +517,7 @@ const PromotionApplyPage = () => {
                   />
                   <Info
                     label="Target quantity"
-                    value={`${campaign.targetHires ?? "—"}`}
+                    value={campaign.targetHires ? `${campaign.targetHires} applicants` : "—"}
                   />
                 </div>
 

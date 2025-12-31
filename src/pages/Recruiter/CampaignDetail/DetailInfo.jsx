@@ -531,7 +531,7 @@ const DetailInfo = ({ campaign, onCreateBatch }) => {
       return "";
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
-    return num.toLocaleString("en-US") + " people";
+    return num.toLocaleString("en-US") + " applicants";
   };
 
   // Lấy campaignType từ nhiều field name có thể

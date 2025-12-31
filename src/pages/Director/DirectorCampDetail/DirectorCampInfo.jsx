@@ -498,7 +498,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       return "";
     const num = Number(quantity);
     if (isNaN(num)) return String(quantity);
-    return num.toLocaleString("en-US") + " people";
+    return num.toLocaleString("en-US") + " applicants";
   };
 
   // Get campaignType from multiple possible field names
