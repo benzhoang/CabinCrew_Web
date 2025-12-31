@@ -282,14 +282,14 @@ const ApplicationForm = () => {
       setCaptchaInput(value);
     } else if (name === "fullName") {
       // Validate Full Name: only letters and spaces
-      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, '');
+      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, "");
       setFormData((prev) => ({
         ...prev,
         [name]: filteredValue,
       }));
     } else if (name === "mobileNumber") {
       // Validate Mobile Number: only digits
-      const filteredValue = value.replace(/\D/g, '');
+      const filteredValue = value.replace(/\D/g, "");
       setFormData((prev) => ({
         ...prev,
         [name]: filteredValue,
@@ -413,7 +413,7 @@ const ApplicationForm = () => {
     }
 
     // Validate Email: must end with @gmail.com
-    if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+    if (!formData.email.toLowerCase().endsWith("@gmail.com")) {
       toast.error("Email must be a Gmail address (@gmail.com).");
       return;
     }
@@ -591,14 +591,14 @@ const ApplicationForm = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-            <p className="text-gray-600 mb-4">
+        <div className="max-w-5xl px-4 py-8 mx-auto">
+          <div className="p-10 text-center bg-white border border-gray-200 rounded-xl">
+            <p className="mb-4 text-gray-600">
               {t("application_form_campaign_not_found")}
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
               {t("application_form_go_back")}
             </button>
@@ -612,33 +612,33 @@ const ApplicationForm = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl px-4 py-8 mx-auto">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="px-3 py-2 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700"
+            className="px-3 py-2 text-sm rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700"
           >
             {t("application_form_go_back")}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left Column - Job Details and Document Uploads */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h1 className="text-2xl font-bold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h1 className="mb-4 text-2xl font-bold text-slate-800">
                 {campaign.name}
               </h1>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h3 className="mb-4 text-lg font-semibold text-slate-800">
                 {t("application_form_remember_upload")}
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_application_form_file")} *</span>
                     {files.applicationForm && (
                       <DeleteFileButton
@@ -656,10 +656,10 @@ const ApplicationForm = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -673,7 +673,7 @@ const ApplicationForm = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.applicationForm ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.applicationForm.name}
                             </span>
                           ) : (
@@ -690,7 +690,7 @@ const ApplicationForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_profile_photo")} *</span>
                     {files.profilePhoto && (
                       <DeleteFileButton
@@ -708,10 +708,10 @@ const ApplicationForm = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -725,7 +725,7 @@ const ApplicationForm = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.profilePhoto ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.profilePhoto.name}
                             </span>
                           ) : (
@@ -740,7 +740,7 @@ const ApplicationForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_education_degree")} *</span>
                     {files.educationDegree && (
                       <DeleteFileButton
@@ -758,10 +758,10 @@ const ApplicationForm = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -775,7 +775,7 @@ const ApplicationForm = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.educationDegree ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.educationDegree.name}
                             </span>
                           ) : (
@@ -792,7 +792,7 @@ const ApplicationForm = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span className="flex items-center gap-2">
                       {t("application_form_english_certificate")} *
                       <EyeIcon
@@ -816,10 +816,10 @@ const ApplicationForm = () => {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       required
                     />
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                       <div className="text-center">
                         <svg
-                          className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                          className="w-8 h-8 mx-auto mb-2 text-slate-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -833,7 +833,7 @@ const ApplicationForm = () => {
                         </svg>
                         <p className="text-sm text-slate-600">
                           {files.englishCertificate ? (
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               ✓ {files.englishCertificate.name}
                             </span>
                           ) : (
@@ -851,7 +851,7 @@ const ApplicationForm = () => {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                    <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                       <span>
                         {t("application_form_id_card")} - Front side *
                       </span>
@@ -871,10 +871,10 @@ const ApplicationForm = () => {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         required
                       />
-                      <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                      <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                         <div className="text-center">
                           <svg
-                            className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                            className="w-8 h-8 mx-auto mb-2 text-slate-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -888,7 +888,7 @@ const ApplicationForm = () => {
                           </svg>
                           <p className="text-sm text-slate-600">
                             {files.idCard ? (
-                              <span className="text-green-600 font-medium">
+                              <span className="font-medium text-green-600">
                                 ✓ {files.idCard.name}
                               </span>
                             ) : (
@@ -908,7 +908,7 @@ const ApplicationForm = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between">
+                    <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                       <span>{t("application_form_id_card")} - Back side *</span>
                       {files.idCardBack && (
                         <DeleteFileButton
@@ -926,10 +926,10 @@ const ApplicationForm = () => {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         required
                       />
-                      <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                      <div className="p-4 transition-colors duration-200 border-2 border-dashed rounded-lg border-slate-300 hover:border-blue-400 hover:bg-blue-50">
                         <div className="text-center">
                           <svg
-                            className="mx-auto h-8 w-8 text-slate-400 mb-2"
+                            className="w-8 h-8 mx-auto mb-2 text-slate-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -943,7 +943,7 @@ const ApplicationForm = () => {
                           </svg>
                           <p className="text-sm text-slate-600">
                             {files.idCardBack ? (
-                              <span className="text-green-600 font-medium">
+                              <span className="font-medium text-green-600">
                                 ✓ {files.idCardBack.name}
                               </span>
                             ) : (
@@ -967,14 +967,14 @@ const ApplicationForm = () => {
           </div>
 
           {/* Right Column - Application Form */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">
+          <div className="p-6 bg-white border border-gray-200 rounded-xl">
+            <h2 className="mb-6 text-xl font-bold text-slate-800">
               Application form
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   1. {t("application_form_your_email")}
                 </label>
                 <input
@@ -982,14 +982,16 @@ const ApplicationForm = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('email_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("email_helper")}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   2. {t("application_form_your_fullname")}
                 </label>
                 <input
@@ -997,14 +999,16 @@ const ApplicationForm = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('fullname_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("fullname_helper")}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   3. {t("application_form_date_of_birth")}
                 </label>
                 <input
@@ -1013,13 +1017,13 @@ const ApplicationForm = () => {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   max="2007-12-31"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   4. {t("application_form_gender")}
                 </label>
                 <div className="flex gap-4">
@@ -1051,7 +1055,7 @@ const ApplicationForm = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   5. {t("application_form_mobile_number")}
                 </label>
                 <input
@@ -1059,19 +1063,21 @@ const ApplicationForm = () => {
                   name="mobileNumber"
                   value={formData.mobileNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('mobile_number_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("mobile_number_helper")}
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   6. {t("application_form_height_weight")}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">
+                    <label className="block mb-1 text-xs text-slate-600">
                       {t("application_form_height")}
                     </label>
                     <input
@@ -1080,12 +1086,12 @@ const ApplicationForm = () => {
                       value={formData.height}
                       onChange={handleInputChange}
                       placeholder=""
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-600 mb-1">
+                    <label className="block mb-1 text-xs text-slate-600">
                       {t("application_form_weight")}
                     </label>
                     <input
@@ -1094,21 +1100,21 @@ const ApplicationForm = () => {
                       value={formData.weight}
                       onChange={handleInputChange}
                       placeholder=""
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500">
                   {t("application_form_height_example")}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block mb-2 text-sm font-medium text-slate-700">
                   7. {t("application_form_terms_conditions")}
                 </label>
-                <p className="text-sm text-slate-600 mb-3">
+                <p className="mb-3 text-sm text-slate-600">
                   {t("application_form_acknowledge_data")}{" "}
                   <a href="#" className="text-blue-600 underline">
                     {" "}
@@ -1155,14 +1161,14 @@ const ApplicationForm = () => {
                                     type="button"
                                     onClick={handleSaveDraft}
                                     disabled={isSavingDraft}
-                                    className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
+                                    className="flex-1 px-6 py-3 text-lg font-bold text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                                 >
                                     {isSavingDraft ? 'Saving...' : (t('application_form_save_draft') || 'Save draft')}
                                 </button> */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-md text-lg"
+                  className="flex-1 px-6 py-3 text-lg font-bold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed"
                 >
                   {isSubmitting
                     ? "Submitting..."

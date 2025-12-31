@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { getCampaignById, getRequirementItems, getRoundTypes } from "../../../service/api";
+import {
+  getCampaignById,
+  getRequirementItems,
+  getRoundTypes,
+} from "../../../service/api";
 import DirectorBatchInfo from "./DirectorBatchInfo";
 import ProcessTimeline from "../../../components/ProcessTimelineLogic";
 
@@ -23,43 +27,45 @@ const Section = ({ title, children }) => (
 
 const InfoRow = ({ label, value }) => (
   <div className="flex items-start">
-    <div className="text-sm text-gray-500 shrink-0 mr-3">{label}:</div>
+    <div className="mr-3 text-sm text-gray-500 shrink-0">{label}:</div>
     <div className="text-sm text-gray-900">{value}</div>
   </div>
 );
 
 const renderStatusBadge = (statusRaw) => {
-  const status = String(statusRaw || '').toLowerCase();
+  const status = String(statusRaw || "").toLowerCase();
   const mapping = {
     pending: {
-      text: 'Pending',
-      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+      text: "Pending",
+      cls: "bg-amber-50 text-amber-700 border border-amber-200",
     },
     pending_approval: {
-      text: 'Pending approval',
-      cls: 'bg-amber-50 text-amber-700 border border-amber-200',
+      text: "Pending approval",
+      cls: "bg-amber-50 text-amber-700 border border-amber-200",
     },
     ongoing: {
-      text: 'Ongoing',
-      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      text: "Ongoing",
+      cls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
     approved: {
-      text: 'Approved',
-      cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      text: "Approved",
+      cls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
     rejected: {
-      text: 'Rejected',
-      cls: 'bg-rose-50 text-rose-700 border border-rose-200',
+      text: "Rejected",
+      cls: "bg-rose-50 text-rose-700 border border-rose-200",
     },
   };
 
   const preset = mapping[status] || {
-    text: statusRaw || 'N/A',
-    cls: 'bg-slate-50 text-slate-700 border border-slate-200',
+    text: statusRaw || "N/A",
+    cls: "bg-slate-50 text-slate-700 border border-slate-200",
   };
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${preset.cls}`}
+    >
       {preset.text}
     </span>
   );
@@ -196,7 +202,10 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           }
         } catch (err) {
           console.error("DetailInfo - Error fetching campaign:", err);
-          setError(err.message || "An error occurred while loading campaign information");
+          setError(
+            err.message ||
+              "An error occurred while loading campaign information"
+          );
         } finally {
           setLoading(false);
         }
@@ -265,9 +274,9 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       const campaignTypeStr = String(campaignData.campaignType).trim();
       let requirementId = null;
 
-      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
         requirementId = 1;
-      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
         requirementId = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -282,8 +291,13 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       setIsLoadingRequirements(true);
       try {
         const response = await getRequirementItems(requirementId);
-        console.log('DirectorCampInfo - Requirement Items Response:', response);
-        console.log('DirectorCampInfo - Campaign Type:', campaignTypeStr, 'Requirement ID:', requirementId);
+        console.log("DirectorCampInfo - Requirement Items Response:", response);
+        console.log(
+          "DirectorCampInfo - Campaign Type:",
+          campaignTypeStr,
+          "Requirement ID:",
+          requirementId
+        );
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -293,10 +307,15 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
           if (Array.isArray(response.data)) {
             if (response.data.length > 0) {
               const firstItem = response.data[0];
-              if (firstItem.requirementItems && Array.isArray(firstItem.requirementItems)) {
+              if (
+                firstItem.requirementItems &&
+                Array.isArray(firstItem.requirementItems)
+              ) {
                 // It's array of objects like [{ requirementId, requirementItems }]
-                items = response.data.flatMap(item =>
-                  Array.isArray(item.requirementItems) ? item.requirementItems : []
+                items = response.data.flatMap((item) =>
+                  Array.isArray(item.requirementItems)
+                    ? item.requirementItems
+                    : []
                 );
               } else if (firstItem.requirementItemId || firstItem.title) {
                 // It's array of requirement items directly
@@ -324,15 +343,21 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             items = response.data.data;
           }
 
-          console.log('DirectorCampInfo - Extracted Requirement Items:', items);
-          console.log('DirectorCampInfo - Items count:', items.length);
+          console.log("DirectorCampInfo - Extracted Requirement Items:", items);
+          console.log("DirectorCampInfo - Items count:", items.length);
           setRequirementItems(items || []);
         } else {
-          console.log('DirectorCampInfo - No requirement items found or API failed:', response);
+          console.log(
+            "DirectorCampInfo - No requirement items found or API failed:",
+            response
+          );
           setRequirementItems([]);
         }
       } catch (error) {
-        console.error('DirectorCampInfo - Error fetching requirement items:', error);
+        console.error(
+          "DirectorCampInfo - Error fetching requirement items:",
+          error
+        );
         setRequirementItems([]);
       } finally {
         setIsLoadingRequirements(false);
@@ -351,9 +376,9 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       const campaignTypeStr = String(campaignData.campaignType).trim();
       let type = null;
 
-      if (campaignTypeStr.toLowerCase() === 'recruitment') {
+      if (campaignTypeStr.toLowerCase() === "recruitment") {
         type = 1;
-      } else if (campaignTypeStr.toLowerCase() === 'promotion') {
+      } else if (campaignTypeStr.toLowerCase() === "promotion") {
         type = 2;
       } else {
         // Try to parse as number for backward compatibility
@@ -368,7 +393,7 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
       setIsLoadingRoundTypes(true);
       try {
         const response = await getRoundTypes(type);
-        console.log('DirectorCampInfo - Round Types Response:', response);
+        console.log("DirectorCampInfo - Round Types Response:", response);
 
         if (response.success && response.data) {
           // Handle different response structures
@@ -380,14 +405,17 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             types = response.data.data;
           }
 
-          console.log('DirectorCampInfo - Extracted Round Types:', types);
+          console.log("DirectorCampInfo - Extracted Round Types:", types);
           setRoundTypes(types);
         } else {
-          console.log('DirectorCampInfo - No round types found or API failed:', response);
+          console.log(
+            "DirectorCampInfo - No round types found or API failed:",
+            response
+          );
           setRoundTypes([]);
         }
       } catch (error) {
-        console.error('DirectorCampInfo - Error fetching round types:', error);
+        console.error("DirectorCampInfo - Error fetching round types:", error);
         setRoundTypes([]);
       } finally {
         setIsLoadingRoundTypes(false);
@@ -400,9 +428,11 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   if (loading) {
     return (
       <div className="w-full h-full">
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading campaign information...</p>
+        <div className="py-12 text-center">
+          <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading campaign information...
+          </p>
         </div>
       </div>
     );
@@ -468,7 +498,9 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
   const data = normalizeRoundsData(campaignData);
 
   const showBatchStatus = ["ongoing", "upcoming", "ended"].includes(
-    String(data?.status || "").trim().toLowerCase()
+    String(data?.status || "")
+      .trim()
+      .toLowerCase()
   );
 
   // Format date from API (e.g. "11/12/2025 00:00" or ISO string)
@@ -570,17 +602,22 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             {/* Job Requirements */}
             {requirementItems.length > 0 && (
               <div className="mt-6">
-                <div className="mb-3 text-sm font-semibold text-gray-900">📝 Requirements</div>
-                <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                <div className="mb-3 text-sm font-semibold text-gray-900">
+                  📝 Requirements
+                </div>
+                <div className="p-4 border border-green-300 rounded-lg bg-green-50">
                   <ul className="space-y-2">
                     {requirementItems.map((item) => (
-                      <li key={item.requirementItemId} className="flex items-start">
+                      <li
+                        key={item.requirementItemId}
+                        className="flex items-start"
+                      >
                         <span className="mr-2 text-blue-600">•</span>
                         <span className="text-sm text-gray-700">
                           <span className="font-medium">{item.title}</span>
                           {item.description && (
                             <span className="text-gray-600">
-                              {' : '}
+                              {" : "}
                               {item.description}
                             </span>
                           )}
@@ -595,25 +632,25 @@ const DirectorCampInfo = ({ campaign, onCreateBatch }) => {
             {/* Recruitment/Promotion Process - Dynamic from API (getRoundTypes) */}
             <div className="mt-6">
               <div className="mb-3 text-sm font-semibold text-gray-900">
-                🔄{' '}
+                🔄{" "}
                 {(() => {
-                  const campaignTypeStr = String(data.campaignType || '')
+                  const campaignTypeStr = String(data.campaignType || "")
                     .trim()
                     .toLowerCase();
-                  if (campaignTypeStr === 'recruitment') {
-                    return 'Recruitment';
-                  } else if (campaignTypeStr === 'promotion') {
-                    return 'Promotion';
+                  if (campaignTypeStr === "recruitment") {
+                    return "Recruitment";
+                  } else if (campaignTypeStr === "promotion") {
+                    return "Promotion";
                   } else {
                     const parsed = Number(data.campaignType);
-                    if (parsed === 1) return 'Recruitment';
-                    if (parsed === 2) return 'Promotion';
-                    return '';
+                    if (parsed === 1) return "Recruitment";
+                    if (parsed === 2) return "Promotion";
+                    return "";
                   }
-                })()}{' '}
-                process
+                })()}{" "}
+                processes
               </div>
-              <div className="bg-purple-50 border border-purple-300 rounded-lg p-4">
+              <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
                 <ProcessTimeline
                   campaignType={data.campaignType}
                   roundTypes={roundTypes}

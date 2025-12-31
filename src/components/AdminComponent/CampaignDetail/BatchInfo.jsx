@@ -27,12 +27,18 @@ const BatchCard = ({ batch, statusCfg, onViewApplicants, showStatus }) => {
           <InfoMini label="Start time" value={formatDate2(batch.startDate)} />
           <InfoMini label="End time" value={formatDate2(batch.endDate)} />
           {batch.target !== undefined && batch.target !== null && (
-            <InfoMini label="Target" value={batch.target.toString()} />
+            <InfoMini
+              label="Target applicants"
+              value={batch.target.toString() + " applicants"}
+            />
           )}
           {batch.current !== undefined && batch.current !== null && (
-            <InfoMini label="Actual" value={(batch.current ?? 0).toString()} />
+            <InfoMini
+              label="Passed applicants"
+              value={(batch.current ?? 0).toString() + " applicants"}
+            />
           )}
-          {batch.note && <InfoMini label="Note" value={batch.note} />}
+          {batch.note && <InfoMini label="Description" value={batch.note} />}
         </div>
 
         {/* {(batch.totalApplicants !== undefined ||
