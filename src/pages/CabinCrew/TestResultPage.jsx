@@ -210,13 +210,40 @@ const TestResultPage = () => {
           <div className="space-y-6">
             {/* Điểm số lớn */}
             <div className="text-center">
-              <div className="inline-block p-6 bg-green-100 rounded-full">
-                <div className="text-5xl font-bold text-green-600">
-                  {finalMaxScore > 0
-                    ? `${finalTotalScore}/${finalMaxScore}`
-                    : `${safeScore}/${safeTotalQuestions}`}
-                </div>
-              </div>
+              {(() => {
+                let percentage = 0;
+                if (finalMaxScore > 0) {
+                  percentage = (finalTotalScore / finalMaxScore) * 100;
+                } else if (safeTotalQuestions > 0) {
+                  percentage = (safeScore / safeTotalQuestions) * 100;
+                }
+
+                let bgColorClass = "bg-blue-100";
+                let textColorClass = "text-blue-600";
+
+                if (percentage === 100) {
+                  bgColorClass = "bg-green-100";
+                  textColorClass = "text-green-600";
+                } else if (percentage < 80) {
+                  bgColorClass = "bg-red-100";
+                  textColorClass = "text-red-600";
+                } else {
+                  bgColorClass = "bg-blue-100";
+                  textColorClass = "text-blue-600";
+                }
+
+                return (
+                  <div
+                    className={`inline-block p-6 ${bgColorClass} rounded-full`}
+                  >
+                    <div className={`text-5xl font-bold ${textColorClass}`}>
+                      {finalMaxScore > 0
+                        ? `${finalTotalScore}/${finalMaxScore}`
+                        : `${safeScore}/${safeTotalQuestions}`}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Container chung cho tất cả thông tin */}

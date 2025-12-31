@@ -361,9 +361,9 @@ const PendingCampaignInfo = ({ campaign }) => {
 
       {/* Campaign Information */}
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <div className="space-y-1">
-            <div className="text-sm text-slate-500">Campaign information</div>
+        <div className=" px-5 py-4">
+          <div className="font-semibold text-gray-900">
+            Campaign information
           </div>
         </div>
 
@@ -417,10 +417,10 @@ const PendingCampaignInfo = ({ campaign }) => {
                 />
               )}
               <InfoRow
-                label="Target quantity"
+                label="Target applicants"
                 value={`${
                   campaign?.targetQuantity || campaign?.targetHires || 0
-                } people`}
+                } applicants`}
               />
               <InfoRow
                 label="Start date"

@@ -22,22 +22,181 @@ const getPositionColor = (position) => {
   return "bg-gray-100 text-gray-800 border-gray-300";
 };
 
-const InfoRow = ({ label, value, isPosition = false }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-sm text-gray-500 w-36 shrink-0">{label}</div>
-    {isPosition ? (
-      <div>
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
-            value
-          )}`}
-        >
-          {value || "N/A"}
-        </span>
-      </div>
-    ) : (
-      <div className="text-sm text-gray-900">{value}</div>
-    )}
+// StatusBadge component - matching CampaignList.jsx
+const StatusBadge = ({ status }) => {
+  const getStatusConfig = (status) => {
+    const normalized = (status || "").toString().trim();
+    switch (normalized) {
+      case "Ongoing":
+        return {
+          className: "bg-green-100 text-green-800 border-green-300",
+          text: "Ongoing",
+        };
+      case "Pending":
+        return {
+          className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+          text: "Pending",
+        };
+      case "Approved":
+        return {
+          className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          text: "Approved",
+        };
+      case "Rejected":
+        return {
+          className: "bg-red-100 text-red-700 border-red-200",
+          text: "Rejected",
+        };
+      case "Upcoming":
+        return {
+          className: "bg-purple-100 text-purple-700 border-purple-200",
+          text: "Upcoming",
+        };
+      case "Ended":
+        return {
+          className: "bg-gray-100 text-gray-700 border-gray-200",
+          text: "Ended",
+        };
+      case "Draft":
+        return {
+          className: "bg-slate-100 text-slate-600 border-slate-200",
+          text: "Planning",
+        };
+      case "Canceled":
+      case "Cancelled":
+        return {
+          className: "bg-orange-100 text-orange-700 border-orange-200",
+          text: "Canceled",
+        };
+      case "ongoing":
+        return {
+          className: "bg-green-100 text-green-800 border-green-300",
+          text: "Ongoing",
+        };
+      case "pending":
+        return {
+          className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+          text: "Pending",
+        };
+      case "approved":
+        return {
+          className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          text: "Approved",
+        };
+      case "rejected":
+        return {
+          className: "bg-red-100 text-red-700 border-red-200",
+          text: "Rejected",
+        };
+      case "ended":
+        return {
+          className: "bg-gray-100 text-gray-700 border-gray-200",
+          text: "Ended",
+        };
+      case "canceled":
+      case "cancelled":
+        return {
+          className: "bg-orange-100 text-orange-700 border-orange-200",
+          text: "Canceled",
+        };
+      case "upcoming":
+        return {
+          className: "bg-purple-100 text-purple-700 border-purple-200",
+          text: "Upcoming",
+        };
+      case "draft":
+        return {
+          className: "bg-slate-100 text-slate-600 border-slate-200",
+          text: "Planning",
+        };
+      default:
+        return {
+          className: "bg-gray-100 text-gray-600 border-gray-200",
+          text: normalized || "Unknown",
+        };
+    }
+  };
+
+  const config = getStatusConfig(status);
+
+  return (
+    <span
+      className={`${config.className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+    >
+      {config.text}
+    </span>
+  );
+};
+
+// CampaignTypeBadge component - matching CampaignList.jsx
+const CampaignTypeBadge = ({ type }) => {
+  const getCampaignTypeLabel = (campaignType) => {
+    switch (campaignType?.toLowerCase()) {
+      case "recruitment":
+        return "Recruitment";
+      case "promotion":
+        return "Promotion";
+      default:
+        return campaignType || "Unknown";
+    }
+  };
+
+  const label = getCampaignTypeLabel(type);
+  const className =
+    type?.toLowerCase() === "promotion"
+      ? "bg-purple-100 text-purple-700 border-purple-200"
+      : type?.toLowerCase() === "recruitment"
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
+
+  return (
+    <span
+      className={`${className} inline-block rounded-full border px-2 py-0.5 text-xs font-medium`}
+    >
+      {label}
+    </span>
+  );
+};
+
+// PartnerBadge component - matching CampaignList.jsx
+const PartnerBadge = ({ partnerName }) => {
+  const getPartnerColor = (partnerName) => {
+    if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+    const partner = partnerName.toLowerCase();
+    if (
+      partner.includes("vietnam airlines") ||
+      partner.includes("vietnamairlines")
+    ) {
+      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+      return "bg-red-100 text-red-800 border-red-300";
+    } else if (
+      partner.includes("bamboo") ||
+      partner.includes("bamboo airways")
+    ) {
+      return "bg-green-100 text-green-800 border-green-300";
+    } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+      return "bg-indigo-100 text-indigo-800 border-indigo-300";
+    }
+    return "bg-cyan-100 text-cyan-800 border-cyan-300";
+  };
+
+  return (
+    <span
+      className={`${getPartnerColor(
+        partnerName
+      )} inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap`}
+    >
+      {partnerName || "No partner"}
+    </span>
+  );
+};
+
+const InfoRow = ({ label, value }) => (
+  <div className="flex items-start">
+    <div className="mr-3 text-sm text-slate-600 shrink-0">{label}:</div>
+    <div className="text-sm text-slate-800">{value}</div>
   </div>
 );
 
@@ -532,11 +691,8 @@ const ExaminerCampDetail = ({ campaign }) => {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="mb-2 text-2xl font-bold text-slate-800">
-            {data.campaignName || data.name || ""}
+            {data.campaignName || "No campaign name"}
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {data.description || ""}
-          </p>
         </div>
         <button
           onClick={() => navigate("/examiner/campaigns")}
@@ -548,12 +704,9 @@ const ExaminerCampDetail = ({ campaign }) => {
 
       {/* Main campaign info card - similar layout to Airline CampaignInfo */}
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-          <div className="space-y-1">
-            <div className="text-sm text-slate-500">Information</div>
-            <div className="font-semibold text-slate-800">
-              {data.partnerName || "Partner name not available"}
-            </div>
+        <div className="px-5 py-4">
+          <div className="font-semibold text-gray-900">
+            Campaign information
           </div>
         </div>
 
@@ -561,6 +714,22 @@ const ExaminerCampDetail = ({ campaign }) => {
           <div className="space-y-6">
             {/* Overview grid */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <InfoRow
+                label="Description"
+                value={data.description || "No description"}
+              />
+              <InfoRow
+                label="Campaign Type"
+                value={<CampaignTypeBadge type={data?.campaignType} />}
+              />
+              <InfoRow
+                label="Status"
+                value={<StatusBadge status={data?.status} />}
+              />
+              <InfoRow
+                label="Partner"
+                value={<PartnerBadge partnerName={data?.partnerName} />}
+              />
               {(data?.campaignType?.toLowerCase() === "promotion" ||
                 data?.campaignType === "Promotion" ||
                 data?.campaignType?.toLowerCase() === "recruitment" ||
@@ -568,21 +737,30 @@ const ExaminerCampDetail = ({ campaign }) => {
                 data?.position && (
                   <InfoRow
                     label="Position"
-                    value={data.position}
-                    isPosition={true}
+                    value={
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
+                          data.position
+                        )}`}
+                      >
+                        {data.position || "No position"}
+                      </span>
+                    }
                   />
                 )}
               <InfoRow
-                label="Target quantity"
-                value={formatTargetQuantity(getTargetQuantity())}
+                label="Target applicants"
+                value={`${
+                  formatTargetQuantity(getTargetQuantity()) || 0
+                } applicants`}
               />
               <InfoRow
                 label="Start date"
-                value={formatDateFromAPI(data.startDate) || ""}
+                value={formatDateFromAPI(data.startDate) || "No start date"}
               />
               <InfoRow
                 label="End date"
-                value={formatDateFromAPI(data.endDate) || ""}
+                value={formatDateFromAPI(data.endDate) || "No end date"}
               />
             </div>
 

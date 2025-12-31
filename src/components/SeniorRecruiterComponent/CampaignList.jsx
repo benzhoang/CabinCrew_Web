@@ -228,16 +228,18 @@ const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-5 bg-white border border-gray-200 rounded-xl">
+    <div className="p-6 transition-colors hover:bg-slate-50">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-900 truncate">
-            {campaign.title}
-          </h3>
+          <div className="mb-2">
+            <h4 className="text-lg font-semibold text-slate-800">
+              {campaign.title}
+            </h4>
+          </div>
 
-          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3 lg:grid-cols-6">
             <div>
-              <span className="text-gray-500">Position:</span>
+              <span className="text-sm text-slate-600">Position:</span>
               <div className="mt-1">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
@@ -249,42 +251,46 @@ const CampaignCard = ({ campaign }) => {
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Type:</span>
+              <span className="text-sm text-slate-600">Type:</span>
               <div className="mt-1">
                 <CampaignTypeBadge type={campaign.campaignType} />
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Partner:</span>
+              <span className="text-sm text-slate-600">Partner:</span>
               <div className="mt-1">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
                     campaign.partnerName
                   )}`}
                 >
-                  {campaign.partnerName || "No partner name"}
+                  {campaign.partnerName || "No partner"}
                 </span>
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Status:</span>
+              <span className="text-sm text-slate-600">Status:</span>
               <div className="mt-1">
                 <StatusBadge status={campaign.status} />
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Start date:</span>
-              <p className="mt-1 font-medium text-slate-800">
+              <span className="text-sm text-slate-600">Start Date:</span>
+              <p className="font-medium text-slate-800">
                 {formatDate(campaign.startDate) || "No start date"}
               </p>
             </div>
             <div>
-              <span className="text-gray-500">End date:</span>
-              <p className="mt-1 font-medium text-slate-800">
+              <span className="text-sm text-slate-600">End Date:</span>
+              <p className="font-medium text-slate-800">
                 {formatDate(campaign.endDate) || "No end date"}
               </p>
             </div>
           </div>
+
+          {campaign.description && (
+            <p className="text-sm text-slate-600">{campaign.description}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-2 ml-4">
@@ -298,26 +304,17 @@ const CampaignCard = ({ campaign }) => {
               Create plan
             </button>
           ) : (
-            // ) : campaign.status === "rejected" ? (
-            //   <button className="px-3 py-1 text-sm text-white transition-colors rounded-md bg-amber-600 hover:bg-amber-700">
-            //     Resend
-            //   </button>
-            // ) : (
             <button
               className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
               onClick={() =>
                 navigate(`/senior-recruiter/campaigns/${campaign.id}`)
               }
             >
-              View details
+              View Details
             </button>
           )}
         </div>
       </div>
-
-      {campaign.description && (
-        <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
-      )}
     </div>
   );
 };
@@ -538,29 +535,37 @@ const CampaignList = ({
   // Chỉ hiển thị full loading screen khi là lần đầu load
   if (isInitialLoad && loading) {
     return (
-      <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign list</h2>
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="mb-3 text-lg font-semibold text-slate-800">
+            Campaign List
+          </h3>
+        </div>
         <div className="py-12 text-center">
           <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading data...</p>
+          <p className="mt-4 text-sm text-gray-600">Loading campaign list...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !isInitialLoad) {
     return (
-      <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign list</h2>
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="mb-3 text-lg font-semibold text-slate-800">
+            Campaign List
+          </h3>
+        </div>
         <div className="py-8 text-center">
           <div className="mb-2 text-red-600">{error}</div>
           <button
             onClick={() => {
-              fetchCampaigns(true);
+              fetchCampaigns(pagination.currentPage || 1);
             }}
             className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            Try again
+            Try Again
           </button>
         </div>
       </div>
@@ -568,16 +573,16 @@ const CampaignList = ({
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Campaign list ({pagination.totalRecords || campaigns.length})
-      </h2>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex flex-wrap items-stretch gap-3">
+    <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+      <div className="p-6 border-b border-slate-200">
+        <h3 className="mb-3 text-lg font-semibold text-slate-800">
+          Campaign List ({pagination.totalRecords || campaigns.length})
+        </h3>
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => setSelectedStatus("draft")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "draft"
                 ? "bg-slate-600 text-white border-slate-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -588,7 +593,7 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "pending"
                 ? "bg-yellow-600 text-white border-yellow-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -599,7 +604,7 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "approved"
                 ? "bg-emerald-600 text-white border-emerald-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -610,7 +615,7 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "ongoing"
                 ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -621,10 +626,10 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("upcoming")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "upcoming"
-                ? "bg-purple-600 text-white border-purple-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
             }`}
           >
             Upcoming
@@ -632,10 +637,10 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("ended")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "ended"
-                ? "bg-gray-600 text-white border-gray-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
             }`}
           >
             Ended
@@ -643,10 +648,10 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("rejected")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "rejected"
                 ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
             }`}
           >
             Rejected
@@ -654,7 +659,7 @@ const CampaignList = ({
           <button
             type="button"
             onClick={() => setSelectedStatus("cancelled")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "cancelled"
                 ? "bg-orange-600 text-white border-orange-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -664,56 +669,85 @@ const CampaignList = ({
           </button>
         </div>
       </div>
-      {campaigns.length === 0 ? (
-        <div className="py-10 text-center text-gray-500">No data found</div>
-      ) : (
-        <>
-          {campaigns.map((c) => (
-            <CampaignCard key={c.id} campaign={c} />
-          ))}
-        </>
-      )}
 
-      {/* Phân trang - hiển thị khi có data */}
+      <div className="divide-y divide-slate-200">
+        {loading && (
+          <div className="py-8 text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">
+              Loading campaign list...
+            </p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="p-6 text-center text-red-500">{error}</div>
+        )}
+
+        {!loading && !error && campaigns.length === 0 && (
+          <div className="p-6 text-center text-slate-500">
+            No campaigns found
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          campaigns.map((campaign) => (
+            <CampaignCard key={campaign.id} campaign={campaign} />
+          ))}
+      </div>
+
+      {/* Pagination */}
       {pagination.totalRecords > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border rounded-lg border-slate-200">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
           <div className="text-sm text-slate-600">
-            Page <span className="font-semibold">{pagination.currentPage}</span>
+            Page{" "}
+            <span className="font-semibold">{pagination.currentPage || 1}</span>
             {pagination.totalPages ? (
               <>
                 {" "}
                 / <span className="font-semibold">{pagination.totalPages}</span>
               </>
             ) : null}
-            {typeof pagination.totalRecords === "number" && (
-              <span className="ml-2">({pagination.totalRecords} records)</span>
-            )}
+            {typeof pagination.totalRecords === "number" &&
+              pagination.totalRecords > 0 && (
+                <span className="ml-2">
+                  ({pagination.totalRecords} records)
+                </span>
+              )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPreviousPage}
+              disabled={
+                !pagination.hasPreviousPage ||
+                (pagination.currentPage || 1) === 1
+              }
               className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
+                pagination.hasPreviousPage && (pagination.currentPage || 1) > 1
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
             >
-              Previous
+              Prev
             </button>
 
-            <span className="text-sm text-slate-600">
-              {pagination.currentPage}
+            <span className="px-3 py-1 text-sm text-slate-600">
+              {pagination.currentPage || 1}
             </span>
 
             <button
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
+              disabled={
+                !pagination.hasNextPage ||
+                (pagination.currentPage || 1) >= (pagination.totalPages || 1)
+              }
               className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
+                pagination.hasNextPage &&
+                (pagination.currentPage || 1) < (pagination.totalPages || 1)
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}

@@ -283,13 +283,42 @@ const PracticalTestReportPage = () => {
                   </div>
 
                   <div className="flex justify-center w-full md:justify-end md:w-auto">
-                    <div className="inline-block p-6 bg-blue-100 rounded-full">
-                      <div className="text-4xl font-bold text-blue-600">
-                        {finalMaxScore > 0
-                          ? `${finalTotalScore}/${finalMaxScore}`
-                          : `${finalTotalScore}`}
-                      </div>
-                    </div>
+                    {(() => {
+                      const percentage =
+                        finalMaxScore > 0
+                          ? (finalTotalScore / finalMaxScore) * 100
+                          : 0;
+
+                      let bgColorClass = "bg-blue-100";
+                      let textColorClass = "text-blue-600";
+
+                      if (finalMaxScore > 0) {
+                        if (percentage === 100) {
+                          bgColorClass = "bg-green-100";
+                          textColorClass = "text-green-600";
+                        } else if (percentage < 80) {
+                          bgColorClass = "bg-red-100";
+                          textColorClass = "text-red-600";
+                        } else {
+                          bgColorClass = "bg-blue-100";
+                          textColorClass = "text-blue-600";
+                        }
+                      }
+
+                      return (
+                        <div
+                          className={`inline-block p-6 ${bgColorClass} rounded-full`}
+                        >
+                          <div
+                            className={`text-4xl font-bold ${textColorClass}`}
+                          >
+                            {finalMaxScore > 0
+                              ? `${finalTotalScore}/${finalMaxScore}`
+                              : `${finalTotalScore}`}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

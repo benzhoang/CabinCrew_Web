@@ -122,8 +122,8 @@ const CampaignTypeBadge = ({ type }) => {
     type === "promotion"
       ? "bg-purple-100 text-purple-700 border-purple-200"
       : type === "recruitment"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : "bg-gray-100 text-gray-600 border-gray-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-gray-100 text-gray-600 border-gray-200";
 
   return (
     <span
@@ -418,7 +418,7 @@ const CampaignList = ({
               <th className="px-5 py-3 font-semibold w-28">
                 <SortButton
                   field="targetQuantity"
-                  label="Quantity"
+                  label="Applicants"
                   sortField={sortField}
                   sortDirection={sortDirection}
                   onSort={handleSort}

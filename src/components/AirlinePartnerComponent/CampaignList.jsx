@@ -1,15 +1,18 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import { formatDate, convertDateFormat } from "../../config/formatDate.js";
 
 // Helper function to map API status to component status
 const mapStatus = (status) => {
   const statusMap = {
+    Draft: "draft",
     Pending: "pending",
     Approved: "approved",
+    Rejected: "rejected",
     Ongoing: "ongoing",
     Ended: "ended",
+    Cancelled: "cancelled",
     Upcoming: "upcoming",
   };
   return statusMap[status] || status.toLowerCase();
@@ -38,6 +41,21 @@ const mapStatusToCampaignStatus = (status) => {
     ended: 7,
   };
   return statusMap[status?.toLowerCase()] ?? undefined;
+};
+
+// Helper function to map campaignStatus number to status string
+const mapCampaignStatusToStatus = (campaignStatus) => {
+  const statusMap = {
+    0: "draft",
+    1: "pending",
+    2: "approved",
+    3: "rejected",
+    4: "cancelled",
+    5: "ongoing",
+    6: "upcoming",
+    7: "ended",
+  };
+  return statusMap[campaignStatus] ?? "pending";
 };
 
 const StatusBadge = ({ status }) => {
@@ -180,84 +198,127 @@ const getPositionColor = (position) => {
   return "bg-gray-100 text-gray-800 border-gray-300";
 };
 
+// Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
+const getPartnerColor = (partnerName) => {
+  if (!partnerName) return "bg-gray-100 text-gray-800 border-gray-300";
+
+  const partner = partnerName.toLowerCase();
+  if (
+    partner.includes("vietnam airlines") ||
+    partner.includes("vietnamairlines")
+  ) {
+    return "bg-yellow-100 text-yellow-800 border-yellow-300";
+  } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
+    return "bg-red-100 text-red-800 border-red-300";
+  } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
+    return "bg-green-100 text-green-800 border-green-300";
+  } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
+    return "bg-indigo-100 text-indigo-800 border-indigo-300";
+  }
+  return "bg-cyan-100 text-cyan-800 border-cyan-300";
+};
+
 const CampaignCard = ({ campaign }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-5 bg-white border border-gray-200 rounded-xl">
+    <div className="p-6 transition-colors hover:bg-slate-50">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-900 truncate">
-            {campaign.title}
-          </h3>
+          <div className="mb-2">
+            <h4 className="text-lg font-semibold text-slate-800">
+              {campaign.title}
+            </h4>
+          </div>
 
-          <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3 lg:grid-cols-6">
             <div>
-              <span className="text-gray-500">Position:</span>
+              <span className="text-sm text-slate-600">Position:</span>
               <div className="mt-1">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPositionColor(
                     campaign.position
                   )}`}
                 >
-                  {campaign.position || "N/A"}
+                  {campaign.position || "No position"}
                 </span>
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Type:</span>
+              <span className="text-sm text-slate-600">Type:</span>
               <div className="mt-1">
                 <CampaignTypeBadge type={campaign.campaignType} />
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Status:</span>
+              <span className="text-sm text-slate-600">Partner:</span>
+              <div className="mt-1">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPartnerColor(
+                    campaign.partnerName
+                  )}`}
+                >
+                  {campaign.partnerName || "No partner"}
+                </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-sm text-slate-600">Status:</span>
               <div className="mt-1">
                 <StatusBadge status={campaign.status} />
               </div>
             </div>
             <div>
-              <span className="text-gray-500">Start date:</span>
-              <p className="mt-1 font-medium text-slate-800">
+              <span className="text-sm text-slate-600">Start Date:</span>
+              <p className="font-medium text-slate-800">
                 {formatDate(campaign.startDate) || "No start date"}
               </p>
             </div>
             <div>
-              <span className="text-gray-500">End date:</span>
-              <p className="mt-1 font-medium text-slate-800">
+              <span className="text-sm text-slate-600">End Date:</span>
+              <p className="font-medium text-slate-800">
                 {formatDate(campaign.endDate) || "No end date"}
               </p>
             </div>
           </div>
+
+          {campaign.description && (
+            <p className="text-sm text-slate-600">{campaign.description}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-2 ml-4">
           <button
-            className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
             onClick={() =>
               navigate(`/airline-partner/campaigns/${campaign.id}`)
             }
+            className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            View details
+            View Details
           </button>
         </div>
       </div>
-
-      {campaign.description && (
-        <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
-      )}
     </div>
   );
 };
 
 const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
-  const [selectedStatus, setSelectedStatus] = useState("pending");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Đọc campaignStatus và page từ URL query params
+  const campaignStatusFromUrl = searchParams.get("campaignStatus");
+  const statusFromUrl = campaignStatusFromUrl
+    ? mapCampaignStatusToStatus(parseInt(campaignStatusFromUrl, 10))
+    : searchParams.get("status") || "pending"; // Fallback to status for backward compatibility
+  const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
+
+  const [selectedStatus, setSelectedStatus] = useState(statusFromUrl);
   const [campaigns, setCampaigns] = useState([]); // Store campaigns from current page
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
-    currentPage: 1,
+    currentPage: pageFromUrl,
     pageSize: 5, // Mỗi trang 5 campaign
     totalRecords: 0,
     totalPages: 0,
@@ -266,7 +327,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   });
 
   // Get username from localStorage
-  const getPartnerUsername = () => {
+  const getPartnerUsername = useCallback(() => {
     try {
       const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
       return employeeData?.username || null;
@@ -274,11 +335,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       console.error("Error reading employee data from localStorage:", error);
       return null;
     }
-  };
+  }, []);
 
   // Map username to official airline name
   // Mapping: username (from localStorage) → Official Airline Name (from API)
-  const getAirlineNameFromUsername = (username) => {
+  const getAirlineNameFromUsername = useCallback((username) => {
     if (!username) return null;
 
     const usernameLower = username.toLowerCase().trim();
@@ -290,7 +351,38 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     };
 
     return usernameToAirlineMap[usernameLower] || null;
-  };
+  }, []);
+
+  // Cập nhật selectedStatus và pagination khi URL thay đổi
+  useEffect(() => {
+    if (statusFromUrl !== selectedStatus) {
+      setSelectedStatus(statusFromUrl);
+    }
+    if (pageFromUrl !== pagination.currentPage) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: pageFromUrl,
+      }));
+      // Fetch data when page changes from URL
+      fetchCampaigns(pageFromUrl, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFromUrl, pageFromUrl]);
+
+  // Cập nhật URL query params khi selectedStatus hoặc pagination.currentPage thay đổi
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams();
+    if (selectedStatus && selectedStatus !== "pending") {
+      const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
+      if (campaignStatus !== undefined) {
+        newSearchParams.set("campaignStatus", String(campaignStatus));
+      }
+    }
+    if (pagination.currentPage > 1) {
+      newSearchParams.set("page", String(pagination.currentPage));
+    }
+    setSearchParams(newSearchParams, { replace: true });
+  }, [selectedStatus, pagination.currentPage, setSearchParams]);
 
   const fetchCampaigns = async (page = 1, showLoading = true) => {
     if (showLoading) {
@@ -299,6 +391,12 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     setError(null);
     try {
       const pageSize = 5; // 5 campaigns per page
+
+      // Get partner username from localStorage and map to official airline name
+      const partnerUsername = getPartnerUsername();
+      const airlineName = getAirlineNameFromUsername(partnerUsername);
+
+      // Base params for fetching
       const baseParams = {
         page: page,
         pageSize: pageSize,
@@ -309,6 +407,24 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       const campaignStatus = mapStatusToCampaignStatus(selectedStatus);
       if (campaignStatus !== undefined) {
         baseParams.campaignStatus = campaignStatus;
+      }
+
+      // Gửi campaignType filter lên server nếu có
+      if (campaignTypeFilter !== "all") {
+        // Map campaignType từ component format sang API format
+        const campaignTypeMap = {
+          recruitment: "Recruitment",
+          promotion: "Promotion",
+        };
+        const apiCampaignType = campaignTypeMap[campaignTypeFilter];
+        if (apiCampaignType) {
+          baseParams.campaignType = apiCampaignType;
+        }
+      }
+
+      // Gửi partnerName filter lên server nếu có (thử gửi để server filter)
+      if (airlineName) {
+        baseParams.partnerName = airlineName;
       }
 
       const result = await getCampaignList(baseParams);
@@ -328,10 +444,6 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         items = result.data.items;
       }
 
-      // Get partner username from localStorage and map to official airline name
-      const partnerUsername = getPartnerUsername();
-      const airlineName = getAirlineNameFromUsername(partnerUsername);
-
       // Map API data to component structure
       const mappedCampaigns = items.map((item) => ({
         id: item.campaignId || item.id || item.campaignID || item.Id,
@@ -347,10 +459,11 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         partnerUsername: item.partnerUsername || item.partnerName || null,
       }));
 
-      // Filter campaigns by airline name if available
-      let filteredCampaigns = mappedCampaigns;
+      // Filter campaigns by airline name if available (client-side filter as backup)
+      // If API supports partnerName filter, this should be minimal or no filtering needed
+      let finalCampaigns = mappedCampaigns;
       if (airlineName) {
-        filteredCampaigns = mappedCampaigns.filter((campaign) => {
+        finalCampaigns = mappedCampaigns.filter((campaign) => {
           // Match by partnerName or partnerUsername (case-insensitive, exact match)
           const campaignPartnerName = (campaign.partnerName || "").trim();
           const campaignPartnerUsername = (
@@ -363,14 +476,6 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
             campaignPartnerUsername.toLowerCase() === airlineName.toLowerCase()
           );
         });
-      }
-
-      // Filter by campaignType (client-side)
-      let finalCampaigns = filteredCampaigns;
-      if (campaignTypeFilter !== "all") {
-        finalCampaigns = filteredCampaigns.filter(
-          (c) => c.campaignType === campaignTypeFilter
-        );
       }
 
       setCampaigns(finalCampaigns);
@@ -409,9 +514,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     }
   };
 
-  // Initial load - fetch page 1 when component mounts
+  // Initial load - fetch page from URL or page 1 when component mounts
   useEffect(() => {
-    fetchCampaigns(1, true);
+    fetchCampaigns(pageFromUrl || 1, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -422,7 +527,13 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       fetchCampaigns(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignTypeFilter, search, selectedStatus]);
+  }, [
+    campaignTypeFilter,
+    search,
+    selectedStatus,
+    getPartnerUsername,
+    getAirlineNameFromUsername,
+  ]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
@@ -441,25 +552,33 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   // Chỉ hiển thị full loading screen khi là lần đầu load
   if (isInitialLoad && loading) {
     return (
-      <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="mb-3 text-lg font-semibold text-slate-800">
+            Campaign List
+          </h3>
+        </div>
         <div className="py-12 text-center">
           <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading data...</p>
+          <p className="mt-4 text-sm text-gray-600">Loading campaign list...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !isInitialLoad) {
     return (
-      <div className="flex flex-col gap-5">
-        <h2 className="mb-6 text-xl font-bold text-gray-800">Campaign List</h2>
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="mb-3 text-lg font-semibold text-slate-800">
+            Campaign List
+          </h3>
+        </div>
         <div className="py-8 text-center">
           <div className="mb-2 text-red-600">{error}</div>
           <button
             onClick={() => {
-              fetchCampaigns(pagination.currentPage);
+              fetchCampaigns(pagination.currentPage || 1);
             }}
             className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
@@ -471,16 +590,16 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <h2 className="mb-6 text-xl font-bold text-gray-800">
-        Campaign List ({pagination.totalRecords || campaigns.length})
-      </h2>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex flex-wrap items-stretch gap-3">
+    <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+      <div className="p-6 border-b border-slate-200">
+        <h3 className="mb-3 text-lg font-semibold text-slate-800">
+          Campaign List ({pagination.totalRecords || campaigns.length})
+        </h3>
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => setSelectedStatus("pending")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "pending"
                 ? "bg-yellow-600 text-white border-yellow-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -491,7 +610,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("approved")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "approved"
                 ? "bg-emerald-600 text-white border-emerald-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -502,7 +621,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("ongoing")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "ongoing"
                 ? "bg-green-600 text-white border-green-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
@@ -513,9 +632,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("upcoming")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "upcoming"
-                ? "bg-purple-600 text-white border-purple-600"
+                ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -524,9 +643,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           <button
             type="button"
             onClick={() => setSelectedStatus("ended")}
-            className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "ended"
-                ? "bg-gray-600 text-white border-gray-600"
+                ? "bg-red-600 text-white border-red-600"
                 : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
@@ -534,57 +653,85 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           </button>
         </div>
       </div>
-      {campaigns.length === 0 ? (
-        <div className="py-10 text-center text-gray-500">No data found</div>
-      ) : (
-        <>
-          {campaigns.map((c) => (
-            <CampaignCard key={c.id} campaign={c} />
-          ))}
-        </>
-      )}
 
-      {/* Phân trang - hiển thị khi có data */}
+      <div className="divide-y divide-slate-200">
+        {loading && (
+          <div className="py-8 text-center">
+            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-sm text-gray-600">
+              Loading campaign list...
+            </p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="p-6 text-center text-red-500">{error}</div>
+        )}
+
+        {!loading && !error && campaigns.length === 0 && (
+          <div className="p-6 text-center text-slate-500">
+            No campaigns found
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          campaigns.map((campaign) => (
+            <CampaignCard key={campaign.id} campaign={campaign} />
+          ))}
+      </div>
+
+      {/* Pagination */}
       {pagination.totalRecords > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 mt-6 bg-white border rounded-lg border-slate-200">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
           <div className="text-sm text-slate-600">
-            Trang{" "}
-            <span className="font-semibold">{pagination.currentPage}</span>
+            Page{" "}
+            <span className="font-semibold">{pagination.currentPage || 1}</span>
             {pagination.totalPages ? (
               <>
                 {" "}
                 / <span className="font-semibold">{pagination.totalPages}</span>
               </>
             ) : null}
-            {typeof pagination.totalRecords === "number" && (
-              <span className="ml-2">({pagination.totalRecords} records)</span>
-            )}
+            {typeof pagination.totalRecords === "number" &&
+              pagination.totalRecords > 0 && (
+                <span className="ml-2">
+                  ({pagination.totalRecords} records)
+                </span>
+              )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPreviousPage}
+              disabled={
+                !pagination.hasPreviousPage ||
+                (pagination.currentPage || 1) === 1
+              }
               className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
+                pagination.hasPreviousPage && (pagination.currentPage || 1) > 1
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
             >
-              Previous
+              Prev
             </button>
 
-            <span className="text-sm text-slate-600">
-              {pagination.currentPage}
+            <span className="px-3 py-1 text-sm text-slate-600">
+              {pagination.currentPage || 1}
             </span>
 
             <button
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
+              disabled={
+                !pagination.hasNextPage ||
+                (pagination.currentPage || 1) >= (pagination.totalPages || 1)
+              }
               className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
+                pagination.hasNextPage &&
+                (pagination.currentPage || 1) < (pagination.totalPages || 1)
                   ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
                   : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
               }`}
