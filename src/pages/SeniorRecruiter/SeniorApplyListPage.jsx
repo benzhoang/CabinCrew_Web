@@ -11,6 +11,7 @@ const SeniorApplyListPage = () => {
   const [departmentFilter] = useState("all");
   const [roundFilter, setRoundFilter] = useState(null);
   const [applicantSearchTerm, setApplicantSearchTerm] = useState("");
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState("all"); // all, 1 (Ongoing), 2 (Passed), 3 (Failed)
   const [, setLangVersion] = useState(0);
   const [campaignRoundData, setCampaignRoundData] = useState(null);
   const [availableRounds, setAvailableRounds] = useState([]);
@@ -115,8 +116,16 @@ const SeniorApplyListPage = () => {
 
       setLoadingParticipants(true);
       try {
-        // Gọi API cho round cụ thể
-        const result = await getRoundParticipants(roundId);
+        // Chuẩn bị params cho API call
+        const apiParams = {};
+
+        // Thêm status filter nếu không phải "all"
+        if (applicantStatusFilter !== "all") {
+          apiParams.status = parseInt(applicantStatusFilter, 10);
+        }
+
+        // Gọi API cho round cụ thể với status filter
+        const result = await getRoundParticipants(roundId, apiParams);
         if (result.success && result.data && Array.isArray(result.data)) {
           // Map dữ liệu từ API sang format hiển thị
           const mappedParticipants = result.data.map((participant) => ({
@@ -132,7 +141,6 @@ const SeniorApplyListPage = () => {
             roundName: participant.roundName || "No round name",
             appliedDate:
               participant.appliedDate || new Date().toISOString().split("T")[0],
-            education: participant.education || "No education",
           }));
           setParticipants(mappedParticipants);
         } else {
@@ -151,7 +159,7 @@ const SeniorApplyListPage = () => {
     };
 
     fetchParticipants();
-  }, [isViewingBatch, roundFilter, availableRounds]);
+  }, [isViewingBatch, roundFilter, availableRounds, applicantStatusFilter]);
 
   useEffect(() => {
     let filtered = campaigns;
@@ -539,6 +547,19 @@ const SeniorApplyListPage = () => {
                       )}
                     </select>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-slate-600">Status:</label>
+                    <select
+                      className="px-3 py-2 text-sm border rounded-md border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={applicantStatusFilter}
+                      onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All</option>
+                      <option value="1">Ongoing</option>
+                      <option value="2">Passed</option>
+                      <option value="3">Failed</option>
+                    </select>
+                  </div>
                   <div className="relative w-full md:w-64">
                     <input
                       type="text"
@@ -623,9 +644,6 @@ const SeniorApplyListPage = () => {
                           <div>
                             <div className="text-sm font-medium text-slate-900">
                               {applicant.name}
-                            </div>
-                            <div className="text-sm text-slate-500">
-                              {applicant.education}
                             </div>
                           </div>
                         </td>
