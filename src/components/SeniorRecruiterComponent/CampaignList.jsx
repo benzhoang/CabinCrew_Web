@@ -576,7 +576,7 @@ const CampaignList = ({
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="p-6 border-b border-slate-200">
         <h3 className="mb-3 text-lg font-semibold text-slate-800">
-          Campaign List ({pagination.totalRecords || campaigns.length})
+          Campaign List ({campaigns.length})
         </h3>
         <div className="flex flex-wrap gap-3">
           <button
@@ -639,8 +639,8 @@ const CampaignList = ({
             onClick={() => setSelectedStatus("ended")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "ended"
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+                ? "bg-slate-200 text-slate-700 border-slate-300"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
             }`}
           >
             Ended

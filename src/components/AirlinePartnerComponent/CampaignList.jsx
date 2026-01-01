@@ -337,20 +337,21 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     }
   }, []);
 
-  // Map username to official airline name
-  // Mapping: username (from localStorage) → Official Airline Name (from API)
-  const getAirlineNameFromUsername = useCallback((username) => {
+  // Map username to partnerId
+  // Mapping: username (from localStorage) → partnerId (from API)
+  // API partnerId: 1: VietJet Air, 3: Vietnam Airlines, 4: Bamboo Airways, 5: SunPhuQuoc Airways
+  const getPartnerIdFromUsername = useCallback((username) => {
     if (!username) return null;
 
     const usernameLower = username.toLowerCase().trim();
-    const usernameToAirlineMap = {
-      vietjet: "VietJet Air",
-      vietnamairlines: "Vietnam Airlines",
-      bambooairways: "Bamboo Airways",
-      sunphuquoc: "Sun PhuQuoc Airways",
+    const usernameToPartnerIdMap = {
+      vietjet: 1, // VietJet Air
+      vietnamairlines: 3, // Vietnam Airlines
+      bambooairways: 4, // Bamboo Airways
+      sunphuquoc: 5, // SunPhuQuoc Airways
     };
 
-    return usernameToAirlineMap[usernameLower] || null;
+    return usernameToPartnerIdMap[usernameLower] || null;
   }, []);
 
   // Cập nhật selectedStatus và pagination khi URL thay đổi
@@ -392,9 +393,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     try {
       const pageSize = 5; // 5 campaigns per page
 
-      // Get partner username from localStorage and map to official airline name
+      // Get partner username from localStorage and map to partnerId
       const partnerUsername = getPartnerUsername();
-      const airlineName = getAirlineNameFromUsername(partnerUsername);
+      const partnerId = getPartnerIdFromUsername(partnerUsername);
 
       // Base params for fetching
       const baseParams = {
@@ -422,9 +423,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         }
       }
 
-      // Gửi partnerName filter lên server nếu có (thử gửi để server filter)
-      if (airlineName) {
-        baseParams.partnerName = airlineName;
+      // Gửi partnerId filter lên server nếu có
+      if (partnerId) {
+        baseParams.partnerId = partnerId;
       }
 
       const result = await getCampaignList(baseParams);
@@ -459,26 +460,9 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
         partnerUsername: item.partnerUsername || item.partnerName || null,
       }));
 
-      // Filter campaigns by airline name if available (client-side filter as backup)
-      // If API supports partnerName filter, this should be minimal or no filtering needed
-      let finalCampaigns = mappedCampaigns;
-      if (airlineName) {
-        finalCampaigns = mappedCampaigns.filter((campaign) => {
-          // Match by partnerName or partnerUsername (case-insensitive, exact match)
-          const campaignPartnerName = (campaign.partnerName || "").trim();
-          const campaignPartnerUsername = (
-            campaign.partnerUsername || ""
-          ).trim();
-
-          // Exact match with airline name (case-insensitive)
-          return (
-            campaignPartnerName.toLowerCase() === airlineName.toLowerCase() ||
-            campaignPartnerUsername.toLowerCase() === airlineName.toLowerCase()
-          );
-        });
-      }
-
-      setCampaigns(finalCampaigns);
+      // API already filters by partnerId, so no client-side filtering needed
+      // This ensures pagination info from API matches the displayed campaigns
+      setCampaigns(mappedCampaigns);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -494,7 +478,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: finalCampaigns.length,
+          totalRecords: mappedCampaigns.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,
@@ -532,7 +516,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     search,
     selectedStatus,
     getPartnerUsername,
-    getAirlineNameFromUsername,
+    getPartnerIdFromUsername,
   ]);
 
   const handlePageChange = (page) => {
@@ -593,7 +577,7 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="p-6 border-b border-slate-200">
         <h3 className="mb-3 text-lg font-semibold text-slate-800">
-          Campaign List ({pagination.totalRecords || campaigns.length})
+          Campaign List ({campaigns.length})
         </h3>
         <div className="flex flex-wrap gap-3">
           <button

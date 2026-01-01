@@ -228,11 +228,14 @@ const ExaminerApplyList = () => {
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Target:</span>
+                <span className="text-sm text-slate-600">
+                  Target applicants:
+                </span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData
-                    ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
-                    }`
+                    ? `${campaignRoundData.actualQuantiy || 0}/${
+                        campaignRoundData.targetQuantity || 0
+                      } applicants`
                     : "—"}
                 </p>
               </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 
@@ -103,7 +103,7 @@ const RequestList = ({
   });
 
   // Get username from localStorage
-  const getPartnerUsername = () => {
+  const getPartnerUsername = useCallback(() => {
     try {
       const employeeData = JSON.parse(localStorage.getItem("employee") || "{}");
       return employeeData?.username || null;
@@ -111,23 +111,24 @@ const RequestList = ({
       console.error("Error reading employee data from localStorage:", error);
       return null;
     }
-  };
+  }, []);
 
-  // Map username to official airline name
-  // Mapping: username (from localStorage) → Official Airline Name (from API)
-  const getAirlineNameFromUsername = (username) => {
+  // Map username to partnerId
+  // Mapping: username (from localStorage) → partnerId (from API)
+  // API partnerId: 1: VietJet Air, 3: Vietnam Airlines, 4: Bamboo Airways, 5: SunPhuQuoc Airways
+  const getPartnerIdFromUsername = useCallback((username) => {
     if (!username) return null;
 
     const usernameLower = username.toLowerCase().trim();
-    const usernameToAirlineMap = {
-      vietjet: "VietJet Air",
-      vietnamairlines: "Vietnam Airlines",
-      bambooairways: "Bamboo Airways",
-      sunphuquoc: "Sun PhuQuoc Airways",
+    const usernameToPartnerIdMap = {
+      vietjet: 1, // VietJet Air
+      vietnamairlines: 3, // Vietnam Airlines
+      bambooairways: 4, // Bamboo Airways
+      sunphuquoc: 5, // SunPhuQuoc Airways
     };
 
-    return usernameToAirlineMap[usernameLower] || null;
-  };
+    return usernameToPartnerIdMap[usernameLower] || null;
+  }, []);
 
   // Cập nhật selectedStatus và pagination khi URL thay đổi
   useEffect(() => {
@@ -174,12 +175,21 @@ const RequestList = ({
           ? mapStatusToStatusNumber(selectedStatus)
           : undefined;
 
+      // Get partner username from localStorage and map to partnerId
+      const partnerUsername = getPartnerUsername();
+      const partnerId = getPartnerIdFromUsername(partnerUsername);
+
       const baseParams = {
         page: page,
         pageSize: pageSize,
         searchTerm: search || undefined,
         status: statusNumber,
       };
+
+      // Gửi partnerId filter lên server nếu có
+      if (partnerId) {
+        baseParams.partnerId = partnerId;
+      }
 
       const result = await getCampaignRequestList(baseParams);
 
@@ -197,10 +207,6 @@ const RequestList = ({
       } else if (result.data?.items && Array.isArray(result.data.items)) {
         items = result.data.items;
       }
-
-      // Get partner username from localStorage and map to official airline name
-      const partnerUsername = getPartnerUsername();
-      const airlineName = getAirlineNameFromUsername(partnerUsername);
 
       // Normalize status function
       const normalizeStatus = (status) => {
@@ -256,26 +262,11 @@ const RequestList = ({
           item.position || item.role || item.requestType || "No position",
       }));
 
-      // Filter campaigns by airline name if available (client-side filter)
-      let filteredRequests = mappedRequests;
-      if (airlineName) {
-        filteredRequests = mappedRequests.filter((request) => {
-          // Match by partnerName or partnerUsername (case-insensitive, exact match)
-          const requestPartnerName = (request.partnerName || "").trim();
-          const requestPartnerUsername = (request.partnerUsername || "").trim();
-
-          // Exact match with airline name (case-insensitive)
-          return (
-            requestPartnerName.toLowerCase() === airlineName.toLowerCase() ||
-            requestPartnerUsername.toLowerCase() === airlineName.toLowerCase()
-          );
-        });
-      }
-
-      // Filter by campaignTypeFilter (client-side)
-      let finalRequests = filteredRequests;
+      // API already filters by partnerId, so no client-side filtering needed for partner
+      // Filter by campaignTypeFilter (client-side) if API doesn't support it
+      let finalRequests = mappedRequests;
       if (campaignTypeFilter !== "all") {
-        finalRequests = filteredRequests.filter(
+        finalRequests = mappedRequests.filter(
           (r) => r.requestType === campaignTypeFilter
         );
       }
@@ -329,7 +320,13 @@ const RequestList = ({
       fetchRequests(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, campaignTypeFilter, selectedStatus]);
+  }, [
+    search,
+    campaignTypeFilter,
+    selectedStatus,
+    getPartnerUsername,
+    getPartnerIdFromUsername,
+  ]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
@@ -452,7 +449,7 @@ const RequestList = ({
       <div className="p-6 border-b border-slate-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800">
-            Request List ({pagination.totalRecords || requests.length})
+            Request List ({requests.length})
           </h3>
           <div className="flex items-center gap-3">
             <select

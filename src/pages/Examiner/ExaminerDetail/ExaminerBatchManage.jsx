@@ -59,7 +59,7 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
         </span>
       </div>
       <div className="p-4 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <InfoMini
             label="Start date"
             value={formatDateForDisplay(batch.startDate, batch.time, false)}
@@ -69,13 +69,18 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
             value={formatDateForDisplay(batch.endDate, batch.time, true)}
           />
           {batch.target !== undefined && batch.target !== null && (
-            <InfoMini label="Target" value={batch.target.toString()} />
+            <InfoMini
+              label="Target applicants"
+              value={batch.target.toString() + " applicants"}
+            />
           )}
           {batch.appliedCandidates !== undefined &&
             batch.appliedCandidates !== null && (
               <InfoMini
-                label="Actual"
-                value={batch.appliedCandidates?.toString() || "0"}
+                label="Passed applicants"
+                value={
+                  (batch.appliedCandidates?.toString() || "0") + " applicants"
+                }
               />
             )}
           {batch.note && <InfoMini label="Description" value={batch.note} />}
@@ -142,10 +147,11 @@ const BatchCard = ({ batch, statusCfg, campaignId, campaignType }) => {
           <button
             onClick={handleViewApplicants}
             disabled={isUpcoming}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${isUpcoming
-              ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
-              : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
-              }`}
+            className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md transition-colors duration-200 font-medium ${
+              isUpcoming
+                ? "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800"
+            }`}
             title={
               isUpcoming
                 ? "Cannot view applicants before batch starts"
@@ -330,10 +336,29 @@ const ExaminerBatchManage = ({ campaign }) => {
 
   const campaignType = getCampaignType();
 
+  // Get campaign type label for display
+  const getCampaignTypeLabel = () => {
+    const campaignTypeStr = String(campaign?.campaignType || "")
+      .trim()
+      .toLowerCase();
+
+    if (campaignTypeStr === "recruitment") {
+      return "Recruitment Batch Plan";
+    } else if (campaignTypeStr === "promotion") {
+      return "Promotion Batch Plan";
+    } else {
+      // Try to parse as number for backward compatibility
+      const parsed = Number(campaign?.campaignType);
+      if (parsed === 1) return "Recruitment Batch Plan";
+      if (parsed === 2) return "Promotion Batch Plan";
+      return "Batch Plan"; // Fallback
+    }
+  };
+
   return (
     <div className="mt-6">
       <div className="mb-2">
-        <div className="text-sm text-slate-600">Batch plan</div>
+        <div className="text-sm text-slate-600">{getCampaignTypeLabel()}</div>
       </div>
       {currentBatches.length === 0 ? (
         <div className="p-8 text-sm text-center border rounded-lg bg-slate-50 border-slate-200 text-slate-500">

@@ -813,7 +813,7 @@ const ExaminerCampDetail = ({ campaign }) => {
                     return "";
                   }
                 })()}{" "}
-                process
+                processes
               </div>
               <div className="p-4 border border-purple-300 rounded-lg bg-purple-50">
                 <ProcessTimeline

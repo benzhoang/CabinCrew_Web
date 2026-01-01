@@ -181,7 +181,7 @@ const BatchCard = ({ batch, statusCfg, showStatus }) => {
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
               />
             </svg>
-            {isUpcoming ? "Cannot view applicant list" : "View applicant list"}
+            {isUpcoming ? "Cannot view list" : "View applicant list"}
           </button>
         </div>
       </div>
@@ -286,15 +286,15 @@ const BatchManagement = ({
       .toLowerCase();
 
     if (campaignTypeStr === "recruitment") {
-      return "Recruitment plan";
+      return "Recruitment Batch Plan";
     } else if (campaignTypeStr === "promotion") {
-      return "Promotion plan";
+      return "Promotion Batch Plan";
     } else {
       // Try to parse as number for backward compatibility
       const parsed = Number(campaign?.campaignType);
-      if (parsed === 1) return "Recruitment plan";
-      if (parsed === 2) return "Promotion plan";
-      return "Batch management"; // Fallback
+      if (parsed === 1) return "Recruitment Batch Plan";
+      if (parsed === 2) return "Promotion Batch Plan";
+      return "Batch Plan"; // Fallback
     }
   };
 
