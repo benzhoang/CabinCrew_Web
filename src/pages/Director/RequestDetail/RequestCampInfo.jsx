@@ -401,7 +401,7 @@ const RequestCampInfo = () => {
               value={renderRequestTypeBadge(data.requestType)}
             />
             <InfoRow label="Partner" value={data.partnerName} />
-            <InfoRow label="Target quantity" value={data.quantity} />
+            <InfoRow label="Target quantity" value={`${data.quantity} applicants`} />
             <InfoRow label="Created at" value={formatDate(data.createdAt)} />
             <InfoRow label="Status" value={renderStatusBadge(data.status)} />
           </div>
@@ -478,82 +478,80 @@ const RequestCampInfo = () => {
       {(data.status === "Pending" ||
         data.status === "pending_approval" ||
         data.status?.toLowerCase() === "pending") && (
-        <div className="flex justify-end gap-4 mt-6">
-          {/* Reject button */}
-          <button
-            onClick={() => setIsRejectModalOpen(true)}
-            disabled={isRejecting || isApproving}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+          <div className="flex justify-end gap-4 mt-6">
+            {/* Reject button */}
+            <button
+              onClick={() => setIsRejectModalOpen(true)}
+              disabled={isRejecting || isApproving}
+              className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
                             font-medium shadow-md transform
-                            ${
-                              isRejecting || isApproving
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
-                            }`}
-          >
-            {isRejecting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                Rejecting...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                Reject
-              </>
-            )}
-          </button>
+                            ${isRejecting || isApproving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-105 active:scale-95"
+                }`}
+            >
+              {isRejecting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+                  Rejecting...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Reject
+                </>
+              )}
+            </button>
 
-          {/* Approve button */}
-          <button
-            onClick={() => setIsApproveModalOpen(true)}
-            disabled={isApproving || isRejecting}
-            className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
+            {/* Approve button */}
+            <button
+              onClick={() => setIsApproveModalOpen(true)}
+              disabled={isApproving || isRejecting}
+              className={`flex items-center gap-2 px-6 py-3 text-sm text-white rounded-lg transition-all duration-200 
                             font-medium shadow-md transform
-                            ${
-                              isApproving || isRejecting
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
-                            }`}
-          >
-            {isApproving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                Approving...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                Approve
-              </>
-            )}
-          </button>
-        </div>
-      )}
+                            ${isApproving || isRejecting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-105 active:scale-95"
+                }`}
+            >
+              {isApproving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  Approve
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
       {/* Reject modal */}
       <RejectRequestModal
@@ -652,11 +650,10 @@ const RequestCampInfo = () => {
                     setIsApproveModalOpen(false);
                   }
                 }}
-                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${
-                  isApproving
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isApproving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+                  }`}
               >
                 {isApproving ? "Approving..." : "Approve"}
               </button>

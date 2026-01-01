@@ -180,11 +180,19 @@ const FinalReview = () => {
     }
 
     if (statusFilter !== "all") {
-      const normalizedFilter = statusFilter.toLowerCase();
-      filtered = filtered.filter(
-        (candidate) =>
-          (candidate.status || "").toLowerCase() === normalizedFilter
-      );
+      filtered = filtered.filter((candidate) => {
+        const candidateStatus = String(candidate.status || "").toLowerCase();
+        // Map status values: 1 = ongoing, 2 = passed, 3 = failed
+        const statusMap = {
+          "1": ["1", "ongoing", "pending"],
+          "2": ["2", "passed", "approved"],
+          "3": ["3", "failed", "rejected"],
+        };
+        const statusValues = statusMap[statusFilter] || [];
+        return statusValues.some(
+          (val) => candidateStatus === val.toLowerCase()
+        );
+      });
     }
 
     return filtered;
@@ -318,8 +326,9 @@ const FinalReview = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">All</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
+                <option value="1">Ongoing</option>
+                <option value="2">Passed</option>
+                <option value="3">Failed</option>
               </select>
             </div>
 

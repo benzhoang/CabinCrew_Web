@@ -680,8 +680,8 @@ const ApplicationForm = () => {
                             <span>{t("application_form_click_to_select")}</span>
                           )}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Please upload the application form in the format{" "}
+                        <p className="mt-1 text-xs text-slate-500 italic">
+                          * Please upload the application form in the format{" "}
                           <span className="font-semibold">PDF (.pdf)</span>.
                         </p>
                       </div>
@@ -782,8 +782,8 @@ const ApplicationForm = () => {
                             <span>{t("application_form_click_to_select")}</span>
                           )}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Preferably scan/photo files are saved in the format{" "}
+                        <p className="mt-1 text-xs text-slate-500 italic">
+                          * Preferably scan/photo files are saved in the format{" "}
                           <span className="font-semibold">PDF (.pdf)</span>.
                         </p>
                       </div>
@@ -840,8 +840,8 @@ const ApplicationForm = () => {
                             <span>{t("application_form_click_to_select")}</span>
                           )}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Please upload the English certificate in the format{" "}
+                        <p className="mt-1 text-xs text-slate-500 italic">
+                          * Please upload the English certificate in the format{" "}
                           <span className="font-semibold">JPG (.jpg)</span>.
                         </p>
                       </div>
@@ -897,8 +897,8 @@ const ApplicationForm = () => {
                               </span>
                             )}
                           </p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            Please upload the front side of the passport/ID card
+                          <p className="mt-1 text-xs text-slate-500 italic">
+                            * Please upload the front side of the passport/ID card
                             in the format{" "}
                             <span className="font-semibold">JPG (.jpg)</span>.
                           </p>
@@ -952,8 +952,8 @@ const ApplicationForm = () => {
                               </span>
                             )}
                           </p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            Please upload the back side of the passport/ID card
+                          <p className="mt-1 text-xs text-slate-500 italic">
+                            * Please upload the back side of the passport/ID card
                             in the format{" "}
                             <span className="font-semibold">JPG (.jpg)</span>.
                           </p>
@@ -985,8 +985,8 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t("email_helper")}
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("email_helper")}
                 </p>
               </div>
 
@@ -1002,8 +1002,8 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t("fullname_helper")}
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("fullname_helper")}
                 </p>
               </div>
 
@@ -1066,8 +1066,8 @@ const ApplicationForm = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  {t("mobile_number_helper")}
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("mobile_number_helper")}
                 </p>
               </div>
 
@@ -1105,8 +1105,8 @@ const ApplicationForm = () => {
                     />
                   </div>
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
-                  {t("application_form_height_example")}
+                <p className="mt-1 text-xs text-slate-500 italic">
+                  * {t("application_form_height_example")}
                 </p>
               </div>
 

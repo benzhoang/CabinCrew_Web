@@ -10,6 +10,7 @@ const DirectorApplyList = () => {
     const [statusFilter, setStatusFilter] = useState('active')
     const [departmentFilter, setDepartmentFilter] = useState('all')
     const [roundFilter, setRoundFilter] = useState('all')
+    const [applicantStatusFilter, setApplicantStatusFilter] = useState('all')
     const [applicantSearchTerm, setApplicantSearchTerm] = useState('')
     const [, setLangVersion] = useState(0)
     const [campaignRoundData, setCampaignRoundData] = useState(null)
@@ -246,6 +247,21 @@ const DirectorApplyList = () => {
         }
         // Nếu roundFilter === 'all', hiển thị tất cả participants (đã được load từ round đầu tiên)
 
+        // Filter theo status
+        if (applicantStatusFilter !== 'all') {
+            list = list.filter(a => {
+                const applicantStatus = String(a.status || '').toLowerCase()
+                // Map status values: 1 = ongoing, 2 = passed, 3 = failed
+                const statusMap = {
+                    '1': ['1', 'ongoing', 'pending'],
+                    '2': ['2', 'passed', 'approved'],
+                    '3': ['3', 'failed', 'rejected']
+                }
+                const statusValues = statusMap[applicantStatusFilter] || []
+                return statusValues.some(val => applicantStatus === val.toLowerCase())
+            })
+        }
+
         // Áp dụng search filter
         if (applicantSearchTerm) {
             const q = applicantSearchTerm.toLowerCase()
@@ -257,7 +273,7 @@ const DirectorApplyList = () => {
         }
 
         return list
-    }, [isViewingBatch, roundFilter, availableRounds, participants, applicantSearchTerm])
+    }, [isViewingBatch, roundFilter, applicantStatusFilter, availableRounds, participants, applicantSearchTerm])
 
     const getRoundText = (rounds) => {
         const map = {
@@ -443,6 +459,19 @@ const DirectorApplyList = () => {
                                             ) : (
                                                 <option value="" disabled>No round data</option>
                                             )}
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-sm text-slate-600">Status:</label>
+                                        <select
+                                            className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            value={applicantStatusFilter}
+                                            onChange={(e) => setApplicantStatusFilter(e.target.value)}
+                                        >
+                                            <option value="all">All</option>
+                                            <option value="1">Ongoing</option>
+                                            <option value="2">Passed</option>
+                                            <option value="3">Failed</option>
                                         </select>
                                     </div>
                                     <div className="relative md:w-64 w-full">

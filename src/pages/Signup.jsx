@@ -208,7 +208,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('fullname_label')}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{t('fullname_helper')}</p>
+                                    <p className="mt-1 text-xs text-gray-500 italic">* {t('fullname_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -253,7 +253,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('mobile_number_placeholder')}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{t('mobile_number_helper')}</p>
+                                    <p className="mt-1 text-xs text-gray-500 italic">* {t('mobile_number_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -268,7 +268,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('email_placeholder')}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{t('email_helper')}</p>
+                                    <p className="mt-1 text-xs text-gray-500 italic">* {t('email_helper')}</p>
                                 </div>
                             </div>
 
@@ -288,7 +288,7 @@ const Signup = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder={t('username_placeholder')}
                                     />
-                                    <p className="mt-1 text-xs text-gray-500">{t('username_helper')}</p>
+                                    <p className="mt-1 text-xs text-gray-500 italic">* {t('username_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -323,7 +323,7 @@ const Signup = () => {
                                             )}
                                         </button>
                                     </div>
-                                    <p className="mt-1 text-xs text-gray-500">{t('password_helper')}</p>
+                                    <p className="mt-1 text-xs text-gray-500 italic">* {t('password_helper')}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
