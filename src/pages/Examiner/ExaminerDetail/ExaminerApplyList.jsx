@@ -10,6 +10,7 @@ import {
 const ExaminerApplyList = () => {
   const [, setLangVersion] = useState(0);
   const [roundFilter, setRoundFilter] = useState("");
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
   const [campaignRoundData, setCampaignRoundData] = useState(null);
   const [availableRounds, setAvailableRounds] = useState([]);
   const [loadingRoundData, setLoadingRoundData] = useState(false);
@@ -253,6 +254,8 @@ const ExaminerApplyList = () => {
           loadingParticipants={loadingParticipants}
           roundFilter={roundFilter}
           setRoundFilter={setRoundFilter}
+          applicantStatusFilter={applicantStatusFilter}
+          setApplicantStatusFilter={setApplicantStatusFilter}
           fetchCampaignRoundData={fetchCampaignRoundData}
           onParticipantsUpdate={setParticipants}
           isViewingBatch={isViewingBatch}

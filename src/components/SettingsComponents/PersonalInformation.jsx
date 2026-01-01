@@ -74,7 +74,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${errors.fullname ? 'border-red-500' : 'border-gray-300'}`}
                                 placeholder="Nguyễn Văn A"
                             />
-                            <p className="mt-1 text-xs text-gray-500">{t('fullname_helper')}</p>
+                            <p className="mt-1 text-xs text-gray-500 italic">* {t('fullname_helper')}</p>
                             {errors.fullname && (
                                 <p className="text-red-500 text-xs mt-1">{errors.fullname}</p>
                             )}
@@ -164,7 +164,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                                 placeholder={t('email')}
                             />
-                            <p className="mt-1 text-xs text-gray-500">{t('email_helper')}</p>
+                            <p className="mt-1 text-xs text-gray-500 italic">* {t('email_helper')}</p>
                             {errors.email && (
                                 <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                             )}
@@ -183,7 +183,7 @@ const PersonalInformation = ({ formData, errors, handleChange, handleAvatarChang
                                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
                                 placeholder="0123456789"
                             />
-                            <p className="mt-1 text-xs text-gray-500">{t('mobile_number_helper')}</p>
+                            <p className="mt-1 text-xs text-gray-500 italic">* {t('mobile_number_helper')}</p>
                             {errors.phone && (
                                 <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
                             )}
