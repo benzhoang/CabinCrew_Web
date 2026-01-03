@@ -32,13 +32,13 @@ const EditWardModal = ({ isOpen, onClose, ward, onSuccess }) => {
       const result = await updateWard(wardId, trimmedName);
 
       if (result.success) {
-        toast.success(result.message || "Update ward successfully");
+        toast.success("Update ward successfully");
         if (onSuccess) {
           onSuccess();
         }
         onClose();
       } else {
-        toast.error(result.error || "Cannot update ward");
+        toast.error("Cannot update ward");
       }
     } catch (err) {
       console.error("Error updating ward:", err);
@@ -52,9 +52,7 @@ const EditWardModal = ({ isOpen, onClose, ward, onSuccess }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">
-            Update Ward
-          </h3>
+          <h3 className="text-lg font-semibold text-slate-900">Update Ward</h3>
           <button
             onClick={onClose}
             className="text-slate-500 hover:text-slate-700 transition-colors"
@@ -83,11 +81,7 @@ const EditWardModal = ({ isOpen, onClose, ward, onSuccess }) => {
               }`}
               disabled={isSubmitting}
             />
-            {error && (
-              <p className="mt-1 text-sm text-red-500">
-                {error}
-              </p>
-            )}
+            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
@@ -114,5 +108,3 @@ const EditWardModal = ({ isOpen, onClose, ward, onSuccess }) => {
 };
 
 export default EditWardModal;
-
-

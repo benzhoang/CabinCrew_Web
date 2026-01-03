@@ -251,15 +251,16 @@ const CreatePromotionRequestPage = () => {
         <div className="w-full lg:w-2/3">
           <div className="mb-4">
             <label className="block mb-2 text-sm font-medium text-slate-700">
-              Campaign Name *
+              Campaign Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="campaignName"
               value={formData.campaignName}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.campaignName ? "border-red-300" : "border-slate-300"
-                }`}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.campaignName ? "border-red-300" : "border-slate-300"
+              }`}
               placeholder="Enter campaign name"
             />
             {errors.campaignName && (
@@ -298,7 +299,7 @@ const CreatePromotionRequestPage = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Target quantity *
+                      Target applicants <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -306,11 +307,12 @@ const CreatePromotionRequestPage = () => {
                       value={formData.targetQuantity}
                       onChange={handleInputChange}
                       min="1"
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.targetQuantity
-                        ? "border-red-300"
-                        : "border-slate-300"
-                        }`}
-                      placeholder="Enter target quantity"
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.targetQuantity
+                          ? "border-red-300"
+                          : "border-slate-300"
+                      }`}
+                      placeholder="Enter target applicants"
                     />
                     {errors.targetQuantity && (
                       <p className="mt-1 text-sm text-red-600">
@@ -335,7 +337,7 @@ const CreatePromotionRequestPage = () => {
                   </div>
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Due date *
+                      Due date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -343,8 +345,9 @@ const CreatePromotionRequestPage = () => {
                       value={formData.dueDate}
                       onChange={handleInputChange}
                       min={new Date().toISOString().split("T")[0]}
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.dueDate ? "border-red-300" : "border-slate-300"
-                        }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.dueDate ? "border-red-300" : "border-slate-300"
+                      }`}
                     />
                     {errors.dueDate && (
                       <p className="mt-1 text-sm text-red-600">
@@ -352,22 +355,23 @@ const CreatePromotionRequestPage = () => {
                       </p>
                     )}
                     <div className="mt-2 text-xs italic text-slate-500">
-                      Due date must be at least 45 days from today
+                      * Due date must be at least 45 days from today
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    Description *
+                    Description <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     rows="4"
-                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? "border-red-300" : "border-slate-300"
-                      }`}
+                    className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.description ? "border-red-300" : "border-slate-300"
+                    }`}
                     placeholder="Enter description"
                   />
                   {errors.description && (
@@ -379,7 +383,7 @@ const CreatePromotionRequestPage = () => {
 
                 <div className="mt-6">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    📝 Requirements *
+                    📝 Requirements
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -436,14 +440,14 @@ const CreatePromotionRequestPage = () => {
                     )}
                   </div>
                   <p className="mt-2 text-xs italic text-slate-500">
-                    If you want to change this content, please contact the
+                    * If you want to change this content, please contact the
                     admin.
                   </p>
                 </div>
 
                 <div className="mt-4">
                   <label className="block mb-2 text-sm font-medium text-slate-700">
-                    🔄 Promotion processes *
+                    🔄 Promotion processes
                   </label>
                   {/* <div
                     className={`rounded-md border ${
@@ -478,7 +482,7 @@ const CreatePromotionRequestPage = () => {
                     />
                   </div>
                   <p className="mt-2 text-xs italic text-slate-500">
-                    If you want to change this content, please contact the
+                    * If you want to change this content, please contact the
                     admin.
                   </p>
                 </div>
@@ -501,10 +505,11 @@ const CreatePromotionRequestPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${isSubmitting
-                    ? "bg-slate-400 cursor-not-allowed text-white"
-                    : "bg-red-600 hover:bg-red-700 text-white"
-                    }`}
+                  className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
+                    isSubmitting
+                      ? "bg-slate-400 cursor-not-allowed text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"
+                  }`}
                 >
                   {isSubmitting ? "Creating..." : "Create request"}
                 </button>

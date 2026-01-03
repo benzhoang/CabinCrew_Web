@@ -191,7 +191,6 @@ const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
 
 const CampaignList = ({
   search = "",
-  campaignTypeFilter = "all",
   statusFilter = "all",
   partnerId = null,
 }) => {
@@ -232,8 +231,6 @@ const CampaignList = ({
           baseParams.campaignStatus = campaignStatus;
         }
       }
-
-      // Note: campaignType filter is handled client-side, not sent to server
 
       const result = await getCampaignList(baseParams);
 
@@ -307,7 +304,7 @@ const CampaignList = ({
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     fetchCampaigns(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, campaignTypeFilter, statusFilter, partnerId]);
+  }, [search, statusFilter, partnerId]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -325,18 +322,10 @@ const CampaignList = ({
     }
   };
 
-  // Filter campaigns by campaignType (client-side)
   // Note: partner filter is now handled server-side via partnerId
   const filteredCampaigns = useMemo(() => {
-    let filtered = allCampaigns;
-
-    // Filter by campaignType
-    if (campaignTypeFilter !== "all") {
-      filtered = filtered.filter((c) => c.campaignType === campaignTypeFilter);
-    }
-
-    return filtered;
-  }, [allCampaigns, campaignTypeFilter]);
+    return allCampaigns;
+  }, [allCampaigns]);
 
   // Client-side sorting (fallback if server-side sorting is not available)
   const sortedCampaigns = useMemo(() => {

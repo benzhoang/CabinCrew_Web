@@ -54,7 +54,7 @@ const ExaminerListPage = () => {
             <div className="relative w-72">
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search by name..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full pl-3 text-sm border border-gray-300 rounded-lg h-9 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"

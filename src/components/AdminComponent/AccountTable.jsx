@@ -10,12 +10,14 @@ const StatusBadge = ({ value }) => {
     typeof value === "boolean" ? value : value?.toLowerCase() === "active";
   return (
     <span
-      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
-        }`}
+      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${
+        isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+      }`}
     >
       <span
-        className={`w-2 h-2 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"
-          }`}
+        className={`w-2 h-2 rounded-full ${
+          isActive ? "bg-green-500" : "bg-gray-400"
+        }`}
       ></span>
       {isActive ? "Active" : "Inactive"}
     </span>
@@ -277,8 +279,8 @@ const AccountTable = ({
       if (result.success) {
         const successMessage =
           actionType === "enable"
-            ? result.message || "Reactivate account successfully"
-            : result.message || "Disable account successfully";
+            ? "Reactivate account successfully"
+            : "Disable account successfully";
         toast.success(successMessage);
 
         // Call onDelete callback if provided (for backward compatibility)
@@ -295,19 +297,15 @@ const AccountTable = ({
       } else {
         const errorMessage =
           actionType === "enable"
-            ? result.error || "Reactivate account failed"
-            : result.error || "Disable account failed";
+            ? "Reactivate account failed"
+            : "Disable account failed";
         toast.error(errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage =
         actionType === "enable"
-          ? error.response?.data?.message ||
-          error.message ||
-          "Error when reactivating account"
-          : error.response?.data?.message ||
-          error.message ||
-          "Error when disabling account";
+          ? "Error when reactivating account"
+          : "Error when disabling account";
       toast.error(errorMessage);
     } finally {
       if (actionType === "enable") {
@@ -464,8 +462,8 @@ const AccountTable = ({
               ? `Do you want to reactivate account ${selectedUser.email}?`
               : `Do you want to disable account ${selectedUser.email}?`
             : actionType === "enable"
-              ? "Do you want to reactivate account?"
-              : "Do you want to disable account?"
+            ? "Do you want to reactivate account?"
+            : "Do you want to disable account?"
         }
         confirmText={actionType === "enable" ? "Reactivate" : "Disable"}
         cancelText="Cancel"

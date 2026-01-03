@@ -36,13 +36,13 @@ const CreateWardModal = ({ isOpen, onClose, cityId, cityName, onSuccess }) => {
       const result = await createWardForCity(cityId, trimmedName);
 
       if (result.success) {
-        toast.success(result.message || "Create ward successfully");
+        toast.success("Create ward successfully");
         if (onSuccess) {
           onSuccess();
         }
         onClose();
       } else {
-        toast.error(result.error || "Cannot create ward");
+        toast.error("Cannot create ward");
       }
     } catch (err) {
       console.error("Error creating ward:", err);

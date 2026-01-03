@@ -17,7 +17,11 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
   const [wards, setWards] = useState([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    partnerName: "",
+    city: "",
+    ward: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Searchable dropdown states
@@ -38,7 +42,11 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
       setSelectedCityId("");
       setSelectedWardId("");
       setWards([]);
-      setError("");
+      setErrors({
+        partnerName: "",
+        city: "",
+        ward: "",
+      });
       setCitySearchTerm("");
       setWardSearchTerm("");
       setIsCityDropdownOpen(false);
@@ -56,7 +64,7 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
       } else {
         toast.error(res.error || "Cannot load city list");
       }
-    } catch (err) {
+    } catch {
       toast.error("Cannot load city list");
     } finally {
       setIsLoadingCities(false);
@@ -79,7 +87,7 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
         toast.error(res.error || "Cannot load ward list");
         setWards([]);
       }
-    } catch (err) {
+    } catch {
       toast.error("Cannot load ward list");
       setWards([]);
     } finally {
@@ -121,7 +129,6 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
 
   // Filter cities based on search term
   const filteredCities = cities.filter((city) => {
-    const id = city?.cityId ?? city?.id ?? "";
     const name = (city?.cityName || city?.name || "").toLowerCase();
     return name.includes(citySearchTerm.toLowerCase());
   });
@@ -156,19 +163,23 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
     )?.name ||
     "";
 
-  const handleCitySelect = (cityId, cityName) => {
+  const handleCitySelect = (cityId) => {
     setSelectedCityId(cityId);
     setSelectedWardId("");
     setCitySearchTerm("");
     setIsCityDropdownOpen(false);
-    if (error) setError("");
+    if (errors.city) {
+      setErrors((prev) => ({ ...prev, city: "" }));
+    }
   };
 
-  const handleWardSelect = (wardId, wardName) => {
+  const handleWardSelect = (wardId) => {
     setSelectedWardId(wardId);
     setWardSearchTerm("");
     setIsWardDropdownOpen(false);
-    if (error) setError("");
+    if (errors.ward) {
+      setErrors((prev) => ({ ...prev, ward: "" }));
+    }
   };
 
   if (!isOpen) return null;
@@ -177,18 +188,41 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
     e.preventDefault();
     const trimmedName = partnerName.trim();
 
+    // Validate all fields
+    const newErrors = {
+      partnerName: "",
+      city: "",
+      ward: "",
+    };
+
+    let hasError = false;
+
     if (!trimmedName) {
-      setError("Partner name is required");
-      return;
+      newErrors.partnerName = "Partner name is required";
+      hasError = true;
+    }
+
+    if (!selectedCityId) {
+      newErrors.city = "City is required";
+      hasError = true;
     }
 
     if (!selectedWardId || selectedWardId <= 0) {
-      setError("Ward is required");
+      newErrors.ward = "Ward is required";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
 
     setIsSubmitting(true);
-    setError("");
+    setErrors({
+      partnerName: "",
+      city: "",
+      ward: "",
+    });
     try {
       const result = await createAirlinePartner({
         partnerName: trimmedName,
@@ -198,19 +232,17 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
       });
 
       if (result.success) {
-        toast.success(result.message || "Create airline partner successfully");
+        toast.success("Create airline partner successfully");
         if (onSuccess) {
           onSuccess();
         }
         onClose();
       } else {
-        setError(result.error || "Cannot create airline partner");
-        toast.error(result.error || "Cannot create airline partner");
+        toast.error("Cannot create airline partner");
       }
     } catch (err) {
       console.error("Error creating airline partner:", err);
       toast.error("An error occurred while creating airline partner");
-      setError("An error occurred while creating airline partner");
     } finally {
       setIsSubmitting(false);
     }
@@ -248,16 +280,19 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
               value={partnerName}
               onChange={(e) => {
                 setPartnerName(e.target.value);
-                if (error) setError("");
+                if (errors.partnerName) {
+                  setErrors((prev) => ({ ...prev, partnerName: "" }));
+                }
               }}
               placeholder="Enter partner name"
               className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error && !partnerName.trim()
-                  ? "border-red-500"
-                  : "border-slate-300"
+                errors.partnerName ? "border-red-500" : "border-slate-300"
               }`}
               disabled={isSubmitting}
             />
+            {errors.partnerName && (
+              <p className="mt-1 text-sm text-red-600">{errors.partnerName}</p>
+            )}
           </div>
 
           <div>
@@ -304,9 +339,7 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
                   }
                 }}
                 className={`w-full rounded-lg border px-3 py-2 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  error && !selectedCityId
-                    ? "border-red-500"
-                    : "border-slate-300"
+                  errors.city ? "border-red-500" : "border-slate-300"
                 } ${
                   isSubmitting || isLoadingCities
                     ? "bg-slate-100 cursor-not-allowed"
@@ -373,6 +406,9 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
             {isLoadingCities && (
               <p className="mt-1 text-xs text-slate-500">Loading cities...</p>
             )}
+            {errors.city && (
+              <p className="mt-1 text-sm text-red-600">{errors.city}</p>
+            )}
           </div>
 
           <div>
@@ -391,9 +427,7 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
                   }
                 }}
                 className={`w-full rounded-lg border px-3 py-2 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  error && !selectedWardId
-                    ? "border-red-500"
-                    : "border-slate-300"
+                  errors.ward ? "border-red-500" : "border-slate-300"
                 } ${
                   isSubmitting || isLoadingWards || !selectedCityId
                     ? "bg-slate-100 cursor-not-allowed"
@@ -468,13 +502,10 @@ const CreateAirlinePartnerModal = ({ isOpen, onClose, onSuccess }) => {
                 Please select a city first
               </p>
             )}
+            {errors.ward && (
+              <p className="mt-1 text-sm text-red-600">{errors.ward}</p>
+            )}
           </div>
-
-          {error && (
-            <div className="p-3 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50">
-              {error}
-            </div>
-          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <button

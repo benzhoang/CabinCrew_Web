@@ -630,7 +630,7 @@ const SeniorCreateCampaignPage = () => {
 
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      Start date *
+                      Start date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -651,7 +651,7 @@ const SeniorCreateCampaignPage = () => {
 
                   <div>
                     <label className="block mb-2 text-sm font-medium text-slate-700">
-                      End date *
+                      End date <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"

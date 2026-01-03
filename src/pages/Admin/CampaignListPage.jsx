@@ -5,7 +5,6 @@ import CampaignList from "../../components/AdminComponent/CampaignList";
 
 const CampaignListPage = () => {
   const [search, setSearch] = useState("");
-  const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [airlinePartners, setAirlinePartners] = useState([]);
@@ -72,7 +71,7 @@ const CampaignListPage = () => {
             <div className="relative w-72">
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search by name, campaign type..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-3 text-sm border border-gray-300 rounded-lg h-9 pr-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -93,15 +92,6 @@ const CampaignListPage = () => {
               ))}
             </select>
             <select
-              value={campaignTypeFilter}
-              onChange={(e) => setCampaignTypeFilter(e.target.value)}
-              className="px-3 text-sm border border-gray-300 rounded-lg h-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-            >
-              <option value="all">All campaign types</option>
-              <option value="recruitment">Recruitment</option>
-              <option value="promotion">Promotion</option>
-            </select>
-            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 text-sm border border-gray-300 rounded-lg h-9 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
@@ -120,7 +110,6 @@ const CampaignListPage = () => {
 
           <CampaignList
             search={search}
-            campaignTypeFilter={campaignTypeFilter}
             statusFilter={statusFilter}
             partnerId={getPartnerIdFromName(partnerFilter)}
           />

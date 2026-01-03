@@ -43,12 +43,42 @@ const AirlineRequestPage = () => {
         </div>
       </div>
 
-      <RequestList
-        search={search}
-        setSearch={setSearch}
-        campaignTypeFilter={campaignTypeFilter}
-        setCampaignTypeFilter={setCampaignTypeFilter}
-      />
+      {/* Search and Filter */}
+      <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Search Bar */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Search
+            </label>
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Request Type Filter */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Request Type
+            </label>
+            <select
+              value={campaignTypeFilter}
+              onChange={(e) => setCampaignTypeFilter(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All request types</option>
+              <option value="recruitment">Recruitment</option>
+              <option value="promotion">Promotion</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <RequestList search={search} campaignTypeFilter={campaignTypeFilter} />
     </div>
   );
 };

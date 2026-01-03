@@ -4,7 +4,6 @@ import { getAirlinePartners } from "../../service/api";
 
 const SeniorRequestPage = () => {
   const [search, setSearch] = useState("");
-  const [campaignTypeFilter, setCampaignTypeFilter] = useState("all");
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [airlinePartners, setAirlinePartners] = useState([]);
   const [isLoadingPartners, setIsLoadingPartners] = useState(false);
@@ -55,15 +54,49 @@ const SeniorRequestPage = () => {
         </div>
       </div>
 
+      {/* Search and Filter */}
+      <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Search Bar */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Search
+            </label>
+            <input
+              type="text"
+              placeholder="Search by name, request type..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Airline Partner Filter */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Airline Partner
+            </label>
+            <select
+              value={partnerFilter}
+              onChange={(e) => setPartnerFilter(e.target.value)}
+              disabled={isLoadingPartners}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="all">All Partners</option>
+              {airlinePartners.map((partner) => (
+                <option key={partner.partnerId} value={partner.partnerName}>
+                  {partner.partnerName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <RequestList
         search={search}
-        setSearch={setSearch}
-        campaignTypeFilter={campaignTypeFilter}
-        setCampaignTypeFilter={setCampaignTypeFilter}
         partnerFilter={partnerFilter}
-        setPartnerFilter={setPartnerFilter}
         airlinePartners={airlinePartners}
-        isLoadingPartners={isLoadingPartners}
       />
     </div>
   );

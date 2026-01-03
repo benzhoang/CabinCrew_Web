@@ -77,7 +77,7 @@ const ApplicationFormPage = () => {
       const decoded = atob(paddedPayload);
       return JSON.parse(decoded);
     } catch (error) {
-      console.error("Lỗi khi decode JWT:", error);
+      console.error("Error decoding JWT:", error);
       return null;
     }
   };
@@ -104,10 +104,10 @@ const ApplicationFormPage = () => {
       if (decoded) {
         return (
           decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -253,14 +253,14 @@ const ApplicationFormPage = () => {
       setCaptchaInput(value);
     } else if (name === "fullName") {
       // Validate Full Name: only letters and spaces
-      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, '');
+      const filteredValue = value.replace(/[^a-zA-ZÀ-ỹ\s]/g, "");
       setFormData((prev) => ({
         ...prev,
         [name]: filteredValue,
       }));
     } else if (name === "mobileNumber") {
       // Validate Mobile Number: only digits
-      const filteredValue = value.replace(/\D/g, '');
+      const filteredValue = value.replace(/\D/g, "");
       setFormData((prev) => ({
         ...prev,
         [name]: filteredValue,
@@ -384,7 +384,7 @@ const ApplicationFormPage = () => {
     }
 
     // Validate Email: must end with @gmail.com
-    if (!formData.email.toLowerCase().endsWith('@gmail.com')) {
+    if (!formData.email.toLowerCase().endsWith("@gmail.com")) {
       toast.error("Email must be a Gmail address (@gmail.com).");
       return;
     }
@@ -477,7 +477,7 @@ const ApplicationFormPage = () => {
 
         toast.success(
           t("application_form_submitted_successfully") ||
-          "Submit application successfully!"
+            "Submit application successfully!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
@@ -667,7 +667,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_profile_photo")} *</span>
                     {files.profilePhoto && (
                       <DeleteFileButton
@@ -717,7 +717,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span>{t("application_form_education_degree")} *</span>
                     {files.educationDegree && (
                       <DeleteFileButton
@@ -769,7 +769,7 @@ const ApplicationFormPage = () => {
                 </div>
 
                 <div>
-                  <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                  <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                     <span className="flex items-center gap-2">
                       {t("application_form_english_certificate")} *
                       <EyeIcon
@@ -818,8 +818,8 @@ const ApplicationFormPage = () => {
                           )}
                         </p>
                         <p className="mt-1 text-xs text-slate-500 italic">
-                          * Please upload the English certificate in the format of{" "}
-                          <span className="font-semibold">JPG (.jpg)</span>.
+                          * Please upload the English certificate in the format
+                          of <span className="font-semibold">JPG (.jpg)</span>.
                         </p>
                       </div>
                     </div>
@@ -828,7 +828,7 @@ const ApplicationFormPage = () => {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                    <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                       <span>
                         {t("application_form_id_card")} - Front side *
                       </span>
@@ -885,7 +885,7 @@ const ApplicationFormPage = () => {
                   </div>
 
                   <div>
-                    <label className="flex items-center justify-between block mb-2 text-sm font-medium text-slate-700">
+                    <label className="flex items-center justify-between mb-2 text-sm font-medium text-slate-700">
                       <span>{t("application_form_id_card")} - Back side *</span>
                       {files.idCardBack && (
                         <DeleteFileButton
@@ -962,7 +962,9 @@ const ApplicationFormPage = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500 italic">* {t('email_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("email_helper")}
+                </p>
               </div>
 
               <div>
@@ -977,7 +979,9 @@ const ApplicationFormPage = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500 italic">* {t('fullname_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("fullname_helper")}
+                </p>
               </div>
 
               <div>
@@ -1039,7 +1043,9 @@ const ApplicationFormPage = () => {
                   className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-gray-500 italic">* {t('mobile_number_helper')}</p>
+                <p className="mt-1 text-xs text-gray-500 italic">
+                  * {t("mobile_number_helper")}
+                </p>
               </div>
 
               <div>

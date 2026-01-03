@@ -52,13 +52,8 @@ const getPartnerColor = (partnerName) => {
 
 const RequestList = ({
   search = "",
-  setSearch,
-  campaignTypeFilter = "all",
-  setCampaignTypeFilter,
   partnerFilter = "all",
-  setPartnerFilter,
   airlinePartners = [],
-  isLoadingPartners = false,
 }) => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]); // Store requests from current page
@@ -195,15 +190,7 @@ const RequestList = ({
           item.position || item.role || item.requestType || "No position",
       }));
 
-      // Filter by campaignTypeFilter (client-side)
-      let finalRequests = mappedRequests;
-      if (campaignTypeFilter !== "all") {
-        finalRequests = mappedRequests.filter(
-          (r) => r.requestType === campaignTypeFilter
-        );
-      }
-
-      setRequests(finalRequests);
+      setRequests(mappedRequests);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -219,7 +206,7 @@ const RequestList = ({
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: finalRequests.length,
+          totalRecords: mappedRequests.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,
@@ -252,13 +239,7 @@ const RequestList = ({
       fetchRequests(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    search,
-    campaignTypeFilter,
-    partnerFilter,
-    statusFilter,
-    getPartnerIdFromName,
-  ]);
+  }, [search, partnerFilter, statusFilter, getPartnerIdFromName]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;
@@ -373,42 +354,9 @@ const RequestList = ({
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="p-6 border-b border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">
-            Request List ({requests.length})
-          </h3>
-          <div className="flex items-center gap-3">
-            <select
-              value={campaignTypeFilter}
-              onChange={(e) => setCampaignTypeFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All request types</option>
-              <option value="recruitment">Recruitment</option>
-              <option value="promotion">Promotion</option>
-            </select>
-            <select
-              value={partnerFilter}
-              onChange={(e) => setPartnerFilter(e.target.value)}
-              disabled={isLoadingPartners}
-              className="px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="all">All Partners</option>
-              {airlinePartners.map((partner) => (
-                <option key={partner.partnerId} value={partner.partnerName}>
-                  {partner.partnerName}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-64 px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
+        <h3 className="mb-3 text-lg font-semibold text-slate-800">
+          Request List ({requests.length})
+        </h3>
       </div>
 
       <div className="divide-y divide-slate-200">

@@ -321,7 +321,6 @@ const CampaignCard = ({ campaign }) => {
 
 const CampaignList = ({
   search = "",
-  campaignTypeFilter = "all",
   partnerFilter = "all",
   airlinePartners = [],
 }) => {
@@ -453,15 +452,7 @@ const CampaignList = ({
         progress: { current: 0, total: item.targetQuantity || 0 },
       }));
 
-      // Filter by campaignType (client-side)
-      let finalCampaigns = mappedCampaigns;
-      if (campaignTypeFilter !== "all") {
-        finalCampaigns = mappedCampaigns.filter(
-          (c) => c.campaignType === campaignTypeFilter
-        );
-      }
-
-      setCampaigns(finalCampaigns);
+      setCampaigns(mappedCampaigns);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -477,7 +468,7 @@ const CampaignList = ({
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: finalCampaigns.length,
+          totalRecords: mappedCampaigns.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,
@@ -510,13 +501,7 @@ const CampaignList = ({
       fetchCampaigns(1, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    campaignTypeFilter,
-    search,
-    selectedStatus,
-    partnerFilter,
-    getPartnerIdFromName,
-  ]);
+  }, [search, selectedStatus, partnerFilter, getPartnerIdFromName]);
 
   const handlePageChange = (page) => {
     if (page === pagination.currentPage) return;

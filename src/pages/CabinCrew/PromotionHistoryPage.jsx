@@ -3,8 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { FaCheck, FaClock, FaEllipsisH } from "react-icons/fa";
 import { getPromotionHistory } from "../../service/api2";
-import { promotionStagesTemplates, renderPromotionStageActionButtons } from "./Historytemplates/PromotionStagesTemplates";
-import { recruitmentStageTemplates, renderStageActionButtons } from "./Historytemplates/RecruitmentStageTemplates";
+import {
+  promotionStagesTemplates,
+  renderPromotionStageActionButtons,
+} from "./Historytemplates/PromotionStagesTemplates";
+import {
+  recruitmentStageTemplates,
+  renderStageActionButtons,
+} from "./Historytemplates/RecruitmentStageTemplates";
 
 // Các hằng số & map dùng cho timeline recruitment (giống RecruitmentStages.jsx)
 const LINE_START_PERCENT = 5;
@@ -52,9 +58,12 @@ const getAxisPercent = (templateId) => {
 };
 
 const getStagePositionStyle = (templateId) => {
-  const isMainStage = ["screening", "appearance", "interview", "final"].includes(
-    templateId
-  );
+  const isMainStage = [
+    "screening",
+    "appearance",
+    "interview",
+    "final",
+  ].includes(templateId);
 
   if (isMainStage) {
     return {
@@ -68,8 +77,8 @@ const getStagePositionStyle = (templateId) => {
     templateId === "english-listening"
       ? -BRANCH_OFFSET
       : templateId === "english-speaking"
-        ? BRANCH_OFFSET
-        : 0;
+      ? BRANCH_OFFSET
+      : 0;
 
   return {
     left: `${getAxisPercent(templateId)}%`,
@@ -94,8 +103,7 @@ const getRecruitmentProgressPercentage = (application) => {
     application.currentStage > 0 &&
     application.currentStage <= application.stages.length
   ) {
-    const currentStageData =
-      application.stages[application.currentStage - 1];
+    const currentStageData = application.stages[application.currentStage - 1];
     if (currentStageData) {
       const axisPos = stageAxisPositionMap[currentStageData.templateId];
       if (typeof axisPos === "number") {
@@ -156,7 +164,8 @@ const PromotionHistoryPage = () => {
                     activityId: matchingRound?.activityId || "",
                     applicationId: matchingRound?.applicationId || "",
                     id: matchingRound?.roundId || `${template.id}-${index}`,
-                    roundId: matchingRound?.roundId || matchingRound?.id || null,
+                    roundId:
+                      matchingRound?.roundId || matchingRound?.id || null,
                     templateId: template.id,
                     name: matchingRound?.roundName || template.name,
                     nameEn: matchingRound?.roundName || template.nameEn,
@@ -275,9 +284,12 @@ const PromotionHistoryPage = () => {
             if (isRecruitment) {
               const screeningRound = rounds.find((round) => {
                 const roundName = normalizeText(round.roundName);
-                return ['screening', 'sang loc', 'sàng lọc'].some(keyword => roundName.includes(keyword));
+                return ["screening", "sang loc", "sàng lọc"].some((keyword) =>
+                  roundName.includes(keyword)
+                );
               });
-              activityId = screeningRound?.activityId || rounds[0]?.activityId || "";
+              activityId =
+                screeningRound?.activityId || rounds[0]?.activityId || "";
             }
 
             return {
@@ -733,8 +745,9 @@ const PromotionHistoryPage = () => {
                                   application
                                 ) => (
                                   <div
-                                    className={`${position === "top" ? "mb-3" : "mt-3"
-                                      } w-28 text-center`}
+                                    className={`${
+                                      position === "top" ? "mb-3" : "mt-3"
+                                    } w-28 text-center`}
                                   >
                                     <p className="text-xs font-medium text-gray-900">
                                       {getStageName(stage)}
@@ -746,7 +759,13 @@ const PromotionHistoryPage = () => {
                                         ).toLocaleDateString()}
                                       </p>
                                     )}
-                                    {renderStageActionButtons(stage, stageReached, application, navigate, t)}
+                                    {renderStageActionButtons(
+                                      stage,
+                                      stageReached,
+                                      application,
+                                      navigate,
+                                      t
+                                    )}
                                   </div>
                                 );
 
@@ -758,8 +777,9 @@ const PromotionHistoryPage = () => {
                                       style={{
                                         top: `${BASELINE_Y}px`,
                                         left: `${LINE_START_PERCENT}%`,
-                                        width: `${LINE_END_PERCENT - LINE_START_PERCENT
-                                          }%`,
+                                        width: `${
+                                          LINE_END_PERCENT - LINE_START_PERCENT
+                                        }%`,
                                         height: "2px",
                                       }}
                                     >
@@ -791,7 +811,8 @@ const PromotionHistoryPage = () => {
                                     {timelineStageIds.map((templateId) => {
                                       const stage = stageMap[templateId];
                                       if (!stage) return null;
-                                      const stageIndex = stageIndexMap[templateId];
+                                      const stageIndex =
+                                        stageIndexMap[templateId];
                                       const stageReached = isStageReached(
                                         stage,
                                         stageIndex,
@@ -812,7 +833,13 @@ const PromotionHistoryPage = () => {
                                           style={positionStyle}
                                         >
                                           {infoPosition === "top" &&
-                                            renderStageInfo(stage, stageIndex, stageReached, "top", application)}
+                                            renderStageInfo(
+                                              stage,
+                                              stageIndex,
+                                              stageReached,
+                                              "top",
+                                              application
+                                            )}
                                           <div
                                             className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center ${getStageColor(
                                               stage,
@@ -827,7 +854,13 @@ const PromotionHistoryPage = () => {
                                             )}
                                           </div>
                                           {infoPosition === "bottom" &&
-                                            renderStageInfo(stage, stageIndex, stageReached, "bottom", application)}
+                                            renderStageInfo(
+                                              stage,
+                                              stageIndex,
+                                              stageReached,
+                                              "bottom",
+                                              application
+                                            )}
                                         </div>
                                       );
                                     })}
@@ -842,10 +875,11 @@ const PromotionHistoryPage = () => {
                                 <div
                                   className="h-full transition-all duration-500 bg-blue-500"
                                   style={{
-                                    width: `${(application.currentStage /
-                                      application.stages.length) *
+                                    width: `${
+                                      (application.currentStage /
+                                        application.stages.length) *
                                       100
-                                      }%`,
+                                    }%`,
                                   }}
                                 ></div>
                               </div>
@@ -884,7 +918,11 @@ const PromotionHistoryPage = () => {
                                           ).toLocaleDateString()}
                                         </p>
                                       )}
-                                      {renderPromotionStageActionButtons(stage, navigate, t)}
+                                      {renderPromotionStageActionButtons(
+                                        stage,
+                                        navigate,
+                                        t
+                                      )}
                                     </div>
                                   </div>
                                 ))}
@@ -895,8 +933,9 @@ const PromotionHistoryPage = () => {
                           {/* Current Status */}
                           {(() => {
                             const currentStage =
-                              application.stages[application.currentStage - 1] ||
-                              application.stages[0];
+                              application.stages[
+                                application.currentStage - 1
+                              ] || application.stages[0];
                             const stageStatus =
                               getStageStatusForColor(currentStage);
                             return (
@@ -910,14 +949,14 @@ const PromotionHistoryPage = () => {
                                     stageStatus
                                   )}`}
                                 >
-                                  <strong>Trạng thái hiện tại:</strong>{" "}
+                                  <strong>Current status:</strong>{" "}
                                   {stageStatus === "rejected"
                                     ? `Not qualified at ${getStageName(
-                                      currentStage
-                                    )}`
+                                        currentStage
+                                      )}`
                                     : currentStage?.completed
-                                      ? `Completed ${getStageName(currentStage)}`
-                                      : `In progress ${getStageName(
+                                    ? `Completed ${getStageName(currentStage)}`
+                                    : `In progress ${getStageName(
                                         currentStage
                                       )}`}
                                 </p>
