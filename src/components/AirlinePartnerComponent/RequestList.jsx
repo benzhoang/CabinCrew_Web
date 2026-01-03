@@ -73,12 +73,7 @@ const mapStatusToStatusNumber = (status) => {
   return statusMap[status] ?? undefined;
 };
 
-const RequestList = ({
-  search = "",
-  setSearch,
-  campaignTypeFilter = "all",
-  setCampaignTypeFilter,
-}) => {
+const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Đọc status và page từ URL query params
@@ -447,30 +442,9 @@ const RequestList = ({
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="p-6 border-b border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">
-            Request List ({requests.length})
-          </h3>
-          <div className="flex items-center gap-3">
-            <select
-              value={campaignTypeFilter}
-              onChange={(e) => setCampaignTypeFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All request types</option>
-              <option value="recruitment">Recruitment</option>
-              <option value="promotion">Promotion</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-64 px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">
+          Request List ({requests.length})
+        </h3>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setSelectedStatus("all")}

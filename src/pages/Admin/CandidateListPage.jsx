@@ -38,7 +38,7 @@ const CandidateListPage = () => {
             <div className="relative w-72">
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search by name..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full h-9 pl-3 pr-9 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400"

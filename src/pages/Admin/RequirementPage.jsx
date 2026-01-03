@@ -118,7 +118,7 @@ const RequirementPage = () => {
         // Refresh the list after deleting an item
         fetchRequirementItems(selectedType);
       } else {
-        toast.error(result.error || "Cannot delete requirement item");
+        toast.error("Cannot delete requirement item");
       }
     } catch (error) {
       toast.error("An error occurred while deleting requirement item");

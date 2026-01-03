@@ -1,15 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
 import CampaignList from "../../components/SeniorRecruiterComponent/CampaignList";
 import { getAirlinePartners } from "../../service/api";
 
 const SeniorCampaignPage = () => {
-  const [searchParams] = useSearchParams();
-  const campaignTypeFromUrl = searchParams.get("campaignType") || "all";
-
   const [search, setSearch] = useState("");
-  const [campaignTypeFilter, setCampaignTypeFilter] =
-    useState(campaignTypeFromUrl);
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [airlinePartners, setAirlinePartners] = useState([]);
   const [isLoadingPartners, setIsLoadingPartners] = useState(false);
@@ -45,13 +39,6 @@ const SeniorCampaignPage = () => {
     fetchAirlinePartners();
   }, [fetchAirlinePartners]);
 
-  // Cập nhật campaignTypeFilter khi URL thay đổi
-  useEffect(() => {
-    if (campaignTypeFromUrl !== campaignTypeFilter) {
-      setCampaignTypeFilter(campaignTypeFromUrl);
-    }
-  }, [campaignTypeFromUrl, campaignTypeFilter]);
-
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -69,7 +56,7 @@ const SeniorCampaignPage = () => {
 
       {/* Search and Filter */}
       <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Search Bar */}
           <div>
             <label className="block mb-2 text-sm font-medium text-slate-700">
@@ -77,27 +64,11 @@ const SeniorCampaignPage = () => {
             </label>
             <input
               type="text"
-              placeholder="Search by name, position..."
+              placeholder="Search by name, campaign type..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
-          </div>
-
-          {/* Campaign Type Filter */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-slate-700">
-              Campaign Type
-            </label>
-            <select
-              value={campaignTypeFilter}
-              onChange={(e) => setCampaignTypeFilter(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">All campaign types</option>
-              <option value="recruitment">Recruitment</option>
-              <option value="promotion">Promotion</option>
-            </select>
           </div>
 
           {/* Partner Filter */}
@@ -125,7 +96,6 @@ const SeniorCampaignPage = () => {
       {/* Campaign List Component */}
       <CampaignList
         search={search}
-        campaignTypeFilter={campaignTypeFilter}
         partnerFilter={partnerFilter}
         airlinePartners={airlinePartners}
       />

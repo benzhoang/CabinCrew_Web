@@ -734,7 +734,7 @@ const CreateRound = forwardRef(
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Round name *
+                        Round name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -757,7 +757,7 @@ const CreateRound = forwardRef(
                     </div>
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Start date *
+                        Start date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
@@ -795,7 +795,7 @@ const CreateRound = forwardRef(
                     </div>
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        End date *
+                        End date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
@@ -829,7 +829,8 @@ const CreateRound = forwardRef(
 
                     <div>
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Target quantity *
+                        Target applicants{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
@@ -848,7 +849,7 @@ const CreateRound = forwardRef(
                             ? "border-red-300"
                             : "border-slate-300"
                         }`}
-                        placeholder="Enter target quantity"
+                        placeholder="Enter target applicants"
                       />
                       {errors[`rounds.${index}.targetQuantity`] && (
                         <p className="mt-1 text-xs text-red-600">
@@ -859,7 +860,7 @@ const CreateRound = forwardRef(
 
                     <div className="sm:col-span-2">
                       <label className="block mb-1 text-sm font-medium text-slate-700">
-                        Description
+                        Description <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={round.description}
