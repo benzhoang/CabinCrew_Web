@@ -200,7 +200,7 @@ const RequestList = () => {
         console.error("Error fetching campaigns:", err);
         setError(
           "An error occurred while loading data: " +
-            (err.message || "Unknown error")
+          (err.message || "Unknown error")
         );
         setCampaigns([]);
       } finally {
@@ -312,7 +312,7 @@ const RequestList = () => {
         console.error("Error fetching campaigns:", err);
         setError(
           "An error occurred while loading data: " +
-            (err.message || "Unknown error")
+          (err.message || "Unknown error")
         );
         setCampaigns([]);
       } finally {
@@ -470,74 +470,85 @@ const RequestList = () => {
         </div>
       </div>
 
-      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-800">
-              Campaign List ({filteredCampaigns.length})
-            </h3>
-            <div className="flex items-center gap-3">
-              <select
-                value={partnerFilter}
-                onChange={(e) => setPartnerFilter(e.target.value)}
-                disabled={isLoadingPartners}
-                className="px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="all">All Partners</option>
-                {airlinePartners.map((partner) => (
-                  <option key={partner.partnerId} value={partner.partnerName}>
-                    {partner.partnerName}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+      {/* Search and Filter */}
+      <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Search Bar */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Search
+            </label>
+            <input
+              type="text"
+              placeholder="Search by name, request type, partner..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
 
+          {/* Airline Partner Filter */}
+          <div>
+            <label className="block mb-2 text-sm font-medium text-slate-700">
+              Airline Partner
+            </label>
+            <select
+              value={partnerFilter}
+              onChange={(e) => setPartnerFilter(e.target.value)}
+              disabled={isLoadingPartners}
+              className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="all">All Partners</option>
+              {airlinePartners.map((partner) => (
+                <option key={partner.partnerId} value={partner.partnerName}>
+                  {partner.partnerName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Campaigns List */}
+      <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-800 mb-3">
+            Campaign List ({filteredCampaigns.length})
+          </h3>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setStatusFilter("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "all"
-                  ? "bg-slate-600 text-white border-slate-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "all"
+                ? "bg-slate-600 text-white border-slate-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                }`}
             >
               All
             </button>
             <button
               onClick={() => setStatusFilter("pending_approval")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "pending_approval"
-                  ? "bg-yellow-600 text-white border-yellow-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-yellow-50"
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "pending_approval"
+                ? "bg-yellow-600 text-white border-yellow-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-yellow-50"
+                }`}
             >
               Pending
             </button>
             <button
               onClick={() => setStatusFilter("rejected")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "rejected"
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "rejected"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+                }`}
             >
               Rejected
             </button>
             <button
               onClick={() => setStatusFilter("approved")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-                statusFilter === "approved"
-                  ? "bg-green-600 text-white border-green-600"
-                  : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
-              }`}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === "approved"
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-green-50"
+                }`}
             >
               Approved
             </button>
@@ -665,11 +676,10 @@ const RequestList = () => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
               disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Prev
             </button>
@@ -682,11 +692,10 @@ const RequestList = () => {
               type="button"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
               disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
+              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                }`}
             >
               Next
             </button>

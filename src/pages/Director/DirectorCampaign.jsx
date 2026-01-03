@@ -207,77 +207,87 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
     }, [campaign])
 
     return (
-        <div className="p-5 bg-white border border-gray-200 rounded-xl">
-            <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-semibold text-gray-900 truncate">
+        <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+                <div className="mb-2">
+                    <h4 className="text-lg font-semibold text-slate-800">
                         {campaign.name}
-                    </h3>
+                    </h4>
+                </div>
 
-                    <div className="grid grid-cols-1 mt-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-1">
-                        <div>
-                            <span className="text-gray-500">Position:</span>
-                            <div className="mt-1">
-                                <PositionBadge position={campaign.position} />
-                            </div>
+                <div className="grid grid-cols-1 gap-4 mb-3 md:grid-cols-3 lg:grid-cols-6">
+                    <div>
+                        <span className="text-sm text-slate-600">Position:</span>
+                        <div className="mt-1">
+                            <PositionBadge position={campaign.position} />
                         </div>
-                        <div>
-                            <span className="text-gray-500">Type:</span>
-                            <div className="mt-1">
-                                <CampaignTypeBadge type={campaign.campaignType} />
-                            </div>
+                    </div>
+                    <div>
+                        <span className="text-sm text-slate-600">Type:</span>
+                        <div className="mt-1">
+                            <CampaignTypeBadge type={campaign.campaignType} />
                         </div>
-                        <div>
-                            <span className="text-gray-500">Partner:</span>
-                            <div className="mt-1">
-                                <PartnerBadge partnerName={campaign.partnerName} />
-                            </div>
+                    </div>
+                    <div>
+                        <span className="text-sm text-slate-600">Partner:</span>
+                        <div className="mt-1">
+                            <PartnerBadge partnerName={campaign.partnerName} />
                         </div>
-                        <div>
-                            <span className="text-gray-500">Status:</span>
-                            <div className="mt-1">
-                                <StatusBadge status={campaign.status} />
-                            </div>
+                    </div>
+                    <div>
+                        <span className="text-sm text-slate-600">Status:</span>
+                        <div className="mt-1">
+                            <StatusBadge status={campaign.status} />
                         </div>
-                        <div>
-                            <span className="text-gray-500">Start date:</span>
-                            <p className="font-medium text-slate-800 mt-1">{formatDate(campaign.rawStartDate) || campaign.startDate}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">End date:</span>
-                            <p className="font-medium text-slate-800 mt-1">{formatDate(campaign.rawEndDate) || campaign.endDate}</p>
-                        </div>
+                    </div>
+                    <div>
+                        <span className="text-sm text-slate-600">
+                            Start Date:
+                        </span>
+                        <p className="font-medium text-slate-800">
+                            {formatDate(campaign.rawStartDate) || campaign.startDate}
+                        </p>
+                    </div>
+                    <div>
+                        <span className="text-sm text-slate-600">End Date:</span>
+                        <p className="font-medium text-slate-800">
+                            {formatDate(campaign.rawEndDate) || campaign.endDate}
+                        </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                    <button
-                        className="px-3 py-1.5 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-                        onClick={() => onViewDetails(campaign)}
-                    >
-                        View details
-                    </button>
-                </div>
+                {/* Progress Bar */}
+                {campaign.targetHires > 0 && (
+                    <div className="mb-3">
+                        <div className="flex justify-between mb-1 text-sm text-slate-600">
+                            <span>Recruitment Progress</span>
+                            <span>
+                                {campaign.currentHires}/{campaign.targetHires} (
+                                {percent}%)
+                            </span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-slate-200">
+                            <div
+                                className="h-2 transition-all duration-300 bg-blue-600 rounded-full"
+                                style={{ width: `${percent}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
+
+                <p className="text-sm text-slate-600">
+                    {campaign.description}
+                </p>
             </div>
 
-            {/* {campaign.targetHires > 0 && (
-                <div className="mt-4">
-                    <div className="flex justify-between mb-1 text-sm text-slate-600">
-                        <span className="text-gray-500">Hiring progress</span>{' '}
-                        {campaign.currentHires}/{campaign.targetHires} ({percent}%)
-                    </div>
-                    <div className="h-2 overflow-hidden bg-gray-200 rounded-full">
-                        <div
-                            className="h-full bg-blue-600"
-                            style={{ width: `${percent}%` }}
-                        />
-                    </div>
-                </div>
-            )} */}
-
-            {campaign.description && (
-                <p className="mt-3 text-sm text-gray-600">{campaign.description}</p>
-            )}
+            <div className="flex items-center gap-2 ml-4">
+                <button
+                    onClick={() => onViewDetails(campaign)}
+                    className="px-3 py-1 text-sm text-white transition-colors bg-blue-600 rounded-md hover:bg-blue-700"
+                >
+                    View Details
+                </button>
+            </div>
         </div>
     )
 }
@@ -651,34 +661,47 @@ const DirectorCampaign = () => {
     }
 
     return (
-        <div className="flex flex-col gap-5 p-6">
-            <h2 className="mb-6 text-xl font-bold text-gray-800">
-                Campaign Management ({filteredCampaigns.length})
-            </h2>
+        <div className="p-6">
+            <div className="mb-6">
+                <div className="flex items-start justify-between mb-2">
+                    <div>
+                        <h2 className="mb-2 text-2xl font-bold text-slate-800">
+                            Campaign Management
+                        </h2>
+                        <p className="text-slate-600">
+                            Manage recruitment campaigns and human resource plans
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             {/* Search and Filter */}
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-6 mb-6 bg-white border rounded-lg shadow-sm border-slate-200">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     {/* Search Bar */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Search</label>
+                        <label className="block mb-2 text-sm font-medium text-slate-700">
+                            Search
+                        </label>
                         <input
                             type="text"
                             placeholder="Search by name or campaign type..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
 
                     {/* Airline Partner Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Airline Partner</label>
+                        <label className="block mb-2 text-sm font-medium text-slate-700">
+                            Airline Partner
+                        </label>
                         <select
                             value={partnerFilter}
                             onChange={(e) => setPartnerFilter(e.target.value)}
                             disabled={isLoadingPartners}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <option value="all">All Partners</option>
                             {airlinePartners.map((partner) => (
@@ -691,11 +714,13 @@ const DirectorCampaign = () => {
 
                     {/* Sort Filter */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Sort by assigned date</label>
+                        <label className="block mb-2 text-sm font-medium text-slate-700">
+                            Sort by assigned date
+                        </label>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border rounded-md border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="startDateDesc">Newest first</option>
                             <option value="startDateAsc">Oldest first</option>
@@ -704,171 +729,184 @@ const DirectorCampaign = () => {
                 </div>
             </div>
 
-            {/* Status Filter Buttons */}
-            <div className="flex items-center gap-3 flex-wrap">
-                <div className="inline-flex items-stretch gap-3 flex-wrap">
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('all')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter === 'all'
-                            ? 'bg-slate-700 text-white border-slate-700'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        All
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Draft')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'draft'
-                            ? 'bg-slate-600 text-white border-slate-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Planning
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Pending')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'pending'
-                            ? 'bg-yellow-600 text-white border-yellow-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Pending
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Approved')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'approved'
-                            ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Approved
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Ongoing')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'ongoing'
-                            ? 'bg-green-600 text-white border-green-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Ongoing
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Upcoming')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'upcoming'
-                            ? 'bg-purple-600 text-white border-purple-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Upcoming
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Ended')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'ended'
-                            ? 'bg-gray-600 text-white border-gray-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Ended
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Rejected')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'rejected'
-                            ? 'bg-red-600 text-white border-red-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Rejected
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatusFilter('Canceled')}
-                        className={`px-4 py-1.5 text-sm font-medium border-2 rounded-md ${statusFilter.toLowerCase() === 'canceled'
-                            ? 'bg-orange-600 text-white border-orange-600'
-                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                            }`}
-                    >
-                        Canceled
-                    </button>
+            {/* Campaigns List */}
+            <div className="bg-white border rounded-lg shadow-sm border-slate-200">
+                <div className="p-6 border-b border-slate-200">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-3">
+                        Campaign List ({filteredCampaigns.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={() => setStatusFilter('all')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter === 'all'
+                                ? 'bg-slate-600 text-white border-slate-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                }`}
+                        >
+                            All
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Draft')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'draft'
+                                ? 'bg-slate-600 text-white border-slate-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                }`}
+                        >
+                            Planning
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Pending')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'pending'
+                                ? 'bg-yellow-600 text-white border-yellow-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-yellow-50'
+                                }`}
+                        >
+                            Pending
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Approved')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'approved'
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-emerald-50'
+                                }`}
+                        >
+                            Approved
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Ongoing')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'ongoing'
+                                ? 'bg-green-600 text-white border-green-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-green-50'
+                                }`}
+                        >
+                            Ongoing
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Upcoming')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'upcoming'
+                                ? 'bg-purple-600 text-white border-purple-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-purple-50'
+                                }`}
+                        >
+                            Upcoming
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Ended')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'ended'
+                                ? 'bg-gray-600 text-white border-gray-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-gray-50'
+                                }`}
+                        >
+                            Ended
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Rejected')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'rejected'
+                                ? 'bg-red-600 text-white border-red-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-red-50'
+                                }`}
+                        >
+                            Rejected
+                        </button>
+                        <button
+                            onClick={() => setStatusFilter('Canceled')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${statusFilter.toLowerCase() === 'canceled'
+                                ? 'bg-orange-600 text-white border-orange-600'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
+                                }`}
+                        >
+                            Canceled
+                        </button>
+                    </div>
+                </div>
+
+                <div className="divide-y divide-slate-200">
+                    {isLoading ? (
+                        <div className="py-8 text-center">
+                            <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+                            <p className="mt-4 text-sm text-gray-600">
+                                {t('loading_data') || 'Loading campaign list...'}
+                            </p>
+                        </div>
+                    ) : !isLoading && error ? (
+                        <div className="p-6 text-center text-red-500">{error}</div>
+                    ) : !isLoading && !error && filteredCampaigns.length === 0 ? (
+                        <div className="p-6 text-center text-slate-500">
+                            No campaigns found
+                        </div>
+                    ) : (
+                        <>
+                            {filteredCampaigns.map((campaign) => (
+                                <div
+                                    key={campaign.id}
+                                    className="p-6 transition-colors hover:bg-slate-50"
+                                >
+                                    <CampaignCard
+                                        campaign={campaign}
+                                        onViewDetails={handleViewDetails}
+                                        onDelete={handleDelete}
+                                    />
+                                </div>
+                            ))}
+
+                            {/* Pagination */}
+                            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                                <div className="text-sm text-slate-600">
+                                    Page{' '}
+                                    <span className="font-semibold">
+                                        {pagination.currentPage}
+                                    </span>
+                                    {pagination.totalPages ? (
+                                        <>
+                                            {' '}
+                                            /{' '}
+                                            <span className="font-semibold">
+                                                {pagination.totalPages}
+                                            </span>
+                                        </>
+                                    ) : null}
+                                    {typeof pagination.totalRecords === 'number' &&
+                                        pagination.totalRecords > 0 && (
+                                            <span className="ml-2">
+                                                ({pagination.totalRecords} records)
+                                            </span>
+                                        )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                        disabled={!pagination.hasPreviousPage}
+                                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <span className="text-sm text-slate-600">
+                                        {pagination.currentPage}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                        disabled={!pagination.hasNextPage}
+                                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
-
-            {/* Campaign Cards */}
-            {isLoading ? (
-                <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-sm text-gray-600">
-                        {t('loading_data') || 'Loading data...'}
-                    </p>
-                </div>
-            ) : filteredCampaigns.length === 0 ? (
-                <div className="py-12 text-center">
-                    <p className="text-slate-500">No campaigns found</p>
-                </div>
-            ) : (
-                <>
-                    {filteredCampaigns.map((campaign) => (
-                        <CampaignCard
-                            key={campaign.id}
-                            campaign={campaign}
-                            onViewDetails={handleViewDetails}
-                            onDelete={handleDelete}
-                        />
-                    ))}
-
-                    {/* Pagination */}
-                    <div className="mt-6 px-6 py-4 bg-white border border-slate-200 rounded-lg flex items-center justify-between">
-                        <div className="text-sm text-slate-600">
-                            Page <span className="font-semibold">{pagination.currentPage}</span>
-                            {pagination.totalPages ? (
-                                <> / <span className="font-semibold">{pagination.totalPages}</span></>
-                            ) : null}
-                            {typeof pagination.totalRecords === 'number' && (
-                                <span className="ml-2">
-                                    ({pagination.totalRecords} records)
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                                disabled={!pagination.hasPreviousPage}
-                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                                    }`}
-                            >
-                                Prev
-                            </button>
-
-                            <span className="text-sm text-slate-600">
-                                {pagination.currentPage}
-                            </span>
-
-                            <button
-                                type="button"
-                                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                                disabled={!pagination.hasNextPage}
-                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                                    }`}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
 
             {/* Detail modal */}
             {showModal && selectedCampaign && (
