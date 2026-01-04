@@ -461,7 +461,7 @@ const RequestList = () => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <h2 className="mb-2 text-2xl font-bold text-slate-800">
-              Campaign Management
+              Request Management
             </h2>
             <p className="text-slate-600">
               Manage and monitor recruitment campaigns across the system

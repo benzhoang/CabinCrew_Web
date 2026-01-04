@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getMyCampaigns } from "../../service/api";
+import { formatDateFromAPI } from "../../config/formatDate.js";
 
 const Campaign = () => {
   const [allCampaigns, setAllCampaigns] = useState([]); // Store all campaigns from API
@@ -54,9 +55,9 @@ const Campaign = () => {
   };
 
   const formatDateValue = (value) => {
-    const date = parseDateValue(value);
-    if (!date) return value || "Undetermined";
-    return date.toLocaleDateString("en-US");
+    if (!value) return null;
+    // Sử dụng formatDateFromAPI để loại bỏ phần giờ và format đúng định dạng DD/MM/YYYY
+    return formatDateFromAPI(value) || value || null;
   };
 
   const mapStatusValue = (status) => {
@@ -558,13 +559,13 @@ const Campaign = () => {
                         Start Date:
                       </span>
                       <p className="font-medium text-slate-800">
-                        {campaign.startDate}
+                        {campaign.startDate && campaign.startDate !== 'Undetermined' ? campaign.startDate : 'No start date'}
                       </p>
                     </div>
                     <div>
                       <span className="text-sm text-slate-600">End Date:</span>
                       <p className="font-medium text-slate-800">
-                        {campaign.endDate}
+                        {campaign.endDate && campaign.endDate !== 'Undetermined' ? campaign.endDate : 'No end date'}
                       </p>
                     </div>
                   </div>
@@ -796,13 +797,13 @@ const Campaign = () => {
                   <div>
                     <span className="text-sm text-slate-600">Start Date:</span>
                     <p className="font-medium text-slate-800">
-                      {selectedCampaign.startDate}
+                      {selectedCampaign.startDate && selectedCampaign.startDate !== 'Undetermined' ? selectedCampaign.startDate : 'No start date'}
                     </p>
                   </div>
                   <div>
                     <span className="text-sm text-slate-600">End Date:</span>
                     <p className="font-medium text-slate-800">
-                      {selectedCampaign.endDate}
+                      {selectedCampaign.endDate && selectedCampaign.endDate !== 'Undetermined' ? selectedCampaign.endDate : 'No end date'}
                     </p>
                   </div>
                   <div>
