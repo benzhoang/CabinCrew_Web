@@ -120,6 +120,7 @@ const buildCandidateProfile = (apiData, fallback = {}) => {
       apiData.experience ?? fallbackData.workingExperience ?? "",
     height: apiData.height ?? fallbackData.height ?? "",
     weight: apiData.weight ?? fallbackData.weight ?? "",
+    bmi: apiData.bmi ?? fallbackData.bmi ?? "",
     englishCertificate:
       apiData.englishDegreeNumber ?? fallbackData.englishCertificate ?? "",
     certificateExpireDate:
@@ -592,7 +593,7 @@ const SeniorCandidateDetailPage = () => {
                     <label className="block mb-1 text-sm font-medium text-slate-700">
                       7. Height & Weight:
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <div>
                         <label className="block mb-1 text-xs text-slate-600">
                           Height (cm)
@@ -609,29 +610,15 @@ const SeniorCandidateDetailPage = () => {
                           {candidate.weight || "—"}
                         </p>
                       </div>
+                      <div>
+                        <label className="block mb-1 text-xs text-slate-600">
+                          BMI
+                        </label>
+                        <p className="p-3 rounded-md text-slate-800 bg-slate-50">
+                          {candidate.bmi || "—"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-
-                  {candidate.totalFlightHours && (
-                    <div>
-                      <label className="block mb-1 text-sm font-medium text-slate-700">
-                        6a. Total Flight Hours:
-                      </label>
-                      <p className="p-3 rounded-md text-slate-800 bg-slate-50">
-                        {candidate.totalFlightHours || "—"}
-                      </p>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block mb-1 text-sm font-medium text-slate-700">
-                      8. Citizen ID:
-                    </label>
-                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
-                      {candidate.citizenId
-                        ? String(candidate.citizenId).replace(/^0+/, "") || "0"
-                        : "—"}
-                    </p>
                   </div>
                 </div>
               </div>
