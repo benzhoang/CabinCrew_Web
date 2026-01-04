@@ -181,6 +181,19 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
         status: statusNumber,
       };
 
+      // Gửi requestType filter lên server nếu có
+      // API requestType: integer (1: Recruitment, 2: Promotion)
+      if (campaignTypeFilter !== "all") {
+        const requestTypeMap = {
+          recruitment: 1, // Recruitment
+          promotion: 2, // Promotion
+        };
+        const apiRequestType = requestTypeMap[campaignTypeFilter];
+        if (apiRequestType !== undefined) {
+          baseParams.requestType = apiRequestType;
+        }
+      }
+
       // Gửi partnerId filter lên server nếu có
       if (partnerId) {
         baseParams.partnerId = partnerId;
@@ -257,16 +270,8 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           item.position || item.role || item.requestType || "No position",
       }));
 
-      // API already filters by partnerId, so no client-side filtering needed for partner
-      // Filter by campaignTypeFilter (client-side) if API doesn't support it
-      let finalRequests = mappedRequests;
-      if (campaignTypeFilter !== "all") {
-        finalRequests = mappedRequests.filter(
-          (r) => r.requestType === campaignTypeFilter
-        );
-      }
-
-      setRequests(finalRequests);
+      // API already filters by partnerId and requestType, so no client-side filtering needed
+      setRequests(mappedRequests);
 
       // Save pagination info from API if provided
       const paginationInfo = result.data?.pagination || result.pagination;
@@ -282,7 +287,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
           ...prev,
           currentPage: page,
           pageSize: pageSize,
-          totalRecords: finalRequests.length,
+          totalRecords: mappedRequests.length,
           totalPages: 1,
           hasNextPage: false,
           hasPreviousPage: false,
@@ -442,7 +447,7 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
   return (
     <div className="bg-white border rounded-lg shadow-sm border-slate-200">
       <div className="p-6 border-b border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">
+        <h3 className="mb-3 text-lg font-semibold text-slate-800">
           Request List ({requests.length})
         </h3>
         <div className="flex flex-wrap gap-3">

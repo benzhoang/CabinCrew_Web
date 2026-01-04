@@ -411,14 +411,14 @@ const CampaignList = ({ search = "", campaignTypeFilter = "all" }) => {
       }
 
       // Gửi campaignType filter lên server nếu có
+      // API campaignType: integer (1: Recruitment, 2: Promotion)
       if (campaignTypeFilter !== "all") {
-        // Map campaignType từ component format sang API format
         const campaignTypeMap = {
-          recruitment: "Recruitment",
-          promotion: "Promotion",
+          recruitment: 1, // Recruitment
+          promotion: 2, // Promotion
         };
         const apiCampaignType = campaignTypeMap[campaignTypeFilter];
-        if (apiCampaignType) {
+        if (apiCampaignType !== undefined) {
           baseParams.campaignType = apiCampaignType;
         }
       }
