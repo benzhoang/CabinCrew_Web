@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import { getCampaigns, getAirlinePartners } from '../../service/api'
-import { formatDate } from '../../config/formatDate.js'
+import { formatDate, formatDateFromAPI } from '../../config/formatDate.js'
 
 // StatusBadge component - supports all status values returned by the API
 const StatusBadge = ({ status }) => {
@@ -245,19 +245,19 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                             Start Date:
                         </span>
                         <p className="font-medium text-slate-800">
-                            {formatDate(campaign.rawStartDate) || campaign.startDate}
+                            {campaign.startDate && campaign.startDate !== 'Unknown' ? campaign.startDate : 'No start date'}
                         </p>
                     </div>
                     <div>
                         <span className="text-sm text-slate-600">End Date:</span>
                         <p className="font-medium text-slate-800">
-                            {formatDate(campaign.rawEndDate) || campaign.endDate}
+                            {campaign.endDate && campaign.endDate !== 'Unknown' ? campaign.endDate : 'No end date'}
                         </p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
-                {campaign.targetHires > 0 && (
+                {/* {campaign.targetHires > 0 && (
                     <div className="mb-3">
                         <div className="flex justify-between mb-1 text-sm text-slate-600">
                             <span>Recruitment Progress</span>
@@ -273,7 +273,7 @@ const CampaignCard = ({ campaign, onViewDetails, onDelete }) => {
                             ></div>
                         </div>
                     </div>
-                )}
+                )} */}
 
                 <p className="text-sm text-slate-600">
                     {campaign.description}
@@ -386,9 +386,9 @@ const DirectorCampaign = () => {
     }
 
     const formatDateValue = (value) => {
-        const date = parseDateValue(value)
-        if (!date) return value || 'Unknown'
-        return date.toLocaleDateString('en-US')
+        if (!value) return 'Unknown'
+        // Sử dụng formatDateFromAPI để loại bỏ phần giờ và format đúng định dạng DD/MM/YYYY
+        return formatDateFromAPI(value) || value || 'Unknown'
     }
 
     // Preserve status from API without transforming
@@ -616,7 +616,7 @@ const DirectorCampaign = () => {
         return (
             <div className="flex flex-col gap-5 p-6">
                 <h2 className="mb-6 text-xl font-bold text-gray-800">
-                    Campaign Management
+                    Re Management
                 </h2>
                 <div className="py-8 text-center">
                     <div className="mb-2 text-red-600">{error}</div>
@@ -957,11 +957,11 @@ const DirectorCampaign = () => {
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Start Date:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.startDate}</p>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.startDate && selectedCampaign.startDate !== 'Unknown' ? selectedCampaign.startDate : 'No Start Date'}</p>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">End Date:</span>
-                                        <p className="font-medium text-slate-800">{selectedCampaign.endDate}</p>
+                                        <p className="font-medium text-slate-800">{selectedCampaign.endDate && selectedCampaign.endDate !== 'Unknown' ? selectedCampaign.endDate : 'No End Date'}</p>
                                     </div>
                                     <div>
                                         <span className="text-sm text-slate-600">Recruitment Target:</span>

@@ -5,6 +5,7 @@ import PostVerificationModal from "../../components/PostVerificationModal";
 import { getApplicationById } from "../../service/api";
 import CabincrewActionForm from "../../components/CabinCrewComponent/CabincrewActionForm";
 import { toast } from "react-toastify";
+import { formatDateFromAPI } from "../../config/formatDate.js";
 
 const ProfileCabinCrewPage = () => {
   const navigate = useNavigate();
@@ -51,10 +52,10 @@ const ProfileCabinCrewPage = () => {
       if (decoded) {
         return (
           decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -222,92 +223,15 @@ const ProfileCabinCrewPage = () => {
             console.warn("formatDateForInput - Could not format:", dateString);
             return "";
           };
-          // Helper function to format date for display
+          // Helper function to format date for display (DD/MM/YYYY format)
           const formatDateForDisplay = (dateString) => {
             if (!dateString) {
               console.warn("formatDateForDisplay: dateString is empty");
               return "";
             }
-            console.log(
-              "formatDateForDisplay - Input:",
-              dateString,
-              "Type:",
-              typeof dateString
-            );
-            try {
-              let date;
-              // Nếu là string có format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
-              if (typeof dateString === "string") {
-                const dateStr = dateString.trim();
-                // Kiểm tra format DD/MM/YYYY hoặc DD/MM/YYYY HH:mm
-                const ddmmyyyyMatch = dateStr.match(
-                  /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?$/
-                );
-                if (ddmmyyyyMatch) {
-                  const [, day, month, year] = ddmmyyyyMatch;
-                  // Tạo date object với format YYYY-MM-DD để tránh nhầm lẫn
-                  date = new Date(
-                    `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-                  );
-                } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-                  // ISO format YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm:ss
-                  date = new Date(dateString);
-                } else {
-                  // Thử parse như ISO string hoặc format khác
-                  date = new Date(dateString);
-                }
-              } else {
-                date = new Date(dateString);
-              }
-
-              if (!isNaN(date.getTime())) {
-                // Format theo định dạng Việt Nam: "DD tháng MM, YYYY"
-                const day = date.getDate();
-                const month = date.getMonth() + 1;
-                const year = date.getFullYear();
-                const monthNames = [
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ];
-                const result = `${day} ${monthNames[month - 1]}, ${year}`;
-                console.log("formatDateForDisplay - Formatted:", result);
-                return result;
-              } else {
-                console.warn(
-                  "formatDateForDisplay - Invalid date:",
-                  dateString
-                );
-                // Try to return as is if it's a valid string
-                if (typeof dateString === "string" && dateString.trim()) {
-                  return dateString;
-                }
-              }
-            } catch (e) {
-              console.error(
-                "formatDateForDisplay - Error formatting date:",
-                dateString,
-                e
-              );
-              // Return as is if it's a valid string
-              if (typeof dateString === "string" && dateString.trim()) {
-                return dateString;
-              }
-            }
-            console.warn(
-              "formatDateForDisplay - Could not format:",
-              dateString
-            );
-            return "";
+            // Sử dụng formatDateFromAPI để loại bỏ phần giờ và format đúng định dạng DD/MM/YYYY
+            const formatted = formatDateFromAPI(dateString);
+            return formatted || dateString || "";
           };
           // Store application metadata
           // Set applicationId from route param or from API response
@@ -914,8 +838,8 @@ const ProfileCabinCrewPage = () => {
                               {files.applicationForm instanceof File
                                 ? files.applicationForm.name
                                 : files.applicationForm.name ||
-                                  files.applicationForm.file?.name ||
-                                  "Form Job Application"}
+                                files.applicationForm.file?.name ||
+                                "Form Job Application"}
                               {files.applicationForm.url &&
                                 !(files.applicationForm instanceof File) && (
                                   <a
@@ -996,8 +920,8 @@ const ProfileCabinCrewPage = () => {
                               {files.profilePhoto instanceof File
                                 ? files.profilePhoto.name
                                 : files.profilePhoto.name ||
-                                  files.profilePhoto.file?.name ||
-                                  "Ảnh 4x6"}
+                                files.profilePhoto.file?.name ||
+                                "Ảnh 4x6"}
                               {files.profilePhoto.url &&
                                 !(files.profilePhoto instanceof File) && (
                                   <a
@@ -1083,8 +1007,8 @@ const ProfileCabinCrewPage = () => {
                               {files.educationDegree instanceof File
                                 ? files.educationDegree.name
                                 : files.educationDegree.name ||
-                                  files.educationDegree.file?.name ||
-                                  "Education Degree"}
+                                files.educationDegree.file?.name ||
+                                "Education Degree"}
                               {files.educationDegree.url &&
                                 !(files.educationDegree instanceof File) && (
                                   <a
@@ -1168,8 +1092,8 @@ const ProfileCabinCrewPage = () => {
                               {files.englishCertificate instanceof File
                                 ? files.englishCertificate.name
                                 : files.englishCertificate.name ||
-                                  files.englishCertificate.file?.name ||
-                                  "English Certificate"}
+                                files.englishCertificate.file?.name ||
+                                "English Certificate"}
                               {files.englishCertificate.url &&
                                 !(files.englishCertificate instanceof File) && (
                                   <a
@@ -1255,8 +1179,8 @@ const ProfileCabinCrewPage = () => {
                                   {files.idCard instanceof File
                                     ? files.idCard.name
                                     : files.idCard.name ||
-                                      files.idCard.file?.name ||
-                                      "Citizen identification card - Front side"}
+                                    files.idCard.file?.name ||
+                                    "Citizen identification card - Front side"}
                                   {files.idCard.url &&
                                     !(files.idCard instanceof File) && (
                                       <a
@@ -1342,8 +1266,8 @@ const ProfileCabinCrewPage = () => {
                                   {files.idCardBack instanceof File
                                     ? files.idCardBack.name
                                     : files.idCardBack.name ||
-                                      files.idCardBack.file?.name ||
-                                      "Citizen identification card - Back side"}
+                                    files.idCardBack.file?.name ||
+                                    "Citizen identification card - Back side"}
                                   {files.idCardBack.url &&
                                     !(files.idCardBack instanceof File) && (
                                       <a
@@ -1509,11 +1433,10 @@ const ProfileCabinCrewPage = () => {
                       value={formData.experience}
                       onChange={handleInputChange}
                       disabled={!isEditing}
-                      className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        !isEditing
-                          ? "bg-slate-100 cursor-not-allowed"
-                          : "bg-slate-50"
-                      }`}
+                      className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing
+                        ? "bg-slate-100 cursor-not-allowed"
+                        : "bg-slate-50"
+                        }`}
                       required
                     >
                       <option value="">-- Select experience --</option>
@@ -1530,11 +1453,10 @@ const ProfileCabinCrewPage = () => {
                         onChange={handleInputChange}
                         placeholder="Enter your experience"
                         disabled={!isEditing}
-                        className={`w-full mt-2 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          !isEditing
-                            ? "bg-slate-100 cursor-not-allowed"
-                            : "bg-slate-50"
-                        }`}
+                        className={`w-full mt-2 px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing
+                          ? "bg-slate-100 cursor-not-allowed"
+                          : "bg-slate-50"
+                          }`}
                         required={formData.experience === "other"}
                       />
                     )}
@@ -1551,11 +1473,10 @@ const ProfileCabinCrewPage = () => {
                       placeholder="0"
                       disabled={!isEditing}
                       min="0"
-                      className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        !isEditing
-                          ? "bg-slate-100 cursor-not-allowed"
-                          : "bg-slate-50"
-                      }`}
+                      className={`w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${!isEditing
+                        ? "bg-slate-100 cursor-not-allowed"
+                        : "bg-slate-50"
+                        }`}
                       required
                     />
                   </div>

@@ -2,30 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { t, onLangChange } from '../../i18n'
 import { getCampaigns, getAirlinePartners } from '../../service/api'
-import { convertDateFormat } from '../../config/formatDate'
+import { formatDateFromAPI } from '../../config/formatDate'
 
 const formatDateDisplay = value => {
     if (!value) return '—'
-
-    const tryParse = dateString => {
-        const date = new Date(dateString)
-        return Number.isNaN(date.getTime()) ? null : date
-    }
-
-    const directDate = tryParse(value)
-    if (directDate) {
-        return directDate.toLocaleDateString('vi-VN')
-    }
-
-    const converted = convertDateFormat(value)
-    if (converted) {
-        const convertedDate = tryParse(converted)
-        if (convertedDate) {
-            return convertedDate.toLocaleDateString('vi-VN')
-        }
-    }
-
-    return value
+    // Sử dụng formatDateFromAPI để loại bỏ phần giờ và format đúng định dạng DD/MM/YYYY
+    const formatted = formatDateFromAPI(value)
+    return formatted || value || '—'
 }
 
 const normalizeRequirements = requirements => {
