@@ -472,16 +472,6 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             Pending
           </button>
           <button
-            onClick={() => setSelectedStatus("Rejected")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
-              selectedStatus === "Rejected"
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
-            }`}
-          >
-            Rejected
-          </button>
-          <button
             onClick={() => setSelectedStatus("Approved")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
               selectedStatus === "Approved"
@@ -490,6 +480,16 @@ const RequestList = ({ search = "", campaignTypeFilter = "all" }) => {
             }`}
           >
             Approved
+          </button>
+          <button
+            onClick={() => setSelectedStatus("Rejected")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${
+              selectedStatus === "Rejected"
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-red-50"
+            }`}
+          >
+            Rejected
           </button>
           <button
             onClick={() => setSelectedStatus("Cancelled")}

@@ -319,9 +319,7 @@ const PendingRequestDetail = ({ request }) => {
               label="Due date"
               value={
                 request?.dueDate
-                  ? formatDate(request?.dueDate) ||
-                    formatDateFromAPI(request?.dueDate) ||
-                    "No due date"
+                  ? formatDateFromAPI(request?.dueDate) || "No due date"
                   : "No due date"
               }
             />
