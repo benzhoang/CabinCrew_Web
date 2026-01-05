@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getCampaignRoundById, getRoundParticipants } from "../../service/api";
+import { formatDate2 } from "../../config/formatDate";
 
 const AdminApplyListPage = () => {
   const [campaigns] = useState([]);
@@ -494,17 +495,21 @@ const AdminApplyListPage = () => {
                 <div>
                   <span className="text-sm text-slate-600">Start date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.startDate ||
-                      batchData.batch?.time?.split(" - ")[0] ||
-                      "No start date"}
+                    {formatDate2(
+                      campaignRoundData?.startDate ||
+                        batchData.batch?.time?.split(" - ")[0] ||
+                        ""
+                    ) || "No start date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">End date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.endDate ||
-                      batchData.batch?.time?.split(" - ")[1] ||
-                      "No end date"}
+                    {formatDate2(
+                      campaignRoundData?.endDate ||
+                        batchData.batch?.time?.split(" - ")[1] ||
+                        ""
+                    ) || "No end date"}
                   </p>
                 </div>
                 <div>

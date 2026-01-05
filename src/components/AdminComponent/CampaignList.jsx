@@ -191,6 +191,7 @@ const SortButton = ({ field, label, sortField, sortDirection, onSort }) => {
 
 const CampaignList = ({
   search = "",
+  campaignTypeFilter = "all",
   statusFilter = "all",
   partnerId = null,
 }) => {
@@ -229,6 +230,19 @@ const CampaignList = ({
         const campaignStatus = mapStatusToCampaignStatus(statusFilter);
         if (campaignStatus !== undefined) {
           baseParams.campaignStatus = campaignStatus;
+        }
+      }
+
+      // Add campaignType filter
+      // API campaignType: integer (1: Recruitment, 2: Promotion)
+      if (campaignTypeFilter !== "all") {
+        const campaignTypeMap = {
+          recruitment: 1, // Recruitment
+          promotion: 2, // Promotion
+        };
+        const apiCampaignType = campaignTypeMap[campaignTypeFilter];
+        if (apiCampaignType !== undefined) {
+          baseParams.campaignType = apiCampaignType;
         }
       }
 
@@ -304,7 +318,7 @@ const CampaignList = ({
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
     fetchCampaigns(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, statusFilter, partnerId]);
+  }, [search, campaignTypeFilter, statusFilter, partnerId]);
 
   const handleSort = (field) => {
     if (sortField === field) {

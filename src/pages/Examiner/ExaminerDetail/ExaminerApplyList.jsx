@@ -6,6 +6,7 @@ import {
   getCampaignRoundById,
   getRoundParticipants,
 } from "../../../service/api2";
+import { formatDate2 } from "../../../config/formatDate";
 
 const ExaminerApplyList = () => {
   const [, setLangVersion] = useState(0);
@@ -141,6 +142,8 @@ const ExaminerApplyList = () => {
             currentPosition: participant.currentPosition || "",
             targetPosition: participant.targetPosition || "",
             score: participant.score || null,
+            hasAppearanceEvaluated: participant.hasAppearanceEvaluated || false,
+            hasInterviewEvaluated: participant.hasInterviewEvaluated || false,
           }));
           setParticipants(mappedParticipants);
         } else {
@@ -199,7 +202,10 @@ const ExaminerApplyList = () => {
           </h3>
           {loadingRoundData ? (
             <div className="py-4 text-center">
-              <p className="text-slate-500">Loading batch info...</p>
+              <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+              <p className="mt-4 text-sm text-gray-600">
+                Loading batch info...
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
@@ -212,13 +218,13 @@ const ExaminerApplyList = () => {
               <div>
                 <span className="text-sm text-slate-600">Start date:</span>
                 <p className="font-medium text-slate-800">
-                  {campaignRoundData?.startDate || "—"}
+                  {formatDate2(campaignRoundData?.startDate || "") || "—"}
                 </p>
               </div>
               <div>
                 <span className="text-sm text-slate-600">End date:</span>
                 <p className="font-medium text-slate-800">
-                  {campaignRoundData?.endDate || "—"}
+                  {formatDate2(campaignRoundData?.endDate || "") || "—"}
                 </p>
               </div>
               <div>

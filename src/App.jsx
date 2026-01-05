@@ -111,6 +111,10 @@ import SeniorApplyListPage from "./pages/SeniorRecruiter/SeniorApplyListPage";
 import SeniorCandidateDetailPage from "./pages/SeniorRecruiter/SeniorCandidateDetailPage";
 import PromotionInterviewCard from "./pages/CabinCrew/PromotionInterviewCard";
 import PromoInterDetailPage from "./pages/CabinCrew/PromoInterDetailPage";
+import ExaminerAppearancePage from "./pages/Examiner/ExaminerDetail/ExaminerAppearancePage";
+import ExaminerInterviewPage from "./pages/Examiner/ExaminerDetail/InterviewResult/ExaminerInterviewPage";
+import ExaminerRecruitmentDetailPage from "./pages/Examiner/ExaminerDetail/InterviewResult/ExaminerRecruitmentDetailPage";
+import ExaminerPromotionDetailPage from "./pages/Examiner/ExaminerDetail/InterviewResult/ExaminerPromotionDetailPage";
 //import SeniorCreateRoundPage from "./pages/SeniorRecruiter/SeniorCreateRoundPage";
 
 function App() {
@@ -991,6 +995,50 @@ function App() {
               <ExaminerSidebar />
               <main className="flex-1 overflow-auto">
                 <ExaminerApplication />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/campaigns/appearance-result/:activityId"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerAppearancePage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/campaigns/interview-result/:activityId"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerInterviewPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/campaigns/interview-result/:activityId/recruitment"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerRecruitmentDetailPage />
+              </main>
+            </div>
+          }
+        />
+        <Route
+          path="/examiner/campaigns/interview-result/:activityId/promotion"
+          element={
+            <div className="flex h-screen bg-gray-50">
+              <ExaminerSidebar />
+              <main className="flex-1 overflow-auto">
+                <ExaminerPromotionDetailPage />
               </main>
             </div>
           }

@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
-import { formatDate, convertDateFormat } from "../../config/formatDate.js";
+import {
+  convertDateFormat,
+  formatDateFromAPI,
+} from "../../config/formatDate.js";
 
 // Helper function to map API status to component status
 const mapStatus = (status) => {
@@ -271,13 +274,13 @@ const CampaignCard = ({ campaign }) => {
             <div>
               <span className="text-sm text-slate-600">Start Date:</span>
               <p className="font-medium text-slate-800">
-                {formatDate(campaign.startDate) || "No start date"}
+                {formatDateFromAPI(campaign.startDate) || "No start date"}
               </p>
             </div>
             <div>
               <span className="text-sm text-slate-600">End Date:</span>
               <p className="font-medium text-slate-800">
-                {formatDate(campaign.endDate) || "No end date"}
+                {formatDateFromAPI(campaign.endDate) || "No end date"}
               </p>
             </div>
           </div>

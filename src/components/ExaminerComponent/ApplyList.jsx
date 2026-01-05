@@ -6,6 +6,7 @@ import {
   FaArrowRight,
   FaClipboardCheck,
 } from "react-icons/fa6";
+import { FaRegListAlt } from "react-icons/fa";
 import TestListModal from "./TestListModal";
 import {
   getRoundParticipants,
@@ -78,9 +79,9 @@ const ApplyList = ({
         const applicantStatus = String(a.status || "").toLowerCase();
         // Map status values: 1 = ongoing, 2 = passed, 3 = failed
         const statusMap = {
-          "1": ["1", "ongoing", "pending"],
-          "2": ["2", "passed", "approved"],
-          "3": ["3", "failed", "rejected"],
+          1: ["1", "ongoing", "pending"],
+          2: ["2", "passed", "approved"],
+          3: ["3", "failed", "rejected"],
         };
         const statusValues = statusMap[applicantStatusFilter] || [];
         return statusValues.some(
@@ -454,6 +455,28 @@ const ApplyList = ({
     return roundName.includes("interview") || roundName.includes("phỏng vấn");
   }, [activeRoundForTests]);
 
+  // Kiểm tra xem applicant có roundName là Appearance hoặc Interview không
+  const isAppearanceOrInterviewRound = (applicant) => {
+    // Kiểm tra roundName từ applicant
+    const applicantRoundName = (applicant.roundName || "").toLowerCase();
+    // Kiểm tra roundName từ activeRoundForTests (round đang được filter)
+    const activeRoundName = (
+      activeRoundForTests?.roundName || ""
+    ).toLowerCase();
+
+    const checkRoundName = (name) => {
+      return (
+        name.includes("appearance") ||
+        name.includes("interview") ||
+        name.includes("phỏng vấn")
+      );
+    };
+
+    return (
+      checkRoundName(applicantRoundName) || checkRoundName(activeRoundName)
+    );
+  };
+
   const handleNavigateToEvaluation = (applicant) => {
     const targetRoute = getEvaluationRoute(applicant);
     navigate(targetRoute, {
@@ -462,6 +485,18 @@ const ApplyList = ({
         batchData,
       },
     });
+  };
+
+  const handleNavigateToResult = (applicant) => {
+    if (!applicant.activityId) return;
+
+    // Navigate to interview result page if hasInterviewEvaluated is true
+    // Otherwise navigate to appearance result page
+    if (applicant.hasInterviewEvaluated) {
+      navigate(`/examiner/campaigns/interview-result/${applicant.activityId}`);
+    } else {
+      navigate(`/examiner/campaigns/appearance-result/${applicant.activityId}`);
+    }
   };
 
   const mapRoundToStageId = (roundData, applicant) => {
@@ -662,6 +697,8 @@ const ApplyList = ({
                 currentPosition: participant.currentPosition || "",
                 targetPosition: participant.targetPosition || "",
                 score: participant.score || null,
+                hasAppearanceEvaluated:
+                  participant.hasAppearanceEvaluated || false,
                 hasInterviewEvaluated:
                   participant.hasInterviewEvaluated || false,
               })
@@ -834,7 +871,10 @@ const ApplyList = ({
         <div className="overflow-x-auto">
           {loadingParticipants ? (
             <div className="p-12 text-center">
-              <p className="text-slate-500">Loading applicants...</p>
+              <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+              <p className="mt-4 text-sm text-gray-600">
+                Loading applicants...
+              </p>
             </div>
           ) : (
             <table className="w-full">
@@ -917,7 +957,33 @@ const ApplyList = ({
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-2">
-                        {isInterviewRound ? (
+                        {isAppearanceOrInterviewRound(applicant) ? (
+                          <>
+                            {/* Icon con mắt - xem thông tin candidate */}
+                            <button
+                              className="p-1 text-blue-600 transition-colors rounded hover:text-blue-900 hover:bg-blue-50"
+                              title="View candidate details"
+                              onClick={() =>
+                                handleNavigateToCandidateView(applicant)
+                              }
+                            >
+                              <FaRegEye className="w-4 h-4" />
+                            </button>
+                            {/* Icon xem kết quả - hiển thị nếu Appearance hoặc Interview đã được đánh giá */}
+                            {(applicant.hasAppearanceEvaluated ||
+                              applicant.hasInterviewEvaluated) && (
+                              <button
+                                className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
+                                title="View results"
+                                onClick={() =>
+                                  handleNavigateToResult(applicant)
+                                }
+                              >
+                                <FaRegListAlt className="w-4 h-4" />
+                              </button>
+                            )}
+                          </>
+                        ) : isInterviewRound ? (
                           <>
                             {/* Icon con mắt - xem thông tin candidate */}
                             <button
@@ -939,6 +1005,19 @@ const ApplyList = ({
                                 }
                               >
                                 <FaClipboardCheck className="w-4 h-4" />
+                              </button>
+                            )}
+                            {/* Icon xem kết quả - hiển thị nếu Appearance hoặc Interview đã được đánh giá */}
+                            {(applicant.hasAppearanceEvaluated ||
+                              applicant.hasInterviewEvaluated) && (
+                              <button
+                                className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
+                                title="View results"
+                                onClick={() =>
+                                  handleNavigateToResult(applicant)
+                                }
+                              >
+                                <FaRegListAlt className="w-4 h-4" />
                               </button>
                             )}
                           </>

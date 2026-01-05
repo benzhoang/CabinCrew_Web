@@ -261,9 +261,7 @@ const RequestInfo = ({ data }) => {
               label="Due date"
               value={
                 data.dueDate
-                  ? formatDate(data.dueDate) ||
-                    formatDateFromAPI(data.dueDate) ||
-                    "No due date"
+                  ? formatDateFromAPI(data.dueDate) || "No due date"
                   : "No due date"
               }
             />

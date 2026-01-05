@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
+import { formatDateFromAPI } from "../../config/formatDate.js";
 
 const getRequestTypeLabel = (requestType) => {
   // Normalize requestType to lowercase for comparison
@@ -255,24 +256,6 @@ const RequestList = ({
     fetchRequests(page, false);
   };
 
-  // Helper function to format date display
-  const formatDateDisplay = (value) => {
-    if (!value) return "—";
-    if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-      return value;
-    }
-    try {
-      const date = new Date(value);
-      if (isNaN(date.getTime())) return value;
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    } catch {
-      return value;
-    }
-  };
-
   // Get status badge component
   const getStatusBadge = (status) => {
     const normalizedStatus = normalizeStatusForDisplay(status);
@@ -446,7 +429,7 @@ const RequestList = ({
                     <div>
                       <span className="text-sm text-slate-600">Due Date:</span>
                       <p className="font-medium text-slate-800">
-                        {formatDateDisplay(campaign.dueDate)}
+                        {formatDateFromAPI(campaign.dueDate) || "—"}
                       </p>
                     </div>
                   </div>

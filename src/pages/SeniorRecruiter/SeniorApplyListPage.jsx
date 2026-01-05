@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getCampaignRoundById, getRoundParticipants } from "../../service/api";
+import { formatDate2 } from "../../config/formatDate";
 
 const SeniorApplyListPage = () => {
   const [campaigns] = useState([]);
@@ -480,13 +481,15 @@ const SeniorApplyListPage = () => {
                 <div>
                   <span className="text-sm text-slate-600">Start date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.startDate || "No start date"}
+                    {formatDate2(campaignRoundData?.startDate || "") ||
+                      "No start date"}
                   </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">End date:</span>
                   <p className="font-medium text-slate-800">
-                    {campaignRoundData?.endDate || "No end date"}
+                    {formatDate2(campaignRoundData?.endDate || "") ||
+                      "No end date"}
                   </p>
                 </div>
                 <div>
