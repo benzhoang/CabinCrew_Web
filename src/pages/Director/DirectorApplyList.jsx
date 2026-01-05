@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { onLangChange } from '../../i18n'
 import { getCampaignRoundById, getRoundParticipants } from '../../service/api'
+import { formatDateFromAPI } from '../../config/formatDate'
 
 const DirectorApplyList = () => {
     const [campaigns, setCampaigns] = useState([])
@@ -368,6 +369,17 @@ const DirectorApplyList = () => {
         navigate('/director/campaigns')
     }
 
+    // Helper function to get formatted date
+    const getFormattedDate = (dateValue, fallbackValue) => {
+        if (dateValue) {
+            return formatDateFromAPI(dateValue)
+        }
+        if (fallbackValue) {
+            return formatDateFromAPI(fallbackValue)
+        }
+        return '—'
+    }
+
     if (isViewingBatch) {
         // Render applicant list view
         return (
@@ -409,13 +421,19 @@ const DirectorApplyList = () => {
                                 <div>
                                     <span className="text-sm text-slate-600">Start date:</span>
                                     <p className="font-medium text-slate-800">
-                                        {campaignRoundData?.startDate || batchData.batch?.time?.split(' - ')[0] || '—'}
+                                        {getFormattedDate(
+                                            campaignRoundData?.startDate,
+                                            batchData?.batch?.startDate || batchData?.batch?.time?.split(' - ')[0]
+                                        )}
                                     </p>
                                 </div>
                                 <div>
                                     <span className="text-sm text-slate-600">End date:</span>
                                     <p className="font-medium text-slate-800">
-                                        {campaignRoundData?.endDate || batchData.batch?.time?.split(' - ')[1] || '—'}
+                                        {getFormattedDate(
+                                            campaignRoundData?.endDate,
+                                            batchData?.batch?.endDate || batchData?.batch?.time?.split(' - ')[1]
+                                        )}
                                     </p>
                                 </div>
                                 <div>

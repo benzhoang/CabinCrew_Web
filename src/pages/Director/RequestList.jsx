@@ -513,7 +513,7 @@ const RequestList = () => {
       <div className="bg-white border rounded-lg shadow-sm border-slate-200">
         <div className="p-6 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-800 mb-3">
-            Campaign List ({filteredCampaigns.length})
+            Request List ({filteredCampaigns.length})
           </h3>
           <div className="flex flex-wrap gap-3">
             <button
