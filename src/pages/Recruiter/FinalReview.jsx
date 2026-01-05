@@ -8,6 +8,7 @@ import {
   exportRoundUsers,
 } from "../../service/api";
 import { toast } from "react-toastify";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const FinalReview = () => {
   const { campaignRoundId } = useParams();
@@ -253,6 +254,17 @@ const FinalReview = () => {
     }
   };
 
+  // Helper function to get formatted date
+  const getFormattedDate = (dateValue, fallbackValue) => {
+    if (dateValue) {
+      return formatDateFromAPI(dateValue);
+    }
+    if (fallbackValue) {
+      return formatDateFromAPI(fallbackValue);
+    }
+    return "—";
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -304,9 +316,21 @@ const FinalReview = () => {
                 <p className="font-medium text-slate-800">{batchData.name}</p>
               </div>
               <div>
-                <span className="text-sm text-slate-600">Time:</span>
+                <span className="text-sm text-slate-600">Start Date:</span>
                 <p className="font-medium text-slate-800">
-                  {batchData.time || "—"}
+                  {getFormattedDate(
+                    batchData.startDate,
+                    batchData.time?.split(" - ")[0]
+                  )}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-slate-600">End Date:</span>
+                <p className="font-medium text-slate-800">
+                  {getFormattedDate(
+                    batchData.endDate,
+                    batchData.time?.split(" - ")[1]
+                  )}
                 </p>
               </div>
             </div>
