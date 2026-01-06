@@ -188,7 +188,6 @@ const ExaminerAppearancePage = () => {
         : "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200";
 
     return [
-      { label: "Evaluation ID", value: result?.evaluationId ?? "—" },
       { label: "Candidate", value: result?.candidate || "—" },
       { label: "Examiner", value: result?.examiner || "—" },
       { label: "Round", value: result?.roundName || "—" },
@@ -205,32 +204,31 @@ const ExaminerAppearancePage = () => {
   }, [result]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
-            >
-              Back
-            </button>
-          </div>
+    <div className="min-h-screen py-10 bg-gray-50">
+      <div className="max-w-5xl px-4 mx-auto sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold text-gray-900">Appearance Result</h1>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
+          >
+            Back
+          </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="p-6 bg-white rounded-lg shadow">
           {loading && (
-            <div className="text-center py-16">
-              <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+            <div className="py-16 text-center">
+              <div className="inline-block w-10 h-10 border-b-2 border-blue-600 rounded-full animate-spin"></div>
               <p className="mt-4 text-gray-600">Loading results...</p>
             </div>
           )}
 
           {!loading && error && (
-            <div className="text-center py-10">
+            <div className="py-10 text-center">
               <svg
-                className="mx-auto h-12 w-12 text-red-500"
+                className="w-12 h-12 mx-auto text-red-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -248,7 +246,7 @@ const ExaminerAppearancePage = () => {
               <button
                 type="button"
                 onClick={fetchResult}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                className="px-4 py-2 mt-4 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
               >
                 Retry
               </button>
@@ -258,9 +256,9 @@ const ExaminerAppearancePage = () => {
           {!loading && !error && result && (
             <div className="space-y-8">
               <section>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {summaryItems.map((item) => (
-                    <div key={item.label} className="bg-gray-50 rounded-lg p-4">
+                    <div key={item.label} className="p-4 rounded-lg bg-gray-50">
                       <dt className="text-sm text-gray-500">{item.label}</dt>
                       <dd className="mt-2">
                         {item.badgeClass ? (
@@ -281,7 +279,7 @@ const ExaminerAppearancePage = () => {
               {criteriaList.length > 0 && (
                 <section>
                   <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    <h3 className="mb-1 text-sm font-semibold text-gray-700">
                       General comments
                     </h3>
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">
@@ -292,7 +290,7 @@ const ExaminerAppearancePage = () => {
                         "—"}
                     </p>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="mb-4 text-xl font-semibold text-gray-900">
                     Criteria details
                   </h2>
                   <div className="space-y-6">
@@ -300,7 +298,7 @@ const ExaminerAppearancePage = () => {
                       ([title, criteriaGroup]) => (
                         <div key={title} className="space-y-3">
                           {title && (
-                            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-300 pb-2">
+                            <h3 className="pb-2 text-lg font-semibold text-gray-800 border-b border-gray-300">
                               {title}
                             </h3>
                           )}
@@ -310,13 +308,13 @@ const ExaminerAppearancePage = () => {
                                 <tr>
                                   <th
                                     scope="col"
-                                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                                    className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase"
                                   >
                                     Criteria
                                   </th>
                                   <th
                                     scope="col"
-                                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-32"
+                                    className="w-32 px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-500 uppercase"
                                   >
                                     Result
                                   </th>
@@ -355,7 +353,7 @@ const ExaminerAppearancePage = () => {
                                                       detail.text ||
                                                       detailIndex
                                                     }
-                                                    className="text-xs text-gray-600 flex gap-2"
+                                                    className="flex gap-2 text-xs text-gray-600"
                                                   >
                                                     <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-gray-400"></span>
                                                     <span>

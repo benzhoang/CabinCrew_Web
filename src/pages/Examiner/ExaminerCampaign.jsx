@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyCampaigns } from "../../service/api2";
+import ExaminerPagination from "../../components/ExaminerComponent/ExaminerPagination";
 
 const ExaminerCampaign = () => {
   const [campaigns, setCampaigns] = useState([]);
@@ -485,47 +486,12 @@ const ExaminerCampaign = () => {
         </div>
 
         {!isLoading && !error && filteredCampaigns.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2 p-6">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === 1
-                  ? "text-slate-400 border-slate-200 cursor-not-allowed"
-                  : "text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              ←
-            </button>
-            {Array.from({ length: totalPages }).map((_, idx) => {
-              const pageNumber = idx + 1;
-              const isActive = pageNumber === currentPage;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => handlePageChange(pageNumber)}
-                  className={`px-3 py-1 rounded-md border text-sm font-medium ${
-                    isActive
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "text-slate-700 border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === totalPages
-                  ? "text-slate-400 border-slate-200 cursor-not-allowed"
-                  : "text-slate-700 border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              →
-            </button>
-          </div>
+          <ExaminerPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={filteredCampaigns.length}
+            onPageChange={handlePageChange}
+          />
         )}
       </div>
     </div>

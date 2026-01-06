@@ -1022,7 +1022,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/campaigns/interview-result/:activityId/recruitment"
+          path="/examiner/campaigns/interview-result/:id/recruitment"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />
@@ -1033,7 +1033,7 @@ function App() {
           }
         />
         <Route
-          path="/examiner/campaigns/interview-result/:activityId/promotion"
+          path="/examiner/campaigns/interview-result/:id/promotion"
           element={
             <div className="flex h-screen bg-gray-50">
               <ExaminerSidebar />

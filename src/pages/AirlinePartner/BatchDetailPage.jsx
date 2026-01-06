@@ -8,7 +8,8 @@ import {
   importFlightHoursConfirmation,
 } from "../../service/api";
 import FlightHoursActions from "../../components/AirlinePartnerComponent/FlightHoursActions";
-import { formatDate2 } from "../../config/formatDate";
+import AirlinePagination from "../../components/AirlinePartnerComponent/AirlinePagination";
+import { formatDate, formatDate2 } from "../../config/formatDate";
 import { toast } from "react-toastify";
 
 const BatchDetailPage = () => {
@@ -26,6 +27,16 @@ const BatchDetailPage = () => {
   const [loadingRoundData, setLoadingRoundData] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 5,
+    totalRecords: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+  const [sortColumn] = useState("");
+  const [sortOrder] = useState("asc");
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -135,38 +146,84 @@ const BatchDetailPage = () => {
       setLoadingParticipants(true);
       try {
         // Chuẩn bị params cho API call
-        const apiParams = {};
+        const apiParams = {
+          page: pagination.currentPage,
+          pageSize: pagination.pageSize,
+        };
+
+        // Thêm searchTerm nếu có
+        if (applicantSearchTerm) {
+          apiParams.searchTerm = applicantSearchTerm;
+        }
 
         // Thêm status filter nếu không phải "all"
         if (applicantStatusFilter !== "all") {
           apiParams.status = parseInt(applicantStatusFilter, 10);
         }
 
-        // Gọi API cho round cụ thể với status filter
+        // Thêm sort params nếu có
+        if (sortColumn) {
+          apiParams.sortColumn = sortColumn;
+          apiParams.sortOrder = sortOrder;
+        }
+
+        // Gọi API cho round cụ thể với các params
         const result = await getRoundParticipants(roundId, apiParams);
-        if (result.success && result.data && Array.isArray(result.data)) {
-          // Map dữ liệu từ API sang format hiển thị
-          const mappedParticipants = result.data.map((participant) => ({
-            id: participant.userId || participant.activityId,
-            activityId: participant.activityId || 0,
-            userId: participant.userId || 0,
-            name: participant.fullName || "No full name",
-            email: participant.email || "No email",
-            phone: participant.phoneNumber || "No phone number",
-            photo: participant.imgURL || "No photo",
-            status: participant.status || "pending",
-            roundId: participant.roundId || 0,
-            roundName: participant.roundName || "No round name",
-            appliedDate:
-              participant.appliedDate || new Date().toISOString().split("T")[0],
+
+        // Xử lý response - có thể là object với items và pagination hoặc array
+        let dataArray = [];
+        let paginationData = null;
+
+        if (result.success && result.data) {
+          if (Array.isArray(result.data)) {
+            // Nếu data là array
+            dataArray = result.data;
+            paginationData = result.pagination || null;
+          } else if (result.data.items && Array.isArray(result.data.items)) {
+            // Nếu data là object với items
+            dataArray = result.data.items;
+            paginationData = result.data.pagination || result.data || null;
+          }
+        }
+
+        // Map dữ liệu từ API sang format hiển thị
+        const mappedParticipants = dataArray.map((participant) => ({
+          id: participant.userId || participant.activityId,
+          activityId: participant.activityId || 0,
+          userId: participant.userId || 0,
+          name: participant.fullName || "No full name",
+          email: participant.email || "No email",
+          phone: participant.phoneNumber || "No phone number",
+          photo: participant.imgURL || "No photo",
+          status: participant.status || "pending",
+          roundId: participant.roundId || 0,
+          roundName: participant.roundName || "No round name",
+          appliedDate:
+            participant.appliedDate || new Date().toISOString().split("T")[0],
+        }));
+
+        setParticipants(mappedParticipants);
+
+        // Cập nhật pagination data
+        if (paginationData) {
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: paginationData.currentPage || prev.currentPage,
+            pageSize: paginationData.pageSize || prev.pageSize,
+            totalRecords: paginationData.totalRecords || 0,
+            totalPages: paginationData.totalPages || 0,
+            hasNextPage: paginationData.hasNextPage || false,
+            hasPreviousPage: paginationData.hasPreviousPage || false,
           }));
-          setParticipants(mappedParticipants);
         } else {
-          console.error(
-            "Error when fetching applicant list:",
-            result.error || "Invalid data"
-          );
-          setParticipants([]);
+          // Fallback: nếu không có pagination data, set totalRecords = length của array
+          setPagination((prev) => ({
+            ...prev,
+            totalRecords: dataArray.length,
+            totalPages: Math.ceil(dataArray.length / prev.pageSize),
+            hasNextPage: false,
+            hasPreviousPage: false,
+          }));
         }
       } catch (error) {
         console.error("Error when calling API getRoundParticipants:", error);
@@ -177,7 +234,36 @@ const BatchDetailPage = () => {
     };
 
     fetchParticipants();
-  }, [isViewingBatch, roundFilter, availableRounds, applicantStatusFilter]);
+  }, [
+    isViewingBatch,
+    roundFilter,
+    availableRounds,
+    applicantStatusFilter,
+    applicantSearchTerm,
+    pagination.currentPage,
+    pagination.pageSize,
+    sortColumn,
+    sortOrder,
+  ]);
+
+  // Reset về page 1 khi filter thay đổi
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, [roundFilter, applicantStatusFilter, applicantSearchTerm]);
+
+  // Handler cho pagination
+  const handlePageChange = (page) => {
+    if (page === pagination.currentPage) return;
+    if (page < 1) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: page,
+      hasNextPage: page < prev.totalPages,
+      hasPreviousPage: page > 1,
+    }));
+  };
 
   useEffect(() => {
     let filtered = campaigns;
@@ -208,59 +294,6 @@ const BatchDetailPage = () => {
 
     setFilteredCampaigns(filtered);
   }, [campaigns, searchTerm, statusFilter, departmentFilter]);
-
-  // const getStatusBadge = (status) => {
-  //   const statusConfig = {
-  //     active: { color: 'bg-green-100 text-green-800', text: 'Đang hoạt động' },
-  //     completed: { color: 'bg-blue-100 text-blue-800', text: 'Hoàn thành' },
-  //     paused: { color: 'bg-yellow-100 text-yellow-800', text: 'Tạm dừng' }
-  //   }
-  //   const config = statusConfig[status] || statusConfig.active
-  //   return (
-  //     <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
-  //       {config.text}
-  //     </span>
-  //   )
-  // }
-
-  // const percent = (current, target) => {
-  //   if (!target || target <= 0) return 0
-  //   const p = Math.round((Number(current || 0) / Number(target)) * 100)
-  //   return Math.max(0, Math.min(100, p))
-  // }
-
-  // const getBatchStatusCfg = (status) => {
-  //   const map = {
-  //     ongoing: { text: 'Đang diễn ra', color: 'bg-green-100 text-green-700' },
-  //     completed: { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-700' },
-  //     planned: { text: 'Đã lên kế hoạch', color: 'bg-slate-100 text-slate-700' },
-  //     upcoming: { text: 'Sắp diễn ra', color: 'bg-yellow-100 text-yellow-800' },
-  //     paused: { text: 'Tạm dừng', color: 'bg-orange-100 text-orange-700' },
-  //     cancelled: { text: 'Hủy', color: 'bg-red-100 text-red-700' },
-  //   }
-  //   return map[status] || map.planned
-  // }
-
-  // const buildBatches = (campaign) => {
-  //   // Lấy thông tin giống DetailInfo.jsx khi thiếu dữ liệu
-  //   if (Array.isArray(campaign?.batches) && campaign.batches.length) return campaign.batches
-  //   const current = Number(campaign?.currentHires ?? 0)
-  //   const target = campaign?.targetHires
-  //   return [
-  //     { name: 'Đợt 1', time: `${campaign?.startDate || '—'} - ${campaign?.endDate || '—'}`, location: '—', method: 'Trực tiếp', owner: '—', status: 'ongoing', current, target, note: 'Phỏng vấn vòng 1' },
-  //   ]
-  // }
-
-  // // Tổng quan để làm header metrics
-  // const overview = useMemo(() => {
-  //   const list = filteredCampaigns
-  //     .map(c => ({ ...c, batches: buildBatches(c).filter(b => b.status === 'ongoing') }))
-  //     .filter(c => c.batches.length > 0)
-  //   const totalCampaigns = list.length
-  //   const totalBatches = list.reduce((acc, c) => acc + c.batches.length, 0)
-  //   const totalApplicants = list.reduce((acc, c) => acc + c.batches.reduce((s, b) => s + Number(b.current || 0), 0), 0)
-  //   return { totalCampaigns, totalBatches, totalApplicants }
-  // }, [filteredCampaigns])
 
   // Filter applicants for specific batch
   const filteredApplicants = useMemo(() => {
@@ -813,7 +846,7 @@ const BatchDetailPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-slate-900">
-                          {applicant.appliedDate}
+                          {formatDate(applicant.appliedDate)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getApplicantStatusBadge(applicant.status)}
@@ -906,6 +939,14 @@ const BatchDetailPage = () => {
               <div className="p-12 text-center">
                 <p className="text-slate-500">No applicant for this round</p>
               </div>
+            )}
+
+            {/* Pagination */}
+            {!loadingParticipants && filteredApplicants.length > 0 && (
+              <AirlinePagination
+                pagination={pagination}
+                onPageChange={handlePageChange}
+              />
             )}
           </div>
         </div>

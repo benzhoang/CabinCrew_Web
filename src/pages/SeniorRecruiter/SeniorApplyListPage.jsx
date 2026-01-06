@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getCampaignRoundById, getRoundParticipants } from "../../service/api";
-import { formatDate2 } from "../../config/formatDate";
+import { formatDate, formatDate2 } from "../../config/formatDate";
+import SeniorPagination from "../../components/SeniorRecruiterComponent/SeniorPagination";
 
 const SeniorApplyListPage = () => {
   const [campaigns] = useState([]);
@@ -19,6 +20,16 @@ const SeniorApplyListPage = () => {
   const [loadingRoundData, setLoadingRoundData] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 5,
+    totalRecords: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+  const [sortColumn] = useState("");
+  const [sortOrder] = useState("asc");
   const navigate = useNavigate();
   const params = useParams();
 
@@ -118,38 +129,84 @@ const SeniorApplyListPage = () => {
       setLoadingParticipants(true);
       try {
         // Chuẩn bị params cho API call
-        const apiParams = {};
+        const apiParams = {
+          page: pagination.currentPage,
+          pageSize: pagination.pageSize,
+        };
+
+        // Thêm searchTerm nếu có
+        if (applicantSearchTerm) {
+          apiParams.searchTerm = applicantSearchTerm;
+        }
 
         // Thêm status filter nếu không phải "all"
         if (applicantStatusFilter !== "all") {
           apiParams.status = parseInt(applicantStatusFilter, 10);
         }
 
-        // Gọi API cho round cụ thể với status filter
+        // Thêm sort params nếu có
+        if (sortColumn) {
+          apiParams.sortColumn = sortColumn;
+          apiParams.sortOrder = sortOrder;
+        }
+
+        // Gọi API cho round cụ thể với các params
         const result = await getRoundParticipants(roundId, apiParams);
-        if (result.success && result.data && Array.isArray(result.data)) {
-          // Map dữ liệu từ API sang format hiển thị
-          const mappedParticipants = result.data.map((participant) => ({
-            id: participant.userId || participant.activityId,
-            activityId: participant.activityId || 0,
-            userId: participant.userId || 0,
-            name: participant.fullName || "No full name",
-            email: participant.email || "No email",
-            phone: participant.phoneNumber || "No phone number",
-            photo: participant.imgURL || "No photo",
-            status: participant.status || "pending",
-            roundId: participant.roundId || 0,
-            roundName: participant.roundName || "No round name",
-            appliedDate:
-              participant.appliedDate || new Date().toISOString().split("T")[0],
+
+        // Xử lý response - có thể là object với items và pagination hoặc array
+        let dataArray = [];
+        let paginationData = null;
+
+        if (result.success && result.data) {
+          if (Array.isArray(result.data)) {
+            // Nếu data là array
+            dataArray = result.data;
+            paginationData = result.pagination || null;
+          } else if (result.data.items && Array.isArray(result.data.items)) {
+            // Nếu data là object với items
+            dataArray = result.data.items;
+            paginationData = result.data.pagination || result.data || null;
+          }
+        }
+
+        // Map dữ liệu từ API sang format hiển thị
+        const mappedParticipants = dataArray.map((participant) => ({
+          id: participant.userId || participant.activityId,
+          activityId: participant.activityId || 0,
+          userId: participant.userId || 0,
+          name: participant.fullName || "No full name",
+          email: participant.email || "No email",
+          phone: participant.phoneNumber || "No phone number",
+          photo: participant.imgURL || "No photo",
+          status: participant.status || "pending",
+          roundId: participant.roundId || 0,
+          roundName: participant.roundName || "No round name",
+          appliedDate:
+            participant.appliedDate || new Date().toISOString().split("T")[0],
+        }));
+
+        setParticipants(mappedParticipants);
+
+        // Cập nhật pagination data
+        if (paginationData) {
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: paginationData.currentPage || prev.currentPage,
+            pageSize: paginationData.pageSize || prev.pageSize,
+            totalRecords: paginationData.totalRecords || 0,
+            totalPages: paginationData.totalPages || 0,
+            hasNextPage: paginationData.hasNextPage || false,
+            hasPreviousPage: paginationData.hasPreviousPage || false,
           }));
-          setParticipants(mappedParticipants);
         } else {
-          console.error(
-            "Error when fetching applicant list:",
-            result.error || "Invalid data"
-          );
-          setParticipants([]);
+          // Fallback: nếu không có pagination data, set totalRecords = length của array
+          setPagination((prev) => ({
+            ...prev,
+            totalRecords: dataArray.length,
+            totalPages: Math.ceil(dataArray.length / prev.pageSize),
+            hasNextPage: false,
+            hasPreviousPage: false,
+          }));
         }
       } catch (error) {
         console.error("Error when calling API getRoundParticipants:", error);
@@ -160,7 +217,36 @@ const SeniorApplyListPage = () => {
     };
 
     fetchParticipants();
-  }, [isViewingBatch, roundFilter, availableRounds, applicantStatusFilter]);
+  }, [
+    isViewingBatch,
+    roundFilter,
+    availableRounds,
+    applicantStatusFilter,
+    applicantSearchTerm,
+    pagination.currentPage,
+    pagination.pageSize,
+    sortColumn,
+    sortOrder,
+  ]);
+
+  // Reset về page 1 khi filter thay đổi
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, [roundFilter, applicantStatusFilter, applicantSearchTerm]);
+
+  // Handler cho pagination
+  const handlePageChange = (page) => {
+    if (page === pagination.currentPage) return;
+    if (page < 1) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: page,
+      hasNextPage: page < prev.totalPages,
+      hasPreviousPage: page > 1,
+    }));
+  };
 
   useEffect(() => {
     let filtered = campaigns;
@@ -659,7 +745,7 @@ const SeniorApplyListPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-slate-900">
-                          {applicant.appliedDate}
+                          {formatDate(applicant.appliedDate)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getApplicantStatusBadge(applicant.status)}
@@ -752,6 +838,14 @@ const SeniorApplyListPage = () => {
               <div className="p-12 text-center">
                 <p className="text-slate-500">No applicant for this round</p>
               </div>
+            )}
+
+            {/* Pagination */}
+            {!loadingParticipants && filteredApplicants.length > 0 && (
+              <SeniorPagination
+                pagination={pagination}
+                onPageChange={handlePageChange}
+              />
             )}
           </div>
         </div>

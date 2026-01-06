@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getCampaignRoundById, getRoundParticipants } from "../../service/api";
-import { formatDate2 } from "../../config/formatDate";
+import { formatDate, formatDate2 } from "../../config/formatDate";
+import Pagination from "../../components/AdminComponent/Pagination";
 
 const AdminApplyListPage = () => {
   const [campaigns] = useState([]);
@@ -19,6 +20,11 @@ const AdminApplyListPage = () => {
   const [loadingRoundData, setLoadingRoundData] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [sortColumn] = useState("");
+  const [sortOrder] = useState("asc");
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -128,38 +134,76 @@ const AdminApplyListPage = () => {
       setLoadingParticipants(true);
       try {
         // Chuẩn bị params cho API call
-        const apiParams = {};
+        const apiParams = {
+          page: currentPage,
+          pageSize: pageSize,
+        };
+
+        // Thêm searchTerm nếu có
+        if (applicantSearchTerm) {
+          apiParams.searchTerm = applicantSearchTerm;
+        }
 
         // Thêm status filter nếu không phải "all"
         if (applicantStatusFilter !== "all") {
           apiParams.status = parseInt(applicantStatusFilter, 10);
         }
 
-        // Gọi API cho round cụ thể với status filter
+        // Thêm sort params nếu có
+        if (sortColumn) {
+          apiParams.sortColumn = sortColumn;
+          apiParams.sortOrder = sortOrder;
+        }
+
+        // Gọi API cho round cụ thể với các params
         const result = await getRoundParticipants(roundId, apiParams);
-        if (result.success && result.data && Array.isArray(result.data)) {
-          // Map dữ liệu từ API sang format hiển thị
-          const mappedParticipants = result.data.map((participant) => ({
-            id: participant.userId || participant.activityId,
-            activityId: participant.activityId || 0,
-            userId: participant.userId || 0,
-            name: participant.fullName || "No full name",
-            email: participant.email || "No email",
-            phone: participant.phoneNumber || "No phone number",
-            photo: participant.imgURL || "No photo",
-            status: participant.status || "pending",
-            roundId: participant.roundId || 0,
-            roundName: participant.roundName || "No round name",
-            appliedDate:
-              participant.appliedDate || new Date().toISOString().split("T")[0],
-          }));
-          setParticipants(mappedParticipants);
+
+        // Xử lý response - có thể là object với items và pagination hoặc array
+        let dataArray = [];
+        let paginationData = null;
+
+        if (result.success && result.data) {
+          if (Array.isArray(result.data)) {
+            // Nếu data là array
+            dataArray = result.data;
+            paginationData = result.pagination || null;
+          } else if (result.data.items && Array.isArray(result.data.items)) {
+            // Nếu data là object với items
+            dataArray = result.data.items;
+            paginationData = result.data.pagination || result.data || null;
+          }
+        }
+
+        // Map dữ liệu từ API sang format hiển thị
+        const mappedParticipants = dataArray.map((participant) => ({
+          id: participant.userId || participant.activityId,
+          activityId: participant.activityId || 0,
+          userId: participant.userId || 0,
+          name: participant.fullName || "No full name",
+          email: participant.email || "No email",
+          phone: participant.phoneNumber || "No phone number",
+          photo: participant.imgURL || "No photo",
+          status: participant.status || "pending",
+          roundId: participant.roundId || 0,
+          roundName: participant.roundName || "No round name",
+          appliedDate:
+            participant.appliedDate || new Date().toISOString().split("T")[0],
+        }));
+
+        setParticipants(mappedParticipants);
+
+        // Cập nhật pagination data
+        if (paginationData) {
+          setTotalRecords(paginationData.totalRecords || 0);
+          if (paginationData.currentPage) {
+            setCurrentPage(paginationData.currentPage);
+          }
+          if (paginationData.pageSize) {
+            setPageSize(paginationData.pageSize);
+          }
         } else {
-          console.error(
-            "Error when fetching applicant list:",
-            result.error || "Invalid data"
-          );
-          setParticipants([]);
+          // Fallback: nếu không có pagination data, set totalRecords = length của array
+          setTotalRecords(dataArray.length);
         }
       } catch (error) {
         console.error("Error when calling API getRoundParticipants:", error);
@@ -170,7 +214,27 @@ const AdminApplyListPage = () => {
     };
 
     fetchParticipants();
-  }, [isViewingBatch, roundFilter, availableRounds, applicantStatusFilter]);
+  }, [
+    isViewingBatch,
+    roundFilter,
+    availableRounds,
+    applicantStatusFilter,
+    applicantSearchTerm,
+    currentPage,
+    pageSize,
+    sortColumn,
+    sortOrder,
+  ]);
+
+  // Reset về page 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [roundFilter, applicantStatusFilter, applicantSearchTerm]);
+
+  // Handler cho pagination
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   useEffect(() => {
     let filtered = campaigns;
@@ -681,7 +745,7 @@ const AdminApplyListPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-slate-900">
-                          {applicant.appliedDate}
+                          {formatDate(applicant.appliedDate)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {getApplicantStatusBadge(applicant.status)}
@@ -775,6 +839,18 @@ const AdminApplyListPage = () => {
                 <p className="text-slate-500">No applicant for this round</p>
               </div>
             )}
+
+            {/* Pagination */}
+            {!loadingParticipants &&
+              filteredApplicants.length > 0 &&
+              totalRecords > 0 && (
+                <Pagination
+                  totalItems={totalRecords}
+                  itemsPerPage={pageSize}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              )}
           </div>
         </div>
       </div>

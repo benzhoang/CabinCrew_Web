@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getInterviewResults } from "../../../../service/api";
 
 const formatDateTime = (value) => {
@@ -36,6 +36,7 @@ const getStatusBadge = (flag) => {
 const ExaminerInterviewPage = () => {
   const { activityId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,7 +80,7 @@ const ExaminerInterviewPage = () => {
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Interview results</h1>
+          <h1 className="text-xl font-bold text-gray-900">Interview Results</h1>
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -179,9 +180,14 @@ const ExaminerInterviewPage = () => {
                         </div>
                         <button
                           type="button"
-                          onClick={() =>
-                            navigate(`/detail-result/${result.evaluationId}`)
-                          }
+                          onClick={() => {
+                            const campaignType = location.state?.campaignType;
+                            const routePath =
+                              campaignType === "Recruitment"
+                                ? `/examiner/campaigns/interview-result/${result.evaluationId}/recruitment`
+                                : `/examiner/campaigns/interview-result/${result.evaluationId}/promotion`;
+                            navigate(routePath);
+                          }}
                           className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
                         >
                           View details →
