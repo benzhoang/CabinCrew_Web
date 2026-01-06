@@ -17,6 +17,14 @@ const ExaminerApplyList = () => {
   const [loadingRoundData, setLoadingRoundData] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 5,
+    totalPages: 0,
+    totalRecords: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -79,17 +87,42 @@ const ExaminerApplyList = () => {
     }
   }, [availableRounds, roundFilter]);
 
+  // Clear participants ngay khi roundFilter thay đổi để tránh hiển thị data cũ
+  useEffect(() => {
+    if (roundFilter && roundFilter !== "final") {
+      setParticipants([]);
+    }
+  }, [roundFilter]);
+
   // Gọi API để lấy danh sách participants theo roundId khi filter thay đổi
   useEffect(() => {
-    const fetchParticipants = async () => {
+    let isCancelled = false; // Flag để tránh race condition
+
+    const fetchParticipants = async (page = 1) => {
       if (!campaignRoundId) {
         setParticipants([]);
+        setPagination({
+          currentPage: 1,
+          pageSize: 5,
+          totalPages: 0,
+          totalRecords: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
         return;
       }
 
       // Nếu chọn "final", không gọi API
       if (roundFilter === "final") {
         setParticipants([]);
+        setPagination({
+          currentPage: 1,
+          pageSize: 5,
+          totalPages: 0,
+          totalRecords: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
         return;
       }
 
@@ -115,9 +148,24 @@ const ExaminerApplyList = () => {
         return;
       }
 
+      // Chuẩn bị params cho API call
+      const apiParams = {
+        page: page,
+        pageSize: pagination?.pageSize || 5,
+      };
+
+      // Thêm status filter nếu không phải "all"
+      if (applicantStatusFilter !== "all") {
+        apiParams.status = parseInt(applicantStatusFilter, 10);
+      }
+
       setLoadingParticipants(true);
       try {
-        const result = await getRoundParticipants(roundId);
+        const result = await getRoundParticipants(roundId, apiParams);
+
+        // Kiểm tra nếu request đã bị cancel (roundFilter đã thay đổi)
+        if (isCancelled) return;
+
         if (result.success && result.data && Array.isArray(result.data)) {
           // Map dữ liệu từ API sang format hiển thị theo cấu trúc response
           const mappedParticipants = result.data.map((participant) => ({
@@ -145,27 +193,179 @@ const ExaminerApplyList = () => {
             hasAppearanceEvaluated: participant.hasAppearanceEvaluated || false,
             hasInterviewEvaluated: participant.hasInterviewEvaluated || false,
           }));
-          setParticipants(mappedParticipants);
+
+          // Kiểm tra lại trước khi set state
+          if (!isCancelled) {
+            setParticipants(mappedParticipants);
+
+            // Cập nhật pagination info từ API response
+            if (result.pagination) {
+              setPagination((prev) => ({
+                ...result.pagination,
+                pageSize: result.pagination.pageSize || prev.pageSize,
+              }));
+            } else {
+              // Fallback khi API không trả về pagination
+              setPagination((prev) => ({
+                ...prev,
+                currentPage: page,
+                totalPages: 0,
+                totalRecords: mappedParticipants.length,
+                hasNextPage: false,
+                hasPreviousPage: page > 1,
+              }));
+            }
+          }
         } else {
-          console.error(
-            "Lỗi khi lấy danh sách ứng viên:",
-            result.error || "Dữ liệu không hợp lệ"
-          );
-          setParticipants([]);
+          if (!isCancelled) {
+            console.error(
+              "Lỗi khi lấy danh sách ứng viên:",
+              result.error || "Dữ liệu không hợp lệ"
+            );
+            setParticipants([]);
+            setPagination({
+              currentPage: 1,
+              pageSize: 5,
+              totalPages: 0,
+              totalRecords: 0,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            });
+          }
         }
       } catch (error) {
-        console.error("Lỗi khi gọi API getRoundParticipants:", error);
-        setParticipants([]);
+        if (!isCancelled) {
+          console.error("Lỗi khi gọi API getRoundParticipants:", error);
+          setParticipants([]);
+          setPagination({
+            currentPage: 1,
+            pageSize: 5,
+            totalPages: 0,
+            totalRecords: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          });
+        }
       } finally {
-        setLoadingParticipants(false);
+        if (!isCancelled) {
+          setLoadingParticipants(false);
+        }
       }
     };
 
-    fetchParticipants();
-  }, [campaignRoundId, roundFilter, availableRounds]);
+    // Reset về trang 1 khi filter thay đổi
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchParticipants(1);
+
+    // Cleanup function để cancel request nếu roundFilter thay đổi
+    return () => {
+      isCancelled = true;
+    };
+  }, [campaignRoundId, roundFilter, availableRounds, applicantStatusFilter]);
 
   const goBackToCampaigns = () => {
     navigate(`/examiner/campaigns/${campaignId}`);
+  };
+
+  const handlePageChange = async (page) => {
+    // Kiểm tra page hợp lệ
+    if (page === pagination.currentPage) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+    if (page > pagination.currentPage && !pagination.hasNextPage) return;
+    if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
+    if (page < 1) return;
+
+    if (!campaignRoundId) return;
+
+    // Nếu chọn "final", không gọi API
+    if (roundFilter === "final") return;
+
+    let roundId = null;
+
+    // Lấy roundId từ roundFilter
+    if (roundFilter) {
+      roundId = roundFilter;
+    } else {
+      // Nếu chưa có roundFilter, lấy round đầu tiên từ availableRounds
+      if (availableRounds.length > 0) {
+        roundId = availableRounds[0].roundId;
+      } else {
+        return;
+      }
+    }
+
+    // Kiểm tra roundId hợp lệ
+    if (!roundId || roundId === "final") return;
+
+    // Chuẩn bị params cho API call
+    const apiParams = {
+      page: page,
+      pageSize: pagination?.pageSize || 5,
+    };
+
+    // Thêm status filter nếu không phải "all"
+    if (applicantStatusFilter !== "all") {
+      apiParams.status = parseInt(applicantStatusFilter, 10);
+    }
+
+    setLoadingParticipants(true);
+    try {
+      const result = await getRoundParticipants(roundId, apiParams);
+      if (result.success && result.data && Array.isArray(result.data)) {
+        const mappedParticipants = result.data.map((participant) => ({
+          id: participant.userId || participant.activityId,
+          activityId: participant.activityId || 0,
+          userId: participant.userId || 0,
+          name: participant.fullName || "",
+          email: participant.email || "",
+          phone: participant.phoneNumber || "",
+          photo: participant.imgURL || "",
+          status: participant.status || "pending",
+          roundId: participant.roundId || 0,
+          roundName: participant.roundName || "",
+          appliedDate:
+            participant.appliedDate || new Date().toISOString().split("T")[0],
+          education: participant.education || "",
+          position: participant.position || "",
+          experience: participant.experience || "",
+          languages: participant.languages || [],
+          applicationType: participant.applicationType || "recruitment",
+          currentPosition: participant.currentPosition || "",
+          targetPosition: participant.targetPosition || "",
+          score: participant.score || null,
+          hasAppearanceEvaluated: participant.hasAppearanceEvaluated || false,
+          hasInterviewEvaluated: participant.hasInterviewEvaluated || false,
+        }));
+        setParticipants(mappedParticipants);
+
+        // Cập nhật pagination info từ API response
+        if (result.pagination) {
+          setPagination((prev) => ({
+            ...result.pagination,
+            pageSize: result.pagination.pageSize || prev.pageSize,
+          }));
+        } else {
+          // Fallback khi API không trả về pagination
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: page,
+            totalPages: 0,
+            totalRecords: mappedParticipants.length,
+            hasNextPage: false,
+            hasPreviousPage: page > 1,
+          }));
+        }
+      } else {
+        console.error(
+          "Lỗi khi lấy danh sách ứng viên:",
+          result.error || "Dữ liệu không hợp lệ"
+        );
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API getRoundParticipants:", error);
+    } finally {
+      setLoadingParticipants(false);
+    }
   };
 
   // Render applicant list view
@@ -239,9 +439,8 @@ const ExaminerApplyList = () => {
                 </span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData
-                    ? `${campaignRoundData.actualQuantiy || 0}/${
-                        campaignRoundData.targetQuantity || 0
-                      } applicants`
+                    ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
+                    } applicants`
                     : "—"}
                 </p>
               </div>
@@ -268,6 +467,8 @@ const ExaminerApplyList = () => {
           fetchCampaignRoundData={fetchCampaignRoundData}
           onParticipantsUpdate={setParticipants}
           isViewingBatch={isViewingBatch}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

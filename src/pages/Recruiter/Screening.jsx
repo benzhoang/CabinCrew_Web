@@ -19,6 +19,14 @@ const Screening = () => {
     const [loadingRoundData, setLoadingRoundData] = useState(false)
     const [participants, setParticipants] = useState([])
     const [loadingParticipants, setLoadingParticipants] = useState(false)
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 5,
+        totalPages: 0,
+        totalRecords: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    })
     const navigate = useNavigate()
     const location = useLocation()
     const params = useParams()
@@ -74,15 +82,31 @@ const Screening = () => {
 
     // Gọi API để lấy danh sách participants theo roundId khi filter thay đổi
     useEffect(() => {
-        const fetchParticipants = async () => {
+        const fetchParticipants = async (page = 1) => {
             if (!isViewingBatch) {
                 setParticipants([])
+                setPagination({
+                    currentPage: 1,
+                    pageSize: 5,
+                    totalPages: 0,
+                    totalRecords: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                })
                 return
             }
 
             // Nếu chọn "final", không gọi API
             if (roundFilter === 'final') {
                 setParticipants([])
+                setPagination({
+                    currentPage: 1,
+                    pageSize: 5,
+                    totalPages: 0,
+                    totalRecords: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                })
                 return
             }
 
@@ -108,9 +132,20 @@ const Screening = () => {
                 return
             }
 
+            // Chuẩn bị params cho API call
+            const apiParams = {
+                page: page,
+                pageSize: pagination.pageSize,
+            }
+
+            // Thêm status filter nếu không phải "all"
+            if (applicantStatusFilter !== 'all') {
+                apiParams.status = parseInt(applicantStatusFilter, 10)
+            }
+
             setLoadingParticipants(true)
             try {
-                const result = await getRoundParticipants(roundId)
+                const result = await getRoundParticipants(roundId, apiParams)
                 if (result.success && result.data && Array.isArray(result.data)) {
                     // Map dữ liệu từ API sang format hiển thị theo cấu trúc response
                     // Response structure: { code: 0, message: "string", data: { items: [...], currentPage, pageSize, ... } }
@@ -130,20 +165,56 @@ const Screening = () => {
                         education: participant.education || '',
                     }))
                     setParticipants(mappedParticipants)
+
+                    // Cập nhật pagination info từ API response
+                    if (result.pagination) {
+                        setPagination((prev) => ({
+                            ...result.pagination,
+                            pageSize: result.pagination.pageSize || prev.pageSize,
+                        }))
+                    } else {
+                        // Fallback khi API không trả về pagination
+                        setPagination((prev) => ({
+                            ...prev,
+                            currentPage: page,
+                            totalPages: 0,
+                            totalRecords: mappedParticipants.length,
+                            hasNextPage: false,
+                            hasPreviousPage: page > 1,
+                        }))
+                    }
                 } else {
                     console.error('Lỗi khi lấy danh sách ứng viên:', result.error || 'Dữ liệu không hợp lệ')
                     setParticipants([])
+                    setPagination({
+                        currentPage: 1,
+                        pageSize: 5,
+                        totalPages: 0,
+                        totalRecords: 0,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                    })
                 }
             } catch (error) {
                 console.error('Lỗi khi gọi API getRoundParticipants:', error)
                 setParticipants([])
+                setPagination({
+                    currentPage: 1,
+                    pageSize: 5,
+                    totalPages: 0,
+                    totalRecords: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                })
             } finally {
                 setLoadingParticipants(false)
             }
         }
 
-        fetchParticipants()
-    }, [isViewingBatch, roundFilter, availableRounds])
+        // Reset về trang 1 khi filter thay đổi
+        setPagination((prev) => ({ ...prev, currentPage: 1 }))
+        fetchParticipants(1)
+    }, [isViewingBatch, roundFilter, availableRounds, applicantStatusFilter])
 
     useEffect(() => {
         let filtered = campaigns
@@ -363,6 +434,94 @@ const Screening = () => {
     const handleStatusChange = (applicantId, newStatus) => {
         // Handle status change logic here
         console.log(`Changing status of applicant ${applicantId} to ${newStatus}`)
+    }
+
+    const handlePageChange = async (page) => {
+        // Kiểm tra page hợp lệ
+        if (page === pagination.currentPage) return
+        if (pagination.totalPages && page > pagination.totalPages) return
+        if (page > pagination.currentPage && !pagination.hasNextPage) return
+        if (page < pagination.currentPage && !pagination.hasPreviousPage) return
+        if (page < 1) return
+
+        if (!isViewingBatch) return
+
+        // Nếu chọn "final", không gọi API
+        if (roundFilter === 'final') return
+
+        let roundId = null
+
+        // Nếu chọn "all", lấy round đầu tiên từ availableRounds
+        if (roundFilter === 'all') {
+            if (availableRounds.length > 0) {
+                roundId = availableRounds[0].roundId
+            } else {
+                return
+            }
+        } else {
+            // Lấy roundId từ roundFilter
+            roundId = roundFilter
+        }
+
+        // Kiểm tra roundId hợp lệ
+        if (!roundId || roundId === 'final') return
+
+        // Chuẩn bị params cho API call
+        const apiParams = {
+            page: page,
+            pageSize: pagination.pageSize,
+        }
+
+        // Thêm status filter nếu không phải "all"
+        if (applicantStatusFilter !== 'all') {
+            apiParams.status = parseInt(applicantStatusFilter, 10)
+        }
+
+        setLoadingParticipants(true)
+        try {
+            const result = await getRoundParticipants(roundId, apiParams)
+            if (result.success && result.data && Array.isArray(result.data)) {
+                const mappedParticipants = result.data.map((participant) => ({
+                    id: participant.userId || participant.activityId,
+                    activityId: participant.activityId || 0,
+                    userId: participant.userId || 0,
+                    name: participant.fullName || '',
+                    email: participant.email || '',
+                    phone: participant.phoneNumber || '',
+                    photo: participant.imgURL || '',
+                    status: participant.status || 'pending',
+                    roundId: participant.roundId || 0,
+                    roundName: participant.roundName || '',
+                    appliedDate: participant.appliedDate || new Date().toISOString().split('T')[0],
+                    education: participant.education || '',
+                }))
+                setParticipants(mappedParticipants)
+
+                // Cập nhật pagination info từ API response
+                if (result.pagination) {
+                    setPagination((prev) => ({
+                        ...result.pagination,
+                        pageSize: result.pagination.pageSize || prev.pageSize,
+                    }))
+                } else {
+                    // Fallback khi API không trả về pagination
+                    setPagination((prev) => ({
+                        ...prev,
+                        currentPage: page,
+                        totalPages: 0,
+                        totalRecords: mappedParticipants.length,
+                        hasNextPage: false,
+                        hasPreviousPage: page > 1,
+                    }))
+                }
+            } else {
+                console.error('Lỗi khi lấy danh sách ứng viên:', result.error || 'Dữ liệu không hợp lệ')
+            }
+        } catch (error) {
+            console.error('Lỗi khi gọi API getRoundParticipants:', error)
+        } finally {
+            setLoadingParticipants(false)
+        }
     }
 
     const mapRoundToStageId = (roundData, applicant) => {
@@ -642,6 +801,54 @@ const Screening = () => {
                         {!loadingParticipants && filteredApplicants.length === 0 && (
                             <div className="p-12 text-center">
                                 <p className="text-slate-500">No applicants for this batch yet</p>
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {!loadingParticipants && filteredApplicants.length > 0 && (
+                            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                                <div className="text-sm text-slate-600">
+                                    Trang <span className="font-semibold">{pagination.currentPage}</span>
+                                    {pagination.totalPages ? (
+                                        <>
+                                            {' '}
+                                            / <span className="font-semibold">{pagination.totalPages}</span>
+                                        </>
+                                    ) : null}
+                                    {typeof pagination.totalRecords === 'number' && (
+                                        <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                        disabled={!pagination.hasPreviousPage}
+                                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <span className="text-sm text-slate-600">
+                                        {pagination.currentPage}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                        disabled={!pagination.hasNextPage}
+                                        className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            }`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
