@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCampaignRequestList } from "../../service/api2.js";
 import { formatDateFromAPI } from "../../config/formatDate.js";
+import SeniorPagination from "./SeniorPagination";
 
 const getRequestTypeLabel = (requestType) => {
   // Normalize requestType to lowercase for comparison
@@ -459,54 +460,10 @@ const RequestList = ({
       </div>
 
       {/* Pagination */}
-      {pagination.totalRecords > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
-          <div className="text-sm text-slate-600">
-            Page <span className="font-semibold">{pagination.currentPage}</span>
-            {pagination.totalPages ? (
-              <>
-                {" "}
-                / <span className="font-semibold">{pagination.totalPages}</span>
-              </>
-            ) : null}
-            {typeof pagination.totalRecords === "number" && (
-              <span className="ml-2">({pagination.totalRecords} records)</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPreviousPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasPreviousPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
-            >
-              Prev
-            </button>
-
-            <span className="text-sm text-slate-600">
-              {pagination.currentPage}
-            </span>
-
-            <button
-              type="button"
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
-              className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${
-                pagination.hasNextPage
-                  ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                  : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-              }`}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      <SeniorPagination
+        pagination={pagination}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 };

@@ -174,18 +174,19 @@ const ExaminerPromotionDetailPage = () => {
   }, [interviewResults, knownCriteriaKeys]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
+    <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
-            >
-              Back
-            </button>
-          </div>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900">
+            Cabin Crew Result Detail
+          </h1>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm font-medium"
+          >
+            Back
+          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">

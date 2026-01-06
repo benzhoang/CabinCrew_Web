@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa6";
 import { FaRegListAlt } from "react-icons/fa";
 import TestListModal from "./TestListModal";
+import ExaminerPagination from "./ExaminerPagination";
 import {
   getRoundParticipants,
   moveToInterview,
@@ -484,7 +485,11 @@ const ApplyList = ({
     // Navigate to interview result page if hasInterviewEvaluated is true
     // Otherwise navigate to appearance result page
     if (applicant.hasInterviewEvaluated) {
-      navigate(`/examiner/campaigns/interview-result/${applicant.activityId}`);
+      navigate(`/examiner/campaigns/interview-result/${applicant.activityId}`, {
+        state: {
+          campaignType: location.state?.campaignType,
+        },
+      });
     } else {
       navigate(`/examiner/campaigns/appearance-result/${applicant.activityId}`);
     }
@@ -518,10 +523,10 @@ const ApplyList = ({
       roundFilter === "final"
         ? { roundId: "final", roundName: "Final" }
         : availableRounds.find(
-          (r) => String(r.roundId) === String(roundFilter)
-        ) ||
-        activeRoundForTests ||
-        null;
+            (r) => String(r.roundId) === String(roundFilter)
+          ) ||
+          activeRoundForTests ||
+          null;
 
     const stageId =
       mapRoundToStageId(roundFromFilter, applicant) ||
@@ -723,8 +728,8 @@ const ApplyList = ({
               {isTestRound && (
                 <div className="flex items-center gap-2">
                   {!activeRoundForTests?.testId ||
-                    activeRoundForTests?.testId === 0 ||
-                    activeRoundForTests?.testId === null ? (
+                  activeRoundForTests?.testId === 0 ||
+                  activeRoundForTests?.testId === null ? (
                     <button
                       onClick={handleOpenTestModal}
                       className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700"
@@ -774,15 +779,15 @@ const ApplyList = ({
 
                         return !shouldHideButton;
                       })() && (
-                          <button
-                            onClick={openConfirmMoveModal}
-                            disabled={isMovingToInterview}
-                            className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <FaArrowRight className="w-5 h-5" />
-                            {isMovingToInterview ? "Finalizing..." : "Finalize"}
-                          </button>
-                        )}
+                        <button
+                          onClick={openConfirmMoveModal}
+                          disabled={isMovingToInterview}
+                          className="flex items-center gap-2 px-4 py-2 font-medium text-white transition-colors bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <FaArrowRight className="w-5 h-5" />
+                          {isMovingToInterview ? "Finalizing..." : "Finalize"}
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -940,9 +945,9 @@ const ApplyList = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getRoundBadge(
                         applicant.roundId ||
-                        applicant.roundName ||
-                        applicant.round ||
-                        "screening",
+                          applicant.roundName ||
+                          applicant.round ||
+                          "screening",
                         applicant
                       )}
                     </td>
@@ -963,16 +968,16 @@ const ApplyList = ({
                             {/* Icon xem kết quả - hiển thị nếu Appearance hoặc Interview đã được đánh giá */}
                             {(applicant.hasAppearanceEvaluated ||
                               applicant.hasInterviewEvaluated) && (
-                                <button
-                                  className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
-                                  title="View results"
-                                  onClick={() =>
-                                    handleNavigateToResult(applicant)
-                                  }
-                                >
-                                  <FaRegListAlt className="w-4 h-4" />
-                                </button>
-                              )}
+                              <button
+                                className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
+                                title="View results"
+                                onClick={() =>
+                                  handleNavigateToResult(applicant)
+                                }
+                              >
+                                <FaRegListAlt className="w-4 h-4" />
+                              </button>
+                            )}
                           </>
                         ) : isInterviewRound ? (
                           <>
@@ -1001,16 +1006,16 @@ const ApplyList = ({
                             {/* Icon xem kết quả - hiển thị nếu Appearance hoặc Interview đã được đánh giá */}
                             {(applicant.hasAppearanceEvaluated ||
                               applicant.hasInterviewEvaluated) && (
-                                <button
-                                  className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
-                                  title="View results"
-                                  onClick={() =>
-                                    handleNavigateToResult(applicant)
-                                  }
-                                >
-                                  <FaRegListAlt className="w-4 h-4" />
-                                </button>
-                              )}
+                              <button
+                                className="p-1 text-teal-600 transition-colors rounded hover:text-teal-900 hover:bg-teal-50"
+                                title="View results"
+                                onClick={() =>
+                                  handleNavigateToResult(applicant)
+                                }
+                              >
+                                <FaRegListAlt className="w-4 h-4" />
+                              </button>
+                            )}
                           </>
                         ) : (
                           <button
@@ -1038,52 +1043,17 @@ const ApplyList = ({
           )}
 
           {/* Pagination */}
-          {!loadingParticipants && filteredApplicants.length > 0 && pagination && onPageChange && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
-              <div className="text-sm text-slate-600">
-                Trang <span className="font-semibold">{pagination.currentPage}</span>
-                {pagination.totalPages ? (
-                  <>
-                    {" "}
-                    / <span className="font-semibold">{pagination.totalPages}</span>
-                  </>
-                ) : null}
-                {typeof pagination.totalRecords === "number" && (
-                  <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onPageChange(pagination.currentPage - 1)}
-                  disabled={!pagination.hasPreviousPage}
-                  className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                    ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                    : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    }`}
-                >
-                  Previous
-                </button>
-
-                <span className="text-sm text-slate-600">
-                  {pagination.currentPage}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => onPageChange(pagination.currentPage + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                    ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
-                    : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          {!loadingParticipants &&
+            filteredApplicants.length > 0 &&
+            pagination &&
+            onPageChange && (
+              <ExaminerPagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalRecords={pagination.totalRecords}
+                onPageChange={onPageChange}
+              />
+            )}
         </div>
       </div>
       {/* Modal xác nhận xét duyệt */}
