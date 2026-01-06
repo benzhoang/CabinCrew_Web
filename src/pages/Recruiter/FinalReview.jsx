@@ -18,7 +18,14 @@ const FinalReview = () => {
   const [loadingRoundInfo, setLoadingRoundInfo] = useState(false);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [fetchError, setFetchError] = useState(null);
-  const [pagination, setPagination] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 5,
+    totalPages: 0,
+    totalRecords: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
   const [finalRoundId, setFinalRoundId] = useState(null);
   const [campaignId, setCampaignId] = useState(null);
   const navigate = useNavigate();
@@ -115,17 +122,34 @@ const FinalReview = () => {
   useEffect(() => {
     if (!finalRoundId) {
       setCandidates([]);
-      setPagination(null);
+      setPagination({
+        currentPage: 1,
+        pageSize: 5,
+        totalPages: 0,
+        totalRecords: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      });
       return;
     }
 
-    const fetchParticipants = async () => {
+    const fetchParticipants = async (page = 1) => {
       setLoadingCandidates(true);
       setFetchError(null);
       try {
-        const result = await getRoundParticipants(finalRoundId, {
+        // Chuẩn bị params cho API call
+        const apiParams = {
           roundName: "Final",
-        });
+          page: page,
+          pageSize: pagination.pageSize,
+        };
+
+        // Thêm status filter nếu không phải "all"
+        if (statusFilter !== "all") {
+          apiParams.status = parseInt(statusFilter, 10);
+        }
+
+        const result = await getRoundParticipants(finalRoundId, apiParams);
         if (result.success && Array.isArray(result.data)) {
           const mappedCandidates = result.data.map((participant) => ({
             id: participant.userId || participant.activityId,
@@ -147,23 +171,56 @@ const FinalReview = () => {
             raw: participant,
           }));
           setCandidates(mappedCandidates);
-          setPagination(result.pagination || null);
+
+          // Cập nhật pagination info từ API response
+          if (result.pagination) {
+            setPagination((prev) => ({
+              ...result.pagination,
+              pageSize: result.pagination.pageSize || prev.pageSize,
+            }));
+          } else {
+            // Fallback khi API không trả về pagination
+            setPagination((prev) => ({
+              ...prev,
+              currentPage: page,
+              totalPages: 0,
+              totalRecords: mappedCandidates.length,
+              hasNextPage: false,
+              hasPreviousPage: page > 1,
+            }));
+          }
         } else {
           setCandidates([]);
-          setPagination(null);
+          setPagination({
+            currentPage: 1,
+            pageSize: 5,
+            totalPages: 0,
+            totalRecords: 0,
+            hasNextPage: false,
+            hasPreviousPage: false,
+          });
           setFetchError(result.error || "Unable to load candidate list.");
         }
       } catch (error) {
         setCandidates([]);
-        setPagination(null);
+        setPagination({
+          currentPage: 1,
+          pageSize: 5,
+          totalPages: 0,
+          totalRecords: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        });
         setFetchError(error.message || "Unable to load candidate list.");
       } finally {
         setLoadingCandidates(false);
       }
     };
 
-    fetchParticipants();
-  }, [finalRoundId, batchData]);
+    // Reset về trang 1 khi filter thay đổi
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    fetchParticipants(1);
+  }, [finalRoundId, batchData, statusFilter]);
 
   // Filter candidates
   const filteredCandidates = useMemo(() => {
@@ -263,6 +320,81 @@ const FinalReview = () => {
       return formatDateFromAPI(fallbackValue);
     }
     return "—";
+  };
+
+  const handlePageChange = async (page) => {
+    // Kiểm tra page hợp lệ
+    if (page === pagination.currentPage) return;
+    if (pagination.totalPages && page > pagination.totalPages) return;
+    if (page > pagination.currentPage && !pagination.hasNextPage) return;
+    if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
+    if (page < 1) return;
+
+    if (!finalRoundId) return;
+
+    setLoadingCandidates(true);
+    setFetchError(null);
+    try {
+      // Chuẩn bị params cho API call
+      const apiParams = {
+        roundName: "Final",
+        page: page,
+        pageSize: pagination.pageSize,
+      };
+
+      // Thêm status filter nếu không phải "all"
+      if (statusFilter !== "all") {
+        apiParams.status = parseInt(statusFilter, 10);
+      }
+
+      const result = await getRoundParticipants(finalRoundId, apiParams);
+      if (result.success && Array.isArray(result.data)) {
+        const mappedCandidates = result.data.map((participant) => ({
+          id: participant.userId || participant.activityId,
+          activityId: participant.activityId || 0,
+          userId: participant.userId || 0,
+          name: participant.fullName || "",
+          email: participant.email || "",
+          phone: participant.phoneNumber || "",
+          photo: participant.imgURL || "",
+          status: participant.status?.toLowerCase() || "pending",
+          roundId: participant.roundId || finalRoundId,
+          roundName: participant.roundName || "Final",
+          appliedDate:
+            participant.appliedDate || new Date().toISOString().split("T")[0],
+          education: participant.education || "",
+          experience: participant.experience || "",
+          batchName: batchData?.name || participant.roundName || "Final",
+          campaignId: batchData?.campaignId || participant.campaignId || 0,
+          raw: participant,
+        }));
+        setCandidates(mappedCandidates);
+
+        // Cập nhật pagination info từ API response
+        if (result.pagination) {
+          setPagination((prev) => ({
+            ...result.pagination,
+            pageSize: result.pagination.pageSize || prev.pageSize,
+          }));
+        } else {
+          // Fallback khi API không trả về pagination
+          setPagination((prev) => ({
+            ...prev,
+            currentPage: page,
+            totalPages: 0,
+            totalRecords: mappedCandidates.length,
+            hasNextPage: false,
+            hasPreviousPage: page > 1,
+          }));
+        }
+      } else {
+        setFetchError(result.error || "Unable to load candidate list.");
+      }
+    } catch (error) {
+      setFetchError(error.message || "Unable to load candidate list.");
+    } finally {
+      setLoadingCandidates(false);
+    }
   };
 
   return (
@@ -540,6 +672,54 @@ const FinalReview = () => {
                   <p className="text-slate-500">
                     No candidates have final results yet
                   </p>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {!loadingCandidates && filteredCandidates.length > 0 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
+                  <div className="text-sm text-slate-600">
+                    Trang <span className="font-semibold">{pagination.currentPage}</span>
+                    {pagination.totalPages ? (
+                      <>
+                        {" "}
+                        / <span className="font-semibold">{pagination.totalPages}</span>
+                      </>
+                    ) : null}
+                    {typeof pagination.totalRecords === "number" && (
+                      <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={!pagination.hasPreviousPage}
+                      className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                        ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                        }`}
+                    >
+                      Previous
+                    </button>
+
+                    <span className="text-sm text-slate-600">
+                      {pagination.currentPage}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={!pagination.hasNextPage}
+                      className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                        ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
             </>
