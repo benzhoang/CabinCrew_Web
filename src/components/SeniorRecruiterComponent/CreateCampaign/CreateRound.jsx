@@ -509,7 +509,7 @@ const CreateRound = forwardRef(
 
         if (!round.targetQuantity || parseInt(round.targetQuantity, 10) <= 0) {
           newErrors[`rounds.${index}.targetQuantity`] =
-            "Target quantity must be greater than 0 for each round";
+            "Target quantity is required for each round";
         }
 
         if (!round.description || !round.description.trim()) {
@@ -842,8 +842,7 @@ const CreateRound = forwardRef(
                             e.target.value
                           )
                         }
-                        min="0"
-                        step="1"
+                        min="1"
                         className={`w-full px-2 py-1 text-xs border rounded ${
                           errors[`rounds.${index}.targetQuantity`]
                             ? "border-red-300"
