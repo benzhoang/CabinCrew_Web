@@ -124,6 +124,7 @@ const mapCampaignData = (apiData = {}, fallbackId) => {
           startDate: round.startDate || "",
           endDate: round.endDate || "",
           hasApplied: round.hasApplied || false,
+          hasOngoingCampaign: round.hasOngoingCampaign || false, // Thêm trường hasOngoingCampaign từ API
           screeningStartDate: round.screeningStartDate || "",
           screeningEndDate: round.screeningEndDate || "",
         }))
@@ -727,7 +728,8 @@ const PromotionApplyPage = () => {
                           </div>
                           <div className="flex items-center justify-end px-4 pt-0 pb-4">
                             {b.status === "ongoing" &&
-                              !isScreeningExpired(b.screeningEndDate) && (
+                              !isScreeningExpired(b.screeningEndDate) &&
+                              b.hasOngoingCampaign !== true && (
                                 <button
                                   onClick={() =>
                                     !b.hasApplied &&

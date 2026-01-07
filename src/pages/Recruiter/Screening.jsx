@@ -808,7 +808,7 @@ const Screening = () => {
                         {!loadingParticipants && filteredApplicants.length > 0 && (
                             <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
                                 <div className="text-sm text-slate-600">
-                                    Trang <span className="font-semibold">{pagination.currentPage}</span>
+                                    Page <span className="font-semibold">{pagination.currentPage}</span>
                                     {pagination.totalPages ? (
                                         <>
                                             {' '}
@@ -816,7 +816,7 @@ const Screening = () => {
                                         </>
                                     ) : null}
                                     {typeof pagination.totalRecords === 'number' && (
-                                        <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+                                        <span className="ml-2">({pagination.totalRecords} records)</span>
                                     )}
                                 </div>
 

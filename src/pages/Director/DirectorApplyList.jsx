@@ -770,7 +770,7 @@ const DirectorApplyList = () => {
                         {!loadingParticipants && filteredApplicants.length > 0 && (
                             <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200">
                                 <div className="text-sm text-slate-600">
-                                    Trang <span className="font-semibold">{pagination.currentPage}</span>
+                                    Page <span className="font-semibold">{pagination.currentPage}</span>
                                     {pagination.totalPages ? (
                                         <>
                                             {' '}
@@ -778,7 +778,7 @@ const DirectorApplyList = () => {
                                         </>
                                     ) : null}
                                     {typeof pagination.totalRecords === 'number' && (
-                                        <span className="ml-2">({pagination.totalRecords} bản ghi)</span>
+                                        <span className="ml-2">({pagination.totalRecords} records)</span>
                                     )}
                                 </div>
 
@@ -788,8 +788,8 @@ const DirectorApplyList = () => {
                                         onClick={() => handlePageChange(pagination.currentPage - 1)}
                                         disabled={!pagination.hasPreviousPage}
                                         className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
-                                                ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                                : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                             }`}
                                     >
                                         Previous
@@ -804,8 +804,8 @@ const DirectorApplyList = () => {
                                         onClick={() => handlePageChange(pagination.currentPage + 1)}
                                         disabled={!pagination.hasNextPage}
                                         className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
-                                                ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-                                                : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                            ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                                             }`}
                                     >
                                         Next
