@@ -347,7 +347,8 @@ const Apply = () => {
                             endDate: round.endDate || '',
                             screeningStartDate: round.screeningStartDate || '',
                             screeningEndDate: round.screeningEndDate || '',
-                            hasApplied: round.hasApplied || false // Thêm trường hasApplied từ API
+                            hasApplied: round.hasApplied || false, // Thêm trường hasApplied từ API
+                            hasOngoingCampaign: round.hasOngoingCampaign || false // Thêm trường hasOngoingCampaign từ API
                         }
                     }) : [],
                     // Giữ lại các trường khác từ API để đảm bảo không mất dữ liệu
@@ -847,7 +848,7 @@ const Apply = () => {
                                                         )} */}
                                                     </div>
                                                     <div className="px-4 pb-4 pt-0 flex items-center justify-end">
-                                                        {b.status === 'ongoing' && shouldShowApplyButton(b) && (
+                                                        {b.status === 'ongoing' && shouldShowApplyButton(b) && b.hasOngoingCampaign !== true && (
                                                             <button
                                                                 onClick={() => {
                                                                     // Kiểm tra đăng nhập trước khi cho ứng tuyển
