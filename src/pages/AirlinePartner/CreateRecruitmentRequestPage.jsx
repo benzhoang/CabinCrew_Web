@@ -173,7 +173,7 @@ const CreateRecruitmentRequestPage = () => {
       newErrors.campaignName = "Campaign name is required";
     }
     if (!formData.targetQuantity || parseInt(formData.targetQuantity) <= 0) {
-      newErrors.targetQuantity = "Target quantity must be greater than 0";
+      newErrors.targetQuantity = "Target quantity is required";
     }
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
