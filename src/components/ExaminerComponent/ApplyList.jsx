@@ -833,7 +833,7 @@ const ApplyList = ({
               <div className="relative w-full md:w-64">
                 <input
                   type="text"
-                  placeholder="Search by name, email, phone..."
+                  placeholder="Search by name, email..."
                   className="w-full py-2 pr-3 text-sm border rounded-md border-slate-300 pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={applicantSearchTerm}
                   onChange={(e) => setApplicantSearchTerm(e.target.value)}
