@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getCampaignList } from "../../service/api2";
 import {
-  formatDate,
   convertDateFormat,
   formatDateFromAPI,
 } from "../../config/formatDate.js";
@@ -282,7 +281,7 @@ const CampaignCard = ({ campaign }) => {
             <div>
               <span className="text-sm text-slate-600">Start Date:</span>
               <p className="font-medium text-slate-800">
-                {formatDate(campaign.startDate) || "No start date"}
+                {formatDateFromAPI(campaign.startDate) || "No start date"}
               </p>
             </div>
             <div>

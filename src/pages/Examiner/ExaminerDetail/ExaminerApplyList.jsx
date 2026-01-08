@@ -219,8 +219,8 @@ const ExaminerApplyList = () => {
         } else {
           if (!isCancelled) {
             console.error(
-              "Lỗi khi lấy danh sách ứng viên:",
-              result.error || "Dữ liệu không hợp lệ"
+              "Error when fetching applicant list:",
+              result.error || "Invalid data"
             );
             setParticipants([]);
             setPagination({
@@ -235,7 +235,7 @@ const ExaminerApplyList = () => {
         }
       } catch (error) {
         if (!isCancelled) {
-          console.error("Lỗi khi gọi API getRoundParticipants:", error);
+          console.error("Error when calling API getRoundParticipants:", error);
           setParticipants([]);
           setPagination({
             currentPage: 1,
@@ -357,12 +357,12 @@ const ExaminerApplyList = () => {
         }
       } else {
         console.error(
-          "Lỗi khi lấy danh sách ứng viên:",
-          result.error || "Dữ liệu không hợp lệ"
+          "Error when fetching applicant list:",
+          result.error || "Invalid data"
         );
       }
     } catch (error) {
-      console.error("Lỗi khi gọi API getRoundParticipants:", error);
+      console.error("Error when calling API getRoundParticipants:", error);
     } finally {
       setLoadingParticipants(false);
     }
@@ -439,8 +439,9 @@ const ExaminerApplyList = () => {
                 </span>
                 <p className="font-medium text-slate-800">
                   {campaignRoundData
-                    ? `${campaignRoundData.actualQuantiy || 0}/${campaignRoundData.targetQuantity || 0
-                    } applicants`
+                    ? `${campaignRoundData.actualQuantiy || 0}/${
+                        campaignRoundData.targetQuantity || 0
+                      } applicants`
                     : "—"}
                 </p>
               </div>
