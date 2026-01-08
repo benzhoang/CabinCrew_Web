@@ -342,6 +342,17 @@ const SidebarAdmin = () => {
                   <span className="leading-5">Airline Partner</span>
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/admin/config/general"
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/general"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
+                >
+                  <span className="leading-5">General</span>
+                </Link>
+              </li>
             </ul>
           </li>
           <li>
