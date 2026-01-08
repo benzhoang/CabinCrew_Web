@@ -816,8 +816,8 @@ export const getTestTypes = async () => {
         responseData?.data && Array.isArray(responseData.data)
           ? responseData.data
           : Array.isArray(responseData)
-          ? responseData
-          : null;
+            ? responseData
+            : null;
 
       if (list) {
         return {
@@ -839,6 +839,123 @@ export const getTestTypes = async () => {
         error.response?.data?.message ||
         error.message ||
         "Failed to get test types",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy danh sách configurations - GET /api/v1/configurations
+export const getConfigurations = async () => {
+  try {
+    const response = await api2.get("/configurations");
+    const responseData = response.data;
+
+    // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx có data
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      const list =
+        responseData?.data && Array.isArray(responseData.data)
+          ? responseData.data
+          : Array.isArray(responseData)
+            ? responseData
+            : null;
+
+      if (list) {
+        return {
+          success: true,
+          data: list,
+          message: responseData?.message || "Get configurations successfully",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Failed to get configurations",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get configurations",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy configuration theo ID - GET /api/v1/configurations/{id}
+export const getConfigurationById = async (id) => {
+  try {
+    const response = await api2.get(`/configurations/${id}`);
+    const responseData = response.data;
+
+    // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx có data
+    if (response.status >= 200 && response.status < 300 && responseData) {
+      const data =
+        responseData?.data && typeof responseData.data === "object"
+          ? responseData.data
+          : responseData;
+
+      if (data) {
+        return {
+          success: true,
+          data: data,
+          message: responseData?.message || "Get configuration successfully",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Failed to get configuration",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to get configuration",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật configuration - POST /api/v1/configurations
+export const updateConfiguration = async (configData) => {
+  try {
+    // Chuẩn bị request body theo format API
+    const requestBody = {
+      configurationId: configData.roundConfigurationId || configData.id || 0,
+      campaignType: configData.campaignType || 0,
+      configurationType: configData.configurationType || 1,
+      benchmark: configData.benchmark || 0,
+    };
+
+    const response = await api2.post("/configurations", requestBody);
+    const responseData = response.data;
+
+    // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Update configuration successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Failed to update configuration",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update configuration",
       status: error.response?.status,
     };
   }

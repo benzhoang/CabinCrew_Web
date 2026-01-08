@@ -103,6 +103,7 @@ import RoundTypePage from "./pages/Admin/RoundTypePage";
 import CityWardPage from "./pages/Admin/CityWardPage";
 import AirlinePartnerPage from "./pages/Admin/AirlinePartnerPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
+import GeneralPage from "./pages/Admin/GeneralPage";
 import ContactPage from "./pages/CabinCrew/ContactPage";
 import ExaminerApplication from "./pages/Examiner/ExaminerApplication";
 import AirlineCandidateDetailPage from "./pages/AirlinePartner/AirlineCandidateDetailPage";
@@ -546,6 +547,14 @@ function App() {
           element={
             <AdminLayout>
               <AirlinePartnerPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/general"
+          element={
+            <AdminLayout>
+              <GeneralPage />
             </AdminLayout>
           }
         />
