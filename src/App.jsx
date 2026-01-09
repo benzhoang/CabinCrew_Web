@@ -104,6 +104,7 @@ import CityWardPage from "./pages/Admin/CityWardPage";
 import AirlinePartnerPage from "./pages/Admin/AirlinePartnerPage";
 import RequirementPage from "./pages/Admin/RequirementPage";
 import GeneralPage from "./pages/Admin/GeneralPage";
+import LocationPage from "./pages/Admin/LocationPage";
 import ContactPage from "./pages/CabinCrew/ContactPage";
 import ExaminerApplication from "./pages/Examiner/ExaminerApplication";
 import AirlineCandidateDetailPage from "./pages/AirlinePartner/AirlineCandidateDetailPage";
@@ -555,6 +556,14 @@ function App() {
           element={
             <AdminLayout>
               <GeneralPage />
+            </AdminLayout>
+          }
+        />
+        <Route
+          path="/admin/config/location"
+          element={
+            <AdminLayout>
+              <LocationPage />
             </AdminLayout>
           }
         />

@@ -5528,4 +5528,186 @@ export const screeningApprove = async (activityId, status) => {
   }
 };
 
+// API lấy danh sách locations - GET /api/v1/locations
+export const getLocations = async () => {
+  try {
+    const response = await api.get("/locations");
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: Array.isArray(responseData.data) ? responseData.data : [],
+        message: responseData.message || "Get locations successfully",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp array
+    if (Array.isArray(responseData)) {
+      return {
+        success: true,
+        data: responseData,
+        message: "Get locations successfully",
+      };
+    }
+
+    // Trường hợp data là array trực tiếp
+    if (Array.isArray(responseData?.data)) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Get locations successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot get locations",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot get locations",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API lấy location theo ID - GET /api/v1/locations/{id}
+export const getLocationById = async (locationId) => {
+  try {
+    const parsedId =
+      typeof locationId === "string"
+        ? parseInt(locationId, 10)
+        : Number(locationId);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Location ID is required",
+      };
+    }
+
+    const response = await api.get(`/locations/${parsedId}`);
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0 && responseData?.data) {
+      return {
+        success: true,
+        data: responseData.data,
+        message: responseData.message || "Get location successfully",
+      };
+    }
+
+    // Trường hợp API trả về trực tiếp object
+    if (
+      responseData &&
+      typeof responseData === "object" &&
+      !Array.isArray(responseData)
+    ) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Get location successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot get location",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot get location",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API cập nhật location - PUT /api/v1/locations/{id}
+export const updateLocation = async (locationId, payload) => {
+  try {
+    const parsedId =
+      typeof locationId === "string"
+        ? parseInt(locationId, 10)
+        : Number(locationId);
+
+    if (!parsedId || Number.isNaN(parsedId) || parsedId <= 0) {
+      return {
+        success: false,
+        error: "Location ID is required",
+      };
+    }
+
+    const trimmedAddress = payload?.address?.trim();
+    const parsedWardId =
+      typeof payload?.wardId === "string"
+        ? parseInt(payload.wardId, 10)
+        : Number(payload?.wardId);
+
+    if (!trimmedAddress) {
+      return {
+        success: false,
+        error: "Address is required",
+      };
+    }
+
+    if (!parsedWardId || Number.isNaN(parsedWardId) || parsedWardId <= 0) {
+      return {
+        success: false,
+        error: "Ward ID is required",
+      };
+    }
+
+    const body = {
+      address: trimmedAddress,
+      wardId: parsedWardId,
+    };
+
+    const response = await api.put(`/locations/${parsedId}`, body);
+    const responseData = response.data;
+
+    // Kiểm tra code === 0 (success) theo format API
+    if (responseData?.code === 0) {
+      return {
+        success: true,
+        data: responseData.data || responseData,
+        message: responseData.message || "Update location successfully",
+      };
+    }
+
+    // Trường hợp HTTP 2xx nhưng không có code === 0
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        success: true,
+        data: responseData?.data || responseData,
+        message: responseData?.message || "Update location successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseData?.message || "Cannot update location",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Cannot update location",
+      status: error.response?.status,
+    };
+  }
+};
+
 export default api;
