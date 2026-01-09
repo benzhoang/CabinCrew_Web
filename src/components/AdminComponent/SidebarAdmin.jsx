@@ -267,7 +267,7 @@ const SidebarAdmin = () => {
               type="button"
               onClick={() => {
                 setIsConfigOpen(true);
-                navigate("/admin/config/round-type");
+                navigate("/admin/config/general");
               }}
               className={`group w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all text-left cursor-pointer ${currentPath.startsWith("/admin/config/")
                 ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
@@ -298,6 +298,17 @@ const SidebarAdmin = () => {
               className={`${isConfigOpen ? "block" : "hidden"
                 } mt-1 ml-7 space-y-1`}
             >
+              <li>
+                <Link
+                  to="/admin/config/general"
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/general"
+                    ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
+                    : "text-slate-700 hover:bg-slate-100 border-transparent"
+                    }`}
+                >
+                  <span className="leading-5">General</span>
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/admin/config/round-type"
@@ -344,13 +355,13 @@ const SidebarAdmin = () => {
               </li>
               <li>
                 <Link
-                  to="/admin/config/general"
-                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/general"
+                  to="/admin/config/location"
+                  className={`group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium mb-1 border-l-2 transition-all no-underline ${currentPath === "/admin/config/location"
                     ? "bg-indigo-600 text-white shadow-sm border-indigo-600"
                     : "text-slate-700 hover:bg-slate-100 border-transparent"
                     }`}
                 >
-                  <span className="leading-5">General</span>
+                  <span className="leading-5">Location</span>
                 </Link>
               </li>
             </ul>

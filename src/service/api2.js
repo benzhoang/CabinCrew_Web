@@ -845,19 +845,31 @@ export const getTestTypes = async () => {
 };
 
 // API lấy danh sách configurations - GET /api/v1/configurations
-export const getConfigurations = async () => {
+export const getConfigurations = async (campaignType = null) => {
   try {
-    const response = await api2.get("/configurations");
+    const params = {};
+    if (campaignType !== null && campaignType !== undefined) {
+      params.campaignType = campaignType;
+    }
+    const response = await api2.get("/configurations", { params });
     const responseData = response.data;
 
     // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx có data
     if (response.status >= 200 && response.status < 300 && responseData) {
-      const list =
-        responseData?.data && Array.isArray(responseData.data)
-          ? responseData.data
-          : Array.isArray(responseData)
-            ? responseData
-            : null;
+      let list = null;
+      
+      // Kiểm tra responseData.data.items (trường hợp data là object có items)
+      if (responseData?.data?.items && Array.isArray(responseData.data.items)) {
+        list = responseData.data.items;
+      }
+      // Kiểm tra responseData.data là array trực tiếp
+      else if (responseData?.data && Array.isArray(responseData.data)) {
+        list = responseData.data;
+      }
+      // Kiểm tra responseData là array trực tiếp
+      else if (Array.isArray(responseData)) {
+        list = responseData;
+      }
 
       if (list) {
         return {
