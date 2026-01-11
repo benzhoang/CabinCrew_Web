@@ -845,11 +845,20 @@ export const getTestTypes = async () => {
 };
 
 // API lấy danh sách configurations - GET /api/v1/configurations
-export const getConfigurations = async (campaignType = null) => {
+export const getConfigurations = async (campaignType = null, roundTypeId = null, page = 1, pageSize = 5) => {
   try {
     const params = {};
     if (campaignType !== null && campaignType !== undefined) {
       params.campaignType = campaignType;
+    }
+    if (roundTypeId !== null && roundTypeId !== undefined && roundTypeId !== "") {
+      params.roundTypeId = roundTypeId;
+    }
+    if (page !== null && page !== undefined) {
+      params.page = page;
+    }
+    if (pageSize !== null && pageSize !== undefined) {
+      params.pageSize = pageSize;
     }
     const response = await api2.get("/configurations", { params });
     const responseData = response.data;
@@ -857,10 +866,20 @@ export const getConfigurations = async (campaignType = null) => {
     // Chuẩn success theo pattern code === 0 hoặc HTTP 2xx có data
     if (response.status >= 200 && response.status < 300 && responseData) {
       let list = null;
-      
-      // Kiểm tra responseData.data.items (trường hợp data là object có items)
+      let pagination = null;
+
+      // Kiểm tra responseData.data.items (trường hợp data là object có items với pagination)
       if (responseData?.data?.items && Array.isArray(responseData.data.items)) {
         list = responseData.data.items;
+        // Lấy pagination info từ responseData.data
+        pagination = {
+          currentPage: responseData.data.currentPage || page,
+          pageSize: responseData.data.pageSize || pageSize,
+          totalPages: responseData.data.totalPages || 1,
+          totalRecords: responseData.data.totalRecords || list.length,
+          hasNextPage: responseData.data.hasNextPage || false,
+          hasPreviousPage: responseData.data.hasPreviousPage || false,
+        };
       }
       // Kiểm tra responseData.data là array trực tiếp
       else if (responseData?.data && Array.isArray(responseData.data)) {
@@ -875,6 +894,7 @@ export const getConfigurations = async (campaignType = null) => {
         return {
           success: true,
           data: list,
+          pagination: pagination,
           message: responseData?.message || "Get configurations successfully",
         };
       }
@@ -929,6 +949,61 @@ export const getConfigurationById = async (id) => {
         error.response?.data?.message ||
         error.message ||
         "Failed to get configuration",
+      status: error.response?.status,
+    };
+  }
+};
+
+// API tạo configuration - POST /api/v1/configurations
+export const createConfiguration = async (roundTypeId, benchmark) => {
+  try {
+    const requestBody = {
+      roundTypeId: roundTypeId,
+      benchmark: benchmark,
+    };
+
+    const response = await api2.post("/configurations", requestBody);
+
+    // Log raw response để debug
+    console.log("Raw API Response:", response);
+    console.log("Response Status:", response.status);
+    console.log("Response Data:", response.data);
+
+    // Kiểm tra HTTP status code (200, 201 là success)
+    const isHttpSuccess = response.status >= 200 && response.status < 300;
+
+    // Lấy message từ response
+    const responseMessage = response.data?.message || "";
+    const isSuccessMessage =
+      responseMessage.toLowerCase().includes("success") ||
+      responseMessage.toLowerCase().includes("created");
+
+    // Kiểm tra code === 0 (success) theo format API
+    // Hoặc HTTP status success, hoặc message chứa "success"/"created"
+    const isSuccess =
+      response.data?.code === 0 ||
+      (isHttpSuccess && response.data?.code === undefined) ||
+      (isHttpSuccess && isSuccessMessage);
+
+    if (isSuccess) {
+      return {
+        success: true,
+        data: response.data?.data || null,
+        message: responseMessage || "Create configuration successfully",
+      };
+    }
+
+    return {
+      success: false,
+      error: responseMessage || "Failed to create configuration",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create configuration",
       status: error.response?.status,
     };
   }

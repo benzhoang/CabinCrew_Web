@@ -13,6 +13,14 @@ const GeneralPage = () => {
     const [roundTypes, setRoundTypes] = useState([]);
     const [selectedRoundType, setSelectedRoundType] = useState(""); // Empty = All
     const [isLoadingRoundTypes, setIsLoadingRoundTypes] = useState(false);
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        pageSize: 5,
+        totalPages: 0,
+        totalRecords: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+    });
 
     // Fetch round types khi selectedType thay đổi
     useEffect(() => {
@@ -27,10 +35,15 @@ const GeneralPage = () => {
                         (rt) => !excludedNames.includes(rt.roundTypeName)
                     );
                     setRoundTypes(filtered);
-                    // Reset selectedRoundType khi thay đổi selectedType
-                    setSelectedRoundType("");
+                    // Set round type đầu tiên làm mặc định nếu có
+                    if (filtered.length > 0) {
+                        setSelectedRoundType(filtered[0].roundTypeId);
+                    } else {
+                        setSelectedRoundType("");
+                    }
                 } else {
                     setRoundTypes([]);
+                    setSelectedRoundType("");
                 }
             } catch (err) {
                 console.error("Error fetching round types:", err);
@@ -43,11 +56,25 @@ const GeneralPage = () => {
     }, [selectedType]);
 
     const fetchConfigurations = useMemo(
-        () => async (campaignType, roundTypeId = null) => {
+        () => async (campaignType, roundTypeId, page = 1) => {
             setIsLoading(true);
             setError("");
             try {
-                const res = await getConfigurations(campaignType);
+                // Luôn truyền cả campaignType và roundTypeId vào API
+                if (!roundTypeId || roundTypeId === "" || roundTypeId === null || roundTypeId === undefined) {
+                    setIsLoading(false);
+                    setItems([]);
+                    setPagination({
+                        currentPage: 1,
+                        pageSize: 5,
+                        totalPages: 0,
+                        totalRecords: 0,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                    });
+                    return;
+                }
+                const res = await getConfigurations(campaignType, roundTypeId, page, pagination.pageSize);
                 if (res.success && Array.isArray(res.data)) {
                     let mapped = res.data
                         .map((item, index) => {
@@ -65,6 +92,10 @@ const GeneralPage = () => {
                                 item?.benchmark ?? 0;
                             const effectiveDate =
                                 item?.effectiveDate || "";
+                            const expiredDate =
+                                item?.expiredDate || "";
+                            const status =
+                                item?.status || "";
                             const roundTypeIdFromItem =
                                 item?.roundTypeId || item?.configurationTypeId || null;
                             return {
@@ -73,46 +104,85 @@ const GeneralPage = () => {
                                 campaignType: itemCampaignType,
                                 benchmark,
                                 effectiveDate,
+                                expiredDate,
+                                status,
                                 roundTypeId: roundTypeIdFromItem,
                             };
                         })
                         .filter(Boolean);
 
-                    // Filter theo selectedRoundType nếu có
-                    if (roundTypeId && roundTypeId !== "") {
-                        const parsedRoundTypeId = typeof roundTypeId === "string"
-                            ? parseInt(roundTypeId, 10)
-                            : Number(roundTypeId);
-                        // Tìm round type được chọn
-                        const selectedRoundTypeObj = roundTypes.find(rt => rt.roundTypeId === parsedRoundTypeId);
-
-                        if (selectedRoundTypeObj) {
-                            // Filter theo roundTypeId hoặc theo tên configurationType
-                            mapped = mapped.filter(
-                                (item) => item.roundTypeId === parsedRoundTypeId ||
-                                    item.configurationType === selectedRoundTypeObj.roundTypeName
-                            );
-                        }
-                    }
-
                     setItems(mapped);
+
+                    // Cập nhật pagination info từ API response
+                    if (res.pagination) {
+                        setPagination((prev) => ({
+                            ...res.pagination,
+                            pageSize: res.pagination.pageSize || prev.pageSize,
+                        }));
+                    } else {
+                        // Fallback khi API không trả về pagination
+                        setPagination((prev) => ({
+                            ...prev,
+                            currentPage: page,
+                            totalPages: Math.ceil(mapped.length / prev.pageSize) || 1,
+                            totalRecords: mapped.length,
+                            hasNextPage: false,
+                            hasPreviousPage: page > 1,
+                        }));
+                    }
                 } else {
                     setError(res.error || "Cannot load configurations");
                     setItems([]);
+                    setPagination({
+                        currentPage: 1,
+                        pageSize: 5,
+                        totalPages: 0,
+                        totalRecords: 0,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                    });
                 }
             } catch (err) {
                 setError(err.message || "Cannot load configurations");
                 setItems([]);
+                setPagination({
+                    currentPage: 1,
+                    pageSize: 5,
+                    totalPages: 0,
+                    totalRecords: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                });
             } finally {
                 setIsLoading(false);
             }
         },
-        [roundTypes]
+        [pagination.pageSize]
     );
 
     useEffect(() => {
-        fetchConfigurations(selectedType, selectedRoundType);
-    }, [fetchConfigurations, selectedType, selectedRoundType]);
+        // Reset về trang 1 khi selectedType hoặc selectedRoundType thay đổi
+        setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    }, [selectedType, selectedRoundType]);
+
+    useEffect(() => {
+        // Chỉ gọi API khi có selectedRoundType (không rỗng)
+        if (selectedRoundType !== "" && selectedRoundType !== null && selectedRoundType !== undefined) {
+            fetchConfigurations(selectedType, selectedRoundType, pagination.currentPage);
+        }
+    }, [fetchConfigurations, selectedType, selectedRoundType, pagination.currentPage]);
+
+    const handlePageChange = (page) => {
+        // Kiểm tra page hợp lệ
+        if (page === pagination.currentPage) return;
+        if (pagination.totalPages && page > pagination.totalPages) return;
+        if (page > pagination.currentPage && !pagination.hasNextPage) return;
+        if (page < pagination.currentPage && !pagination.hasPreviousPage) return;
+        if (page < 1) return;
+
+        // Update pagination state, useEffect sẽ gọi API
+        setPagination((prev) => ({ ...prev, currentPage: page }));
+    };
 
     return (
         <div className="p-6 space-y-6">
@@ -146,25 +216,6 @@ const GeneralPage = () => {
                         Promotion
                     </button>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-slate-700">
-                        Filter by Round Type:
-                    </label>
-                    <select
-                        value={selectedRoundType}
-                        onChange={(e) => setSelectedRoundType(e.target.value)}
-                        disabled={isLoadingRoundTypes || roundTypes.length === 0}
-                        className="px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
-                    >
-                        <option value="">All Round Types</option>
-                        {roundTypes.map((rt) => (
-                            <option key={rt.roundTypeId} value={rt.roundTypeId}>
-                                {rt.roundTypeName}
-                            </option>
-                        ))}
-                    </select>
-                </div>
             </section>
 
             <section className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
@@ -173,7 +224,12 @@ const GeneralPage = () => {
                         <span>{error}</span>
                         <button
                             type="button"
-                            onClick={() => fetchConfigurations(selectedType, selectedRoundType)}
+                            onClick={() => {
+                                if (selectedRoundType !== "" && selectedRoundType !== null && selectedRoundType !== undefined) {
+                                    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                                    fetchConfigurations(selectedType, selectedRoundType, 1);
+                                }
+                            }}
                             className="text-xs font-medium underline"
                         >
                             Try again
@@ -185,16 +241,37 @@ const GeneralPage = () => {
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead className="bg-slate-50">
                             <tr>
-                                <th colSpan={4} className="px-4 py-2"></th>
-                                <th className="px-4 py-2 text-right">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCreateModalOpen(true)}
-                                        className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
-                                    >
-                                        <FaPlus className="w-3.5 h-3.5" />
-                                        Create Configuration
-                                    </button>
+                                <th colSpan={7} className="px-4 py-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap gap-3">
+                                            {roundTypes.map((rt) => {
+                                                const isSelected = selectedRoundType === rt.roundTypeId ||
+                                                    selectedRoundType === String(rt.roundTypeId) ||
+                                                    Number(selectedRoundType) === rt.roundTypeId;
+                                                return (
+                                                    <button
+                                                        key={rt.roundTypeId}
+                                                        onClick={() => setSelectedRoundType(rt.roundTypeId)}
+                                                        disabled={isLoadingRoundTypes}
+                                                        className={`px-4 py-2 rounded-lg font-medium transition-colors border-2 ${isSelected
+                                                            ? "bg-blue-600 text-white border-blue-600"
+                                                            : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
+                                                            } ${isLoadingRoundTypes ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    >
+                                                        {rt.roundTypeName}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsCreateModalOpen(true)}
+                                            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-white transition bg-blue-600 rounded-lg hover:bg-blue-700"
+                                        >
+                                            <FaPlus className="w-3.5 h-3.5" />
+                                            Create Configuration
+                                        </button>
+                                    </div>
                                 </th>
                             </tr>
                             <tr>
@@ -208,17 +285,23 @@ const GeneralPage = () => {
                                     Campaign Type
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
-                                    Benchmark
+                                    Benchmark (%)
+                                </th>
+                                <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
+                                    Status
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                                     Effective Date
+                                </th>
+                                <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
+                                    Expired Date
                                 </th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-6 text-center">
+                                    <td colSpan={7} className="px-4 py-6 text-center">
                                         <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
                                         <p className="mt-4 text-sm text-gray-600">
                                             Loading data...
@@ -228,7 +311,7 @@ const GeneralPage = () => {
                             ) : items.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={5}
+                                        colSpan={7}
                                         className="px-4 py-6 text-sm text-center text-slate-500"
                                     >
                                         No data for configurations.
@@ -238,7 +321,7 @@ const GeneralPage = () => {
                                 items.map((item, index) => (
                                     <tr key={item.id}>
                                         <td className="px-4 py-3 text-sm text-slate-700">
-                                            {index + 1}
+                                            {(pagination.currentPage - 1) * pagination.pageSize + index + 1}
                                         </td>
                                         <td className="px-4 py-3 text-sm font-medium text-slate-900">
                                             {item.configurationType}
@@ -249,10 +332,25 @@ const GeneralPage = () => {
                                                 : item.campaignType}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.benchmark}
+                                            {item.benchmark}%
+                                        </td>
+                                        <td className="px-4 py-3 text-sm">
+                                            <span
+                                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status?.toLowerCase() === "active"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : item.status?.toLowerCase() === "inactive"
+                                                        ? "bg-red-100 text-red-800"
+                                                        : "bg-slate-100 text-slate-800"
+                                                    }`}
+                                            >
+                                                {item.status}
+                                            </span>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-700">
                                             {item.effectiveDate}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-700">
+                                            {item.expiredDate}
                                         </td>
                                     </tr>
                                 ))
@@ -260,12 +358,66 @@ const GeneralPage = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {!isLoading && items.length > 0 && (
+                    <div className="flex items-center justify-between px-4 py-4 border-t border-slate-200">
+                        <div className="text-sm text-slate-600">
+                            Page <span className="font-semibold">{pagination.currentPage}</span>
+                            {pagination.totalPages ? (
+                                <>
+                                    {' '}
+                                    / <span className="font-semibold">{pagination.totalPages}</span>
+                                </>
+                            ) : null}
+                            {typeof pagination.totalRecords === 'number' && (
+                                <span className="ml-2">({pagination.totalRecords} records)</span>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                disabled={!pagination.hasPreviousPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasPreviousPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Previous
+                            </button>
+
+                            <span className="text-sm text-slate-600">
+                                {pagination.currentPage}
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                disabled={!pagination.hasNextPage}
+                                className={`px-3 py-1 rounded-md border text-sm font-medium transition-colors ${pagination.hasNextPage
+                                    ? 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                                    : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                    }`}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </section>
 
             <CreateGeneralModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={() => fetchConfigurations(selectedType)}
+                onSuccess={() => {
+                    if (selectedRoundType !== "" && selectedRoundType !== null && selectedRoundType !== undefined) {
+                        setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                        fetchConfigurations(selectedType, selectedRoundType, 1);
+                    }
+                }}
+                roundTypeId={selectedRoundType}
             />
         </div>
     );
