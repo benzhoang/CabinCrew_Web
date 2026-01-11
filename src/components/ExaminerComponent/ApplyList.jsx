@@ -965,6 +965,18 @@ const ApplyList = ({
                             >
                               <FaRegEye className="w-4 h-4" />
                             </button>
+                            {/* Icon chấm phỏng vấn - chỉ hiển thị nếu chưa được đánh giá */}
+                            {!applicant.hasInterviewEvaluated && (
+                              <button
+                                className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
+                                title="Evaluate interview"
+                                onClick={() =>
+                                  handleNavigateToEvaluation(applicant)
+                                }
+                              >
+                                <FaClipboardCheck className="w-4 h-4" />
+                              </button>
+                            )}
                             {/* Icon xem kết quả - hiển thị nếu Appearance hoặc Interview đã được đánh giá */}
                             {(applicant.hasAppearanceEvaluated ||
                               applicant.hasInterviewEvaluated) && (
@@ -992,7 +1004,7 @@ const ApplyList = ({
                               <FaRegEye className="w-4 h-4" />
                             </button>
                             {/* Icon chấm phỏng vấn - chỉ hiển thị nếu chưa được đánh giá */}
-                            {applicant.hasInterviewEvaluated && (
+                            {!applicant.hasInterviewEvaluated && (
                               <button
                                 className="p-1 text-purple-600 transition-colors rounded hover:text-purple-900 hover:bg-purple-50"
                                 title="Evaluate interview"
