@@ -1,33 +1,69 @@
 import React, { useState } from "react";
 import { FiX } from "react-icons/fi";
+import { createConfiguration } from "../../../service/api2";
 
-const CreateGeneralModal = ({ isOpen, onClose, onSuccess }) => {
-    const [benchmark, setBenchmark] = useState("");
+const CreateGeneralModal = ({ isOpen, onClose, onSuccess, roundTypeId }) => {
+    const [benchmark, setBenchmark] = useState("60");
     const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const benchmarkValue = parseInt(benchmark.trim(), 10);
 
-        if (isNaN(benchmarkValue) || benchmarkValue < 0) {
-            setError("Benchmark must be a valid number (>= 0)");
+        if (isNaN(benchmarkValue)) {
+            setError("Benchmark must be a valid number");
             return;
         }
 
-        // TODO: Implement API call to create configuration
-        // For now, just close modal
-        if (onSuccess) {
-            onSuccess();
+        if (benchmarkValue < 60 || benchmarkValue > 100) {
+            setError("Benchmark must be between 60 and 100");
+            return;
         }
-        onClose();
-        setBenchmark("");
+
+        if (!roundTypeId || roundTypeId === "") {
+            setError("Please select a Round Type first");
+            return;
+        }
+
+        setIsLoading(true);
         setError("");
+
+        try {
+            // Đảm bảo roundTypeId là number
+            const roundTypeIdNumber = typeof roundTypeId === "string"
+                ? parseInt(roundTypeId, 10)
+                : Number(roundTypeId);
+
+            if (isNaN(roundTypeIdNumber)) {
+                setError("Invalid Round Type ID");
+                setIsLoading(false);
+                return;
+            }
+
+            const res = await createConfiguration(roundTypeIdNumber, benchmarkValue);
+
+            if (res.success) {
+                if (onSuccess) {
+                    onSuccess();
+                }
+                onClose();
+                setBenchmark("60");
+                setError("");
+            } else {
+                setError(res.error || "Failed to create configuration");
+            }
+        } catch (err) {
+            setError(err.message || "Failed to create configuration");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleClose = () => {
-        setBenchmark("");
+        setBenchmark("60");
         setError("");
         onClose();
     };
@@ -51,22 +87,40 @@ const CreateGeneralModal = ({ isOpen, onClose, onSuccess }) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Benchmark <span className="text-red-500">*</span>
+                            Benchmark (%) <span className="text-red-500">*</span>
                         </label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={benchmark}
-                            onChange={(e) => {
-                                setBenchmark(e.target.value);
-                                if (error) setError("");
-                            }}
-                            placeholder="Enter benchmark value"
-                            className={`w-full rounded-lg border bg-white px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                error ? "border-red-500" : "border-slate-300"
-                            }`}
-                            required
-                        />
+                        <div className="relative flex items-center">
+                            <input
+                                type="number"
+                                min="60"
+                                max="100"
+                                value={benchmark}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setBenchmark(value);
+                                    
+                                    // Validate real-time
+                                    if (value === "") {
+                                        setError("");
+                                        return;
+                                    }
+                                    
+                                    const numValue = parseInt(value, 10);
+                                    if (isNaN(numValue)) {
+                                        setError("Benchmark must be a valid number");
+                                    } else if (numValue < 60 || numValue > 100) {
+                                        setError("Benchmark must be between 60 and 100");
+                                    } else {
+                                        setError("");
+                                    }
+                                }}
+                                placeholder="Enter benchmark value (60-100)"
+                                className={`w-full rounded-lg border bg-white px-3 py-2 pr-8 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? "border-red-500" : "border-slate-300"
+                                    }`}
+                                required
+                            />
+                            <span className="absolute right-3 text-slate-600 pointer-events-none">%</span>
+                        </div>
                         {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
                     </div>
 
@@ -80,9 +134,10 @@ const CreateGeneralModal = ({ isOpen, onClose, onSuccess }) => {
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                            disabled={isLoading}
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Create
+                            {isLoading ? "Creating..." : "Create"}
                         </button>
                     </div>
                 </form>

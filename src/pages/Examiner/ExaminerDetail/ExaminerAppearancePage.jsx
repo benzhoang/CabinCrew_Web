@@ -187,10 +187,15 @@ const ExaminerAppearancePage = () => {
         ? "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-50 text-red-700 border border-red-200"
         : "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200";
 
+    const benchmarkValue = result?.benchmark !== null && result?.benchmark !== undefined
+      ? `${result.benchmark}`
+      : "—";
+
     return [
       { label: "Candidate", value: result?.candidate || "—" },
       { label: "Examiner", value: result?.examiner || "—" },
       { label: "Round", value: result?.roundName || "—" },
+      { label: "Benchmark", value: benchmarkValue },
       {
         label: "Evaluation date",
         value: formatDateTime(result?.evaluatedDate),

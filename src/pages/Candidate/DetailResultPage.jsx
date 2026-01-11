@@ -123,10 +123,15 @@ const DetailResultPage = () => {
                     ? 'bg-red-100 text-red-700'
                     : 'bg-gray-100 text-gray-700'
 
+        const benchmarkValue = result?.benchmark !== null && result?.benchmark !== undefined
+            ? `${result.benchmark}`
+            : '—'
+
         return [
             { label: 'Candidate', value: result?.candidate || '—' },
             { label: 'Examiner', value: result?.examiner || '—' },
             { label: 'Round', value: result?.roundName || '—' },
+            { label: 'Benchmark', value: benchmarkValue },
             { label: 'Evaluation date', value: formatDateTime(result?.evaluatedDate) },
             { label: 'Total score', value: result?.finalScore !== undefined && result?.finalScore !== null ? result.finalScore : '—' },
             { label: 'Result', value: getPassLabel(result?.isPassed), valueClass: resultBadgeClass, isBadge: true },
