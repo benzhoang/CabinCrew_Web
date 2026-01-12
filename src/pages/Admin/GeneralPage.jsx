@@ -279,7 +279,7 @@ const GeneralPage = () => {
                                     No.
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
-                                    Configuration Type
+                                    Round Type
                                 </th>
                                 <th className="px-4 py-3 text-xs font-semibold text-left uppercase text-slate-600">
                                     Campaign Type
@@ -318,42 +318,58 @@ const GeneralPage = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                items.map((item, index) => (
-                                    <tr key={item.id}>
-                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                            {(pagination.currentPage - 1) * pagination.pageSize + index + 1}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                                            {item.configurationType}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.campaignType === "All" || item.campaignType === "0" || item.campaignType === 0
-                                                ? "Recruitment & Promotion"
-                                                : item.campaignType}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.benchmark}%
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">
-                                            <span
-                                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status?.toLowerCase() === "active"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : item.status?.toLowerCase() === "inactive"
-                                                        ? "bg-red-100 text-red-800"
-                                                        : "bg-slate-100 text-slate-800"
-                                                    }`}
-                                            >
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.effectiveDate}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.expiredDate}
-                                        </td>
-                                    </tr>
-                                ))
+                                items.map((item, index) => {
+                                    const campaignTypeLabel =
+                                        item.campaignType === "All" || item.campaignType === "0" || item.campaignType === 0
+                                            ? "Recruitment & Promotion"
+                                            : item.campaignType;
+
+                                    // Badge màu pastel giống thiết kế
+                                    // Pastel badge màu theo thiết kế (Promotion: tím, Recruitment: xanh)
+                                    const campaignTypeBadge =
+                                        campaignTypeLabel?.toLowerCase() === "promotion"
+                                            ? "bg-[#F2E8FF] text-[#6B21A8] border border-[#E9D5FF]"
+                                            : campaignTypeLabel?.toLowerCase() === "recruitment"
+                                                ? "bg-[#E0F2FE] text-[#1D4ED8] border border-[#BFDBFE]"
+                                                : "bg-slate-100 text-slate-700 border border-slate-200";
+
+                                    return (
+                                        <tr key={item.id}>
+                                            <td className="px-4 py-3 text-sm text-slate-700">
+                                                {(pagination.currentPage - 1) * pagination.pageSize + index + 1}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                                                {item.configurationType}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-700">
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${campaignTypeBadge}`}>
+                                                    {campaignTypeLabel}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-700">
+                                                {item.benchmark}%
+                                            </td>
+                                            <td className="px-4 py-3 text-sm">
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status?.toLowerCase() === "active"
+                                                        ? "bg-green-100 text-green-800"
+                                                        : item.status?.toLowerCase() === "inactive"
+                                                            ? "bg-red-100 text-red-800"
+                                                            : "bg-slate-100 text-slate-800"
+                                                        }`}
+                                                >
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-700">
+                                                {item.effectiveDate}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-700">
+                                                {item.expiredDate}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
