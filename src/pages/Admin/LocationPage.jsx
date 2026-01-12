@@ -117,9 +117,27 @@ const LocationPage = () => {
                                             {index + 1}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-700">
-                                            {item.campaignType === "All" || item.campaignType === "0" || item.campaignType === 0
-                                                ? "Recruitment & Promotion"
-                                                : item.campaignType || "N/A"}
+                                            {(() => {
+                                                const campaignTypeLabel =
+                                                    item.campaignType === "All" ||
+                                                    item.campaignType === "0" ||
+                                                    item.campaignType === 0
+                                                        ? "Recruitment & Promotion"
+                                                        : item.campaignType || "N/A";
+
+                                                const badgeClass =
+                                                    campaignTypeLabel?.toLowerCase() === "promotion"
+                                                        ? "bg-[#F2E8FF] text-[#6B21A8] border border-[#E9D5FF]"
+                                                        : campaignTypeLabel?.toLowerCase() === "recruitment"
+                                                            ? "bg-[#E0F2FE] text-[#1D4ED8] border border-[#BFDBFE]"
+                                                            : "bg-slate-100 text-slate-700 border border-slate-200";
+
+                                                return (
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}`}>
+                                                        {campaignTypeLabel}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-slate-700">
                                             {item.address || "N/A"}

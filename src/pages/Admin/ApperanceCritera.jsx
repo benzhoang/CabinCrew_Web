@@ -232,13 +232,8 @@ const ApperanceCritera = () => {
                       <div className="flex justify-between gap-3">
                         <div>
                           <div className="text-base font-semibold text-slate-900">
-                            {item.text || "No title"}
+                            {item.englishText || item.text || "No title"}
                           </div>
-                          {item.englishText && (
-                            <div className="text-sm italic text-slate-500">
-                              {item.englishText}
-                            </div>
-                          )}
                         </div>
                         <div className="flex gap-2">
                           <button
