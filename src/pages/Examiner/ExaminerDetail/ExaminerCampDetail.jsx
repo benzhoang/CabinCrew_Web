@@ -623,7 +623,7 @@ const ExaminerCampDetail = ({ campaign }) => {
           roundName: round.roundName || round.name || `Round ${index + 1}`,
           description: round.description || "No description available",
           targetQuantity: round.targetQuantity || round.target || 0,
-          actualQuantity: round.actualQuantity || 0,
+          actualQuantity: round.actualQuantiy || 0,
           status: round.status || "Draft",
           startDate: round.startDate || "No start date available ",
           endDate: round.endDate || "No end date available",
