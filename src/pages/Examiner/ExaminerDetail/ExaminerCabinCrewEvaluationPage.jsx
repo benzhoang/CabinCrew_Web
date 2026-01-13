@@ -6,6 +6,7 @@ import {
   submitInterviewResult,
   getInterviewResults,
 } from "../../../service/api2";
+import { formatDateFromAPI } from "../../../config/formatDate";
 import { toast } from "react-toastify";
 
 const ExaminerCabinCrewEvaluationPage = () => {
@@ -293,22 +294,24 @@ const ExaminerCabinCrewEvaluationPage = () => {
       </div>
 
       {/* Countdown Timer (fixed, follows scroll) */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed z-50 top-4 right-4">
         <div
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${isTimerExpired
-            ? "border-red-500"
-            : timeRemaining <= 300
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg bg-white border-2 ${
+            isTimerExpired
+              ? "border-red-500"
+              : timeRemaining <= 300
               ? "border-orange-500"
               : "border-slate-300"
-            } transition-all duration-300`}
+          } transition-all duration-300`}
         >
           <svg
-            className={`w-5 h-5 ${isTimerExpired
-              ? "text-red-500"
-              : timeRemaining <= 300
+            className={`w-5 h-5 ${
+              isTimerExpired
+                ? "text-red-500"
+                : timeRemaining <= 300
                 ? "text-orange-500"
                 : "text-slate-700"
-              }`}
+            }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -336,23 +339,23 @@ const ExaminerCabinCrewEvaluationPage = () => {
             Cabin Crew Information
           </h2>
           <div className="flex items-start gap-6">
-            <div className="w-24 h-32 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
+            <div className="flex-shrink-0 w-24 h-32 overflow-hidden rounded-md bg-slate-100">
               <img
                 src={
                   candidate.photo ||
                   "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo"
                 }
                 alt={candidate.name}
-                className="w-full h-full object-cover"
+                className="object-cover w-full h-full"
                 onError={(e) => {
                   e.target.src =
                     "https://via.placeholder.com/96x128/cccccc/666666?text=No+Photo";
                 }}
               />
             </div>
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <span className="text-sm text-slate-600 block mb-1">
+                <span className="block mb-1 text-sm text-slate-600">
                   Full Name:
                 </span>
                 <p className="font-medium text-slate-800">
@@ -360,23 +363,27 @@ const ExaminerCabinCrewEvaluationPage = () => {
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600 block mb-1">Email:</span>
+                <span className="block mb-1 text-sm text-slate-600">
+                  Email:
+                </span>
                 <p className="font-medium text-slate-800">
                   {candidate.email || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600 block mb-1">Phone:</span>
+                <span className="block mb-1 text-sm text-slate-600">
+                  Phone:
+                </span>
                 <p className="font-medium text-slate-800">
                   {candidate.phone || "—"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-slate-600 block mb-1">
+                <span className="block mb-1 text-sm text-slate-600">
                   Applied date:
                 </span>
                 <p className="font-medium text-slate-800">
-                  {candidate.appliedDate || "—"}
+                  {formatDateFromAPI(candidate.appliedDate || "") || "—"}
                 </p>
               </div>
             </div>
@@ -433,10 +440,10 @@ const ExaminerCabinCrewEvaluationPage = () => {
             const filteredItems =
               section.items && Array.isArray(section.items)
                 ? section.items.filter(
-                  (item) =>
-                    item.interviewCriteriaItemId >= 18 &&
-                    item.interviewCriteriaItemId <= 27
-                )
+                    (item) =>
+                      item.interviewCriteriaItemId >= 18 &&
+                      item.interviewCriteriaItemId <= 27
+                  )
                 : [];
 
             if (filteredItems.length === 0) {

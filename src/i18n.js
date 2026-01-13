@@ -35,14 +35,16 @@ const dictionaries = {
     campaign_type: "Loại",
     end_date: "Ngày kết thúc",
     recruitment_stages_title: "Giai đoạn tuyển dụng",
-    recruitment_stages_subtitle: "Theo dõi tiến trình ứng tuyển của bạn qua các giai đoạn",
+    recruitment_stages_subtitle:
+      "Theo dõi tiến trình ứng tuyển của bạn qua các giai đoạn",
     recruitment_progress_title: "Tiến trình ứng tuyển",
     recruitment_progress_subtitle: "Theo dõi tiến trình ứng tuyển của bạn",
     loading_data: "Đang tải dữ liệu...",
     no_ongoing_campaign_title: "Không có chiến dịch đang ứng tuyển",
     no_ongoing_campaign_desc: "Hiện chưa có chiến dịch nào bạn đang tham gia.",
     no_applications_title: "Chưa có đơn ứng tuyển",
-    no_applications_desc: "Bạn chưa có đơn ứng tuyển nào để theo dõi tiến trình",
+    no_applications_desc:
+      "Bạn chưa có đơn ứng tuyển nào để theo dõi tiến trình",
     find_jobs_now: "Tìm việc ngay",
     application_round: "Đợt tuyển",
     partner_label: "Đối tác",
@@ -460,13 +462,10 @@ const dictionaries = {
     application_form_required_document: "Tài liệu yêu cầu",
     application_form_remember_upload:
       "NHỚ TẢI LÊN CÁC TÀI LIỆU NÀY TRƯỚC KHI ỨNG TUYỂN",
-    application_form_application_form_file:
-      "Đơn ứng tuyển (file đính kèm)",
+    application_form_application_form_file: "Đơn ứng tuyển (file đính kèm)",
     application_form_profile_photo: "Ảnh chân dung 4x6",
-    application_form_education_degree:
-      "Bằng tốt nghiệp (THPT trở lên)",
-    application_form_english_certificate:
-      "Chứng chỉ tiếng Anh (TOEIC)",
+    application_form_education_degree: "Bằng tốt nghiệp (THPT trở lên)",
+    application_form_english_certificate: "Chứng chỉ tiếng Anh (TOEIC)",
     application_form_id_card: "Căn cước công dân",
     application_form_click_to_select: "Nhấn để chọn file hoặc kéo thả vào đây",
     application_form_click_to_select_image:
@@ -500,7 +499,8 @@ const dictionaries = {
     application_form_height_weight: "Chiều cao (cm) & cân nặng (kg) của bạn:",
     application_form_height: "Chiều cao (cm)",
     application_form_weight: "Cân nặng (kg)",
-    application_form_height_example: "Ví dụ: Nam: 170-185 cm - 53kg, Nữ: 160-175 cm - 48kg",
+    application_form_height_example:
+      "Ví dụ: Nam: 170-185 cm - 53kg, Nữ: 160-175 cm - 48kg",
     application_form_english_certificate_info:
       "Chứng chỉ tiếng Anh (TOEIC/IELTS/TOEFL) & Ngày hết hạn:",
     application_form_certificate_number: "Số chứng chỉ",
@@ -646,7 +646,8 @@ const dictionaries = {
     campaign_type: "Positon",
     end_date: "End Date",
     recruitment_stages_title: "Recruitment Stages",
-    recruitment_stages_subtitle: "Track your application progress across stages",
+    recruitment_stages_subtitle:
+      "Track your application progress across stages",
     recruitment_progress_title: "Application Progress",
     recruitment_progress_subtitle: "Track your application progress",
     loading_data: "Loading data...",
@@ -684,7 +685,8 @@ const dictionaries = {
     signin_token_invalid: "Unable to validate token. Please try again.",
     signin_role_unknown: "Unable to determine user role.",
     signin_invalid_credentials: "Invalid login information",
-    signin_error_generic: "An error occurred while signing in. Please try again.",
+    signin_error_generic:
+      "An error occurred while signing in. Please try again.",
     signin_success: "Signed in successfully!",
     or: "Or",
     login_with_google: "Sign in with Google",
@@ -1068,12 +1070,11 @@ const dictionaries = {
     application_form_remember_upload:
       "REMEMBER TO UPLOAD THESE DOCUMENT BEFORE YOU APPLY",
     application_form_application_form_file:
-      "Form Job Application (file đính kèm/attached file)",
+      "Form Job Application (attached file)",
     application_form_profile_photo: "Profile photo 4x6cm",
     application_form_education_degree:
       "Education degree (high school diploma or higher)",
-    application_form_english_certificate:
-      "English certificate (must have)",
+    application_form_english_certificate: "English certificate (must have)",
     application_form_id_card: "Citizen identification card",
     application_form_click_to_select:
       "Click to select file or drag and drop here",
@@ -1107,7 +1108,8 @@ const dictionaries = {
     application_form_height_weight: "Your height (in cm) & weight (in kg):",
     application_form_height: "Height (cm)",
     application_form_weight: "Weight (kg)",
-    application_form_height_example: "Example: Male: 170-185 cm, Female: 160-175 cm",
+    application_form_height_example:
+      "Example: Male: 170-185 cm, Female: 160-175 cm",
     application_form_english_certificate_info:
       "English Certificate (TOEIC/IELTS/TOEFL) & Expire Date:",
     application_form_certificate_number: "Number",
@@ -1238,11 +1240,11 @@ export function setLang(nextLang) {
   listeners.forEach((fn) => {
     try {
       fn(lang);
-    } catch (_) { }
+    } catch (_) {}
   });
   try {
     window.dispatchEvent(new Event("langchange"));
-  } catch (_) { }
+  } catch (_) {}
 }
 
 export function onLangChange(callback) {
