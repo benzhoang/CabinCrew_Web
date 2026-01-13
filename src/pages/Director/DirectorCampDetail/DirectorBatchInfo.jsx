@@ -320,16 +320,12 @@ const DirectorBatchInfo = ({ campaign, showBatchStatus = false }) => {
   const getStatus = (status) => {
     const map = {
       ongoing: { text: "Ongoing", color: "bg-green-100 text-green-700" },
-      completed: { text: "Completed", color: "bg-blue-100 text-blue-700" },
-      planned: {
-        text: "Planned",
-        color: "bg-slate-100 text-slate-700",
-      },
+      completed: { text: "Ended", color: "bg-red-100 text-red-700" },
       upcoming: { text: "Upcoming", color: "bg-yellow-100 text-yellow-800" },
       paused: { text: "Paused", color: "bg-orange-100 text-orange-700" },
       cancelled: { text: "Cancelled", color: "bg-red-100 text-red-700" },
     };
-    return map[status] || map.planned;
+    return map[status] || map.completed;
   };
 
   const percent = (current, target) => {
