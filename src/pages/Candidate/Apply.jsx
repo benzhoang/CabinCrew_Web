@@ -814,7 +814,7 @@ const Apply = () => {
                                                             b.status === 'ongoing' ? 'bg-green-100 text-green-700' :
                                                                 'bg-yellow-100 text-yellow-700'
                                                             }`}>
-                                                            {b.status === 'completed' ? 'Completed' :
+                                                            {b.status === 'completed' ? 'Ended' :
                                                                 b.status === 'ongoing' ? 'Ongoing' :
                                                                     'Upcoming'}
                                                         </span>
