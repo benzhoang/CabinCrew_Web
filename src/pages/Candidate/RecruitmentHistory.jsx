@@ -258,6 +258,12 @@ const normalizeHistoryData = (data = []) => {
     });
 };
 
+// Lấy nhãn cho ô thống kê "Completed" dựa theo ngôn ngữ
+const getAcceptedSummaryLabel = () => {
+    const lang = localStorage.getItem('lang') || 'en';
+    return lang === 'en' ? STATUS_LABELS.accepted.en : STATUS_LABELS.accepted.vi;
+};
+
 const RecruitmentHistory = () => {
     const navigate = useNavigate();
 
@@ -490,7 +496,7 @@ const RecruitmentHistory = () => {
                                 </svg>
                             </div>
                             <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">{t('accepted')}</p>
+                                <p className="text-sm font-medium text-gray-600">{getAcceptedSummaryLabel()}</p>
                                 <p className="text-2xl font-semibold text-gray-900">
                                     {recruitmentHistory.filter(item => item.status === 'accepted').length}
                                 </p>

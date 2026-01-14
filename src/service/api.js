@@ -4298,7 +4298,7 @@ export const submitApplication = async (applicationData) => {
       formData,
       {
         headers,
-        timeout: 60000, // 60 giây timeout cho upload file
+        timeout: 600000, // 10 phút timeout cho upload file
       }
     );
 

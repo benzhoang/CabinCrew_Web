@@ -733,7 +733,7 @@ const Screening = () => {
                                                     <div className="text-sm text-slate-500">{applicant.phone}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                                    {applicant.appliedDate}
+                                                    {formatDateFromAPI(applicant.appliedDate)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getApplicantStatusBadge(applicant.status)}

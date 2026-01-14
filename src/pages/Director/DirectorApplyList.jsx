@@ -539,6 +539,35 @@ const DirectorApplyList = () => {
         return '—'
     }
 
+    // Helper function to format applied date from yyyy-mm-dd to dd/mm/yyyy
+    const formatAppliedDate = (dateString) => {
+        if (!dateString) return '—'
+        
+        // Nếu dateString đã có dạng yyyy-mm-dd
+        if (dateString.includes('-')) {
+            const parts = dateString.split('-')
+            if (parts.length === 3) {
+                const [year, month, day] = parts
+                return `${day}/${month}/${year}`
+            }
+        }
+        
+        // Nếu dateString đã có dạng khác, thử parse
+        try {
+            const date = new Date(dateString)
+            if (!isNaN(date.getTime())) {
+                const day = String(date.getDate()).padStart(2, '0')
+                const month = String(date.getMonth() + 1).padStart(2, '0')
+                const year = date.getFullYear()
+                return `${day}/${month}/${year}`
+            }
+        } catch (e) {
+            // Nếu không parse được, trả về giá trị gốc
+        }
+        
+        return dateString
+    }
+
     if (isViewingBatch) {
         // Render applicant list view
         return (
@@ -711,7 +740,7 @@ const DirectorApplyList = () => {
                                                     <div className="text-sm text-slate-500">{applicant.phone}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                                    {applicant.appliedDate}
+                                                    {formatAppliedDate(applicant.appliedDate)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getApplicantStatusBadge(applicant.status)}
