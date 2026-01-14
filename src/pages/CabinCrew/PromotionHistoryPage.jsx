@@ -90,6 +90,25 @@ const getStagePositionStyle = (templateId) => {
 const getRecruitmentProgressPercentage = (application) => {
   if (AXIS_SEGMENTS === 0) return 0;
 
+  // Kiểm tra xem có stage nào bị failed không
+  const failedStageIndex = application.stages.findIndex((stage) => {
+    const status = (stage?.status || "").toLowerCase();
+    return ["failed", "fail", "not passed", "did not pass"].some((keyword) =>
+      status.includes(keyword)
+    );
+  });
+
+  // Nếu có stage failed, dừng tại stage đó
+  if (failedStageIndex !== -1) {
+    const failedStage = application.stages[failedStageIndex];
+    if (failedStage?.templateId) {
+      const axisPos = stageAxisPositionMap[failedStage.templateId];
+      if (typeof axisPos === "number") {
+        return (axisPos / AXIS_SEGMENTS) * 100;
+      }
+    }
+  }
+
   const completedPositions = application.stages
     .filter((stage) => stage.completed)
     .map((stage) => stageAxisPositionMap[stage.templateId])
@@ -114,6 +133,31 @@ const getRecruitmentProgressPercentage = (application) => {
 
   const furthest = Math.max(completedMax, currentPosition);
   return (furthest / AXIS_SEGMENTS) * 100;
+};
+
+const getPromotionProgressPercentage = (application) => {
+  const stages = application.stages || [];
+  if (stages.length === 0) return 0;
+
+  // Kiểm tra xem có stage nào bị failed không
+  const failedStageIndex = stages.findIndex((stage) => {
+    const status = (stage?.status || "").toLowerCase();
+    return ["failed", "fail", "not passed", "did not pass"].some((keyword) =>
+      status.includes(keyword)
+    );
+  });
+
+  // Nếu có stage failed, progress dừng tại stage đó
+  if (failedStageIndex !== -1) {
+    // Tính progress dựa trên vị trí của failed stage
+    // Với 5 stages, mỗi stage chiếm 25% (100% / (5-1) = 25%)
+    // Stage 0: 0%, Stage 1: 25%, Stage 2: 50%, Stage 3: 75%, Stage 4: 100%
+    return (failedStageIndex / (stages.length - 1)) * 100;
+  }
+
+  // Nếu không có failed, dùng currentStage
+  const currentStageIndex = Math.max(0, application.currentStage - 1);
+  return (currentStageIndex / (stages.length - 1)) * 100;
 };
 
 const PromotionHistoryPage = () => {
@@ -226,13 +270,9 @@ const PromotionHistoryPage = () => {
             // Kiểm tra xem có stage nào bị Failed không
             const failedStageIndex = mappedStages.findIndex((stage) => {
               const status = (stage?.status || "").toLowerCase();
-              return [
-                "failed",
-                "fail",
-                "rejected",
-                "not passed",
-                "did not pass",
-              ].some((keyword) => status.includes(keyword));
+              return ["failed", "fail", "not passed", "did not pass"].some(
+                (keyword) => status.includes(keyword)
+              );
             });
 
             let currentStageIndex;
@@ -261,7 +301,15 @@ const PromotionHistoryPage = () => {
 
             if (item.roundStatus) {
               const roundStatus = item.roundStatus.toLowerCase();
+              // Kiểm tra "not completed" trước "completed" để tránh nhầm lẫn
               if (
+                roundStatus.includes("not completed") ||
+                roundStatus === "not completed"
+              ) {
+                status = "not_completed";
+                statusText = "Not Completed";
+                statusTextEn = "Not Completed";
+              } else if (
                 roundStatus.includes("completed") ||
                 roundStatus.includes("passed") ||
                 roundStatus.includes("finished")
@@ -269,13 +317,6 @@ const PromotionHistoryPage = () => {
                 status = "accepted";
                 statusText = "Completed";
                 statusTextEn = "Completed";
-              } else if (
-                roundStatus.includes("rejected") ||
-                roundStatus.includes("failed")
-              ) {
-                status = "rejected";
-                statusText = "Not Qualified";
-                statusTextEn = "Not Qualified";
               }
             }
 
@@ -331,7 +372,7 @@ const PromotionHistoryPage = () => {
         return "bg-green-100 text-green-800";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
-      case "rejected":
+      case "not_completed":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -344,7 +385,7 @@ const PromotionHistoryPage = () => {
         return "bg-green-100";
       case "pending":
         return "bg-yellow-100";
-      case "rejected":
+      case "not_completed":
         return "bg-red-100";
       default:
         return "bg-gray-100";
@@ -357,7 +398,7 @@ const PromotionHistoryPage = () => {
         return "text-green-800";
       case "pending":
         return "text-yellow-800";
-      case "rejected":
+      case "not_completed":
         return "text-red-800";
       default:
         return "text-gray-800";
@@ -367,6 +408,18 @@ const PromotionHistoryPage = () => {
   const getStatusText = (item) => {
     const lang = localStorage.getItem("lang") || "vi";
     return lang === "vi" ? item.statusText : item.statusTextEn;
+  };
+
+  // Lấy nhãn cho ô thống kê "Completed" dựa theo ngôn ngữ
+  const getAcceptedSummaryLabel = () => {
+    const lang = localStorage.getItem("lang") || "vi";
+    return lang === "vi" ? "Đã hoàn thành" : "Completed";
+  };
+
+  // Lấy nhãn cho ô thống kê "Not Completed" dựa theo ngôn ngữ
+  const getNotCompletedSummaryLabel = () => {
+    const lang = localStorage.getItem("lang") || "vi";
+    return lang === "vi" ? "Không hoàn thành" : "Not Completed";
   };
 
   // Hàm lấy màu cho Campaign type
@@ -391,8 +444,8 @@ const PromotionHistoryPage = () => {
   // Hàm kiểm tra stage có bị failed không
   const isStageFailed = (stage) => {
     const status = (stage?.status || "").toLowerCase();
-    return ["failed", "fail", "rejected", "not passed", "did not pass"].some(
-      (keyword) => status.includes(keyword)
+    return ["failed", "fail", "not passed", "did not pass"].some((keyword) =>
+      status.includes(keyword)
     );
   };
 
@@ -404,7 +457,7 @@ const PromotionHistoryPage = () => {
 
     // Kiểm tra nếu stage bị failed
     if (isStageFailed(stage)) {
-      return "rejected";
+      return "not_completed";
     }
 
     // Kiểm tra nếu stage đã completed
@@ -463,7 +516,7 @@ const PromotionHistoryPage = () => {
     (item) => item.status === "accepted"
   ).length;
   const rejectedCount = promotionHistory.filter(
-    (item) => item.status === "rejected"
+    (item) => item.status === "not_completed"
   ).length;
 
   return (
@@ -529,7 +582,7 @@ const PromotionHistoryPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("accepted") || "Completed"}
+                  {getAcceptedSummaryLabel()}
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {completedCount}
@@ -557,7 +610,7 @@ const PromotionHistoryPage = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  Not Qualified
+                  {getNotCompletedSummaryLabel()}
                 </p>
                 <p className="text-2xl font-semibold text-gray-900">
                   {rejectedCount}
@@ -575,8 +628,8 @@ const PromotionHistoryPage = () => {
             </h2>
           </div>
           {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="py-12 text-center">
+              <div className="inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
               <p className="mt-4 text-sm text-gray-600">
                 {t("loading_data") || "Loading data..."}
               </p>
@@ -609,7 +662,7 @@ const PromotionHistoryPage = () => {
                       </div>
 
                       {/* Round + Airline Partner + Campaign Type */}
-                      <div className="flex items-center flex-wrap gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <svg
                             className="w-4 h-4 text-gray-400"
@@ -705,7 +758,7 @@ const PromotionHistoryPage = () => {
 
                     {/* Hiển thị timeline cho các giai đoạn đã chấp thuận và không đạt yêu cầu */}
                     {(application.status === "accepted" ||
-                      application.status === "rejected") &&
+                      application.status === "not_completed") &&
                       application.stages && (
                         <div className="pt-6 mt-6 border-t border-gray-200">
                           <h4 className="mb-4 text-sm font-medium text-gray-900">
@@ -784,7 +837,7 @@ const PromotionHistoryPage = () => {
                                       }}
                                     >
                                       <div
-                                        className="h-full bg-blue-500 transition-all duration-500"
+                                        className="h-full transition-all duration-500 bg-blue-500"
                                         style={{
                                           width: `${getRecruitmentProgressPercentage(
                                             application
@@ -875,11 +928,9 @@ const PromotionHistoryPage = () => {
                                 <div
                                   className="h-full transition-all duration-500 bg-blue-500"
                                   style={{
-                                    width: `${
-                                      (application.currentStage /
-                                        application.stages.length) *
-                                      100
-                                    }%`,
+                                    width: `${getPromotionProgressPercentage(
+                                      application
+                                    )}%`,
                                   }}
                                 ></div>
                               </div>
@@ -950,8 +1001,8 @@ const PromotionHistoryPage = () => {
                                   )}`}
                                 >
                                   <strong>Current status:</strong>{" "}
-                                  {stageStatus === "rejected"
-                                    ? `Not qualified at ${getStageName(
+                                  {stageStatus === "not_completed"
+                                    ? `Not completed at ${getStageName(
                                         currentStage
                                       )}`
                                     : currentStage?.completed
