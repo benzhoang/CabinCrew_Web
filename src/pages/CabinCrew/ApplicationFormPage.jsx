@@ -118,6 +118,47 @@ const ApplicationFormPage = () => {
     return null;
   };
 
+  // Hàm parse date từ API (format DD/MM/YYYY hoặc MM/DD/YYYY)
+  const parseDateFromApi = (dateString) => {
+    if (!dateString) return null;
+    
+    // Nếu đã là Date object, trả về luôn
+    if (dateString instanceof Date) {
+      return isNaN(dateString.getTime()) ? null : dateString;
+    }
+    
+    if (typeof dateString !== "string") return null;
+    
+    // Thử parse format DD/MM/YYYY (ngày trước tháng sau)
+    const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (ddmmyyyyMatch) {
+      const [, day, month, year] = ddmmyyyyMatch;
+      const dayNum = parseInt(day, 10);
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10);
+      
+      // Validate: ngày từ 1-31, tháng từ 1-12
+      if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12) {
+        const date = new Date(yearNum, monthNum - 1, dayNum);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+    }
+    
+    // Fallback: thử parse như Date object thông thường
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    } catch (e) {
+      console.error("Error parsing date:", dateString, e);
+    }
+    
+    return null;
+  };
+
   // Hàm format date sang YYYY-MM-DD cho input type="date"
   const formatDateForInput = (dateString) => {
     if (!dateString) {
@@ -129,21 +170,49 @@ const ApplicationFormPage = () => {
       if (ymdMatch) {
         return dateString.split("T")[0]; // Bỏ phần time nếu có
       }
-      // Thử parse như Date object
-      try {
-        const date = new Date(dateString);
-        if (!isNaN(date.getTime())) {
-          // Lấy local date parts để tránh timezone issues
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          return `${year}-${month}-${day}`;
-        }
-      } catch (e) {
-        console.error("Error parsing date:", dateString, e);
+    }
+    
+    // Parse từ format DD/MM/YYYY hoặc các format khác
+    const parsedDate = parseDateFromApi(dateString);
+    if (parsedDate) {
+      const year = parsedDate.getFullYear();
+      const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(parsedDate.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    
+    return "";
+  };
+
+  // Hàm format date từ YYYY-MM-DD sang DD/MM/YYYY cho API
+  const formatDateForApi = (dateString) => {
+    if (!dateString) return "";
+    
+    // Nếu đã là format DD/MM/YYYY, trả về như cũ
+    if (typeof dateString === "string") {
+      const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (ddmmyyyyMatch) {
+        return dateString;
       }
     }
-    return "";
+    
+    // Parse từ YYYY-MM-DD (từ input type="date")
+    const ymdMatch = typeof dateString === "string" ? dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+    if (ymdMatch) {
+      const [, year, month, day] = ymdMatch;
+      return `${day}/${month}/${year}`;
+    }
+    
+    // Fallback: parse như Date object
+    const parsedDate = parseDateFromApi(dateString);
+    if (parsedDate) {
+      const day = String(parsedDate.getDate()).padStart(2, "0");
+      const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+      const year = parsedDate.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    
+    return dateString || "";
   };
 
   // Handle captcha code change callback
@@ -451,7 +520,7 @@ const ApplicationFormPage = () => {
         email: formData.email,
         fullName: formData.fullName,
         phoneNumber: formData.mobileNumber,
-        dateOfBirth: formData.dateOfBirth,
+        dateOfBirth: formatDateForApi(formData.dateOfBirth),
         gender: formData.gender,
         // Thông tin hồ sơ
         experience:
@@ -516,7 +585,7 @@ const ApplicationFormPage = () => {
         email: formData.email || "",
         fullName: formData.fullName || "",
         phoneNumber: formData.mobileNumber || "",
-        dateOfBirth: formData.dateOfBirth || "",
+        dateOfBirth: formatDateForApi(formData.dateOfBirth) || "",
         gender: formData.gender || "",
         // Thông tin hồ sơ
         experience:
