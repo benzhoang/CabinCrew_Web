@@ -103,7 +103,7 @@ const PromotionStagesPage = () => {
                 nameEn: hardcodedStage.nameEn,
                 completed: isCompleted,
                 date: matchedRound.date || null,
-                status: matchedRound.status || "",
+                status: matchedRound.status || "Ongoing",
               };
             } else {
               // Stage chưa có trong API, hiển thị màu xám
@@ -448,14 +448,15 @@ const PromotionStagesPage = () => {
                         style={{
                           width:
                             application.stages.length > 1
-                              ? `${((Math.min(
-                                Math.max(application.currentStage || 1, 1),
-                                application.stages.length
-                              ) -
-                                1) /
-                                (application.stages.length - 1)) *
-                              100
-                              }%`
+                              ? `${
+                                  ((Math.min(
+                                    Math.max(application.currentStage || 1, 1),
+                                    application.stages.length
+                                  ) -
+                                    1) /
+                                    (application.stages.length - 1)) *
+                                  100
+                                }%`
                               : "0%",
                         }}
                       ></div>
@@ -502,14 +503,13 @@ const PromotionStagesPage = () => {
                                 View profile
                               </button>
                             )}
-                            {stage.name
-                              ?.toLowerCase()
-                              .includes("interview") &&
+                            {stage.name?.toLowerCase().includes("interview") &&
                               stage.activityId && (
                                 <button
                                   onClick={() =>
                                     navigate(
-                                      `/cabin-crew/interview-result/${stage.activityId || stage.roundId || ""
+                                      `/cabin-crew/interview-result/${
+                                        stage.activityId || stage.roundId || ""
                                       }`
                                     )
                                   }
@@ -529,18 +529,18 @@ const PromotionStagesPage = () => {
                       <p className="text-sm text-yellow-800">
                         <strong>Current status:</strong>{" "}
                         {application.stages.length > 0 &&
-                          application.currentStage > 0 &&
-                          application.currentStage <= application.stages.length
+                        application.currentStage > 0 &&
+                        application.currentStage <= application.stages.length
                           ? (() => {
-                            const currentStageData =
-                              application.stages[
-                              application.currentStage - 1
-                              ];
-                            if (currentStageData?.completed) {
-                              return `Completed ${currentStageData.name}`;
-                            }
-                            return `In progress ${currentStageData.name}`;
-                          })()
+                              const currentStageData =
+                                application.stages[
+                                  application.currentStage - 1
+                                ];
+                              if (currentStageData?.completed) {
+                                return `Completed ${currentStageData.name}`;
+                              }
+                              return `In progress ${currentStageData.name}`;
+                            })()
                           : "Pending"}
                       </p>
 
