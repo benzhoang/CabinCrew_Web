@@ -215,7 +215,7 @@ const PromotionHistoryPage = () => {
                     nameEn: matchingRound?.roundName || template.nameEn,
                     completed: Boolean(matchingRound) && isCompleted,
                     date: matchingRound?.date || null,
-                    status: matchingRound?.status || "On Going",
+                    status: matchingRound?.status || "Ongoing",
                   };
                 }
               );
@@ -406,20 +406,20 @@ const PromotionHistoryPage = () => {
   };
 
   const getStatusText = (item) => {
-    const lang = localStorage.getItem("lang") || "vi";
-    return lang === "vi" ? item.statusText : item.statusTextEn;
+    const lang = localStorage.getItem("lang") || "en";
+    return lang === "en" ? item.statusTextEn : item.statusText;
   };
 
   // Lấy nhãn cho ô thống kê "Completed" dựa theo ngôn ngữ
   const getAcceptedSummaryLabel = () => {
-    const lang = localStorage.getItem("lang") || "vi";
-    return lang === "vi" ? "Đã hoàn thành" : "Completed";
+    const lang = localStorage.getItem("lang") || "en";
+    return lang === "en" ? "Completed" : "Đã hoàn thành";
   };
 
   // Lấy nhãn cho ô thống kê "Not Completed" dựa theo ngôn ngữ
   const getNotCompletedSummaryLabel = () => {
-    const lang = localStorage.getItem("lang") || "vi";
-    return lang === "vi" ? "Không hoàn thành" : "Not Completed";
+    const lang = localStorage.getItem("lang") || "en";
+    return lang === "en" ? "Not Completed" : "Không hoàn thành";
   };
 
   // Hàm lấy màu cho Campaign type
