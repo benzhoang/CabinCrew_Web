@@ -31,7 +31,21 @@ const getDocumentDisplayName = (document) => {
 
 const getDocumentUrl = (document) => {
   if (!document) return "";
-  if (typeof document === "string") return `/documents/${document}`;
+  // Nếu document là string, xử lý các trường hợp URL tuyệt đối (Cloudinary, S3, v.v.)
+  if (typeof document === "string") {
+    const trimmed = document.trim();
+    // Nếu đã là full URL (http/https) thì trả về nguyên vẹn
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    // Nếu là path tuyệt đối trên backend thì dùng luôn
+    if (trimmed.startsWith("/")) {
+      return trimmed;
+    }
+    // Còn lại thì coi như file nội bộ trong hệ thống
+    return `/documents/${trimmed}`;
+  }
+  // Nếu là object thì ưu tiên field url/documentURL
   return document.url || document.documentURL || "";
 };
 
@@ -280,8 +294,8 @@ const getStagePositionStyle = (templateId) => {
     templateId === "english-listening"
       ? -BRANCH_OFFSET
       : templateId === "english-speaking"
-      ? BRANCH_OFFSET
-      : 0;
+        ? BRANCH_OFFSET
+        : 0;
 
   return {
     left: `${getAxisPercent(templateId)}%`,
@@ -391,8 +405,8 @@ const buildTimelineForCandidate = (candidate, forcedStageId) => {
     let status = completed
       ? "Completed"
       : isCurrent
-      ? "In Progress"
-      : "Pending";
+        ? "In Progress"
+        : "Pending";
 
     return {
       templateId: template.id,
@@ -405,8 +419,8 @@ const buildTimelineForCandidate = (candidate, forcedStageId) => {
           ? isFailedFinal
             ? "Failed"
             : isPassedFinal
-            ? "Completed"
-            : "In Progress"
+              ? "Completed"
+              : "In Progress"
           : status
         : status,
       date: null,
@@ -907,8 +921,8 @@ const CandidateApplyDetail = () => {
                       {candidate.gender === "male"
                         ? "Male"
                         : candidate.gender === "female"
-                        ? "Female"
-                        : "—"}
+                          ? "Female"
+                          : "—"}
                     </p>
                   </div>
 
@@ -1007,7 +1021,7 @@ const CandidateApplyDetail = () => {
                     </label>
                     <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
                       {candidate.totalScore !== null &&
-                      candidate.totalScore !== undefined
+                        candidate.totalScore !== undefined
                         ? candidate.totalScore
                         : "—"}
                     </p>
@@ -1040,7 +1054,7 @@ const CandidateApplyDetail = () => {
                 <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">
                   Application Review Actions
                 </h3>
-                {candidate?.currentRound === "screening" && isOngoingStatus && (
+                {derivedStageId === "screening" && isOngoingStatus && (
                   <div className="flex flex-wrap gap-3">
                     <button
                       className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1089,11 +1103,10 @@ const CandidateApplyDetail = () => {
                   Cancel
                 </button>
                 <button
-                  className={`px-4 py-2 rounded-lg text-sm text-white font-medium ${
-                    confirmAction === "approve"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-4 py-2 rounded-lg text-sm text-white font-medium ${confirmAction === "approve"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                   onClick={
                     confirmAction === "approve" ? handleApprove : handleReject
                   }

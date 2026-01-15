@@ -35,6 +35,30 @@ const SettingsPage = () => {
     { value: "3", label: t("other") },
   ];
 
+  // Helper: parse ngày từ API/localStorage (ưu tiên format DD/MM/YYYY, fallback các format khác)
+  const parseDateFromApi = (dateString) => {
+    if (!dateString) return null;
+    if (typeof dateString === "string") {
+      const dmyMatch = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (dmyMatch) {
+        const [, day, month, year] = dmyMatch;
+        return new Date(Number(year), Number(month) - 1, Number(day));
+      }
+    }
+    const parsed = new Date(dateString);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  // Helper: format date bất kỳ sang YYYY-MM-DD cho input type="date"
+  const formatDateForInput = (dateString) => {
+    const date = parseDateFromApi(dateString);
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const decodeJwt = (token) => {
     if (!token) {
       return null;
@@ -213,12 +237,9 @@ const SettingsPage = () => {
             // Format dateOfBirth from localStorage if available
             let formattedDateOfBirth = "";
             if (userData.dateOfBirth) {
-              const birthDate = new Date(userData.dateOfBirth);
-              if (!isNaN(birthDate.getTime())) {
-                const year = birthDate.getFullYear();
-                const month = String(birthDate.getMonth() + 1).padStart(2, "0");
-                const day = String(birthDate.getDate()).padStart(2, "0");
-                formattedDateOfBirth = `${year}-${month}-${day}`;
+              const birthDate = parseDateFromApi(userData.dateOfBirth);
+              if (birthDate) {
+                formattedDateOfBirth = formatDateForInput(userData.dateOfBirth);
               }
             }
 
@@ -270,13 +291,10 @@ const SettingsPage = () => {
           let age = "";
           let formattedDateOfBirth = "";
           if (profileData.dateOfBirth) {
-            const birthDate = new Date(profileData.dateOfBirth);
-            if (!isNaN(birthDate.getTime())) {
+            const birthDate = parseDateFromApi(profileData.dateOfBirth);
+            if (birthDate) {
               // Format dateOfBirth to YYYY-MM-DD for input type="date"
-              const year = birthDate.getFullYear();
-              const month = String(birthDate.getMonth() + 1).padStart(2, "0");
-              const day = String(birthDate.getDate()).padStart(2, "0");
-              formattedDateOfBirth = `${year}-${month}-${day}`;
+              formattedDateOfBirth = formatDateForInput(profileData.dateOfBirth);
 
               // Calculate age
               const today = new Date();
@@ -436,12 +454,9 @@ const SettingsPage = () => {
           // Format dateOfBirth from localStorage if available
           let formattedDateOfBirth = "";
           if (userData.dateOfBirth) {
-            const birthDate = new Date(userData.dateOfBirth);
-            if (!isNaN(birthDate.getTime())) {
-              const year = birthDate.getFullYear();
-              const month = String(birthDate.getMonth() + 1).padStart(2, "0");
-              const day = String(birthDate.getDate()).padStart(2, "0");
-              formattedDateOfBirth = `${year}-${month}-${day}`;
+            const birthDate = parseDateFromApi(userData.dateOfBirth);
+            if (birthDate) {
+              formattedDateOfBirth = formatDateForInput(userData.dateOfBirth);
             }
           }
 
@@ -488,12 +503,9 @@ const SettingsPage = () => {
           // Format dateOfBirth from localStorage if available
           let formattedDateOfBirth = "";
           if (userData.dateOfBirth) {
-            const birthDate = new Date(userData.dateOfBirth);
-            if (!isNaN(birthDate.getTime())) {
-              const year = birthDate.getFullYear();
-              const month = String(birthDate.getMonth() + 1).padStart(2, "0");
-              const day = String(birthDate.getDate()).padStart(2, "0");
-              formattedDateOfBirth = `${year}-${month}-${day}`;
+            const birthDate = parseDateFromApi(userData.dateOfBirth);
+            if (birthDate) {
+              formattedDateOfBirth = formatDateForInput(userData.dateOfBirth);
             }
           }
 
@@ -585,21 +597,23 @@ const SettingsPage = () => {
     // Calculate age when date of birth changes
     if (name === "dateOfBirth" && value) {
       const today = new Date();
-      const birthDate = new Date(value);
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const birthDate = parseDateFromApi(value) || new Date(value);
+      if (!isNaN(birthDate.getTime())) {
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
 
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < birthDate.getDate())
-      ) {
-        age--;
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          age: age.toString(),
+        }));
       }
-
-      setFormData((prev) => ({
-        ...prev,
-        age: age.toString(),
-      }));
     }
 
     // Clear error when user starts typing

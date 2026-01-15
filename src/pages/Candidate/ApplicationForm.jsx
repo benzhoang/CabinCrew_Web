@@ -104,10 +104,10 @@ const ApplicationForm = () => {
       if (decoded) {
         return (
           decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -122,6 +122,14 @@ const ApplicationForm = () => {
   const formatDateForInput = (dateString) => {
     if (!dateString) {
       return "";
+    }
+    // Trường hợp backend trả về dạng DD/MM/YYYY → chuyển sang YYYY-MM-DD
+    if (typeof dateString === "string") {
+      const dmyMatch = dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (dmyMatch) {
+        const [, day, month, year] = dmyMatch;
+        return `${year}-${month}-${day}`;
+      }
     }
     // Nếu đã là format YYYY-MM-DD, trả về như cũ
     if (typeof dateString === "string") {
@@ -144,6 +152,19 @@ const ApplicationForm = () => {
       }
     }
     return "";
+  };
+
+  // Hàm format date từ input (YYYY-MM-DD) sang dạng DD/MM/YYYY để gửi API
+  const formatDateForApi = (dateString) => {
+    if (!dateString) return "";
+    if (typeof dateString === "string") {
+      const ymdMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (ymdMatch) {
+        const [, year, month, day] = ymdMatch;
+        return `${day}/${month}/${year}`;
+      }
+    }
+    return dateString;
   };
 
   // Handle captcha code change callback
@@ -472,7 +493,8 @@ const ApplicationForm = () => {
         email: formData.email,
         fullName: formData.fullName,
         phoneNumber: formData.mobileNumber,
-        dateOfBirth: formData.dateOfBirth,
+        // Gửi sang API với format DD/MM/YYYY (ngày trước, tháng sau)
+        dateOfBirth: formatDateForApi(formData.dateOfBirth),
         gender: formData.gender,
         // Thông tin hồ sơ
         height: formData.height,
@@ -495,8 +517,8 @@ const ApplicationForm = () => {
 
         toast.success(
           t("application_form_submitted_successfully") ||
-            result.message ||
-            "Nộp đơn thành công!"
+          result.message ||
+          "Nộp đơn thành công!"
         );
         // Đợi một chút để người dùng thấy toast trước khi navigate
         setTimeout(() => {
@@ -536,7 +558,8 @@ const ApplicationForm = () => {
         email: formData.email || "",
         fullName: formData.fullName || "",
         phoneNumber: formData.mobileNumber || "",
-        dateOfBirth: formData.dateOfBirth || "",
+        // Lưu draft với format DD/MM/YYYY cho đồng nhất với backend
+        dateOfBirth: formatDateForApi(formData.dateOfBirth || ""),
         gender: formData.gender || "",
         // Thông tin hồ sơ
         height: formData.height || "",
@@ -567,8 +590,8 @@ const ApplicationForm = () => {
 
         toast.success(
           t("application_form_draft_saved") ||
-            result.message ||
-            "Đã lưu bản nháp thành công!"
+          result.message ||
+          "Đã lưu bản nháp thành công!"
         );
         // Đợi một chút để người dùng thấy toast trước khi navigate
         setTimeout(() => {
