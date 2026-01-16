@@ -175,6 +175,7 @@ const ProfileCabinCrewPage = () => {
           const appData = result.data;
           console.log("Application data from API:", appData);
           // Helper function to format date to YYYY-MM-DD
+          // API returns dates in DD/MM/YYYY format, so we need to parse it correctly
           const formatDateForInput = (dateString) => {
             if (!dateString) {
               console.warn("formatDateForInput: dateString is empty");
@@ -195,7 +196,19 @@ const ProfileCabinCrewPage = () => {
                 console.log("formatDateForInput - Already YYYY-MM-DD:", result);
                 return result;
               }
-              // Try parsing as Date
+
+              // Check if it's DD/MM/YYYY format (API format)
+              const dmyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+              if (dmyMatch) {
+                const day = dmyMatch[1].padStart(2, "0");
+                const month = dmyMatch[2].padStart(2, "0");
+                const year = dmyMatch[3];
+                const result = `${year}-${month}-${day}`;
+                console.log("formatDateForInput - Parsed DD/MM/YYYY:", result);
+                return result;
+              }
+
+              // Try parsing as ISO Date string
               try {
                 const date = new Date(dateString);
                 if (!isNaN(date.getTime())) {
@@ -204,7 +217,7 @@ const ProfileCabinCrewPage = () => {
                   const month = String(date.getMonth() + 1).padStart(2, "0");
                   const day = String(date.getDate()).padStart(2, "0");
                   const result = `${year}-${month}-${day}`;
-                  console.log("formatDateForInput - Parsed:", result);
+                  console.log("formatDateForInput - Parsed ISO:", result);
                   return result;
                 } else {
                   console.warn(

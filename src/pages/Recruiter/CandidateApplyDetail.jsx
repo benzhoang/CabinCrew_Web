@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { toast } from "react-toastify";
 import { getApplicationById, screeningApprove } from "../../service/api";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -580,7 +581,8 @@ const CandidateApplyDetail = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString("en-US");
+    const formatted = formatDateFromAPI(dateString);
+    return formatted || "—";
   };
 
   const getWorkingExperienceText = (experience) => {
