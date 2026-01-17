@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { t, onLangChange } from "../../i18n";
 import { getApplicationById, screeningApprove } from "../../service/api";
 import { toast } from "react-toastify";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -148,15 +149,12 @@ const buildCandidateProfile = (apiData, fallback = {}) => {
 };
 
 const DOCUMENT_SECTIONS = [
-  { key: "applicationForm", label: "VJC-PD-FRM-12 Form Job Application" },
+  { key: "applicationForm", label: " Form Job Application" },
   { key: "profilePhoto", label: "Profile Photo 4x6cm" },
   { key: "educationDegree", label: "Education Degree" },
   { key: "englishCertificate", label: "English Certificate" },
-  {
-    key: "idCard",
-    label: "ID Card / Passport",
-    getValue: (docs) => docs.idCard || docs.idCardBack,
-  },
+  { key: "idCard", label: "Citizen ID - Front" },
+  { key: "idCardBack", label: "Citizen ID - Back" },
 ];
 
 // Timeline constants & helpers (reused from RecruitmentStages but simplified: no action buttons)
@@ -260,8 +258,8 @@ const getStagePositionStyle = (templateId) => {
     templateId === "english-listening"
       ? -BRANCH_OFFSET
       : templateId === "english-speaking"
-      ? BRANCH_OFFSET
-      : 0;
+        ? BRANCH_OFFSET
+        : 0;
 
   return {
     left: `${getAxisPercent(templateId)}%`,
@@ -505,7 +503,8 @@ const CandidateApplyDetail = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString("en-US");
+    const formatted = formatDateFromAPI(dateString);
+    return formatted || "—";
   };
 
   const getWorkingExperienceText = (experience) => {
@@ -743,10 +742,13 @@ const CandidateApplyDetail = () => {
                     ? section.getValue(docs)
                     : docs[section.key];
 
+                  // Check if this is a Citizen ID section (Front or Back)
+                  const isCitizenId = section.key === "idCard" || section.key === "idCardBack";
+
                   return (
                     <div key={section.key}>
                       <label className="block mb-2 text-sm font-medium text-slate-700">
-                        {section.label}
+                        {section.label} {isCitizenId && <span className="text-red-500">*</span>}
                       </label>
                       <div className="p-4 border rounded-lg border-slate-300 bg-slate-50">
                         {documentData ? (
@@ -852,8 +854,8 @@ const CandidateApplyDetail = () => {
                       {candidate.gender === "male"
                         ? "Male"
                         : candidate.gender === "female"
-                        ? "Female"
-                        : "—"}
+                          ? "Female"
+                          : "—"}
                     </p>
                   </div>
 
@@ -952,7 +954,7 @@ const CandidateApplyDetail = () => {
                     </label>
                     <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.totalScore !== null &&
-                      candidate.totalScore !== undefined
+                        candidate.totalScore !== undefined
                         ? candidate.totalScore
                         : "—"}
                     </p>
