@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { onLangChange } from "../../i18n";
 import { getApplicationById } from "../../service/api2";
 import { toast } from "react-toastify";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const normalizeGender = (value) => {
   if (value === null || value === undefined) return "";
@@ -79,10 +80,14 @@ const mapDocumentsFromApi = (documents = []) => {
       normalizedType.includes("identification") ||
       normalizedType.includes("card")
     ) {
+      // Check for back side indicator - prioritize exact type match
       const hasBackSideIndicator =
+        normalizedType === "passportoridback" ||
         normalizedType.includes("back") ||
         normalizedName.toLowerCase().includes("back");
-      mapped[hasBackSideIndicator ? "idCardBack" : "idCard"] = fileInfo;
+      const key = hasBackSideIndicator ? "idCardBack" : "idCard";
+      // Map to the appropriate key (front or back)
+      mapped[key] = fileInfo;
     } else {
       const fallbackKey = doc.documentId
         ? `document_${doc.documentId}`
@@ -145,14 +150,17 @@ const buildCandidateProfile = (apiData, fallback = {}) => {
 };
 
 const DOCUMENT_SECTIONS = [
-  { key: "applicationForm", label: "VJC-PD-FRM-12 Form Job Application" },
+  { key: "applicationForm", label: "Form Job Application" },
   { key: "profilePhoto", label: "Profile Photo 4x6cm" },
   { key: "educationDegree", label: "Education Degree" },
   { key: "englishCertificate", label: "English Certificate" },
   {
     key: "idCard",
-    label: "ID Card / Passport",
-    getValue: (docs) => docs.idCard || docs.idCardBack,
+    label: "Citizen ID - Front",
+  },
+  {
+    key: "idCardBack",
+    label: "Citizen ID - Back",
   },
 ];
 
@@ -312,15 +320,8 @@ const AirlineCandidateDetailPage = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
-    try {
-      // Handle different date formats
-      if (dateString.includes("/")) {
-        return dateString; // Already formatted
-      }
-      return new Date(dateString).toLocaleDateString("en-US");
-    } catch {
-      return dateString;
-    }
+    const formatted = formatDateFromAPI(dateString);
+    return formatted || "—";
   };
 
   const getWorkingExperienceText = (experience) => {
