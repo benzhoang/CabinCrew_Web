@@ -163,15 +163,12 @@ const buildCandidateProfile = (apiData, fallback = {}) => {
 };
 
 const DOCUMENT_SECTIONS = [
-  { key: "applicationForm", label: "VJC-PD-FRM-12 Form Job Application" },
+  { key: "applicationForm", label: "Form Job Application" },
   { key: "profilePhoto", label: "Profile Photo 4x6cm" },
   { key: "educationDegree", label: "Education Degree" },
   { key: "englishCertificate", label: "English Certificate" },
-  {
-    key: "idCard",
-    label: "ID Card / Passport",
-    getValue: (docs) => docs.idCard || docs.idCardBack,
-  },
+  { key: "idCard", label: "Citizen ID - Front" },
+  { key: "idCardBack", label: "Citizen ID - Back" },
 ];
 
 // Timeline constants & helpers (reused from RecruitmentStages but simplified: no action buttons)
@@ -814,10 +811,13 @@ const CandidateApplyDetail = () => {
                     ? section.getValue(docs)
                     : docs[section.key];
 
+                  // Check if this is a Citizen ID section (Front or Back)
+                  const isCitizenId = section.key === "idCard" || section.key === "idCardBack";
+
                   return (
                     <div key={section.key}>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
-                        {section.label}
+                        {section.label} {isCitizenId && <span className="text-red-500">*</span>}
                       </label>
                       <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
                         {documentData ? (
