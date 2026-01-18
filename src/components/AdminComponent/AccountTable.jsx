@@ -4,6 +4,7 @@ import { FaArrowsRotate } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { getAllUsers, disableAccount } from "../../service/api2";
 import ModalConfirm from "./ModalConfirm";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 const StatusBadge = ({ value }) => {
   const isActive =
@@ -145,6 +146,9 @@ const AccountTable = ({
         const mappedUsers = items.map((user) => ({
           userId: user.userId,
           fullName: user.fullName,
+          imgURL: user.imgURL || user.imgUrl || "",
+          dateOfBirth: user.dateOfBirth || "",
+          gender: user.gender || "",
           position: user.role,
           email: user.email,
           phone: user.phoneNumber,
@@ -344,6 +348,7 @@ const AccountTable = ({
         <thead>
           <tr className="text-sm text-left text-gray-600 bg-gray-50">
             <th className="w-16 px-5 py-3 font-semibold">No.</th>
+            <th className="w-20 px-5 py-3 font-semibold">Avatar</th>
             <th className="px-5 py-3 font-semibold">
               <button
                 type="button"
@@ -354,6 +359,8 @@ const AccountTable = ({
                 {getSortIcon("fullName")}
               </button>
             </th>
+            <th className="px-5 py-3 font-semibold">Date of Birth</th>
+            <th className="px-5 py-3 font-semibold">Gender</th>
             <th className="px-5 py-3 font-semibold">
               <button
                 type="button"
@@ -376,7 +383,7 @@ const AccountTable = ({
           {paginatedUsers.length === 0 ? (
             <tr>
               <td
-                colSpan={showPartnerColumn ? 8 : 7}
+                colSpan={showPartnerColumn ? 11 : 10}
                 className="px-5 py-8 text-center text-gray-500"
               >
                 No data
@@ -394,8 +401,33 @@ const AccountTable = ({
                   <td className="px-5 py-4 text-sm text-center text-gray-700">
                     {rowNumber}
                   </td>
+                  <td className="px-5 py-4">
+                    {u.imgURL ? (
+                      <img
+                        src={u.imgURL}
+                        alt={u.fullName || "Avatar"}
+                        className="object-cover w-10 h-10 rounded-full"
+                        onError={(e) => {
+                          e.target.src =
+                            "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg";
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full">
+                        <span className="text-xs text-gray-400">
+                          {u.fullName?.charAt(0)?.toUpperCase() || "?"}
+                        </span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-sm text-gray-800 truncate">
                     {u.fullName}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                    {u.dateOfBirth ? formatDateFromAPI(u.dateOfBirth) : "—"}
+                  </td>
+                  <td className="px-5 py-4 text-sm text-gray-700">
+                    {u.gender || "—"}
                   </td>
                   <td className="px-5 py-4 text-sm text-gray-700 truncate">
                     {u.email}

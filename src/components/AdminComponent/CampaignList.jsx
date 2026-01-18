@@ -3,6 +3,7 @@ import { FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { getCampaignList } from "../../service/api2";
 import Pagination from "./Pagination";
 import { useNavigate } from "react-router-dom";
+import { formatDateFromAPI } from "../../config/formatDate";
 
 // Helper function to map API status to component status
 const mapStatus = (status) => {
@@ -271,6 +272,8 @@ const CampaignList = ({
       const mappedCampaigns = items.map((item) => ({
         id: item.campaignId || item.id || item.campaignID || item.Id,
         campaignName: item.campaignName || item.name || "No campaign name",
+        description: item.description || "No description",
+        approvedAt: item.approvedAt || "No approved date",
         targetQuantity: item.targetQuantity || 0,
         partnerName: item.partnerName || null,
         campaignType: mapCampaignType(item.campaignType),
@@ -404,12 +407,12 @@ const CampaignList = ({
 
   return (
     <>
-      <div className="mt-10 overflow-hidden bg-white border border-gray-200 rounded-xl">
-        <table className="min-w-full border-collapse table-fixed">
+      <div className="mt-10 overflow-x-auto bg-white border border-gray-200 rounded-xl">
+        <table className="min-w-full border-collapse" style={{ minWidth: '1072px' }}>
           <thead>
             <tr className="text-sm text-left text-gray-600 bg-gray-50">
-              <th className="w-16 px-5 py-3 font-semibold">No.</th>
-              <th className="px-5 py-3 font-semibold w-52">
+              <th className="w-16 px-4 py-3 font-semibold whitespace-nowrap">No.</th>
+              <th className="w-40 px-4 py-3 font-semibold whitespace-nowrap">
                 <SortButton
                   field="campaignName"
                   label="Campaign Name"
@@ -418,7 +421,8 @@ const CampaignList = ({
                   onSort={handleSort}
                 />
               </th>
-              <th className="px-5 py-3 font-semibold w-28">
+              <th className="w-56 px-4 py-3 font-semibold">Description</th>
+              <th className="w-20 px-4 py-3 font-semibold whitespace-nowrap">
                 <SortButton
                   field="targetQuantity"
                   label="Applicants"
@@ -427,10 +431,11 @@ const CampaignList = ({
                   onSort={handleSort}
                 />
               </th>
-              <th className="w-40 px-5 py-3 font-semibold">Partner</th>
-              <th className="px-5 py-3 font-semibold w-36">Campaign Type</th>
-              <th className="px-5 py-3 font-semibold w-36">Status</th>
-              <th className="w-24 px-5 py-3 font-semibold text-right">
+              <th className="w-32 px-4 py-3 font-semibold whitespace-nowrap">Partner</th>
+              <th className="px-4 py-3 font-semibold w-28 whitespace-nowrap">Campaign Type</th>
+              <th className="w-24 px-4 py-3 font-semibold whitespace-nowrap">Status</th>
+              <th className="px-4 py-3 font-semibold w-28 whitespace-nowrap">Approved date</th>
+              <th className="w-24 px-4 py-3 font-semibold text-right whitespace-nowrap">
                 Actions
               </th>
             </tr>
@@ -438,7 +443,7 @@ const CampaignList = ({
           <tbody>
             {paginatedCampaigns.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-5 py-8 text-center text-gray-500">
+                <td colSpan="9" className="px-5 py-8 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
@@ -448,28 +453,34 @@ const CampaignList = ({
                   key={c.id}
                   className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700 whitespace-nowrap">
                     {/* Calculate index based on current page and position in filtered/sorted list */}
                     {(pagination.currentPage - 1) * pagination.pageSize +
                       idx +
                       1}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-800 truncate">
+                  <td className="px-4 py-4 text-sm text-gray-800 truncate">
                     {c.campaignName}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700 break-words">
+                    {c.description || "No description"}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-center text-gray-700 whitespace-nowrap">
                     {c.targetQuantity}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     <PartnerBadge partnerName={c.partnerName} />
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     <CampaignTypeBadge type={c.campaignType} />
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-4 py-4 text-sm text-gray-700">
                     <StatusBadge status={c.status} />
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 py-4 text-sm text-gray-700 whitespace-nowrap">
+                    {c.approvedAt ? formatDateFromAPI(c.approvedAt) : "—"}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => navigate(`/admin/campaigns/${c.id}`)}
