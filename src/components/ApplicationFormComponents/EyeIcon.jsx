@@ -5,10 +5,15 @@ import React from 'react'
  * @param {string} url - URL của ảnh mẫu cần mở
  * @param {string} title - Tooltip text khi hover
  * @param {string} className - CSS classes tùy chỉnh
+ * @param {function} onClick - Callback khi click vào icon (thay vì mở link)
  */
-const EyeIcon = ({ url, title = 'Xem mẫu', className = '' }) => {
+const EyeIcon = ({ url, title = 'Xem mẫu', className = '', onClick }) => {
     const handleClick = () => {
-        if (url) {
+        if (onClick) {
+            // Nếu có callback, gọi callback
+            onClick();
+        } else if (url) {
+            // Fallback: mở link nếu không có callback
             window.open(url, '_blank')
         }
     }

@@ -12,6 +12,7 @@ import {
 import EyeIcon from "../../components/ApplicationFormComponents/EyeIcon";
 import DeleteFileButton from "../../components/ApplicationFormComponents/DeleteFileButton";
 import CaptchaInput from "../../components/ApplicationFormComponents/CaptchaInput";
+import ImageModal from "../../components/ApplicationFormComponents/ImageModal";
 
 const ApplicationForm = () => {
   const navigate = useNavigate();
@@ -57,6 +58,13 @@ const ApplicationForm = () => {
   // Loading state for save draft and submit
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Image modal state
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    imageUrl: "",
+    title: "",
+  });
 
   // Force re-render when language changes
   const [, forceUpdate] = useState({});
@@ -170,6 +178,24 @@ const ApplicationForm = () => {
   // Handle captcha code change callback
   const handleCaptchaCodeChange = (code) => {
     setCaptchaCode(code);
+  };
+
+  // Handle open image modal
+  const handleOpenImageModal = (imageUrl, title) => {
+    setImageModal({
+      isOpen: true,
+      imageUrl,
+      title,
+    });
+  };
+
+  // Handle close image modal
+  const handleCloseImageModal = () => {
+    setImageModal({
+      isOpen: false,
+      imageUrl: "",
+      title: "",
+    });
   };
 
   // Function to translate error messages from API to English
@@ -820,8 +846,17 @@ const ApplicationForm = () => {
                       {t("application_form_english_certificate")} *
                       <EyeIcon
                         url="https://res.cloudinary.com/dxhaku7lp/image/upload/v1764240300/euxcie5gbzhzmzbg4o2x.jpg"
-                        title="View English certificate sample"
+                        title="View sample English certificates"
+                        onClick={() =>
+                          handleOpenImageModal(
+                            "https://res.cloudinary.com/dxhaku7lp/image/upload/v1764240300/euxcie5gbzhzmzbg4o2x.jpg",
+                            "View sample English certificates"
+                          )
+                        }
                       />
+                      <span className="text-xs text-slate-500 italic">
+                        (Click on the exclamation mark to view sample)
+                      </span>
                     </span>
                     {files.englishCertificate && (
                       <DeleteFileButton
@@ -1203,6 +1238,14 @@ const ApplicationForm = () => {
         </div>
       </div>
       <Footer />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={imageModal.isOpen}
+        imageUrl={imageModal.imageUrl}
+        title={imageModal.title}
+        onClose={handleCloseImageModal}
+      />
     </div>
   );
 };
