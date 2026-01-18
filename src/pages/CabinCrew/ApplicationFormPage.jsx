@@ -10,6 +10,7 @@ import {
 import EyeIcon from "../../components/ApplicationFormComponents/EyeIcon";
 import DeleteFileButton from "../../components/ApplicationFormComponents/DeleteFileButton";
 import CaptchaInput from "../../components/ApplicationFormComponents/CaptchaInput";
+import ImageModal from "../../components/ApplicationFormComponents/ImageModal";
 import { toast } from "react-toastify";
 
 const ApplicationFormPage = () => {
@@ -58,6 +59,13 @@ const ApplicationFormPage = () => {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Image modal state
+  const [imageModal, setImageModal] = useState({
+    isOpen: false,
+    imageUrl: "",
+    title: "",
+  });
+
   // Force re-render when language changes
   const [, forceUpdate] = useState({});
 
@@ -104,10 +112,10 @@ const ApplicationFormPage = () => {
       if (decoded) {
         return (
           decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
           ] ||
           decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"
           ] ||
           decoded.sub ||
           decoded.userId ||
@@ -121,14 +129,14 @@ const ApplicationFormPage = () => {
   // Hàm parse date từ API (format DD/MM/YYYY hoặc MM/DD/YYYY)
   const parseDateFromApi = (dateString) => {
     if (!dateString) return null;
-    
+
     // Nếu đã là Date object, trả về luôn
     if (dateString instanceof Date) {
       return isNaN(dateString.getTime()) ? null : dateString;
     }
-    
+
     if (typeof dateString !== "string") return null;
-    
+
     // Thử parse format DD/MM/YYYY (ngày trước tháng sau)
     const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (ddmmyyyyMatch) {
@@ -136,7 +144,7 @@ const ApplicationFormPage = () => {
       const dayNum = parseInt(day, 10);
       const monthNum = parseInt(month, 10);
       const yearNum = parseInt(year, 10);
-      
+
       // Validate: ngày từ 1-31, tháng từ 1-12
       if (dayNum >= 1 && dayNum <= 31 && monthNum >= 1 && monthNum <= 12) {
         const date = new Date(yearNum, monthNum - 1, dayNum);
@@ -145,7 +153,7 @@ const ApplicationFormPage = () => {
         }
       }
     }
-    
+
     // Fallback: thử parse như Date object thông thường
     try {
       const date = new Date(dateString);
@@ -155,7 +163,7 @@ const ApplicationFormPage = () => {
     } catch (e) {
       console.error("Error parsing date:", dateString, e);
     }
-    
+
     return null;
   };
 
@@ -171,7 +179,7 @@ const ApplicationFormPage = () => {
         return dateString.split("T")[0]; // Bỏ phần time nếu có
       }
     }
-    
+
     // Parse từ format DD/MM/YYYY hoặc các format khác
     const parsedDate = parseDateFromApi(dateString);
     if (parsedDate) {
@@ -180,14 +188,14 @@ const ApplicationFormPage = () => {
       const day = String(parsedDate.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     }
-    
+
     return "";
   };
 
   // Hàm format date từ YYYY-MM-DD sang DD/MM/YYYY cho API
   const formatDateForApi = (dateString) => {
     if (!dateString) return "";
-    
+
     // Nếu đã là format DD/MM/YYYY, trả về như cũ
     if (typeof dateString === "string") {
       const ddmmyyyyMatch = dateString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -195,14 +203,14 @@ const ApplicationFormPage = () => {
         return dateString;
       }
     }
-    
+
     // Parse từ YYYY-MM-DD (từ input type="date")
     const ymdMatch = typeof dateString === "string" ? dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
     if (ymdMatch) {
       const [, year, month, day] = ymdMatch;
       return `${day}/${month}/${year}`;
     }
-    
+
     // Fallback: parse như Date object
     const parsedDate = parseDateFromApi(dateString);
     if (parsedDate) {
@@ -211,13 +219,31 @@ const ApplicationFormPage = () => {
       const year = parsedDate.getFullYear();
       return `${day}/${month}/${year}`;
     }
-    
+
     return dateString || "";
   };
 
   // Handle captcha code change callback
   const handleCaptchaCodeChange = (code) => {
     setCaptchaCode(code);
+  };
+
+  // Handle open image modal
+  const handleOpenImageModal = (imageUrl, title) => {
+    setImageModal({
+      isOpen: true,
+      imageUrl,
+      title,
+    });
+  };
+
+  // Handle close image modal
+  const handleCloseImageModal = () => {
+    setImageModal({
+      isOpen: false,
+      imageUrl: "",
+      title: "",
+    });
   };
 
   // Load user profile data from API
@@ -546,7 +572,7 @@ const ApplicationFormPage = () => {
 
         toast.success(
           t("application_form_submitted_successfully") ||
-            "Submit application successfully!"
+          "Submit application successfully!"
         );
         navigate("/cabin-crew/promotion-stages");
       } else {
@@ -843,8 +869,17 @@ const ApplicationFormPage = () => {
                       {t("application_form_english_certificate")} *
                       <EyeIcon
                         url="https://res.cloudinary.com/dxhaku7lp/image/upload/v1764240300/euxcie5gbzhzmzbg4o2x.jpg"
-                        title="Xem mẫu chứng chỉ tiếng Anh"
+                        title="View sample English certificates"
+                        onClick={() =>
+                          handleOpenImageModal(
+                            "https://res.cloudinary.com/dxhaku7lp/image/upload/v1764240300/euxcie5gbzhzmzbg4o2x.jpg",
+                            "View sample English certificates"
+                          )
+                        }
                       />
+                      <span className="text-xs text-slate-500 italic">
+                        (Click on the exclamation mark to view sample)
+                      </span>
                     </span>
                     {files.englishCertificate && (
                       <DeleteFileButton
@@ -1227,6 +1262,14 @@ const ApplicationFormPage = () => {
         </div>
       </div>
       <Footer />
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={imageModal.isOpen}
+        imageUrl={imageModal.imageUrl}
+        title={imageModal.title}
+        onClose={handleCloseImageModal}
+      />
     </div>
   );
 };
