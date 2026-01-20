@@ -11,8 +11,10 @@ const StatusBadge = ({ value }) => {
     typeof value === "boolean" ? value : value?.toLowerCase() === "active";
   return (
     <span
-      className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium ${
-        isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full border text-xs font-medium ${
+        isActive
+          ? "bg-green-50 text-green-700 border-green-200"
+          : "bg-gray-100 text-gray-600 border-gray-200"
       }`}
     >
       <span
@@ -27,7 +29,7 @@ const StatusBadge = ({ value }) => {
 
 const PositionBadge = ({ value }) => {
   return (
-    <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 rounded-md bg-blue-50">
+    <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200 rounded-full bg-blue-50 whitespace-nowrap">
       {value || "N/A"}
     </span>
   );
@@ -35,7 +37,7 @@ const PositionBadge = ({ value }) => {
 
 // Hàm lấy màu cho Partner (các airline khác nhau với màu khác nhau)
 const getPartnerColor = (partnerName) => {
-  if (!partnerName) return "bg-gray-100 text-gray-600";
+  if (!partnerName) return "bg-gray-100 text-gray-600 border-gray-200";
 
   const partner = partnerName.toLowerCase();
   // Có thể thêm các airline cụ thể với màu riêng
@@ -43,24 +45,23 @@ const getPartnerColor = (partnerName) => {
     partner.includes("vietnam airlines") ||
     partner.includes("vietnamairlines")
   ) {
-    return "bg-yellow-100 text-yellow-700";
+    return "bg-yellow-100 text-yellow-700 border-yellow-200";
   } else if (partner.includes("vietjet") || partner.includes("viet jet")) {
-    return "bg-red-100 text-red-700";
+    return "bg-red-100 text-red-700 border-red-200";
   } else if (partner.includes("bamboo") || partner.includes("bamboo airways")) {
-    return "bg-green-100 text-green-700";
+    return "bg-green-100 text-green-700 border-green-200";
   } else if (partner.includes("jetstar") || partner.includes("sun phuquoc")) {
-    return "bg-indigo-100 text-indigo-700";
+    return "bg-indigo-100 text-indigo-700 border-indigo-200";
   }
   // Màu mặc định cho các partner khác
-  return "bg-cyan-100 text-cyan-700";
+  return "bg-cyan-100 text-cyan-700 border-cyan-200";
 };
 
 const PartnerBadge = ({ value }) => {
+  const colorClasses = getPartnerColor(value);
   return (
     <span
-      className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-md ${getPartnerColor(
-        value
-      )}`}
+      className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-full whitespace-nowrap border ${colorClasses}`}
     >
       {value || "—"}
     </span>
@@ -347,9 +348,9 @@ const AccountTable = ({
       <table className="min-w-full border-collapse table-fixed">
         <thead>
           <tr className="text-sm text-left text-gray-600 bg-gray-50">
-            <th className="w-16 px-5 py-3 font-semibold">No.</th>
-            <th className="w-20 px-5 py-3 font-semibold">Avatar</th>
-            <th className="px-5 py-3 font-semibold">
+            <th className="w-12 px-2 py-3 font-semibold">No.</th>
+            <th className="w-16 px-2 py-3 font-semibold">Avatar</th>
+            <th className="px-2 py-3 font-semibold w-36">
               <button
                 type="button"
                 onClick={() => handleSort("fullName")}
@@ -359,9 +360,9 @@ const AccountTable = ({
                 {getSortIcon("fullName")}
               </button>
             </th>
-            <th className="px-5 py-3 font-semibold">Date of Birth</th>
-            <th className="px-5 py-3 font-semibold">Gender</th>
-            <th className="px-5 py-3 font-semibold">
+            <th className="w-24 px-2 py-3 font-semibold whitespace-nowrap">Date Of Birth</th>
+            <th className="w-20 px-2 py-3 font-semibold">Gender</th>
+            <th className="px-2 py-3 font-semibold w-36">
               <button
                 type="button"
                 onClick={() => handleSort("email")}
@@ -370,13 +371,13 @@ const AccountTable = ({
                 Contact Email {getSortIcon("email")}
               </button>
             </th>
-            <th className="px-5 py-3 font-semibold">Phone Number</th>
-            <th className="px-5 py-3 font-semibold">Position</th>
+            <th className="w-24 px-2 py-3 font-semibold whitespace-nowrap">Phone Number</th>
+            <th className="w-20 px-2 py-3 font-semibold">Position</th>
             {showPartnerColumn && (
-              <th className="px-5 py-3 font-semibold">Partner</th>
+              <th className="px-2 py-3 font-semibold w-36">Partner</th>
             )}
-            <th className="px-5 py-3 font-semibold">Status</th>
-            <th className="px-5 py-3 font-semibold text-right w-28">Actions</th>
+            <th className="w-20 px-2 py-3 font-semibold">Status</th>
+            <th className="w-20 px-2 py-3 font-semibold text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -384,7 +385,7 @@ const AccountTable = ({
             <tr>
               <td
                 colSpan={showPartnerColumn ? 11 : 10}
-                className="px-5 py-8 text-center text-gray-500"
+                className="px-2 py-8 text-center text-gray-500"
               >
                 No data
               </td>
@@ -398,10 +399,10 @@ const AccountTable = ({
                   key={u.userId || idx}
                   className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                 >
-                  <td className="px-5 py-4 text-sm text-center text-gray-700">
+                  <td className="px-2 py-4 text-sm text-center text-gray-700">
                     {rowNumber}
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-2 py-4">
                     {u.imgURL ? (
                       <img
                         src={u.imgURL}
@@ -420,31 +421,31 @@ const AccountTable = ({
                       </div>
                     )}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-800 truncate">
+                  <td className="px-2 py-4 text-sm text-gray-800 truncate">
                     {u.fullName}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700 whitespace-nowrap">
+                  <td className="px-2 py-4 text-sm text-gray-700 whitespace-nowrap">
                     {u.dateOfBirth ? formatDateFromAPI(u.dateOfBirth) : "—"}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">
+                  <td className="px-2 py-4 text-sm text-gray-700 whitespace-nowrap">
                     {u.gender || "—"}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700 truncate">
+                  <td className="px-2 py-4 text-sm text-gray-700 truncate">
                     {u.email}
                   </td>
-                  <td className="px-5 py-4 text-sm text-gray-700">{u.phone}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-2 py-4 text-sm text-gray-700 whitespace-nowrap">{u.phone}</td>
+                  <td className="px-2 py-4 whitespace-nowrap">
                     <PositionBadge value={u.position} />
                   </td>
                   {showPartnerColumn && (
-                    <td className="px-5 py-4">
+                    <td className="px-2 py-4 whitespace-nowrap">
                       <PartnerBadge value={u.airlinePartner} />
                     </td>
                   )}
-                  <td className="px-5 py-4">
+                  <td className="px-2 py-4">
                     <StatusBadge value={u.status} />
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-2 py-3">
                     <div className="flex items-center justify-end gap-2">
                       {(() => {
                         const isActive =

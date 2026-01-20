@@ -468,6 +468,10 @@ const CandidateApplyDetail = () => {
     defaultStageTemplates.find((stage) => stage.id === derivedStageId)?.name ||
     "Screening";
 
+  // Kiểm tra nếu đang ở round "Flight Hours Confirmation" để ẩn các nút action
+  const isFlightHoursConfirmationRound = normalizeText(currentStageName).includes("flight") && 
+    (normalizeText(currentStageName).includes("hour") || normalizeText(currentStageName).includes("confirmation"));
+
   const normalizedStatus = normalizeText(candidate?.status);
   const isOngoingStatus = [
     "pending",
@@ -703,7 +707,7 @@ const CandidateApplyDetail = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -712,13 +716,13 @@ const CandidateApplyDetail = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-slate-800">
             Candidate information not found
           </h2>
-          {error && <p className="text-red-600 mb-4">{error}</p>}
+          {error && <p className="mb-4 text-red-600">{error}</p>}
           <button
             onClick={goBack}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
             Back
           </button>
@@ -730,12 +734,12 @@ const CandidateApplyDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="bg-white border-b shadow-sm border-slate-200">
+        <div className="px-6 py-4 mx-auto max-w-7xl">
           <div className="flex items-center gap-4">
             <button
               onClick={goBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 transition-colors rounded-lg hover:bg-gray-100"
             >
               <svg
                 className="w-5 h-5"
@@ -761,32 +765,32 @@ const CandidateApplyDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl px-4 py-8 mx-auto">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="px-4 py-3 mb-6 text-red-700 border border-red-200 rounded-lg bg-red-50">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Left Column - CV and Documents */}
           <div className="space-y-6">
             {/* CV Section */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h3 className="mb-4 text-lg font-semibold text-slate-800">
                 CANDIDATE PROFILE
               </h3>
 
               {/* Profile Photo */}
-              <div className="text-center mb-6">
-                <div className="w-32 h-40 mx-auto bg-slate-100 rounded-lg overflow-hidden mb-4 border-2 border-slate-300 shadow-sm">
+              <div className="mb-6 text-center">
+                <div className="w-32 h-40 mx-auto mb-4 overflow-hidden border-2 rounded-lg shadow-sm bg-slate-100 border-slate-300">
                   <img
                     src={
                       getDocumentUrl(candidate?.documents?.profilePhoto) ||
                       "https://via.placeholder.com/128x160/cccccc/666666?text=4x6"
                     }
                     alt="4x6 Photo"
-                    className="w-full h-full object-cover"
+                    className="object-cover w-full h-full"
                     onError={(e) => {
                       e.target.src =
                         "https://via.placeholder.com/128x160/cccccc/666666?text=4x6";
@@ -799,8 +803,8 @@ const CandidateApplyDetail = () => {
             </div>
 
             {/* Uploaded Documents */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            <div className="p-6 bg-white border border-gray-200 rounded-xl">
+              <h3 className="mb-4 text-lg font-semibold text-slate-800">
                 UPLOADED DOCUMENTS
               </h3>
 
@@ -816,10 +820,10 @@ const CandidateApplyDetail = () => {
 
                   return (
                     <div key={section.key}>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className="block mb-2 text-sm font-medium text-slate-700">
                         {section.label} {isCitizenId && <span className="text-red-500">*</span>}
                       </label>
-                      <div className="border border-slate-300 rounded-lg p-4 bg-slate-50">
+                      <div className="p-4 border rounded-lg border-slate-300 bg-slate-50">
                         {documentData ? (
                           <div className="flex items-center gap-3">
                             <svg
@@ -835,12 +839,12 @@ const CandidateApplyDetail = () => {
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                               />
                             </svg>
-                            <span className="text-green-600 font-medium">
+                            <span className="font-medium text-green-600">
                               {getDocumentDisplayName(documentData)}
                             </span>
                             <button
                               onClick={() => handleViewDocument(documentData)}
-                              className="text-blue-600 hover:text-blue-800 text-sm underline flex items-center gap-1"
+                              className="flex items-center gap-1 text-sm text-blue-600 underline hover:text-blue-800"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -876,50 +880,50 @@ const CandidateApplyDetail = () => {
           </div>
 
           {/* Right Column - Application Form Details */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">
+          <div className="p-6 bg-white border border-gray-200 rounded-xl">
+            <h2 className="mb-6 text-xl font-bold text-slate-800">
               Application Details
             </h2>
 
             <div className="space-y-6">
               {/* Personal Information */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">
+                <h3 className="pb-2 mb-4 text-lg font-semibold border-b text-slate-800 border-slate-200">
                   Personal Information
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       1. Email:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.email || "—"}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       2. Full Name:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.fullName || "—"}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       3. Date of Birth:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {formatDate(candidate.dateOfBirth) || "—"}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       4. Gender:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.gender === "male"
                         ? "Male"
                         : candidate.gender === "female"
@@ -929,49 +933,49 @@ const CandidateApplyDetail = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       5. Phone Number:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.mobileNumber || "—"}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       6. Working Experience:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {getWorkingExperienceText(candidate.workingExperience)}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       7. Height & Weight:
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       <div>
-                        <label className="block text-xs text-slate-600 mb-1">
+                        <label className="block mb-1 text-xs text-slate-600">
                           Height (cm)
                         </label>
-                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                        <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                           {candidate.height || "—"}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-600 mb-1">
+                        <label className="block mb-1 text-xs text-slate-600">
                           Weight (kg)
                         </label>
-                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                        <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                           {candidate.weight || "—"}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-xs text-slate-600 mb-1">
+                        <label className="block mb-1 text-xs text-slate-600">
                           BMI
                         </label>
-                        <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                        <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                           {candidate.bmi || "—"}
                         </p>
                       </div>
@@ -982,35 +986,35 @@ const CandidateApplyDetail = () => {
 
               {/* English Certificate */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">
+                <h3 className="pb-2 mb-4 text-lg font-semibold border-b text-slate-800 border-slate-200">
                   English Certificate
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       Type:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.englishCertificate || "—"}
                     </p>
                     <div className="mt-3 space-y-2">
                       {candidate.readingScore !== null &&
                         candidate.readingScore !== undefined && (
                           <div>
-                            <label className="block text-xs text-slate-600 mb-1">
+                            <label className="block mb-1 text-xs text-slate-600">
                               Reading score:
                             </label>
-                            <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">
+                            <p className="p-2 text-sm rounded-md text-slate-800 bg-slate-50">
                               {candidate.readingScore}
                             </p>
                           </div>
                         )}
                       {candidate.englishTestDate && (
                         <div>
-                          <label className="block text-xs text-slate-600 mb-1">
+                          <label className="block mb-1 text-xs text-slate-600">
                             English test date:
                           </label>
-                          <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">
+                          <p className="p-2 text-sm rounded-md text-slate-800 bg-slate-50">
                             {formatDate(candidate.englishTestDate)}
                           </p>
                         </div>
@@ -1018,10 +1022,10 @@ const CandidateApplyDetail = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block mb-1 text-sm font-medium text-slate-700">
                       Total score:
                     </label>
-                    <p className="text-slate-800 bg-slate-50 p-3 rounded-md">
+                    <p className="p-3 rounded-md text-slate-800 bg-slate-50">
                       {candidate.totalScore !== null &&
                         candidate.totalScore !== undefined
                         ? candidate.totalScore
@@ -1031,19 +1035,19 @@ const CandidateApplyDetail = () => {
                       {candidate.listeningScore !== null &&
                         candidate.listeningScore !== undefined && (
                           <div>
-                            <label className="block text-xs text-slate-600 mb-1">
+                            <label className="block mb-1 text-xs text-slate-600">
                               Listening score:
                             </label>
-                            <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">
+                            <p className="p-2 text-sm rounded-md text-slate-800 bg-slate-50">
                               {candidate.listeningScore}
                             </p>
                           </div>
                         )}
                       <div>
-                        <label className="block text-xs text-slate-600 mb-1">
+                        <label className="block mb-1 text-xs text-slate-600">
                           Expiration date:
                         </label>
-                        <p className="text-slate-800 bg-slate-50 p-2 rounded-md text-sm">
+                        <p className="p-2 text-sm rounded-md text-slate-800 bg-slate-50">
                           {formatDate(candidate.certificateExpireDate) || "—"}
                         </p>
                       </div>
@@ -1053,13 +1057,13 @@ const CandidateApplyDetail = () => {
               </div>
               {/* Recruiter Actions */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-200 pb-2">
+                <h3 className="pb-2 mb-4 text-lg font-semibold border-b text-slate-800 border-slate-200">
                   Application Review Actions
                 </h3>
-                {derivedStageId === "screening" && isOngoingStatus && (
+                {derivedStageId === "screening" && isOngoingStatus && !isFlightHoursConfirmationRound && (
                   <div className="flex flex-wrap gap-3">
                     <button
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => setConfirmAction("approve")}
                       disabled={actionLoading}
                     >
@@ -1068,7 +1072,7 @@ const CandidateApplyDetail = () => {
                         : "Approve Application"}
                     </button>
                     <button
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 text-white transition-colors bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => setConfirmAction("reject")}
                       disabled={actionLoading}
                     >
@@ -1085,20 +1089,20 @@ const CandidateApplyDetail = () => {
         {/* Confirm modal */}
         {confirmAction && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-            <div className="bg-white rounded-xl shadow-lg border border-slate-200 w-full max-w-md p-6">
-              <h4 className="text-lg font-semibold text-slate-800 mb-2">
+            <div className="w-full max-w-md p-6 bg-white border shadow-lg rounded-xl border-slate-200">
+              <h4 className="mb-2 text-lg font-semibold text-slate-800">
                 {confirmAction === "approve"
                   ? "Approve application"
                   : "Reject application"}
               </h4>
-              <p className="text-sm text-slate-600 mb-6">
+              <p className="mb-6 text-sm text-slate-600">
                 {confirmAction === "approve"
                   ? "Are you sure you want to approve this application?"
                   : "Are you sure you want to reject this application?"}
               </p>
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-sm"
+                  className="px-4 py-2 text-sm border rounded-lg border-slate-300 text-slate-700 hover:bg-slate-50"
                   onClick={() => setConfirmAction(null)}
                   disabled={actionLoading}
                 >
