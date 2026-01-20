@@ -128,93 +128,200 @@ const HomePage = () => {
             {/* Requirements Section */}
             <section className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 py-16 lg:py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">{t('req_title')}</h2>
-                            <p className="text-lg text-gray-600 mb-8">{t('req_subtitle')}</p>
-
-                            <div className="space-y-6">
-                                <div className="flex items-start space-x-4">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <span className="text-blue-600 font-semibold">1</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                        {/* Requirements Box */}
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4">
+                                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('req_basic_title')}</h3>
-                                        <ul className="text-gray-600 space-y-1">
-                                            <li>{t('req_basic_b1')}</li>
-                                            <li>{t('req_basic_b2')}</li>
-                                            <li>{t('req_basic_b3')}</li>
-                                            <li>{t('req_basic_b4')}</li>
-                                        </ul>
-                                    </div>
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-white">Requirements</h2>
                                 </div>
-
-                                <div className="flex items-start space-x-4">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <span className="text-blue-600 font-semibold">2</span>
+                            </div>
+                            
+                            <div className="p-8 flex-1 flex flex-col">
+                                <div className="space-y-5 flex-1">
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Form</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">Cover letters</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('req_lang_title')}</h3>
-                                        <ul className="text-gray-600 space-y-1">
-                                            <li>{t('req_lang_b1')}</li>
-                                            <li>{t('req_lang_b2')}</li>
-                                            <li>{t('req_lang_b3')}</li>
-                                        </ul>
+                                    
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Age</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">18 - 30</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div className="flex items-start space-x-4">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <span className="text-blue-600 font-semibold">3</span>
+                                    
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Education level</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">High school graduation certificate or higher certificate</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('req_look_title')}</h3>
-                                        <ul className="text-gray-600 space-y-1">
-                                            <li>{t('req_look_b1')}</li>
-                                            <li>{t('req_look_b2')}</li>
-                                            <li>{t('req_look_b3')}</li>
-                                        </ul>
+                                    
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Valid English certificate</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">TOEIC 500 or higher</p>
+                                                <p className="text-xs text-gray-500 mt-2 italic leading-relaxed">(TOEFL iBT home edition and other certificates that cannot be verified in Vietnam are not accepted.)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Height & BMI (Female)</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">160 - 175 cm (Bare foot), BMI 18.5-22</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-semibold text-gray-900 mb-1.5 text-base">Height & BMI (Male)</h3>
+                                                <p className="text-gray-700 text-sm leading-relaxed">170 - 185 cm (Bare foot), BMI 20-25</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">{t('process_title')}</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
-                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">1</div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">{t('process_1_h')}</h4>
-                                        <p className="text-sm text-gray-600">{t('process_1_p')}</p>
+                        {/* Recruitment Process Box */}
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col">
+                            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-8 py-6">
+                                <div className="flex items-center">
+                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4">
+                                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                        </svg>
                                     </div>
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-white">Recruitment Process</h3>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
-                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">2</div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">{t('process_2_h')}</h4>
-                                        <p className="text-sm text-gray-600">{t('process_2_p')}</p>
+                            </div>
+                            
+                            <div className="p-8 flex-1 flex flex-col">
+                                <div className="space-y-5 flex-1">
+                                    <div className="flex items-start space-x-4 pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                1
+                                            </div>
+                                            <div className="absolute left-1/2 top-full w-0.5 h-5 bg-gray-200 transform -translate-x-1/2"></div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">Screening</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Initial document review and application screening to ensure all basic requirements are met.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
-                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">3</div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">{t('process_3_h')}</h4>
-                                        <p className="text-sm text-gray-600">{t('process_3_p')}</p>
+                                    
+                                    <div className="flex items-start space-x-4 pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                2
+                                            </div>
+                                            <div className="absolute left-1/2 top-full w-0.5 h-5 bg-gray-200 transform -translate-x-1/2"></div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">Appearance</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Visual assessment of professional appearance, grooming standards, and overall presentation.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
-                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">4</div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">{t('process_4_h')}</h4>
-                                        <p className="text-sm text-gray-600">{t('process_4_p')}</p>
+                                    
+                                    <div className="flex items-start space-x-4 pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                3
+                                            </div>
+                                            <div className="absolute left-1/2 top-full w-0.5 h-5 bg-gray-200 transform -translate-x-1/2"></div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">English Listening Test</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Assessment of listening comprehension skills through various audio scenarios and instructions.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-blue-50/50 rounded-lg">
-                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold">5</div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900">{t('process_5_h')}</h4>
-                                        <p className="text-sm text-gray-600">{t('process_5_p')}</p>
+                                    
+                                    <div className="flex items-start space-x-4 pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                4
+                                            </div>
+                                            <div className="absolute left-1/2 top-full w-0.5 h-5 bg-gray-200 transform -translate-x-1/2"></div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">English Speaking Test</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Evaluation of verbal communication skills, pronunciation, and ability to communicate effectively in English.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-start space-x-4 pb-5 border-b border-gray-200 last:border-b-0 last:pb-0">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                5
+                                            </div>
+                                            <div className="absolute left-1/2 top-full w-0.5 h-5 bg-gray-200 transform -translate-x-1/2"></div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">Interview</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Comprehensive interview to assess personality, motivation, problem-solving skills, and suitability for the cabin crew role.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-start space-x-4">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-md">
+                                                6
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <h4 className="font-semibold text-gray-900 mb-1.5 text-base">Final</h4>
+                                            <p className="text-sm text-gray-600 leading-relaxed">Post-verification of English language certificates for authenticity and validity.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
