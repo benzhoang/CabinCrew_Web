@@ -214,7 +214,7 @@ const SeniorCreateCampaignPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Nếu startDate của campaign thay đổi, tự động cập nhật roundStartDate và roundEndDate của tất cả các rounds
+    // Nếu startDate của campaign thay đổi, tự động cập nhật roundStartDate và roundEndDate chỉ của Round 1
     if (name === "startDate") {
       setFormData((prev) => {
         // Tính roundEndDate = roundStartDate + 7 ngày
@@ -228,13 +228,21 @@ const SeniorCreateCampaignPage = () => {
 
         const roundEndDateValue = calculateEndDate(value);
 
-        const updatedRounds = prev.rounds.map((round) => ({
-          ...round,
-          roundStartDate: value, // Tự động điền startDate của campaign vào roundStartDate
-          roundEndDate: roundEndDateValue, // Tự động điền endDate = startDate + 7 ngày
-        }));
+        // Chỉ cập nhật Round 1 (index 0), không cập nhật các round được tạo mới trước đó
+        const updatedRounds = prev.rounds.map((round, roundIndex) => {
+          // Chỉ cập nhật Round 1 (index 0)
+          if (roundIndex === 0) {
+            return {
+              ...round,
+              roundStartDate: value, // Tự động điền startDate của campaign vào roundStartDate của Round 1
+              roundEndDate: roundEndDateValue, // Tự động điền endDate = startDate + 7 ngày cho Round 1
+            };
+          }
+          // Giữ nguyên các round khác (không cập nhật)
+          return round;
+        });
 
-        // Reset roundsData khi startDate thay đổi, nhưng giữ lại startDate của round đầu tiên
+        // Reset roundsData khi startDate thay đổi, nhưng chỉ cập nhật Round 1
         if (roundsData.length > 0) {
           const campaignType = campaignDetail?.campaignType || "Recruitment";
           const roundsCount = getRoundsCountByCampaignType(
@@ -268,15 +276,25 @@ const SeniorCreateCampaignPage = () => {
                   );
               }
 
-              // Reset tất cả các date, chỉ giữ lại startDate và endDate của round đầu tiên
-              relatedRounds.forEach((relatedRound) => {
-                const isFirstRound = relatedRound.roundName === firstRoundName;
-                updatedRoundsData.push({
-                  ...relatedRound,
-                  startDate: isFirstRound ? value : "",
-                  endDate: isFirstRound ? roundEndDateValue : "",
+              // Chỉ cập nhật Round 1 (roundIndex === 0), các round khác giữ nguyên
+              if (roundIndex === 0) {
+                // Reset tất cả các date của Round 1, chỉ giữ lại startDate và endDate của round đầu tiên
+                relatedRounds.forEach((relatedRound) => {
+                  const isFirstRound = relatedRound.roundName === firstRoundName;
+                  updatedRoundsData.push({
+                    ...relatedRound,
+                    startDate: isFirstRound ? value : "",
+                    endDate: isFirstRound ? roundEndDateValue : "",
+                  });
                 });
-              });
+              } else {
+                // Giữ nguyên các round khác (không cập nhật)
+                relatedRounds.forEach((relatedRound) => {
+                  updatedRoundsData.push({
+                    ...relatedRound,
+                  });
+                });
+              }
             });
 
             return updatedRoundsData;
@@ -711,7 +729,7 @@ const SeniorCreateCampaignPage = () => {
                     className={`rounded-md border p-4 bg-green-50 border-green-300`}
                   >
                     {isLoadingRequirements ? (
-                      <div className="text-center py-4">
+                      <div className="py-4 text-center">
                         <div className="inline-block w-6 h-6 border-b-2 border-blue-600 rounded-full animate-spin"></div>
                         <p className="mt-2 text-sm text-gray-600">
                           Loading requirements...
