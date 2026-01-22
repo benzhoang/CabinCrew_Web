@@ -194,7 +194,6 @@ const AppearanceResultPage = () => {
             : '—'
 
         return [
-            { label: 'Evaluation ID', value: result?.evaluationId ?? '—' },
             { label: 'Candidate', value: result?.candidate || '—' },
             { label: 'Examiner', value: result?.examiner || '—' },
             { label: 'Round', value: result?.roundName || '—' },
