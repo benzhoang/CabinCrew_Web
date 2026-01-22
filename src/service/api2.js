@@ -998,10 +998,12 @@ export const createConfiguration = async (roundTypeId, benchmark) => {
       error: responseMessage || "Failed to create configuration",
     };
   } catch (error) {
+    const errorData = error.response?.data;
     return {
       success: false,
       error:
-        error.response?.data?.message ||
+        errorData?.errorMessage ||
+        errorData?.message ||
         error.message ||
         "Failed to create configuration",
       status: error.response?.status,

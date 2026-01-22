@@ -56,7 +56,12 @@ const CreateGeneralModal = ({ isOpen, onClose, onSuccess, roundTypeId }) => {
                 setError(res.error || "Failed to create configuration");
             }
         } catch (err) {
-            setError(err.message || "Failed to create configuration");
+            const apiErrorMessage =
+                err?.response?.data?.errorMessage ||
+                err?.response?.data?.message ||
+                err?.message ||
+                "Failed to create configuration";
+            setError(apiErrorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -98,13 +103,13 @@ const CreateGeneralModal = ({ isOpen, onClose, onSuccess, roundTypeId }) => {
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     setBenchmark(value);
-                                    
+
                                     // Validate real-time
                                     if (value === "") {
                                         setError("");
                                         return;
                                     }
-                                    
+
                                     const numValue = parseInt(value, 10);
                                     if (isNaN(numValue)) {
                                         setError("Benchmark must be a valid number");
