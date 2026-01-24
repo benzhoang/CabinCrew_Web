@@ -391,13 +391,30 @@ const DirectorCampaign = () => {
         return formatDateFromAPI(value) || value || 'Unknown'
     }
 
-    // Preserve status from API without transforming
+    // Map status from API (handles both numeric and string values)
     const mapStatusValue = (status) => {
-        if (!status) return 'Draft'
-        // Keep API statuses (Upcoming, Ended, Ongoing, Rejected, Approved, Pending, Draft, Canceled)
+        if (!status && status !== 0) return 'Draft'
+
+        // Handle numeric status values from API
+        if (typeof status === 'number') {
+            switch (status) {
+                case 0: return 'Draft'
+                case 1: return 'Pending'
+                case 2: return 'Approved'
+                case 3: return 'Rejected'
+                case 4: return 'Canceled'
+                case 5: return 'Ongoing'
+                case 6: return 'Upcoming'
+                case 7: return 'Ended'
+                default: return 'Draft'
+            }
+        }
+
+        // Handle string status values
         const statusStr = status.toString().trim()
-        // Normalize only old lowercase values for backward compatibility
         const normalized = statusStr.toLowerCase()
+
+        // Map lowercase/old values to PascalCase
         if (['ongoing', 'inprogress', 'in_progress', 'active'].includes(normalized)) return 'Ongoing'
         if (['pending', 'waiting', 'reviewing'].includes(normalized)) return 'Pending'
         if (['approved', 'approve'].includes(normalized)) return 'Approved'
@@ -406,10 +423,12 @@ const DirectorCampaign = () => {
         if (['upcoming', 'scheduled'].includes(normalized)) return 'Upcoming'
         if (['draft'].includes(normalized)) return 'Draft'
         if (['canceled', 'cancelled'].includes(normalized)) return 'Canceled'
-        // If already in correct API PascalCase, keep as-is
+
+        // If already in correct PascalCase, keep as-is
         if (['Upcoming', 'Ended', 'Ongoing', 'Rejected', 'Approved', 'Pending', 'Draft', 'Canceled'].includes(statusStr)) {
             return statusStr
         }
+
         // Default
         return statusStr || 'Draft'
     }
@@ -450,6 +469,24 @@ const DirectorCampaign = () => {
                 }
                 if (partnerId) {
                     params.partnerId = partnerId
+                }
+                // Add campaignStatus filter if not 'all'
+                if (statusFilter !== 'all') {
+                    // Map status name to numeric value for API
+                    const statusMap = {
+                        'Draft': 0,
+                        'Pending': 1,
+                        'Approved': 2,
+                        'Rejected': 3,
+                        'Canceled': 4,
+                        'Ongoing': 5,
+                        'Upcoming': 6,
+                        'Ended': 7
+                    }
+                    const statusValue = statusMap[statusFilter]
+                    if (statusValue !== undefined) {
+                        params.campaignStatus = statusValue
+                    }
                 }
                 const response = await getCampaigns(params)
                 if (response.success && Array.isArray(response.data)) {
@@ -493,7 +530,7 @@ const DirectorCampaign = () => {
         // First load fetches page 1
         fetchCampaigns(1)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [partnerFilter, getPartnerIdFromName])
+    }, [partnerFilter, statusFilter, getPartnerIdFromName])
 
     const normalizeString = (value) => (value || '').toString().toLowerCase()
     const normalizeStatus = (value) => normalizeString(value)
@@ -501,7 +538,7 @@ const DirectorCampaign = () => {
     useEffect(() => {
         let filtered = campaigns
 
-        // Filter by search term
+        // Filter by search term (client-side only)
         if (searchTerm) {
             const term = searchTerm.toLowerCase()
             filtered = filtered.filter(campaign =>
@@ -511,15 +548,7 @@ const DirectorCampaign = () => {
             )
         }
 
-        // Filter by status
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(campaign => {
-                const campaignStatus = (campaign.status || '').toString().trim()
-                const filterStatus = statusFilter.toString().trim()
-                // Case-insensitive comparison
-                return campaignStatus.toLowerCase() === filterStatus.toLowerCase()
-            })
-        }
+        // Note: Status filtering is now done server-side via API
 
         // Sort campaigns
         const sorted = [...filtered].sort((a, b) => {
@@ -540,7 +569,7 @@ const DirectorCampaign = () => {
         })
 
         setFilteredCampaigns(sorted)
-    }, [campaigns, searchTerm, statusFilter, sortBy])
+    }, [campaigns, searchTerm, sortBy])
 
     const handleViewDetails = (campaign) => {
         navigate(`/director/campaigns/${campaign.id}`, { state: { campaign } })
@@ -573,6 +602,23 @@ const DirectorCampaign = () => {
                 }
                 if (partnerId) {
                     params.partnerId = partnerId
+                }
+                // Add campaignStatus filter if not 'all'
+                if (statusFilter !== 'all') {
+                    const statusMap = {
+                        'Draft': 0,
+                        'Pending': 1,
+                        'Approved': 2,
+                        'Rejected': 3,
+                        'Canceled': 4,
+                        'Ongoing': 5,
+                        'Upcoming': 6,
+                        'Ended': 7
+                    }
+                    const statusValue = statusMap[statusFilter]
+                    if (statusValue !== undefined) {
+                        params.campaignStatus = statusValue
+                    }
                 }
                 const response = await getCampaigns(params)
                 if (response.success && Array.isArray(response.data)) {
@@ -633,6 +679,23 @@ const DirectorCampaign = () => {
                                     }
                                     if (partnerId) {
                                         params.partnerId = partnerId
+                                    }
+                                    // Add campaignStatus filter
+                                    if (statusFilter !== 'all') {
+                                        const statusMap = {
+                                            'Draft': 0,
+                                            'Pending': 1,
+                                            'Approved': 2,
+                                            'Rejected': 3,
+                                            'Canceled': 4,
+                                            'Ongoing': 5,
+                                            'Upcoming': 6,
+                                            'Ended': 7
+                                        }
+                                        const statusValue = statusMap[statusFilter]
+                                        if (statusValue !== undefined) {
+                                            params.campaignStatus = statusValue
+                                        }
                                     }
                                     const response = await getCampaigns(params)
                                     if (response.success && Array.isArray(response.data)) {
