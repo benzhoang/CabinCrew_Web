@@ -30,12 +30,11 @@ CabinCrew is a web-based recruitment and promotion management system for airline
 - ASP.NET Core Web API
 - SQL Server
 - Entity Framework Core
+- Swagger
 
-### Cloud & Tools
+### Cloud & Deployment
 - Azure
 - Vercel
-- Swagger
-- Git & GitHub
 
 ## Contributing
 
