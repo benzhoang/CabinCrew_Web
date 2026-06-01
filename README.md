@@ -1,12 +1,51 @@
-# React + Vite
+# CabinCrew Recruitment & Promotion Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+CabinCrew is a web-based recruitment and promotion management system for airline cabin crew operations. The platform helps manage candidate applications, interview evaluations, promotion workflows, and reporting through a centralized system with role-based access control.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Key Features
 
-## Expanding the ESLint configuration
+1. **Candidate Application & Profile Management**: Allows candidates to apply for positions and manage their personal profiles.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. **Interview Scheduling & Evaluation**: Supports scheduling interviews and evaluating candidates based on performance.
+
+3. **Recruitment Workflow Tracking**: Tracks the progress of candidates through each stage of the recruitment process.
+
+4. **Employee Promotion Management**: Manages promotion requests, evaluations, and approval workflows for employees.
+
+5. **Dashboard & Reporting System**: Provides dashboards and reports to monitor recruitment and promotion activities.
+
+6. **Role-based Authentication & Authorization**: Ensures secure access and permissions based on user roles.
+
+## Technology Stack
+
+### Frontend
+- React + Vite
+- JavaScript
+- TailwindCSS
+- Axios
+
+### Backend
+- ASP.NET Core Web API
+- SQL Server
+- Entity Framework Core
+
+### Cloud & Tools
+- Azure
+- Vercel
+- Swagger
+- Git & GitHub
+
+## Contributing
+
+**Back End**: **ASP.NET CORE API** 
+- [Trương Thành Nhân](https://github.com/thanhnhan151) (Leader)
+- [Trần Duy Hưng](https://github.com/Hyzmyn)
+- [Huỳnh Nguyễn Ngọc Nguyên](https://github.com/NguyenHNN)
+  
+**Front End**: **React + Vite**
+- [Trần Nhật Hoàng](https://github.com/HoangTranNhat)
+- [Hoàng Lê Nhật Minh](https://github.com/benzhoang)
+
+#### Copyright &#169; 2025 - Trương Thành Nhân & Trần Duy Hưng & Huỳnh Nguyễn Ngọc Nguyên & Trần Nhật Hoàng & Hoàng Lê Nhật Minh
