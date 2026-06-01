@@ -1,4 +1,4 @@
-# CabinCrew Recruitment & Promotion Management System
+# CabinCrew - FPT UNIVERSITY CAPSTONE PROJECT - FALL25
 
 ## Overview
 
